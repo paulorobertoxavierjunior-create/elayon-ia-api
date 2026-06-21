@@ -1,0 +1,14 @@
+{
+  "status_sessao": "CONCLUIDO",
+  "piloto": "Paulo Roberto Júnior",
+  "timestamp_analise": "2026-06-21T04:34:00Z",
+  "metricas_crs": {
+    "media_intervalos_ms": 420,
+    "desvio_padrao_ms": 180,
+    "densidade_eventos_ev_s": 1.8,
+    "entropia_temporal": 0.64,
+    "latencia_reacao_ms": 210,
+    "pausa_critica_detectada": "LONGA",
+    "diagnostico_fluxo": "Hesitação decisória expressiva com grande rastro de silêncio"
+  }
+}
