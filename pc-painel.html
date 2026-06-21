@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elayon PC - Console Central</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .scanline {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.3));
+            background-size: 100% 4px;
+        }
+    </style>
+</head>
+<body class="bg-[#020304] text-[#dff0f0] font-mono h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden scanline">
+
+    <!-- Indicador Estético de Alerta Técnico -->
+    <div class="w-full max-w-sm border border-amber-500/30 bg-amber-500/5 rounded-2xl p-6 text-center space-y-4 shadow-xl shadow-amber-500/2">
+        <div class="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 text-xl mx-auto animate-pulse">
+            ⚠️
+        </div>
+        
+        <div class="space-y-1">
+            <h1 class="text-sm font-bold tracking-widest text-amber-500 uppercase">PAINEL ELAYON PC</h1>
+            <p class="text-xs text-amber-400/80">SISTEMA EM MANUTENÇÃO CRÍTICA</p>
+        </div>
+
+        <div class="text-left text-[10px] bg-black/60 p-3 rounded-xl border border-white/[0.04] space-y-1 text-slate-400">
+            <div class="text-[#3ecfcf]">✓ API Vibes: Recebida com Sucesso</div>
+            <div>• Barramento de Hardware: Sincronizado</div>
+            <div>• Kernel Gráfico: Compilando Estruturas</div>
+            <div class="text-amber-500 animate-pulse">• Status: Aguardando Liberação do Engenheiro</div>
+        </div>
+
+        <p class="text-[9px] text-slate-600 italic">Carga de tokens estagnada com segurança. Ciclo operacional encerrado por hoje.</p>
+    </div>
+
+</body>
+</html>
