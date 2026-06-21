@@ -3,18 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elayon Space</title>
+    <title>Elayon Space - Cockpit</title>
+    <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Scrollbar customizada estilo terminal */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: #3ecfcf; border-radius: 10px; }
     </style>
 </head>
-<body class="flex min-h-screen flex-col items-center justify-center bg-[#050708] text-[#dff0f0] px-6 font-sans relative overflow-hidden">
+<body class="flex min-h-screen flex-col items-center justify-center bg-[#050708] text-[#dff0f0] font-sans relative overflow-x-hidden select-none">
 
-    <div class="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_40%,rgba(62,207,207,0.06)_0%,transparent_65%)]"></div>
+    <!-- Fundo tecnológico sutil -->
+    <div class="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_30%,rgba(62,207,207,0.05)_0%,transparent_70%)]"></div>
 
-    <main id="tela-apresentacao" class="fade-in relative z-10 w-full max-w-sm text-center space-y-8">
+    <!-- TELA 1: APRESENTAÇÃO -->
+    <main id="tela-apresentacao" class="fade-in relative z-10 w-full max-w-sm text-center space-y-8 px-6">
         <div class="flex flex-col items-center space-y-4">
             <div class="w-28 h-28 overflow-hidden rounded-2xl bg-white p-2 shadow-xl shadow-[#3ecfcf]/5 flex items-center justify-center">
                 <img src="elayon_logo.png" alt="Elayon Logo" class="w-full h-full object-contain">
@@ -28,22 +35,22 @@
         </div>
     </main>
 
-    <main id="tela-login" class="hidden fade-in relative z-10 w-full max-w-sm text-center space-y-6">
+    <!-- TELA 2: LOGIN FICTÍCIO -->
+    <main id="tela-login" class="hidden fade-in relative z-10 w-full max-w-sm text-center space-y-6 px-6">
         <div class="flex flex-col items-center space-y-3">
             <div class="w-16 h-16 overflow-hidden rounded-xl bg-white p-1 shadow-md flex items-center justify-center">
                 <img src="elayon_logo.png" alt="Elayon Logo" class="w-full h-full object-contain">
             </div>
-            <h2 class="text-xl font-bold text-white tracking-tight">Acesse sua conta</h2>
-            <p class="text-xs text-slate-400">Insira suas credenciais fictícias de teste</p>
+            <h2 class="text-xl font-bold text-white tracking-tight">Acesso ao Sistema</h2>
         </div>
         <div class="space-y-3 text-left">
             <div>
-                <label class="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1">Usuário</label>
-                <input type="text" value="admin@elayon.space" disabled class="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/[0.08] text-slate-300 font-mono text-xs focus:outline-none">
+                <label class="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1">ID do Piloto</label>
+                <input type="text" value="operador@elayon.space" disabled class="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/[0.08] text-slate-400 font-mono text-xs focus:outline-none">
             </div>
             <div>
-                <label class="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1">Senha</label>
-                <input type="password" value="••••••••" disabled class="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/[0.08] text-slate-300 font-mono text-xs focus:outline-none">
+                <label class="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1">Chave de Criptografia</label>
+                <input type="password" value="••••••••••••" disabled class="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/[0.08] text-slate-400 font-mono text-xs focus:outline-none">
             </div>
         </div>
         <div>
@@ -53,87 +60,168 @@
         </div>
     </main>
 
-    <main id="tela-boasvindas" class="hidden fade-in relative z-10 w-full max-w-sm text-center space-y-8">
+    <!-- TELA 3: BOAS VINDAS -->
+    <main id="tela-boasvindas" class="hidden fade-in relative z-10 w-full max-w-sm text-center space-y-8 px-6">
         <div class="flex flex-col items-center space-y-4">
             <div class="w-24 h-24 overflow-hidden rounded-full bg-slate-900 border-2 border-[#3ecfcf] p-2 flex items-center justify-center shadow-[0_0_15px_rgba(62,207,207,0.2)]">
                 <img src="elayon_logo.png" alt="Elayon Logo" class="w-full h-full object-contain">
             </div>
             <div class="space-y-2">
-                <h2 class="text-2xl font-extrabold tracking-tight text-white">Bem-vindo ao</h2>
-                <h1 class="text-3xl font-black tracking-widest text-[#3ecfcf] drop-shadow-[0_0_10px_rgba(62,207,207,0.3)]">ELAYON SPACE</h1>
-                <p class="text-xs text-slate-400 font-light max-w-xs mx-auto">Sua credencial de desenvolvedor foi validada com sucesso.</p>
+                <h2 class="text-xl font-bold text-slate-400 tracking-tight">Bem-vindo ao</h2>
+                <h1 class="text-3xl font-black tracking-widest text-[#3ecfcf] drop-shadow-[0_0_12px_rgba(62,207,207,0.3)]">ELAYON SPACE</h1>
+                <p class="text-xs text-slate-400 font-light">Sua sessão de simulação operacional e telemetria foi inicializada com segurança.</p>
             </div>
         </div>
         <div>
-            <button onclick="mudarTela('tela-boasvindas', 'tela-geral')" class="w-full text-center py-4 rounded-xl border border-white/[0.1] bg-slate-900/60 text-white font-mono text-xs font-bold tracking-[0.2em] uppercase transition-all hover:bg-slate-900 active:scale-[0.98]">
-                Entrar no Ecossistema
+            <button onclick="mudarTela('tela-boasvindas', 'tela-cockpit')" class="w-full text-center py-4 rounded-xl border border-white/[0.1] bg-slate-900/60 text-white font-mono text-xs font-bold tracking-[0.2em] uppercase transition-all hover:bg-slate-900/90 active:scale-[0.98]">
+                Entrar no Cockpit
             </button>
         </div>
     </main>
 
-    <main id="tela-geral" class="hidden fade-in relative z-10 w-full max-w-md space-y-6 my-8">
-        <div class="flex items-center justify-between border-b border-white/[0.06] pb-4">
-            <div class="flex items-center gap-2">
-                <img src="elayon_logo.png" alt="Logo" class="w-6 h-6 object-contain">
-                <span class="font-mono text-xs font-bold tracking-wider text-white">ELAYON SPACE</span>
-            </div>
-            <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        </div>
-
-        <div class="space-y-2">
-            <h2 class="text-lg font-bold text-white tracking-tight">Seus Aplicativos</h2>
-            <p class="text-xs text-slate-400 font-light">Selecione o módulo que deseja simular ou gerenciar:</p>
-        </div>
-
-        <div class="grid grid-cols-1 gap-3">
+    <!-- TELA 4: COCKPIT CENTRAL (GRID INTEGRADA COM IA CHAT) -->
+    <main id="tela-cockpit" class="hidden fade-in relative z-10 w-full max-w-6xl h-screen flex flex-col md:flex-row p-4 gap-4 box-border">
+        
+        <!-- COLUNA ESQUERDA: CENTRAL DE APLICATIVOS (ELAYON SPACE) -->
+        <section class="flex-1 flex flex-col justify-between bg-slate-950/60 border border-white/[0.05] rounded-3xl p-5 backdrop-blur-xl overflow-y-auto">
             
-            <div class="p-4 rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-md flex items-center justify-between transition-all hover:border-[#3ecfcf]/30">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-[#3ecfcf]/10 flex items-center justify-center text-[#3ecfcf] font-mono text-sm font-bold">P</div>
-                    <div>
-                        <h3 class="text-sm font-bold text-white">Presença</h3>
-                        <p class="text-[11px] text-slate-400">Análise de métricas de voz e silêncio</p>
+            <div class="space-y-6">
+                <!-- Header do Painel -->
+                <div class="flex items-center justify-between border-b border-white/[0.06] pb-4">
+                    <div class="flex items-center gap-2">
+                        <img src="elayon_logo.png" alt="Logo" class="w-6 h-6 object-contain">
+                        <span class="font-mono text-xs font-bold tracking-wider text-white">ELAYON SPACE</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-mono text-slate-500">TOKENS: <span id="token-count" class="text-[#3ecfcf] font-bold">50</span></span>
+                        <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     </div>
                 </div>
-                <span class="text-[10px] font-mono bg-[#3ecfcf]/10 text-[#3ecfcf] px-2 py-1 rounded-md">Ativo</span>
-            </div>
 
-            <div class="p-4 rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-md flex items-center justify-between transition-all hover:border-[#3ecfcf]/30">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 font-mono text-sm font-bold">C</div>
-                    <div>
-                        <h3 class="text-sm font-bold text-white">Cadastro</h3>
-                        <p class="text-[11px] text-slate-400">Gerenciamento de acessos e pipelines</p>
-                    </div>
+                <!-- Título -->
+                <div class="space-y-1">
+                    <h2 class="text-lg font-bold text-white tracking-tight">Painel do Piloto</h2>
+                    <p class="text-xs text-slate-400 font-light">Gerencie e acione os módulos integrados da plataforma.</p>
                 </div>
-                <span class="text-[10px] font-mono bg-purple-500/10 text-purple-400 px-2 py-1 rounded-md">Configurado</span>
-            </div>
 
-            <div class="p-4 rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-md flex items-center justify-between transition-all hover:border-[#3ecfcf]/30">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 font-mono text-sm font-bold">T</div>
-                    <div>
-                        <h3 class="text-sm font-bold text-white">Triagem</h3>
-                        <p class="text-[11px] text-slate-400">Fila inteligente e roteamento IA</p>
+                <!-- Lista de Aplicativos Solicitados na Grade -->
+                <div class="space-y-3">
+                    
+                    <!-- App 1: Calibração Status + PsiQ / Health / CRS -->
+                    <div class="p-4 rounded-2xl border border-red-500/20 bg-red-500/[0.02] flex items-center justify-between transition-all hover:border-red-500/40">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-400 font-mono text-sm font-bold animate-pulse">!</div>
+                            <div>
+                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                    Calibração Crítica 
+                                    <span class="text-[9px] bg-red-500/10 text-red-400 px-1.5 py-0.5 rounded font-mono font-normal">Expira em 24h</span>
+                                </h3>
+                                <p class="text-[11px] text-slate-400 mt-0.5">Análise CRS (Silêncio), Health (Afasias) e Triagem PsiQ</p>
+                            </div>
+                        </div>
+                        <button onclick="alert('Iniciando Módulo de Calibração na Etapa 2!')" class="text-[10px] font-mono bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition-all font-bold">CALIBRAR</button>
                     </div>
+
+                    <!-- App 2: Ferramentas (Vibes, PC, Mechanics, Twin) -->
+                    <div class="p-4 rounded-2xl border border-white/[0.06] bg-slate-900/30 flex items-center justify-between transition-all hover:border-[#3ecfcf]/30">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-[#3ecfcf]/10 flex items-center justify-center text-[#3ecfcf] font-mono text-sm font-bold">⚙️</div>
+                            <div>
+                                <h3 class="text-sm font-bold text-white">Ferramentas de Controle</h3>
+                                <p class="text-[11px] text-slate-400">Módulos Vibes, Elayon PC, Mechanics e Twin Secreto</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-mono bg-white/[0.05] text-slate-400 px-2 py-1 rounded-md">Trava Calibração</span>
+                    </div>
+
+                    <!-- App 3: Parceiros Autônomos -->
+                    <div class="p-4 rounded-2xl border border-white/[0.06] bg-slate-900/30 flex items-center justify-between transition-all hover:border-purple-500/30">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 font-mono text-sm font-bold">🤝</div>
+                            <div>
+                                <h3 class="text-sm font-bold text-white">Parceiros Autônomos</h3>
+                                <p class="text-[11px] text-slate-400">Representantes comerciais habilitados e autorizados</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-mono bg-purple-500/10 text-purple-400 px-2 py-1 rounded-md">Consultar</span>
+                    </div>
+
+                    <!-- App 4: Contato & Impacto Humanitário (ABAM) -->
+                    <div class="p-4 rounded-2xl border border-white/[0.06] bg-slate-900/30 flex items-center justify-between transition-all hover:border-emerald-500/30">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-mono text-sm font-bold">❤️</div>
+                            <div>
+                                <h3 class="text-sm font-bold text-white">Contato & Propósito</h3>
+                                <p class="text-[11px] text-slate-400">Apoio e testes de escuta voltados à ABAM</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-md">Info</span>
+                    </div>
+
                 </div>
-                <span class="text-[10px] font-mono bg-blue-500/10 text-blue-400 px-2 py-1 rounded-md">Pronto</span>
             </div>
 
-        </div>
+            <!-- Rodapé Operacional -->
+            <div class="mt-6 flex items-center justify-between text-[10px] font-mono text-slate-600 border-t border-white/[0.05] pt-4">
+                <span>SISTEMA: ATIVO</span>
+                <button onclick="mudarTela('tela-cockpit', 'tela-apresentacao')" class="hover:text-red-400 transition-all uppercase">← Desconectar</button>
+            </div>
+        </section>
 
-        <div class="pt-4 text-center">
-            <button onclick="mudarTela('tela-geral', 'tela-apresentacao')" class="font-mono text-[10px] tracking-widest text-slate-500 hover:text-slate-300 transition-all uppercase">
-                ← Sair do Space
-            </button>
-        </div>
+        <!-- COLUNA DIREITA: COILOTO IA CHAT (ACOMPANHAMENTO EM TEMPO REAL) -->
+        <section class="w-full md:w-80 flex flex-col justify-between bg-slate-950/90 border border-[#3ecfcf]/20 rounded-3xl p-4 shadow-[0_0_25px_rgba(62,207,207,0.03)]">
+            <!-- Header do Chat -->
+            <div class="flex items-center gap-2 border-b border-white/[0.06] pb-3">
+                <div class="h-2 w-2 rounded-full bg-[#3ecfcf] shadow-[0_0_8px_#3ecfcf]"></div>
+                <span class="font-mono text-xs font-bold text-white tracking-wider uppercase">IA Copiloto</span>
+            </div>
+
+            <!-- Área de Mensagens Históricas -->
+            <div id="chat-messages" class="flex-1 my-3 overflow-y-auto space-y-3 pr-1 text-xs font-light max-h-[50vh] md:max-h-full">
+                <div class="bg-slate-900/50 border border-white/[0.04] p-3 rounded-2xl text-slate-300 leading-relaxed">
+                    <span class="font-mono text-[9px] text-[#3ecfcf] block mb-1">COILOTO ELAYON:</span>
+                    Saudações, piloto! Estou monitorando os sistemas do cockpit. Notei que sua **calibração obrigatória está pendente** e expirará em breve. Por segurança, os módulos avançados estão em modo de espera. Como posso te auxiliar no processo?
+                </div>
+            </div>
+
+            <!-- Input de Comandos/Mensagem -->
+            <div class="flex gap-2 border-t border-white/[0.06] pt-3">
+                <input id="chat-input" type="text" placeholder="Fale ou digite comando..." class="flex-1 bg-slate-900 border border-white/[0.08] rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#3ecfcf]/40 font-light placeholder:text-slate-600">
+                <button onclick="enviarMensagem()" class="px-3 rounded-xl bg-[#3ecfcf] text-[#050708] font-mono text-xs font-bold uppercase tracking-wider active:scale-95 transition-all">❯</button>
+            </div>
+        </section>
+
     </main>
 
+    <!-- Scripts Operacionais -->
     <script>
         function mudarTela(idTelaAtual, idProximaTela) {
             document.getElementById(idTelaAtual).classList.add('hidden');
             document.getElementById(idProximaTela).classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function enviarMensagem() {
+            const input = document.getElementById('chat-input');
+            const container = document.getElementById('chat-messages');
+            if(!input.value.trim()) return;
+
+            // Mensagem do Usuário
+            const msgUser = document.createElement('div');
+            msgUser.className = "bg-slate-800/40 p-3 rounded-2xl text-slate-300 text-right font-light ml-4 border border-white/[0.02]";
+            msgUser.innerHTML = `<span class="font-mono text-[9px] text-slate-500 block mb-1">PILOTO:</span> ${input.value}`;
+            container.appendChild(msgUser);
+
+            // Resposta Automática Simulada de Apoio Moral / Instrução
+            setTimeout(() => {
+                const msgIA = document.createElement('div');
+                msgIA.className = "bg-slate-900/50 border border-white/[0.04] p-3 rounded-2xl text-slate-300 leading-relaxed mr-4";
+                msgIA.innerHTML = `<span class="font-mono text-[9px] text-[#3ecfcf] block mb-1">COILOTO ELAYON:</span> Comando recebido de forma cega. Para que eu execute com total precisão analítica e consuma seus tokens com inteligência, conclua o teste de triagem de voz no botão vermelho ao lado.`;
+                container.appendChild(msgIA);
+                container.scrollTop = container.scrollHeight;
+            }, 800);
+
+            input.value = '';
+            container.scrollTop = container.scrollHeight;
         }
     </script>
 
