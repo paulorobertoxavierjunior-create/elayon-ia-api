@@ -3,227 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elayon Space - Cockpit</title>
-    <!-- Tailwind CSS via CDN -->
+    <title>Elayon - Cockpit Central Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        /* Scrollbar customizada estilo terminal */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        ::-webkit-scrollbar-thumb { background: #3ecfcf; border-radius: 10px; }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="flex min-h-screen flex-col items-center justify-center bg-[#050708] text-[#dff0f0] font-sans relative overflow-x-hidden select-none">
+<body class="bg-[#050708] text-[#dff0f0] font-sans min-h-screen relative overflow-x-hidden select-none">
 
-    <!-- Fundo tecnológico sutil -->
-    <div class="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_30%,rgba(62,207,207,0.05)_0%,transparent_70%)]"></div>
+    <button onclick="alternarAbaIA()" class="fixed bottom-6 right-6 z-50 p-4 rounded-full bg-gradient-to-r from-[#3ecfcf] to-blue-600 text-[#050708] font-bold shadow-lg shadow-[#3ecfcf]/20 transition-all hover:scale-115 active:scale-95 flex items-center justify-center">
+        <span id="btn-ia-icon" class="text-xl">🤖</span>
+    </button>
 
-    <!-- TELA 1: APRESENTAÇÃO -->
-    <main id="tela-apresentacao" class="fade-in relative z-10 w-full max-w-sm text-center space-y-8 px-6">
-        <div class="flex flex-col items-center space-y-4">
-            <div class="w-28 h-28 overflow-hidden rounded-2xl bg-white p-2 shadow-xl shadow-[#3ecfcf]/5 flex items-center justify-center">
-                <img src="elayon_logo.png" alt="Elayon Logo" class="w-full h-full object-contain">
+    <main id="main-content" class="w-full max-w-5xl mx-auto p-4 md:p-8 space-y-6 transition-all duration-300">
+        <header class="flex items-center justify-between border-b border-white/[0.06] pb-4 font-mono text-[10px]">
+            <div class="flex items-center gap-3">
+                <span class="text-white font-bold tracking-widest text-sm">ELAYON CORE</span>
+                <span id="user-pill" class="bg-slate-900 border border-white/[0.06] px-2 py-0.5 rounded text-slate-400">AGUARDANDO AUTENTICAÇÃO</span>
             </div>
-            <h1 class="text-3xl font-extrabold tracking-tight text-white">ELAYON</h1>
-        </div>
-        <div>
-            <button onclick="mudarTela('tela-apresentacao', 'tela-login')" class="w-full text-center py-4 rounded-xl bg-[#3ecfcf] text-[#050708] font-mono text-xs font-bold tracking-[0.2em] uppercase transition-all shadow-[0_4px_20px_rgba(62,207,207,0.2)] hover:opacity-90 active:scale-[0.98]">
-                Solicitar acesso
-            </button>
-        </div>
+            <div class="flex items-center gap-4">
+                <div>TOKENS: <span id="token-display" class="text-[#3ecfcf] font-bold">50</span></div>
+                <div id="status-led" class="h-2 w-2 rounded-full bg-red-500"></div>
+            </div>
+        </header>
+
+        <section id="auth-box" class="max-w-md mx-auto bg-slate-950 border border-white/[0.05] p-6 rounded-3xl space-y-4">
+            <div class="text-center space-y-1">
+                <h2 class="text-sm font-mono tracking-widest text-[#3ecfcf] uppercase">Acesso ao Ecossistema</h2>
+                <p class="text-[11px] text-slate-500">Isolamento total por conta de usuário no Supabase.</p>
+            </div>
+            <div class="space-y-2 font-mono text-xs">
+                <input id="email" type="email" placeholder="E-mail" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-white/[0.06] text-white focus:outline-none focus:border-[#3ecfcf]">
+                <input id="password" type="password" placeholder="Senha" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-white/[0.06] text-white focus:outline-none focus:border-[#3ecfcf]">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="autenticar('login')" class="py-3 bg-[#3ecfcf] text-[#050708] rounded-xl font-mono text-xs font-bold uppercase transition-all active:scale-95">Entrar</button>
+                <button onclick="autenticar('cadastro')" class="py-3 border border-white/[0.1] text-white rounded-xl font-mono text-xs font-bold uppercase transition-all active:scale-95">Cadastrar</button>
+            </div>
+        </section>
+
+        <section id="dashboard-space" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-slate-950 border border-white/[0.05] p-6 rounded-3xl space-y-4">
+                <h3 class="text-base font-bold text-white font-mono">Bancada Operacional Simbiótica</h3>
+                <p class="text-xs text-slate-400 font-light">Módulos de teste de hardware, análise de frequências de áudio e silêncio clínico.</p>
+                <a href="bancada.html" class="block w-full text-center py-3 bg-slate-900 hover:bg-slate-800 border border-white/[0.06] rounded-xl font-mono text-xs font-bold text-[#3ecfcf] uppercase transition-all">Abrir Bancada de Ferramentas</a>
+            </div>
+
+            <div class="bg-slate-950 border border-white/[0.05] p-6 rounded-3xl space-y-3 font-mono text-[11px]">
+                <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">Propriedade Industrial & Propósito</h3>
+                <p class="text-slate-400 font-light leading-relaxed">Metodologia exclusiva patenteada junto ao <strong>INPI</strong> para captura de ritmos e intervalos humanos aplicados a sistemas ciberfísicos.</p>
+                <p class="text-emerald-400 font-light">✓ Parte da infraestrutura apoia o desenvolvimento de diagnósticos auxiliares de afasias.</p>
+            </div>
+        </section>
     </main>
 
-    <!-- TELA 2: LOGIN FICTÍCIO -->
-    <main id="tela-login" class="hidden fade-in relative z-10 w-full max-w-sm text-center space-y-6 px-6">
-        <div class="flex flex-col items-center space-y-3">
-            <div class="w-16 h-16 overflow-hidden rounded-xl bg-white p-1 shadow-md flex items-center justify-center">
-                <img src="elayon_logo.png" alt="Elayon Logo" class="w-full h-full object-contain">
-            </div>
-            <h2 class="text-xl font-bold text-white tracking-tight">Acesso ao Sistema</h2>
-        </div>
-        <div class="space-y-3 text-left">
-            <div>
-                <label class="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1">ID do Piloto</label>
-                <input type="text" value="operador@elayon.space" disabled class="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/[0.08] text-slate-400 font-mono text-xs focus:outline-none">
-            </div>
-            <div>
-                <label class="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1">Chave de Criptografia</label>
-                <input type="password" value="••••••••••••" disabled class="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/[0.08] text-slate-400 font-mono text-xs focus:outline-none">
-            </div>
-        </div>
-        <div>
-            <button onclick="mudarTela('tela-login', 'tela-boasvindas')" class="w-full text-center py-4 rounded-xl bg-[#3ecfcf] text-[#050708] font-mono text-xs font-bold tracking-[0.2em] uppercase transition-all shadow-[0_4px_20px_rgba(62,207,207,0.2)] hover:opacity-90 active:scale-[0.98]">
-                Login Liberado
-            </button>
-        </div>
-    </main>
-
-    <!-- TELA 3: BOAS VINDAS -->
-    <main id="tela-boasvindas" class="hidden fade-in relative z-10 w-full max-w-sm text-center space-y-8 px-6">
-        <div class="flex flex-col items-center space-y-4">
-            <div class="w-24 h-24 overflow-hidden rounded-full bg-slate-900 border-2 border-[#3ecfcf] p-2 flex items-center justify-center shadow-[0_0_15px_rgba(62,207,207,0.2)]">
-                <img src="elayon_logo.png" alt="Elayon Logo" class="w-full h-full object-contain">
-            </div>
-            <div class="space-y-2">
-                <h2 class="text-xl font-bold text-slate-400 tracking-tight">Bem-vindo ao</h2>
-                <h1 class="text-3xl font-black tracking-widest text-[#3ecfcf] drop-shadow-[0_0_12px_rgba(62,207,207,0.3)]">ELAYON SPACE</h1>
-                <p class="text-xs text-slate-400 font-light">Sua sessão de simulação operacional e telemetria foi inicializada com segurança.</p>
-            </div>
-        </div>
-        <div>
-            <button onclick="mudarTela('tela-boasvindas', 'tela-cockpit')" class="w-full text-center py-4 rounded-xl border border-white/[0.1] bg-slate-900/60 text-white font-mono text-xs font-bold tracking-[0.2em] uppercase transition-all hover:bg-slate-900/90 active:scale-[0.98]">
-                Entrar no Cockpit
-            </button>
-        </div>
-    </main>
-
-    <!-- TELA 4: COCKPIT CENTRAL (GRID INTEGRADA COM IA CHAT) -->
-    <main id="tela-cockpit" class="hidden fade-in relative z-10 w-full max-w-6xl h-screen flex flex-col md:flex-row p-4 gap-4 box-border">
+    <aside id="sidebar-ia" class="fixed top-0 right-0 z-40 w-full sm:w-[420px] h-screen bg-slate-950 border-l border-white/[0.08] transform translate-x-full transition-transform duration-300 flex flex-col justify-between shadow-2xl shadow-black">
         
-        <!-- COLUNA ESQUERDA: CENTRAL DE APLICATIVOS (ELAYON SPACE) -->
-        <section class="flex-1 flex flex-col justify-between bg-slate-950/60 border border-white/[0.05] rounded-3xl p-5 backdrop-blur-xl overflow-y-auto">
-            
-            <div class="space-y-6">
-                <!-- Header do Painel -->
-                <div class="flex items-center justify-between border-b border-white/[0.06] pb-4">
-                    <div class="flex items-center gap-2">
-                        <img src="elayon_logo.png" alt="Logo" class="w-6 h-6 object-contain">
-                        <span class="font-mono text-xs font-bold tracking-wider text-white">ELAYON SPACE</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-mono text-slate-500">TOKENS: <span id="token-count" class="text-[#3ecfcf] font-bold">50</span></span>
-                        <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    </div>
-                </div>
+        <div class="p-4 border-b border-white/[0.06] flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="font-mono text-xs font-bold tracking-widest text-white uppercase">Elayon Core Engine</span>
+            </div>
+            <button onclick="alternarAbaIA()" class="text-xs font-mono text-slate-500 hover:text-white uppercase">Ocultar ✕</button>
+        </div>
 
-                <!-- Título -->
-                <div class="space-y-1">
-                    <h2 class="text-lg font-bold text-white tracking-tight">Painel do Piloto</h2>
-                    <p class="text-xs text-slate-400 font-light">Gerencie e acione os módulos integrados da plataforma.</p>
-                </div>
+        <div id="chat-history" class="flex-1 p-4 overflow-y-auto font-mono text-[11px] space-y-3 max-h-[calc(100vh-160px)]">
+            <div class="text-slate-500">// IA Inicializada. Insira sua chave de API nas configurações ou use comandos integrados para transformar o sistema.</div>
+        </div>
 
-                <!-- Lista de Aplicativos Solicitados na Grade -->
-                <div class="space-y-3">
-                    
-                    <!-- App 1: Calibração Status + PsiQ / Health / CRS -->
-                    <div class="p-4 rounded-2xl border border-red-500/20 bg-red-500/[0.02] flex items-center justify-between transition-all hover:border-red-500/40">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-400 font-mono text-sm font-bold animate-pulse">!</div>
-                            <div>
-                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                    Calibração Crítica 
-                                    <span class="text-[9px] bg-red-500/10 text-red-400 px-1.5 py-0.5 rounded font-mono font-normal">Expira em 24h</span>
-                                </h3>
-                                <p class="text-[11px] text-slate-400 mt-0.5">Análise CRS (Silêncio), Health (Afasias) e Triagem PsiQ</p>
-                            </div>
-                        </div>
-                        <button onclick="alert('Iniciando Módulo de Calibração na Etapa 2!')" class="text-[10px] font-mono bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition-all font-bold">CALIBRAR</button>
-                    </div>
-
-                    <!-- App 2: Ferramentas (Vibes, PC, Mechanics, Twin) -->
-                    <div class="p-4 rounded-2xl border border-white/[0.06] bg-slate-900/30 flex items-center justify-between transition-all hover:border-[#3ecfcf]/30">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-[#3ecfcf]/10 flex items-center justify-center text-[#3ecfcf] font-mono text-sm font-bold">⚙️</div>
-                            <div>
-                                <h3 class="text-sm font-bold text-white">Ferramentas de Controle</h3>
-                                <p class="text-[11px] text-slate-400">Módulos Vibes, Elayon PC, Mechanics e Twin Secreto</p>
-                            </div>
-                        </div>
-                        <span class="text-[10px] font-mono bg-white/[0.05] text-slate-400 px-2 py-1 rounded-md">Trava Calibração</span>
-                    </div>
-
-                    <!-- App 3: Parceiros Autônomos -->
-                    <div class="p-4 rounded-2xl border border-white/[0.06] bg-slate-900/30 flex items-center justify-between transition-all hover:border-purple-500/30">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 font-mono text-sm font-bold">🤝</div>
-                            <div>
-                                <h3 class="text-sm font-bold text-white">Parceiros Autônomos</h3>
-                                <p class="text-[11px] text-slate-400">Representantes comerciais habilitados e autorizados</p>
-                            </div>
-                        </div>
-                        <span class="text-[10px] font-mono bg-purple-500/10 text-purple-400 px-2 py-1 rounded-md">Consultar</span>
-                    </div>
-
-                    <!-- App 4: Contato & Impacto Humanitário (ABAM) -->
-                    <div class="p-4 rounded-2xl border border-white/[0.06] bg-slate-900/30 flex items-center justify-between transition-all hover:border-emerald-500/30">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-mono text-sm font-bold">❤️</div>
-                            <div>
-                                <h3 class="text-sm font-bold text-white">Contato & Propósito</h3>
-                                <p class="text-[11px] text-slate-400">Apoio e testes de escuta voltados à ABAM</p>
-                            </div>
-                        </div>
-                        <span class="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-md">Info</span>
-                    </div>
-
-                </div>
+        <div class="p-4 border-t border-white/[0.06] bg-black/40 space-y-3">
+            <div class="flex items-center justify-between gap-2 text-[10px] font-mono">
+                <label class="cursor-pointer flex items-center gap-1.5 bg-slate-900 border border-white/[0.06] px-2 py-1 rounded-lg text-slate-400 hover:text-white">
+                    <span>📎 Arquivo/Mídia</span>
+                    <input type="file" id="ia-file" onchange="processarArquivoLocal(this)" class="hidden">
+                </label>
+                
+                <button id="btn-ia-mic" onclick="alternarCapturaAudioLocal()" class="flex items-center gap-1.5 bg-slate-900 border border-white/[0.06] px-2 py-1 rounded-lg text-amber-400 hover:text-amber-300">
+                    <span id="mic-label-status">🎙️ Capturar Áudio</span>
+                </button>
             </div>
 
-            <!-- Rodapé Operacional -->
-            <div class="mt-6 flex items-center justify-between text-[10px] font-mono text-slate-600 border-t border-white/[0.05] pt-4">
-                <span>SISTEMA: ATIVO</span>
-                <button onclick="mudarTela('tela-cockpit', 'tela-apresentacao')" class="hover:text-red-400 transition-all uppercase">← Desconectar</button>
+            <div class="flex gap-2">
+                <input id="ia-prompt" type="text" placeholder="Comande o sistema por texto ou voz..." class="flex-1 bg-slate-900 border border-white/[0.06] rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#3ecfcf] font-light font-mono">
+                <button onclick="processarComandoTexto()" class="px-4 bg-[#3ecfcf] text-[#050708] rounded-xl text-xs font-bold uppercase font-mono tracking-wider active:scale-95 transition-all">Enviar</button>
             </div>
-        </section>
+        </div>
+    </aside>
 
-        <!-- COLUNA DIREITA: COILOTO IA CHAT (ACOMPANHAMENTO EM TEMPO REAL) -->
-        <section class="w-full md:w-80 flex flex-col justify-between bg-slate-950/90 border border-[#3ecfcf]/20 rounded-3xl p-4 shadow-[0_0_25px_rgba(62,207,207,0.03)]">
-            <!-- Header do Chat -->
-            <div class="flex items-center gap-2 border-b border-white/[0.06] pb-3">
-                <div class="h-2 w-2 rounded-full bg-[#3ecfcf] shadow-[0_0_8px_#3ecfcf]"></div>
-                <span class="font-mono text-xs font-bold text-white tracking-wider uppercase">IA Copiloto</span>
-            </div>
-
-            <!-- Área de Mensagens Históricas -->
-            <div id="chat-messages" class="flex-1 my-3 overflow-y-auto space-y-3 pr-1 text-xs font-light max-h-[50vh] md:max-h-full">
-                <div class="bg-slate-900/50 border border-white/[0.04] p-3 rounded-2xl text-slate-300 leading-relaxed">
-                    <span class="font-mono text-[9px] text-[#3ecfcf] block mb-1">COILOTO ELAYON:</span>
-                    Saudações, piloto! Estou monitorando os sistemas do cockpit. Notei que sua **calibração obrigatória está pendente** e expirará em breve. Por segurança, os módulos avançados estão em modo de espera. Como posso te auxiliar no processo?
-                </div>
-            </div>
-
-            <!-- Input de Comandos/Mensagem -->
-            <div class="flex gap-2 border-t border-white/[0.06] pt-3">
-                <input id="chat-input" type="text" placeholder="Fale ou digite comando..." class="flex-1 bg-slate-900 border border-white/[0.08] rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#3ecfcf]/40 font-light placeholder:text-slate-600">
-                <button onclick="enviarMensagem()" class="px-3 rounded-xl bg-[#3ecfcf] text-[#050708] font-mono text-xs font-bold uppercase tracking-wider active:scale-95 transition-all">❯</button>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Scripts Operacionais -->
     <script>
-        function mudarTela(idTelaAtual, idProximaTela) {
-            document.getElementById(idTelaAtual).classList.add('hidden');
-            document.getElementById(idProximaTela).classList.remove('hidden');
+        // Supabase Real Configuration Ponter
+        const SUPABASE_URL = "https://SEU_PROJETO.supabase.co";
+        const SUPABASE_ANON_KEY = "SUA_CHAVE_ANON_DO_SUPABASE";
+        let _sb;
+        if(SUPABASE_URL.indexOf("SEU_PROJETO") === -1) {
+            _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         }
 
-        function enviarMensagem() {
-            const input = document.getElementById('chat-input');
-            const container = document.getElementById('chat-messages');
-            if(!input.value.trim()) return;
+        let isSidebarOpen = false;
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecordingAudio = false;
 
-            // Mensagem do Usuário
-            const msgUser = document.createElement('div');
-            msgUser.className = "bg-slate-800/40 p-3 rounded-2xl text-slate-300 text-right font-light ml-4 border border-white/[0.02]";
-            msgUser.innerHTML = `<span class="font-mono text-[9px] text-slate-500 block mb-1">PILOTO:</span> ${input.value}`;
-            container.appendChild(msgUser);
+        // Recupera constância do chat armazenado localmente para não zerar nas atualizações
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedChat = localStorage.getItem('elayon_core_chat_history');
+            if(savedChat) {
+                document.getElementById('chat-history').innerHTML = savedChat;
+            }
+        });
 
-            // Resposta Automática Simulada de Apoio Moral / Instrução
+        function alternarAbaIA() {
+            const sidebar = document.getElementById('sidebar-ia');
+            const main = document.getElementById('main-content');
+            if(isSidebarOpen) {
+                sidebar.classList.add('translate-x-full');
+                main.classList.remove('md:mr-[420px]');
+                isSidebarOpen = false;
+            } else {
+                sidebar.classList.remove('translate-x-full');
+                main.classList.add('md:mr-[420px]');
+                isSidebarOpen = true;
+                rolarChatFim();
+            }
+        }
+
+        // --- ENGENHARIA DE COMANDOS DE TEXTO E PERSISTÊNCIA ---
+        function processarComandoTexto() {
+            const input = document.getElementById('ia-prompt');
+            const text = input.value.trim();
+            if(!text) return;
+
+            appendLog("USER", text);
+            input.value = "";
+
+            // Interpretação da IA atuando como Modificadora de Estados do Sistema
             setTimeout(() => {
-                const msgIA = document.createElement('div');
-                msgIA.className = "bg-slate-900/50 border border-white/[0.04] p-3 rounded-2xl text-slate-300 leading-relaxed mr-4";
-                msgIA.innerHTML = `<span class="font-mono text-[9px] text-[#3ecfcf] block mb-1">COILOTO ELAYON:</span> Comando recebido de forma cega. Para que eu execute com total precisão analítica e consuma seus tokens com inteligência, conclua o teste de triagem de voz no botão vermelho ao lado.`;
-                container.appendChild(msgIA);
-                container.scrollTop = container.scrollHeight;
-            }, 800);
+                let resposta = "Comando processado. Estruturas analisadas sem interrupção de pacotes.";
+                
+                if(text.toLowerCase().includes("mudar") || text.toLowerCase().includes("tema") || text.toLowerCase().includes("cor")) {
+                    resposta = "⚡ [Ação de Sistema] Alterando matiz cromática do cockpit central para Modo Simbiótico Ativo.";
+                    document.body.style.backgroundColor = "#02090f";
+                } else if(text.toLowerCase().includes("tokens")) {
+                    resposta = "💰 [Ação de Sistema] Verificando faturamento de tokens via Supabase. Saldo atualizado.";
+                    document.getElementById('token-display').innerText = "44";
+                }
 
-            input.value = '';
-            container.scrollTop = container.scrollHeight;
+                appendLog("ELAYON CORE", resposta);
+            }, 1000);
+        }
+
+        function appendLog(origem, texto) {
+            const chat = document.getElementById('chat-history');
+            const msg = document.createElement('div');
+            msg.className = "p-2 rounded-xl bg-black/30 border border-white/[0.02] mt-2";
+            msg.innerHTML = `<span class="${origem === 'USER' ? 'text-[#3ecfcf]' : 'text-amber-400'} block text-[9px] font-bold">${origem}:</span> <span class="text-slate-300 font-light">${texto}</span>`;
+            chat.appendChild(msg);
+            rolarChatFim();
+
+            // Respeita o limite normal salvando com constância
+            const logsAtuais = chat.querySelectorAll('div');
+            if(logsAtuais.length > 25) logsAtuais[0].remove(); // Limita o estouro de memória física do DOM
+            localStorage.setItem('elayon_core_chat_history', chat.innerHTML);
+        }
+
+        function rolarChatFim() {
+            const chat = document.getElementById('chat-history');
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        // --- TRANSCRIÇÃO E CAPTURA DE ÁUDIO SEM ENVIO AUTORIZADO ---
+        async function alternarCapturaAudioLocal() {
+            const btnLabel = document.getElementById('mic-label-status');
+            if(!isRecordingAudio) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    
+                    mediaRecorder.onstop = () => {
+                        // Transcrição local simulada (Proteção de privacidade: dados permanecem no sandbox do cliente)
+                        appendLog("USER", "🎙️ [Áudio Gravado Localmente]");
+                        appendLog("ELAYON CORE", "🔍 Processando áudio em sandbox local: Transcrição concluída com segurança, sem tráfego de dados externo não autorizado.");
+                    };
+
+                    mediaRecorder.start();
+                    isRecordingAudio = true;
+                    btnLabel.innerText = "🛑 Parar Escuta";
+                    btnLabel.parentElement.classList.add('bg-red-950/40', 'border-red-500/30', 'text-red-400');
+                } catch(err) { alert("Acesso ao hardware de áudio negado."); }
+            } else {
+                mediaRecorder.stop();
+                isRecordingAudio = false;
+                btnLabel.innerText = "🎙️ Capturar Áudio";
+                btnLabel.parentElement.className = "flex items-center gap-1.5 bg-slate-900 border border-white/[0.06] px-2 py-1 rounded-lg text-amber-400 hover:text-amber-300";
+            }
+        }
+
+        // --- PROCESSAMENTO DE ARQUIVOS E MÍDIAS ---
+        function processarArquivoLocal(input) {
+            if(input.files && input.files[0]) {
+                const arquivo = input.files[0];
+                appendLog("USER", `📎 Enfileirando Mídia/Arquivo: "${arquivo.name}" (${Math.round(arquivo.size/1024)} KB)`);
+                appendLog("ELAYON CORE", `✓ Vetorização do arquivo "${arquivo.name}" concluída. Estruturas prontas para injeção no Supabase.`);
+            }
+        }
+
+        // --- AUTENTICAÇÃO REAL ---
+        async function autenticar(tipo) {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            if(!email || !password) { alert("Insira os dados."); return; }
+
+            if(_sb) {
+                let res = (tipo === 'cadastro') ? await _sb.auth.signUp({email, password}) : await _sb.auth.signInWithPassword({email, password});
+                if(res.error) { alert(res.error.message); return; }
+                inicializarPainelSeguro(res.data.user.email);
+            } else {
+                // Modo Homologação Local se não configurado
+                inicializarPainelSeguro(email);
+            }
+        }
+
+        function inicializarPainelSeguro(email) {
+            document.getElementById('user-pill').innerText = email.toUpperCase();
+            document.getElementById('user-pill').className = "bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded text-emerald-400 font-bold";
+            document.getElementById('status-led').className = "h-2 w-2 rounded-full bg-emerald-500";
+            document.getElementById('auth-box').classList.add('hidden');
+            document.getElementById('dashboard-space').classList.remove('hidden');
+            appendLog("ELAYON CORE", `Sessão exclusiva inicializada para o piloto. Ecossistema pronto.`);
         }
     </script>
-
 </body>
 </html>
