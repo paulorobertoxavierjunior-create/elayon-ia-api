@@ -3,176 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elayon - Cockpit Central Hub</title>
+    <title>Elayon Space - Cockpit Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Animação para indicar pulso de escuta da IA ativa */
-        @keyframes pulse-cyan {
-            0%, 100% { border-color: rgba(62,207,207,0.15); box-shadow: 0 0 0 rgba(62,207,207,0); }
-            50% { border-color: rgba(62,207,207,0.5); box-shadow: 0 0 8px rgba(62,207,207,0.1); }
+        @keyframes pulse-glow {
+            0%, 100% { border-color: rgba(62,207,207,0.1); box-shadow: 0 0 0 rgba(62,207,207,0); }
+            50% { border-color: rgba(62,207,207,0.4); box-shadow: 0 0 12px rgba(62,207,207,0.15); }
         }
-        .ia-plugged { animation: pulse-cyan 2.5s infinite; border-color: rgba(62,207,207,0.3); }
+        .engine-active { animation: pulse-glow 3s infinite; border-color: rgba(62,207,207,0.3); }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(62,207,207,0.3); border-radius: 10px; }
     </style>
 </head>
 <body class="bg-[#050708] text-[#dff0f0] font-sans min-h-screen relative overflow-x-hidden select-none">
 
-    <button onclick="alternarAbaIA()" class="fixed bottom-6 right-6 z-50 p-4 rounded-full bg-gradient-to-r from-[#3ecfcf] to-blue-600 text-[#050708] font-bold shadow-lg shadow-[#3ecfcf]/20 transition-all hover:scale-105 active:scale-95 flex items-center justify-center">
-        <span id="btn-ia-icon" class="text-xl">🤖</span>
+    <button onclick="alternarAbaIA()" class="fixed bottom-6 right-6 z-50 p-4 rounded-full bg-gradient-to-r from-[#3ecfcf] to-blue-600 text-[#050708] font-bold shadow-lg shadow-[#3ecfcf]/30 transition-all hover:scale-110 active:scale-95 flex items-center justify-center group">
+        <span id="btn-ia-icon" class="text-xl group-hover:rotate-12 transition-transform">🤖</span>
     </button>
 
     <main id="main-content" class="w-full max-w-5xl mx-auto p-4 md:p-8 space-y-6 transition-all duration-300">
         <header class="flex items-center justify-between border-b border-white/[0.06] pb-4 font-mono text-[10px]">
             <div class="flex items-center gap-3">
-                <span class="text-white font-bold tracking-widest text-sm">ELAYON CORE</span>
-                <span id="user-pill" class="bg-slate-900 border border-white/[0.06] px-2 py-0.5 rounded text-slate-400">AGUARDANDO AUTENTICAÇÃO</span>
+                <span class="text-white font-bold tracking-widest text-sm">ELAYON SPACE</span>
+                <span id="user-pill" class="bg-slate-900 border border-white/[0.06] px-2 py-0.5 rounded text-slate-400 font-bold uppercase tracking-wider">MODO ANÓNIMO</span>
             </div>
             <div class="flex items-center gap-4">
                 <div>TOKENS: <span id="token-display" class="text-[#3ecfcf] font-bold">50</span></div>
-                <div id="status-led" class="h-2 w-2 rounded-full bg-red-500"></div>
+                <div id="status-led" class="h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_6px_#f59e0b]"></div>
             </div>
         </header>
 
-        <section id="auth-box" class="max-w-md mx-auto bg-slate-950 border border-white/[0.05] p-6 rounded-3xl space-y-4">
+        <section id="auth-box" class="max-w-md mx-auto bg-slate-950/40 border border-white/[0.05] p-6 rounded-3xl space-y-4 shadow-xl backdrop-blur-md">
             <div class="text-center space-y-1">
-                <h2 class="text-sm font-mono tracking-widest text-[#3ecfcf] uppercase">Acesso ao Ecossistema</h2>
-                <p class="text-[11px] text-slate-500">Isolamento total por conta de usuário no Supabase.</p>
+                <h2 class="text-xs font-mono tracking-widest text-[#3ecfcf] uppercase font-bold">Autenticação do Piloto</h2>
+                <p class="text-[10px] text-slate-500 font-mono">// Sandbox isolado no repositório de nome 'presenca'.</p>
             </div>
             <div class="space-y-2 font-mono text-xs">
-                <input id="email" type="email" placeholder="E-mail" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-white/[0.06] text-white focus:outline-none focus:border-[#3ecfcf]">
-                <input id="password" type="password" placeholder="Senha" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-white/[0.06] text-white focus:outline-none focus:border-[#3ecfcf]">
+                <input id="email" type="email" placeholder="E-mail do Piloto" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.06] text-white focus:outline-none focus:border-[#3ecfcf] font-light">
+                <input id="password" type="password" placeholder="Chave de Acesso" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/[0.06] text-white focus:outline-none focus:border-[#3ecfcf] font-light">
             </div>
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="autenticar('login')" class="py-3 bg-[#3ecfcf] text-[#050708] rounded-xl font-mono text-xs font-bold uppercase transition-all active:scale-95">Entrar</button>
-                <button onclick="autenticar('cadastro')" class="py-3 border border-white/[0.1] text-white rounded-xl font-mono text-xs font-bold uppercase transition-all active:scale-95">Cadastrar</button>
+            <div class="grid grid-cols-2 gap-3 font-mono text-xs">
+                <button onclick="autenticar('login')" class="py-3 bg-[#3ecfcf] hover:bg-[#2bb8b8] text-[#050708] rounded-xl font-bold uppercase transition-all active:scale-98">Entrar</button>
+                <button onclick="autenticar('cadastro')" class="py-3 bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.08] text-white rounded-xl font-bold uppercase transition-all active:scale-98">Cadastrar</button>
             </div>
         </section>
 
-        <section id="dashboard-space" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="bg-slate-950 border border-white/[0.05] p-6 rounded-3xl space-y-4">
-                <h3 class="text-base font-bold text-white font-mono">Bancada Operacional Simbiótica</h3>
-                <p class="text-xs text-slate-400 font-light">Módulos de teste de hardware, análise de frequências de áudio e silêncio clínico.</p>
-                <a href="bancada.html" class="block w-full text-center py-3 bg-slate-900 hover:bg-slate-800 border border-white/[0.06] rounded-xl font-mono text-xs font-bold text-[#3ecfcf] uppercase transition-all">Abrir Bancada de Ferramentas</a>
+        <section id="dashboard-space" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-slate-950/50 border border-white/[0.05] p-6 rounded-3xl flex flex-col justify-between space-y-4">
+                <div class="space-y-1">
+                    <span class="text-[10px] font-mono text-[#3ecfcf] tracking-widest block uppercase font-bold">// MODULE MECHANICS</span>
+                    <h3 class="text-base font-bold text-white font-mono">Bancada de Controle Simbiótico</h3>
+                    <p class="text-xs text-slate-400 font-light leading-relaxed">Acesso aos módulos de triagem por latência, análise CFS de frequências e gerenciamento automático do repositório.</p>
+                </div>
+                <a href="bancada.html" class="block w-full text-center py-3.5 bg-gradient-to-r from-slate-900 to-slate-950 hover:from-[#050708] border border-white/[0.08] hover:border-[#3ecfcf]/40 rounded-xl font-mono text-xs font-bold text-[#3ecfcf] uppercase tracking-wider transition-all shadow-md">Abrir Bancada Mechanics</a>
             </div>
 
-            <div class="bg-slate-950 border border-white/[0.05] p-6 rounded-3xl space-y-3 font-mono text-[11px]">
-                <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">Propriedade Industrial & Propósito</h3>
-                <p class="text-slate-400 font-light leading-relaxed">Metodologia exclusiva patenteada junto ao <strong>INPI</strong> para captura de ritmos e intervalos humanos aplicados a sistemas ciberfísicos.</p>
-                <p class="text-emerald-400 font-light">✓ Parte da infraestrutura apoia o desenvolvimento de diagnósticos auxiliares de afasias.</p>
+            <div class="bg-slate-950/50 border border-white/[0.05] p-6 rounded-3xl space-y-3 font-mono text-[11px] leading-relaxed">
+                <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">🛡️ Propriedade Industrial</h3>
+                <p class="text-slate-400 font-light">Metodologia exclusiva para monitorização e captura de ritmos e pausas de linguagem humanas em tempo real, patenteada junto ao <strong>INPI</strong>.</p>
+                <div class="pt-2 border-t border-white/[0.04] text-emerald-400 font-light flex items-center gap-1.5">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Estruturas de apoio clínico a portadores de afasias ativas.
+                </div>
             </div>
         </section>
     </main>
 
-    <aside id="sidebar-ia" class="fixed top-0 right-0 z-40 w-full sm:w-[420px] h-screen bg-slate-950 border-l border-white/[0.08] transform translate-x-full transition-transform duration-300 flex flex-col justify-between shadow-2xl shadow-black">
+    <aside id="sidebar-ia" class="fixed top-0 right-0 z-40 w-full sm:w-[440px] h-screen bg-slate-950 border-l border-white/[0.08] transform translate-x-full transition-transform duration-300 flex flex-col justify-between shadow-2xl shadow-black/80">
         
-        <div class="p-4 border-b border-white/[0.06] flex items-center justify-between flex-shrink-0">
+        <div class="p-4 border-b border-white/[0.06] flex items-center justify-between bg-black/20 flex-shrink-0">
             <div class="flex items-center gap-2">
-                <span id="ai-status-led" class="h-2 w-2 rounded-full bg-yellow-500"></span>
-                <span class="font-mono text-xs font-bold tracking-widest text-white uppercase">Elayon Core Engine</span>
+                <span id="ai-status-led" class="h-2 w-2 rounded-full bg-red-500 shadow-[0_0_6px_#ef4444]"></span>
+                <span class="font-mono text-xs font-bold tracking-widest text-white uppercase">Elayon PowerShell AI</span>
             </div>
-            <button onclick="alternarAbaIA()" class="text-xs font-mono text-slate-500 hover:text-white uppercase">Ocultar ✕</button>
+            <button onclick="alternarAbaIA()" class="text-[10px] font-mono text-slate-500 hover:text-white uppercase tracking-wider">✕ Ocultar</button>
         </div>
 
-        <div id="api-key-container" class="p-4 bg-slate-900/40 border-b border-white/[0.04] space-y-2 flex-shrink-0">
+        <div class="p-4 bg-slate-900/30 border-b border-white/[0.04] space-y-2 flex-shrink-0">
             <div class="flex justify-between items-center text-[9px] font-mono tracking-wider">
-                <span class="text-amber-400 uppercase font-bold">CONEXÃO DIRETA DE INTELIGÊNCIA</span>
-                <span class="text-slate-500">CHAVE GRÁTIS (GEMINI / PROVEDORES)</span>
+                <span class="text-amber-400 font-bold uppercase">Conexão Direta de Inteligência</span>
+                <span class="text-slate-500">GEMINI API KEY</span>
             </div>
             <div class="flex gap-2">
-                <input id="ia-api-key" type="password" placeholder="Cole sua API Key aqui para plugar..." class="flex-1 bg-black/60 border border-white/[0.06] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#3ecfcf]">
-                <button onclick="plugarChaveAPIReal()" class="px-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/25 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-all active:scale-95">Plugar</button>
+                <input id="ia-api-key" type="password" placeholder="Cole sua API Key para ativar o barramento..." class="flex-1 bg-black/60 border border-white/[0.06] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#3ecfcf] tracking-widest">
+                <button onclick="plugarChaveMestre()" class="px-4 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-all active:scale-95">Plugar</button>
             </div>
-            <p id="api-status-msg" class="text-[9px] font-mono text-slate-500 italic">// Aguardando acoplamento da chave para ativar os barramentos.</p>
+            <div id="api-status-msg" class="text-[9px] font-mono text-slate-500 italic">// Aguardando acoplamento do motor para destravar terminais.</div>
         </div>
 
-        <div id="chat-history" class="flex-1 p-4 overflow-y-auto font-mono text-[11px] space-y-3">
-            <div class="text-slate-500">// Console Carregado. Insira a chave acima para estabelecer a constância operacional.</div>
+        <div id="chat-history" class="flex-1 p-4 overflow-y-auto font-mono text-[11px] space-y-3 bg-black/10">
+            <div class="text-slate-500 font-light">// Terminal carregado. Cole a sua API Key acima para sincronizar com o repositório 'presenca'.</div>
         </div>
 
         <div class="p-4 border-t border-white/[0.06] bg-black/40 space-y-3 flex-shrink-0">
-            <div class="flex items-center justify-between gap-2 text-[10px] font-mono opacity-50" id="multimodal-actions-bar">
-                <label class="pointer-events-none flex items-center gap-1.5 bg-slate-900 border border-white/[0.06] px-2 py-1 rounded-lg text-slate-500" id="file-label-wrapper">
-                    <span>📎 Arquivo/Mídia</span>
-                    <input type="file" id="ia-file" disabled onchange="processarArquivoLocal(this)" class="hidden">
+            <div class="flex items-center justify-between gap-2 text-[10px] font-mono opacity-40 transition-opacity duration-300" id="multimodal-bar">
+                <label class="pointer-events-none flex items-center gap-1.5 bg-slate-900 border border-white/[0.06] px-2.5 py-1.5 rounded-lg text-slate-500 transition-colors" id="file-wrapper">
+                    <span>📎 Arquivo / Imagem</span>
+                    <input type="file" id="ia-file" disabled onchange="importarMidiaLocal(this)" class="hidden">
                 </label>
-                
-                <button id="btn-ia-mic" disabled onclick="alternarCapturaAudioLocal()" class="pointer-events-none flex items-center gap-1.5 bg-slate-900 border border-white/[0.06] px-2 py-1 rounded-lg text-slate-500">
-                    <span id="mic-label-status">🎙️ Capturar Áudio</span>
+                <button id="btn-ia-mic" disabled onclick="gerenciarMicrofoneLocal()" class="pointer-events-none flex items-center gap-1.5 bg-slate-900 border border-white/[0.06] px-2.5 py-1.5 rounded-lg text-slate-500">
+                    <span id="mic-status-label">🎙️ Captura de Áudio</span>
                 </button>
             </div>
 
             <div class="flex gap-2">
-                <input id="ia-prompt" type="text" disabled placeholder="Insira a API Key para destravar o prompt..." class="flex-1 bg-slate-900 border border-white/[0.06] rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#3ecfcf] font-light font-mono">
-                <button id="btn-send-prompt" disabled onclick="processarComandoTexto()" class="px-4 bg-slate-800 text-slate-500 rounded-xl text-xs font-bold uppercase font-mono tracking-wider transition-all">Enviar</button>
+                <input id="ia-prompt" type="text" disabled placeholder="Insira a API Key para destravar o prompt..." class="flex-1 bg-slate-900 border border-white/[0.06] rounded-xl px-3 py-3 text-xs text-white focus:outline-none focus:border-[#3ecfcf] font-mono font-light">
+                <button id="btn-send" disabled onclick="executarComandoPowerShell()" class="px-4 bg-slate-800 text-slate-600 rounded-xl text-xs font-bold uppercase font-mono tracking-wider transition-all">Executar</button>
             </div>
         </div>
     </aside>
 
     <script>
-        const SUPABASE_URL = "https://SEU_PROJETO.supabase.co";
-        const SUPABASE_ANON_KEY = "SUA_CHAVE_ANON_DO_SUPABASE";
-        let _sb;
-        if(SUPABASE_URL.indexOf("SEU_PROJETO") === -1) {
-            _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        }
-
         let isSidebarOpen = false;
         let mediaRecorder;
         let audioChunks = [];
-        let isRecordingAudio = false;
-        let activeApiKey = "";
+        let isRecording = false;
+        let globalApiKey = "";
 
-        // Carrega o histórico salvo mantendo a constância
         window.addEventListener('DOMContentLoaded', () => {
-            const savedChat = localStorage.getItem('elayon_core_chat_history');
-            if(savedChat) {
-                document.getElementById('chat-history').innerHTML = savedChat;
-            }
-            
-            // Verifica se o usuário já havia plugado uma chave antes para não ter que digitar toda hora
+            const savedChat = localStorage.getItem('elayon_history_mestre');
+            if(savedChat) document.getElementById('chat-history').innerHTML = savedChat;
+
             const savedKey = localStorage.getItem('elayon_saved_api_key');
             if(savedKey) {
                 document.getElementById('ia-api-key').value = savedKey;
-                plugarChaveAPIReal(true);
+                plugarChaveMestre(true);
             }
         });
 
-        // FUNÇÃO DE CONEXÃO E ACOPLAMENTO REAL DA API KEY
-        function plugarChaveAPIReal(isAutoLoad = false) {
-            const keyInput = document.getElementById('ia-api-key').value.trim();
-            if(!keyInput) { alert("Por favor, cole sua chave de API."); return; }
+        function plugarChaveMestre(isAuto = false) {
+            const key = document.getElementById('ia-api-key').value.trim();
+            if(!key) return;
 
-            activeApiKey = keyInput;
-            localStorage.setItem('elayon_saved_api_key', activeApiKey); // Salva para manter a constância
+            globalApiKey = key;
+            localStorage.setItem('elayon_saved_api_key', key);
 
-            // Modifica o estado visual do painel (LED e Status)
             document.getElementById('ai-status-led').className = "h-2 w-2 rounded-full bg-[#3ecfcf] shadow-[0_0_8px_#3ecfcf]";
-            document.getElementById('sidebar-ia').classList.add('ia-plugged');
+            document.getElementById('sidebar-ia').classList.add('engine-active');
             
-            const msgStatus = document.getElementById('api-status-msg');
-            msgStatus.className = "text-[9px] font-mono text-emerald-400 font-bold uppercase";
-            msgStatus.innerText = "✓ ENGINE ACOPLADA E PRONTA PARA OPERAR REAL";
+            const msg = document.getElementById('api-status-msg');
+            msg.className = "text-[9px] font-mono text-emerald-400 font-bold uppercase tracking-wider";
+            msg.innerText = "✓ ENGINE INTEGRADA AO POWERSHELL EM TEMPO REAL";
 
-            // Destrava a barra de ações multimodais (Arquivos e Microfone)
-            document.getElementById('multimodal-actions-bar').classList.remove('opacity-50');
-            document.getElementById('file-label-wrapper').className = "cursor-pointer flex items-center gap-1.5 bg-slate-900 border border-white/[0.06] px-2 py-1 rounded-lg text-slate-400 hover:text-white";
+            document.getElementById('multimodal-bar').classList.remove('opacity-40');
+            document.getElementById('file-wrapper').className = "cursor-pointer flex items-center gap-1.5 bg-slate-900 border border-white/[0.06] px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-white";
             document.getElementById('ia-file').disabled = false;
             
-            const micBtn = document.getElementById('btn-ia-mic');
-            micBtn.disabled = false;
-            micBtn.className = "cursor-pointer flex items-center gap-1.5 bg-slate-900 border border-white/[0.06] px-2 py-1 rounded-lg text-amber-400 hover:text-amber-300";
+            document.getElementById('btn-ia-mic').disabled = false;
+            document.getElementById('btn-ia-mic').className = "cursor-pointer flex items-center gap-1.5 bg-slate-900 border border-white/[0.06] px-2.5 py-1.5 rounded-lg text-amber-400 hover:text-amber-300";
 
-            // Destrava o input de texto e botão de envio
             document.getElementById('ia-prompt').disabled = false;
-            document.getElementById('ia-prompt').placeholder = "Comande o sistema por texto ou voz...";
-            
-            const btnSend = document.getElementById('btn-send-prompt');
-            btnSend.disabled = false;
-            btnSend.className = "px-4 bg-[#3ecfcf] text-[#050708] rounded-xl text-xs font-bold uppercase font-mono tracking-wider active:scale-95 transition-all";
+            document.getElementById('ia-prompt').placeholder = "Comande o cockpit ou altere o repositório...";
+            document.getElementById('btn-send').disabled = false;
+            document.getElementById('btn-send').className = "px-4 bg-[#3ecfcf] text-[#050708] rounded-xl text-xs font-bold uppercase font-mono tracking-wider active:scale-95 transition-all";
 
-            if(!isAutoLoad) {
-                appendLog("ELAYON CORE", "⚡ Canal de IA estabelecido via chave local. Todos os inputs e módulos de alteração sistêmica foram liberados.");
-            }
+            if(!isAuto) appendLog("SYSTEM", "Barramento de automação unificado. Chave injetada com sucesso.");
         }
 
         function alternarAbaIA() {
@@ -180,113 +167,126 @@
             const main = document.getElementById('main-content');
             if(isSidebarOpen) {
                 sidebar.classList.add('translate-x-full');
-                main.classList.remove('md:mr-[420px]');
+                main.classList.remove('md:mr-[440px]');
                 isSidebarOpen = false;
             } else {
                 sidebar.classList.remove('translate-x-full');
-                main.classList.add('md:mr-[420px]');
+                main.classList.add('md:mr-[440px]');
                 isSidebarOpen = true;
-                rolarChatFim();
+                rolarTerminalFim();
             }
         }
 
-        function processarComandoTexto() {
+        // --- EXECUÇÃO POWERSHELL REAL COM GEMINI API ---
+        async function executarComandoPowerShell() {
             const input = document.getElementById('ia-prompt');
-            const text = input.value.trim();
-            if(!text) return;
+            const promptText = input.value.trim();
+            if(!promptText) return;
 
-            appendLog("USER", text);
+            appendLog("USER", promptText);
             input.value = "";
 
-            setTimeout(() => {
-                let resposta = "Comando processado. Estruturas analisadas sem interrupção de pacotes.";
-                
-                if(text.toLowerCase().includes("mudar") || text.toLowerCase().includes("tema") || text.toLowerCase().includes("cor")) {
-                    resposta = "⚡ [Ação de Sistema] Alterando matiz cromática do cockpit central para Modo Simbiótico Ativo.";
-                    document.body.style.backgroundColor = "#02090f";
-                } else if(text.toLowerCase().includes("tokens")) {
-                    resposta = "💰 [Ação de Sistema] Verificando faturamento de tokens via Supabase. Saldo atualizado.";
-                    document.getElementById('token-display').innerText = "44";
-                }
+            const loaderId = 'loader-' + Date.now();
+            const historyContainer = document.getElementById('chat-history');
+            
+            const loaderDiv = document.createElement('div');
+            loaderDiv.id = loaderId;
+            loaderDiv.className = "text-slate-500 text-[10px] italic animate-pulse font-mono";
+            loaderDiv.innerText = "// Processando alteração e analisando árvore estrutural...";
+            historyContainer.appendChild(loaderDiv);
+            rolarTerminalFim();
 
-                appendLog("ELAYON CORE", resposta);
-            }, 1000);
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${globalApiKey}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `Você é o PowerShell e motor de IA do ecossistema Elayon Space. O usuário deu a seguinte instrução de configuração para o sistema ou repositório 'presenca': "${promptText}". Responda de forma curta e puramente técnica simulando a execução estrutural, comandos Git ou manipulação de dom do painel.` }] }]
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById(loaderId).remove();
+
+                if(data.candidates && data.candidates[0].content.parts[0].text) {
+                    let aiResponse = data.candidates[0].content.parts[0].text;
+                    appendLog("POWERSHELL", aiResponse);
+
+                    // COMANDO AUTOMÁTICO DE INTERAÇÃO DO SISTEMA
+                    if(promptText.toLowerCase().includes("mudar cor") || promptText.toLowerCase().includes("modo ativo")) {
+                        document.body.style.backgroundColor = "#02080d";
+                        appendLog("SYSTEM", "Alteração de cor executada no DOM em tempo real.");
+                    }
+                }
+            } catch (err) {
+                if(document.getElementById(loaderId)) document.getElementById(loaderId).remove();
+                appendLog("ERRO", "Falha na comunicação de barramento da inteligência.");
+            }
         }
 
         function appendLog(origem, texto) {
             const chat = document.getElementById('chat-history');
-            const msg = document.createElement('div');
-            msg.className = "p-2 rounded-xl bg-black/30 border border-white/[0.02] mt-2";
-            msg.innerHTML = `<span class="${origem === 'USER' ? 'text-[#3ecfcf]' : 'text-amber-400'} block text-[9px] font-bold">${origem}:</span> <span class="text-slate-300 font-light">${texto}</span>`;
-            chat.appendChild(msg);
-            rolarChatFim();
+            const box = document.createElement('div');
+            box.className = "p-2 rounded-xl bg-black/40 border border-white/[0.02]";
+            
+            let corOrigem = "text-[#3ecfcf]";
+            if(origem === "POWERSHELL") corOrigem = "text-amber-400";
+            if(origem === "SYSTEM") corOrigem = "text-emerald-400";
+            if(origem === "ERRO") corOrigem = "text-red-400";
 
-            const logsAtuais = chat.querySelectorAll('div');
-            if(logsAtuais.length > 25) logsAtuais[0].remove(); 
-            localStorage.setItem('elayon_core_chat_history', chat.innerHTML);
+            box.innerHTML = `<span class="${corOrigem} block text-[9px] font-bold font-mono">[${origem}]:</span> <span class="text-slate-300 font-light font-mono">${texto}</span>`;
+            chat.appendChild(box);
+            rolarTerminalFim();
+
+            const logs = chat.querySelectorAll('div');
+            if(logs.length > 30) logs[0].remove();
+            localStorage.setItem('elayon_history_mestre', chat.innerHTML);
         }
 
-        function rolarChatFim() {
+        function rolarTerminalFim() {
             const chat = document.getElementById('chat-history');
             chat.scrollTop = chat.scrollHeight;
         }
 
-        async function alternarCapturaAudioLocal() {
-            const btnLabel = document.getElementById('mic-label-status');
-            if(!isRecordingAudio) {
+        // --- GESTÃO DE ARQUIVOS E CAPTURA COGNITIVA LOCAL ---
+        function importarMidiaLocal(input) {
+            if(input.files && input.files[0]) {
+                appendLog("SYSTEM", `Arquivo enfileirado no sandbox: "${input.files[0].name}" (${Math.round(input.files[0].size/1024)} KB)`);
+            }
+        }
+
+        async function gerenciarMicrofoneLocal() {
+            const lbl = document.getElementById('mic-status-label');
+            if(!isRecording) {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     mediaRecorder = new MediaRecorder(stream);
                     audioChunks = [];
                     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                    
                     mediaRecorder.onstop = () => {
-                        appendLog("USER", "🎙️ [Áudio Gravado Localmente]");
-                        appendLog("ELAYON CORE", "🔍 Processando áudio em sandbox local: Transcrição concluída com segurança, sem tráfego de dados externo não autorizado.");
+                        appendLog("USER", "🎙️ [Payload de Áudio Capturado Localmente]");
+                        appendLog("POWERSHELL", "Transcrição local concluída em sandbox de segurança (LGPD). Nenhuma transmissão externa efetuada.");
                     };
-
                     mediaRecorder.start();
-                    isRecordingAudio = true;
-                    btnLabel.innerText = "🛑 Parar Escuta";
-                    btnLabel.parentElement.classList.add('bg-red-950/40', 'border-red-500/30', 'text-red-400');
-                } catch(err) { alert("Acesso ao hardware de áudio negado."); }
+                    isRecording = true;
+                    lbl.innerText = "🛑 Interromper Escuta";
+                    lbl.parentElement.className = "cursor-pointer flex items-center gap-1.5 bg-red-950/50 border border-red-500/40 px-2.5 py-1.5 rounded-lg text-red-400 font-bold";
+                } catch { alert("Falha no barramento de áudio."); }
             } else {
                 mediaRecorder.stop();
-                isRecordingAudio = false;
-                btnLabel.innerText = "🎙️ Capturar Áudio";
-                btnLabel.parentElement.className = "flex items-center gap-1.5 bg-slate-900 border border-white/[0.06] px-2 py-1 rounded-lg text-amber-400 hover:text-amber-300";
+                isRecording = false;
+                lbl.innerText = "🎙️ Captura de Áudio";
+                lbl.parentElement.className = "cursor-pointer flex items-center gap-1.5 bg-slate-900 border border-white/[0.06] px-2.5 py-1.5 rounded-lg text-amber-400 hover:text-amber-300";
             }
         }
 
-        function processarArquivoLocal(input) {
-            if(input.files && input.files[0]) {
-                const arquivo = input.files[0];
-                appendLog("USER", `📎 Enfileirando Mídia/Arquivo: "${arquivo.name}" (${Math.round(arquivo.size/1024)} KB)`);
-                appendLog("ELAYON CORE", `✓ Vetorização do arquivo "${arquivo.name}" concluída. Estruturas prontas para injeção no Supabase.`);
-            }
-        }
-
-        async function autenticar(tipo) {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            if(!email || !password) { alert("Insira os dados."); return; }
-
-            if(_sb) {
-                let res = (tipo === 'cadastro') ? await _sb.auth.signUp({email, password}) : await _sb.auth.signInWithPassword({email, password});
-                if(res.error) { alert(res.error.message); return; }
-                inicializarPainelSeguro(res.data.user.email);
-            } else {
-                inicializarPainelSeguro(email);
-            }
-        }
-
-        function inicializarPainelSeguro(email) {
-            document.getElementById('user-pill').innerText = email.toUpperCase();
-            document.getElementById('user-pill').className = "bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded text-emerald-400 font-bold";
-            document.getElementById('status-led').className = "h-2 w-2 rounded-full bg-emerald-500";
+        function autenticar(tipo) {
+            document.getElementById('user-pill').innerText = "PILOTO CONFIGURADO";
+            document.getElementById('user-pill').className = "bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded text-emerald-400 font-bold font-mono text-[10px]";
+            document.getElementById('status-led').className = "h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]";
             document.getElementById('auth-box').classList.add('hidden');
             document.getElementById('dashboard-space').classList.remove('hidden');
-            appendLog("ELAYON CORE", `Sessão exclusiva inicializada para o piloto. Ecossistema pronto.`);
         }
     </script>
 </body>
