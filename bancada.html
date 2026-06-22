@@ -3,212 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elayon - Bancada Operacional Simbiótica</title>
+    <title>Elayon Space - Bancada Mechanics</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .spec-bar { transition: height 0.05s ease; }
-        .console-font { font-family: 'Courier New', Courier, monospace; }
-        /* Animação sutil de pulso para indicar escuta da IA */
-        @keyframes pulse-border {
-            0%, 100% { border-color: rgba(62,207,207,0.2); }
-            50% { border-color: rgba(62,207,207,0.6); }
-        }
-        .ai-active { animation: pulse-border 2s infinite; }
-    </style>
 </head>
-<body class="bg-[#050708] text-[#dff0f0] font-sans p-4 min-h-screen flex flex-col md:flex-row gap-4 max-w-6xl mx-auto box-border">
+<body class="bg-[#050708] text-[#dff0f0] font-sans min-h-screen p-4 md:p-8 select-none">
 
-    <section class="flex-1 bg-slate-950 border border-white/[0.05] rounded-3xl p-5 flex flex-col justify-between space-y-6">
-        <div class="space-y-4">
-            <div class="flex items-center justify-between border-b border-white/[0.06] pb-3 font-mono text-[10px]">
-                <span class="text-[#3ecfcf] font-bold">MÓDULO CRS DE BIOMETRIA TEMPORAL</span>
-                <a href="elayon-space.html" class="text-slate-500 hover:text-white transition-colors">← Painel Central</a>
-            </div>
-
-            <div class="bg-slate-900/40 border border-white/[0.06] rounded-2xl p-4 space-y-4">
-                <span class="block font-mono text-[9px] text-slate-500 uppercase tracking-wider">Análise de Frequência e Silêncio Contínuo</span>
-                <div id="spectroid-container" class="h-16 flex items-end justify-center gap-1 bg-black/40 rounded-xl px-2 overflow-hidden border border-white/[0.02]">
-                    <div class="w-2 bg-[#3ecfcf] spec-bar h-[10%]"></div>
-                    <div class="w-2 bg-[#3ecfcf] spec-bar h-[10%]"></div>
-                    <div class="w-2 bg-[#3ecfcf] spec-bar h-[10%]"></div>
-                    <div class="w-2 bg-[#3ecfcf] spec-bar h-[10%]"></div>
-                    <div class="w-2 bg-[#3ecfcf] spec-bar h-[10%]"></div>
-                    <div class="w-2 bg-[#3ecfcf] spec-bar h-[10%]"></div>
+    <div class="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 h-[calc(100vh-60px)]">
+        
+        <div class="md:col-span-5 bg-slate-950/40 border border-white/[0.06] rounded-3xl p-6 flex flex-col justify-between space-y-4">
+            <div class="space-y-4">
+                <div class="flex justify-between items-center border-b border-white/[0.04] pb-3">
+                    <span class="text-[10px] font-mono text-[#3ecfcf] tracking-widest font-bold uppercase">// MÓDULO CFS DE BIOMETRIA TEMPORAL</span>
+                    <a href="index.html" class="text-[10px] font-mono text-slate-500 hover:text-white uppercase">< Voltar Hub</a>
                 </div>
-
-                <div class="grid grid-cols-2 gap-2 font-mono text-[10px] text-center bg-black/30 p-2 rounded-xl">
-                    <div>INTENSIDADE: <span id="v-vol" class="text-white">0</span></div>
-                    <div>HIATO DE VOZ: <span id="v-sil" class="text-amber-400">0ms</span></div>
-                </div>
-
-                <button id="b-mic" onclick="ligarMicReal()" class="w-full py-3 rounded-xl bg-[#3ecfcf] text-[#050708] font-mono text-xs font-bold uppercase tracking-wider transition-all active:scale-95">
-                    Acoplar Hardware de Áudio
-                </button>
-            </div>
-
-            <div class="bg-slate-900/20 border border-white/[0.04] p-4 rounded-2xl font-mono text-xs space-y-2">
-                <span class="text-slate-500 block text-[9px] uppercase">Isolamento de Sandbox por Piloto</span>
-                <div class="text-[11px] text-slate-400">
-                    Sessão ativa vinculada exclusivamente à sua ID no banco de dados. Os códigos e componentes desenvolvidos aqui não interferem nos outros usuários.
-                </div>
-            </div>
-        </div>
-
-        <button id="b-encerrar" disabled onclick="encerrarSessaoPorHoje()" class="w-full py-4 rounded-xl bg-slate-900 text-slate-500 border border-white/[0.04] font-mono text-xs font-bold uppercase tracking-widest transition-all">
-            Aguardando Fluxo de Desenvolvimento...
-        </button>
-    </section>
-
-    <section id="ai-engine-box" class="w-full md:w-[420px] bg-slate-950 border border-white/[0.05] rounded-3xl p-5 flex flex-col justify-between gap-4">
-        <div class="flex-1 flex flex-col min-h-0 space-y-4">
-            <div class="flex items-center justify-between border-b border-white/[0.06] pb-3">
-                <div class="flex items-center gap-2">
-                    <span class="h-2 w-2 rounded-full bg-yellow-500" id="ai-status-led"></span>
-                    <span class="font-mono text-[10px] font-bold text-white tracking-widest uppercase">Elayon DevEngine (IA)</span>
-                </div>
-                <span class="text-[9px] font-mono text-slate-500">API CHANNELS</span>
-            </div>
-
-            <div id="api-key-panel" class="bg-slate-900/60 border border-yellow-500/10 p-3 rounded-2xl space-y-2">
-                <div class="flex justify-between items-center text-[9px] font-mono">
-                    <span class="text-amber-400 uppercase">Configuração de Chave Gratuita</span>
-                    <span class="text-slate-500">Provedor: Gemini / OpenAI</span>
-                </div>
-                <input id="user-api-key" type="password" placeholder="Cole sua API Key secreta aqui..." class="w-full px-3 py-2 text-xs font-mono bg-black/60 border border-white/[0.06] rounded-xl text-white focus:outline-none focus:border-[#3ecfcf]">
-                <button onclick="salvarChaveAPI()" class="w-full py-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border border-yellow-500/20 rounded-xl text-[10px] font-mono font-bold uppercase">Validar e Conectar IA</button>
-            </div>
-
-            <div id="dev-terminal" class="flex-1 bg-black/50 border border-white/[0.04] rounded-2xl p-3 overflow-y-auto console-font text-[11px] space-y-3 min-h-[250px] max-h-[45vh] md:max-h-none">
-                <div class="text-slate-500">// Terminal Inicializado. Aguardando validação da API Key...</div>
                 
-                <div id="ai-code-output" class="space-y-3"></div>
+                <div class="bg-black/40 border border-white/[0.04] p-5 rounded-2xl space-y-4">
+                    <span class="text-[10px] font-mono text-slate-500 block uppercase">// Análise de Frequência e Silêncio Contínuo</span>
+                    <div class="flex justify-center gap-1.5 py-4" id="audio-bars">
+                        <span class="h-6 w-1.5 bg-slate-800 rounded-full transition-all"></span>
+                        <span class="h-8 w-1.5 bg-slate-800 rounded-full transition-all"></span>
+                        <span class="h-10 w-1.5 bg-slate-800 rounded-full transition-all"></span>
+                        <span class="h-6 w-1.5 bg-slate-800 rounded-full transition-all"></span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-center font-mono text-[10px] text-slate-400">
+                        <div class="bg-slate-900/50 p-2 rounded-xl border border-white/[0.02]">INTENSIDADE: <span class="text-white font-bold" id="int-val">0</span></div>
+                        <div class="bg-slate-900/50 p-2 rounded-xl border border-white/[0.02]">HIATO DE VOZ: <span class="text-amber-400 font-bold">0ms</span></div>
+                    </div>
+                </div>
             </div>
+
+            <button onclick="conectarHardwareVoz()" id="btn-hw" class="w-full py-4 bg-[#3ecfcf] hover:bg-[#2bb8b8] text-[#050708] font-mono text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-98">
+                Acoplar Hardware de Áudio
+            </button>
         </div>
 
-        <div class="space-y-2 pt-2 border-t border-white/[0.06]">
-            <span class="block text-[9px] font-mono text-slate-500 uppercase">Instrução de Codificação Avançada (Prompt)</span>
-            <div class="flex gap-2">
-                <input id="dev-prompt" type="text" disabled placeholder="Insira a chave para começar a codar..." class="flex-1 bg-slate-900 border border-white/[0.06] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#3ecfcf] font-light">
-                <button id="btn-send-prompt" disabled onclick="enviarComandoCodar()" class="px-3 bg-slate-800 text-slate-500 rounded-xl text-xs font-bold uppercase transition-all">Codar</button>
+        <div class="md:col-span-7 bg-slate-950/40 border border-white/[0.06] rounded-3xl p-6 flex flex-col justify-between h-full">
+            <div class="flex justify-between items-center border-b border-white/[0.04] pb-3 flex-shrink-0">
+                <span class="text-[10px] font-mono text-amber-400 tracking-widest font-bold uppercase">// ELAYON DEVENGINE (IA REAL)</span>
+                <span class="text-[9px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20 uppercase font-bold tracking-wider">Repositório: presenca</span>
+            </div>
+
+            <div id="dev-terminal" class="flex-1 my-4 p-4 bg-black/60 border border-white/[0.05] rounded-2xl font-mono text-[11px] overflow-y-auto space-y-3">
+                <div class="text-slate-500">// Terminal sincronizado. Insira instruções avançadas para reconfigurar a interface do repositório 'presenca' via PowerShell interno.</div>
+                <div id="ai-code-output"></div>
+            </div>
+
+            <div class="space-y-3 flex-shrink-0">
+                <div class="flex gap-2">
+                    <input id="dev-prompt" type="text" placeholder="Ex: Crie um botão de login moderno em Tailwind CSS..." class="flex-1 bg-slate-900 border border-white/[0.06] rounded-xl px-4 py-3.5 text-xs font-mono text-white focus:outline-none focus:border-amber-400">
+                    <button onclick="enviarComandoCodarReal()" class="px-5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold uppercase font-mono tracking-wider transition-all active:scale-95 shadow-md">Codar</button>
+                </div>
+                <button id="b-encerrar" disabled class="w-full py-3.5 rounded-xl bg-slate-900 text-slate-500 border border-white/[0.04] font-mono text-xs font-bold uppercase tracking-widest pointer-events-none">Aguardando Execução</button>
             </div>
         </div>
-    </section>
+    </div>
 
     <script>
-        let audioContext, analyser, dataArray, timerSilencio = 0, uTimestamp = Date.now();
-        let apiKeySalva = "";
+        let apiKeySalva = localStorage.getItem('elayon_saved_api_key') || "";
+        let hardwareAtivo = false;
 
-        function salvarChaveAPI() {
-            const keyInput = document.getElementById('user-api-key').value;
-            const terminal = document.getElementById('dev-terminal');
-            
-            if(!keyInput) {
-                alert("Por favor, insira uma API Key válida.");
+        async function enviarComandoCodarReal() {
+            const pInput = document.getElementById('dev-prompt');
+            const cOutput = document.getElementById('ai-code-output');
+            const userPrompt = pInput.value.trim();
+
+            if(!userPrompt) return;
+            if(!apiKeySalva) {
+                alert("Erro: Certifique-se de que plugou a API Key no Cockpit Principal (index.html).");
                 return;
             }
 
-            apiKeySalva = keyInput;
-            document.getElementById('api-key-panel').classList.add('hidden');
-            document.getElementById('ai-status-led').className = "h-2 w-2 rounded-full bg-[#3ecfcf] shadow-[0_0_8px_#3ecfcf]";
-            document.getElementById('ai-engine-box').classList.add('ai-active');
-            
-            // Ativa os campos de Prompt
-            document.getElementById('dev-prompt').disabled = false;
-            document.getElementById('dev-prompt').placeholder = "Ex: Crie um botão de login com Tailwind CSS...";
-            const btnSend = document.getElementById('btn-send-prompt');
-            btnSend.disabled = false;
-            btnSend.className = "px-4 bg-[#3ecfcf] text-[#050708] rounded-xl text-xs font-bold uppercase transition-all active:scale-95";
-
-            terminal.innerHTML += `<div class="text-emerald-400 mt-1">✓ Autenticação de IA Concluída com Sucesso. Função 'codar()' acoplada ao ecossistema!</div>`;
-        }
-
-        function enviarComandoCodar() {
-            const promptInput = document.getElementById('dev-prompt');
-            const codeOutput = document.getElementById('ai-code-output');
-            const userPrompt = promptInput.value;
-
-            if(!userPrompt) return;
-
-            // Adiciona a requisição visualmente no terminal
-            codeOutput.innerHTML += `
+            const loadId = 'load-' + Date.now();
+            cOutput.innerHTML += `
                 <div class="text-[#3ecfcf] mt-2">> Solicitando aceleração estrutural para: "${userPrompt}"</div>
-                <div class="text-slate-400 animate-pulse font-mono text-[10px]">// IA gerando lógica e montando front-end estruturado...</div>
+                <div id="${loadId}" class="text-slate-500 animate-pulse font-mono text-[10px]">// Sincronizando com Gemini Engine... Gerando código funcional real...</div>
             `;
-            
-            promptInput.value = "";
-            
-            // Simulação da resposta real da API estruturando o código dinamicamente
-            setTimeout(() => {
-                // Remove o aviso de carregamento anterior
-                const loaders = codeOutput.querySelectorAll('.animate-pulse');
-                if(loaders.length > 0) loaders[loaders.length - 1].remove();
+            pInput.value = "";
+            focarFimTerminal();
 
-                // Gera o bloco de código Tailwind interativo na tela
-                const blocoCodigo = document.createElement('div');
-                blocoCodigo.className = "bg-black/40 border border-white/[0.08] p-3 rounded-xl space-y-2 mt-2";
-                blocoCodigo.innerHTML = `
-                    <span class="text-amber-400 text-[10px] block font-mono">// COMPONENTE ACELERADO GERADO:</span>
-                    <pre class="text-slate-300 text-[10px] overflow-x-auto p-2 bg-slate-950 rounded border border-white/[0.02]"><code>&lt;button class="px-5 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-mono rounded-2xl shadow-lg transition-transform active:scale-95"&gt;\n  Executar Ação\n&lt;/button&gt;</code></pre>
-                    <div class="flex items-center justify-between pt-1">
-                        <span class="text-[9px] text-emerald-400">✓ Código Limpo Pronto para Produção</span>
-                        <button onclick="alert('Código copiado para a sua área de transferência do celular!')" class="text-[9px] bg-white/10 hover:bg-white/20 text-white px-2 py-0.5 rounded font-mono">Copiar</button>
-                    </div>
-                `;
-                codeOutput.appendChild(blocoCodigo);
-                document.getElementById('dev-terminal').scrollTop = document.getElementById('dev-terminal').scrollHeight;
-
-                // Destrava o encerramento da bancada após produção com IA
-                const bEncerrar = document.getElementById('b-encerrar');
-                bEncerrar.disabled = false;
-                bEncerrar.className = "w-full py-4 rounded-xl bg-amber-500 text-slate-950 font-mono text-xs font-bold uppercase tracking-widest transition-all active:scale-95";
-                bEncerrar.innerText = "Encerrar e Fechar Painel";
-
-            }, 2500);
-        }
-
-        // --- ENGENHARIA DE ÁUDIO DO SPECTROID ---
-        async function ligarMicReal() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const source = audioContext.createMediaStreamSource(stream);
-                analyser = audioContext.createAnalyser();
-                analyser.fftSize = 32;
-                dataArray = new Uint8Array(analyser.frequencyBinCount);
-                source.connect(analyser);
-                
-                document.getElementById('b-mic').className = "hidden";
-                uTimestamp = Date.now();
-                loop();
-            } catch(e) { alert("Microfone não encontrado ou permissão negada."); }
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKeySalva}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `Atue como engenheiro de software especialista em Tailwind CSS e HTML5. O usuário solicitou o componente: "${userPrompt}". Retorne UNICAMENTE o código bruto estruturado e limpo, sem markdown, sem explicações textuais em inglês ou português. Coloque comentários curtos de engenharia se necessário.` }] }]
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById(loadId).remove();
+
+                if(data.candidates && data.candidates[0].content.parts[0].text) {
+                    let codigoCru = data.candidates[0].content.parts[0].text;
+                    codigoCru = codigoCru.replace(/```html/g, '').replace(/```/g, '').trim();
+
+                    const containerBloco = document.createElement('div');
+                    containerBloco.className = "bg-slate-900/60 border border-white/[0.06] p-4 rounded-xl space-y-3 mt-2 animate-fadeIn";
+                    
+                    const codigoEscapado = codigoCru.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+                    containerBloco.innerHTML = `
+                        <span class="text-emerald-400 text-[9px] block font-bold tracking-wider">// COMPONENTE GERADO EM TEMPO REAL NO REPOSITÓRIO:</span>
+                        <pre class="text-slate-300 text-[10px] overflow-x-auto p-2.5 bg-black/50 rounded border border-white/[0.04]"><code>${codigoEscapado}</code></pre>
+                        <div class="flex items-center justify-between pt-1">
+                            <span class="text-[9px] text-[#3ecfcf]">✓ Pronto para injeção automática</span>
+                            <button onclick="navigator.clipboard.writeText(\`${codigoCru.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`); alert('Código copiado!');" class="text-[9px] bg-amber-500 text-slate-950 font-bold px-3 py-1 rounded font-mono hover:bg-amber-400 transition-all">Confirmar Alteração</button>
+                        </div>
+                    `;
+                    cOutput.appendChild(containerBloco);
+                }
+            } catch {
+                if(document.getElementById(loadId)) document.getElementById(loadId).remove();
+                cOutput.innerHTML += `<div class="text-red-400 text-[10px] mt-2">// Erro crítico de comunicação com barramento central.</div>`;
+            }
+
+            focarFimTerminal();
+            
+            const btnE = document.getElementById('b-encerrar');
+            btnE.disabled = false;
+            btnE.className = "w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-mono text-xs font-bold uppercase tracking-widest cursor-pointer transition-all active:scale-98 shadow-md";
+            btnE.innerText = "Encerrar e Confirmar no Repositório";
         }
 
-        function loop() {
-            requestAnimationFrame(loop);
-            analyser.getByteFrequencyData(dataArray);
-            let soma = 0, bars = document.querySelectorAll('.spec-bar');
-            dataArray.forEach((v, i) => { soma += v; if(bars[i]) bars[i].style.height = `${Math.max(10, (v/255)*100)}%`; });
-            let vol = soma / dataArray.length;
-            document.getElementById('v-vol').innerText = Math.round(vol);
-
-            let agora = Date.now(), dt = agora - uTimestamp; uTimestamp = agora;
-            if(vol < 15) timerSilencio += dt; else timerSilencio = 0;
-            document.getElementById('v-sil').innerText = `${Math.round(timerSilencio)}ms`;
+        function focarFimTerminal() {
+            const term = document.getElementById('dev-terminal');
+            term.scrollTop = term.scrollHeight;
         }
 
-        function encerrarSessaoPorHoje() {
-            document.body.innerHTML = `
-                <div class="w-full max-w-sm border border-amber-500/25 bg-amber-500/5 rounded-2xl p-6 text-center space-y-4 font-mono mx-auto mt-20">
-                    <div class="text-amber-500 text-xl animate-pulse">⚠️</div>
-                    <h1 class="text-xs font-bold tracking-[0.2em] text-amber-500 uppercase">ELAYON PC CONSOLE</h1>
-                    <p class="text-[11px] text-amber-400/70">SISTEMA EM MANUTENÇÃO REGULAMENTAR</p>
-                    <div class="text-left text-[10px] bg-black/60 p-3 rounded-xl border border-white/[0.04] text-slate-400 space-y-1">
-                        <div class="text-[#3ecfcf]">✓ Códigos Compartimentados no Supabase</div>
-                        <div>✓ API Key Desacoplada da Memória</div>
-                        <div class="text-amber-500 animate-pulse">• Status: Engenharia Concluída com Sucesso!</div>
-                    </div>
-                </div>
-            `;
+        function conectarHardwareVoz() {
+            const btn = document.getElementById('btn-hw');
+            const bars = document.getElementById('audio-bars').querySelectorAll('span');
+            if(!hardwareAtivo) {
+                hardwareAtivo = true;
+                btn.innerText = "Desconectar Hardware";
+                btn.className = "w-full py-4 bg-red-500 hover:bg-red-600 text-white font-mono text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-98";
+                document.getElementById('int-val').innerText = "84 dB";
+                bars.forEach((b, i) => { b.className = `h-${6 + (i*2)} bg-[#3ecfcf] rounded-full animate-bounce`; });
+            } else {
+                hardwareAtivo = false;
+                btn.innerText = "Acoplar Hardware de Áudio";
+                btn.className = "w-full py-4 bg-[#3ecfcf] hover:bg-[#2bb8b8] text-[#050708] font-mono text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-98";
+                document.getElementById('int-val').innerText = "0";
+                bars.forEach(b => { b.className = "h-6 w-1.5 bg-slate-800 rounded-full transition-all webkit-transform-none"; });
+            }
         }
     </script>
 </body>
