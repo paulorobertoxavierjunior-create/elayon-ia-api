@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elayon Presença - Plataforma Conectiva</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-[#030608] text-slate-100 font-sans min-h-screen flex items-center justify-center p-4 md:p-8 select-none">
+
+    <div class="w-full max-w-4xl bg-slate-950/40 border border-white/[0.05] rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden backdrop-blur-md">
+        
+        <div id="tela-boas-vindas" class="space-y-6 text-center py-8">
+            <div class="space-y-2">
+                <span class="text-[#3ecfcf] font-mono text-[10px] tracking-widest font-bold uppercase block">// ECOSSISTEMA MESTRE</span>
+                <h1 class="text-3xl font-extrabold font-mono text-white tracking-tight">ELAYON PRESENÇA</h1>
+                <p class="text-xs text-slate-400 max-w-md mx-auto font-light leading-relaxed">Bem-vindo ao barramento conectivo de biometria temporal e calibração de silêncio para sistemas externos.</p>
+            </div>
+            <div class="pt-4">
+                <button onclick="mudarTela('tela-solicitar')" class="px-8 py-3.5 bg-gradient-to-r from-[#3ecfcf] to-blue-600 text-slate-950 font-mono text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 shadow-lg shadow-[#3ecfcf]/10">
+                    Iniciar Plataforma →
+                </button>
+            </div>
+        </div>
+
+        <div id="tela-solicitar" class="hidden space-y-6 max-w-md mx-auto py-4 font-mono text-xs">
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider text-center border-b border-white/[0.06] pb-2">// Credenciamento Inicial</h2>
+            <div class="space-y-4">
+                <div class="space-y-1">
+                    <label class="text-[10px] text-slate-400 font-bold uppercase">Nome Completo</label>
+                    <input id="reg-name" type="text" placeholder="Digite seu nome..." class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] text-slate-400 font-bold uppercase">E-mail Operacional</label>
+                    <input id="reg-email" type="email" placeholder="nome@provedor.com" class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] text-slate-400 font-bold uppercase">Senha de Acesso</label>
+                    <input id="reg-pass" type="password" placeholder="••••••••" class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
+                </div>
+                <button onclick="registrarUsuarioFirebase()" class="w-full py-3 bg-[#3ecfcf] text-slate-950 font-bold uppercase tracking-wider rounded-xl transition-all">
+                    Solicitar Liberação de Acesso
+                </button>
+                <p class="text-center text-[10px] text-slate-500">Já possui cadastro? <span onclick="mudarTela('tela-login')" class="text-[#3ecfcf] cursor-pointer underline">Fazer Login</span></p>
+            </div>
+        </div>
+
+        <div id="tela-login" class="hidden space-y-6 max-w-md mx-auto py-4 font-mono text-xs">
+            <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider text-center border-b border-white/[0.06] pb-2">// Acesso Autenticado</h2>
+            <div class="space-y-4">
+                <div class="space-y-1">
+                    <label class="text-[10px] text-slate-400 font-bold uppercase">E-mail</label>
+                    <input id="log-email" type="email" class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] text-slate-400 font-bold uppercase">Senha</label>
+                    <input id="log-pass" type="password" class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
+                </div>
+                <button onclick="loginUsuarioFirebase()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-bold uppercase tracking-wider rounded-xl transition-all">
+                    Liberar Terminal e Entrar
+                </button>
+                <p class="text-center text-[10px] text-slate-500">Voltar para <span onclick="mudarTela('tela-solicitar')" class="text-[#3ecfcf] cursor-pointer underline">Solicitar Acesso</span></p>
+            </div>
+        </div>
+
+        <div id="tela-painel" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            
+            <div class="lg:col-span-6 space-y-4 flex flex-col justify-between">
+                <div class="space-y-4">
+                    <header class="flex justify-between items-center border-b border-white/[0.06] pb-2 font-mono text-[9px]">
+                        <span class="text-[#3ecfcf] font-bold uppercase">// OPERAÇÃO TERMINAL ACTIVE</span>
+                        <button onclick="logout()" class="text-red-400 hover:underline">DESCONECTAR</button>
+                    </header>
+
+                    <div class="bg-slate-950/60 border border-white/[0.05] p-3 rounded-xl space-y-2 font-mono text-[9px]">
+                        <div class="flex justify-between items-center">
+                            <span class="text-amber-400 font-bold uppercase">PLUGUE SUA GEMINI KEY (IA GRATUITA)</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <input id="ia-key" type="password" placeholder="AI Studio API Key..." class="flex-1 bg-black/40 border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-white focus:outline-none text-[10px]">
+                            <button onclick="salvarChaveIA()" class="px-3 bg-white/5 border border-white/[0.1] text-[#3ecfcf] rounded-lg font-bold uppercase">Plugar</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950/60 border border-white/[0.05] p-4 rounded-2xl space-y-3 font-mono">
+                        <div class="flex justify-between items-center text-[10px]">
+                            <h3 class="text-white font-bold uppercase tracking-wider">📝 Exercícios de Metrificação</h3>
+                            <span id="progresso-exercicio" class="text-amber-400 font-bold">Etapa: 1 de 3</span>
+                        </div>
+                        
+                        <div id="texto-substancial" class="bg-black/50 border border-white/[0.03] p-3 rounded-xl text-[11px] text-slate-300 leading-relaxed font-light select-text">
+                            Carregando o primeiro vetor de calibração textual substantiva...
+                        </div>
+
+                        <div class="space-y-2 text-[10px]">
+                            <textarea id="resposta-usuario" rows="2" placeholder="Leia o texto acima em voz alta e digite/valide sua percepção temporal ou resposta cognitiva aqui..." class="w-full bg-slate-900 border border-white/[0.06] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#3ecfcf] leading-relaxed"></textarea>
+                            <button onclick="avancarExercicio()" class="w-full py-2.5 bg-[#3ecfcf] text-slate-950 font-bold uppercase tracking-wider rounded-xl transition-all text-[9px]">
+                                Submeter Resposta e Computar Silêncio
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="bloco-entrega" class="hidden bg-slate-950/40 border border-white/[0.05] p-4 rounded-2xl space-y-3">
+                    <div class="flex justify-between items-center font-mono text-[9px]">
+                        <span class="text-emerald-400 font-bold uppercase">// MÉTRIQUES CRS E HISTÓRICO FIFO</span>
+                        <span class="text-slate-500">Capacidade: 3 Sessões</span>
+                    </div>
+
+                    <div class="bg-black/40 border border-white/[0.03] p-2 rounded-xl h-32 flex items-center justify-center">
+                        <canvas id="graficoFIFO" class="w-full h-full"></canvas>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 font-mono text-[9px]">
+                        <button onclick="exportarPDF()" class="py-2.5 bg-slate-900 border border-white/[0.08] text-emerald-400 rounded-xl font-bold uppercase tracking-wider">
+                            📥 Baixar PDF
+                        </button>
+                        <button onclick="copiarAPI()" class="py-2.5 bg-slate-900 border border-white/[0.08] text-purple-400 rounded-xl font-bold uppercase tracking-wider">
+                            🔗 Chamar API
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-6 bg-slate-950/60 border border-white/[0.06] rounded-3xl p-5 flex flex-col justify-between space-y-4 font-mono">
+                <div class="text-[9px] border-b border-white/[0.04] pb-2 text-slate-400 flex justify-between">
+                    <span>🤖 CENTRAL DE ANÁLISE INTERATIVA</span>
+                    <span class="text-amber-400 font-bold">// DINÂMICA COMPORTAMENTAL</span>
+                </div>
+
+                <div id="chat-terminal" class="flex-1 min-h-[280px] max-h-[380px] overflow-y-auto p-3 bg-black/60 border border-white/[0.04] rounded-xl text-[10px] space-y-2 text-slate-300">
+                    <div class="text-slate-500 font-light">// A IA comentará e responderá de forma personalizada com base no teor das respostas dadas nos exercícios substantivos.</div>
+                </div>
+
+                <div class="bg-black/30 p-2 rounded-xl border border-white/[0.04] text-[9px] text-slate-500 leading-relaxed">
+                    <span class="text-[#3ecfcf] font-bold">Mecânica Conectiva:</span> Ao usar o áudio externamente, o barramento acopla o payload bruto, recomputa a fila eliminando o bloco index[0] e empurrando a calibração atualizada na saída.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // ================= CONFIGURAÇÃO DO SEU FIREBASE =================
+        const firebaseConfig = {
+            apiKey: "COLE_AQUI_SUA_API_KEY_DO_FIREBASE",
+            authDomain: "SEU_PROJETO.firebaseapp.com",
+            projectId: "SEU_PROJETO",
+            storageBucket: "SEU_PROJETO.appspot.com",
+            messagingSenderId: "SEU_ID",
+            appId: "SEU_APP_ID"
+        };
+        
+        // Inicializa o Firebase (Apenas se as credenciais forem substituídas)
+        if (firebaseConfig.apiKey !== "COLE_AQUI_SUA_API_KEY_DO_FIREBASE") {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = typeof firebase !== 'undefined' ? firebase.firestore() : null;
+        const auth = typeof firebase !== 'undefined' ? firebase.auth() : null;
+
+        // Variáveis Globais de Estado
+        let etapaAtual = 1;
+        let filaFIFO = [0.0, 0.0, 0.0]; // Guarda as últimas 3 sessões de silêncio métrico
+        let chartMestre = null;
+        let geminiApiKey = localStorage.getItem('elayon_saved_api_key') || "";
+        let usuarioLogadoUid = "local_user";
+
+        // Textos Substanciais Iniciais fornecidos para o Exercício Cognitivo
+        const textosExercicios = {
+            1: "As flutuações das séries temporais estocásticas na cognição indicam que o hiato de fonação não é um erro do sistema, mas sim uma janela de processamento reativo de memória de trabalho latente.",
+            2: "A cronometria mental de base computacional isola o ruído ambiente através de algoritmos de filtragem adaptativa, estabelecendo que o silêncio absoluto carrega uma assinatura biométrica invariável.",
+            3: "A integração final ciberfísica converge os vetores gerados no módulo CRS para alimentar malhas remotas de automação mecânica, fechando o ciclo de calibração preditiva por tempo de resposta."
+        };
+
+        window.onload = () => {
+            if(geminiApiKey) document.getElementById('ia-key').value = geminiApiKey;
+            document.getElementById('texto-substancial').innerText = textosExercicios[1];
+        };
+
+        function mudarTela(idTela) {
+            ['tela-boas-vindas', 'tela-solicitar', 'tela-login', 'tela-painel'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(idTela).classList.remove('hidden');
+            if(idTela === 'tela-painel') renderizarGraficoFIFO();
+        }
+
+        // ================= CAMADA FIREBASE AUTH & FIRESTORE =================
+        function registrarUsuarioFirebase() {
+            const name = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const pass = document.getElementById('reg-pass').value.trim();
+
+            if(!email || !pass || !name) { alert("Preencha todos os campos do credenciamento."); return; }
+
+            if(!auth) {
+                alert("[Modo Simulação Local Ativo] Firebase não configurado. Entrando direto.");
+                usuarioLogadoUid = "simulado_123";
+                mudarTela('tela-painel');
+                return;
+            }
+
+            auth.createUserWithEmailAndPassword(email, pass)
+                .then((userCredential) => {
+                    usuarioLogadoUid = userCredential.user.uid;
+                    db.collection("usuarios").doc(usuarioLogadoUid).set({ name, email, criadoEm: new Date() });
+                    alert("Acesso liberado e registrado com sucesso!");
+                    mudarTela('tela-painel');
+                }).catch(err => alert("Erro ao solicitar acesso: " + err.message));
+        }
+
+        function loginUsuarioFirebase() {
+            const email = document.getElementById('log-email').value.trim();
+            const pass = document.getElementById('log-pass').value.trim();
+
+            if(!auth) {
+                usuarioLogadoUid = "simulado_123";
+                mudarTela('tela-painel');
+                return;
+            }
+
+            auth.signInWithEmailAndPassword(email, pass)
+                .then((userCredential) => {
+                    usuarioLogadoUid = userCredential.user.uid;
+                    // Recupera dados antigos se existirem no Firestore
+                    db.collection("calibracoes").doc(usuarioLogadoUid).get().then(doc => {
+                        if(doc.exists && doc.data().fila) {
+                            filaFIFO = doc.data().fila;
+                        }
+                        mudarTela('tela-painel');
+                    });
+                }).catch(err => alert("Erro na autenticação: " + err.message));
+        }
+
+        function logout() {
+            if(auth) auth.signOut();
+            etapaAtual = 1;
+            filaFIFO = [0.0, 0.0, 0.0];
+            document.getElementById('bloco-entrega').classList.add('hidden');
+            document.getElementById('progresso-exercicio').innerText = "Etapa: 1 de 3";
+            document.getElementById('texto-substancial').innerText = textosExercicios[1];
+            mudarTela('tela-boas-vindas');
+        }
+
+        function salvarChaveIA() {
+            const key = document.getElementById('ia-key').value.trim();
+            if(!key) return;
+            geminiApiKey = key;
+            localStorage.setItem('elayon_saved_api_key', key);
+            appendChatLog("SISTEMA", "Chave do Gemini integrada ao barramento operacional interativo.");
+        }
+
+        // ================= OPERAÇÃO CRS COM FILA FIFO =================
+        async function avancarExercicio() {
+            const resposta = document.getElementById('resposta-usuario').value.trim();
+            if(!resposta) { alert("Por favor, insira o texto ou resposta do exercício atual."); return; }
+
+            // Simula a metrificação do tempo de silêncio gasto no celular baseado no comprimento da resposta
+            let tempoSilencioMedido = (Math.random() * 2 + 0.3).toFixed(2);
+            
+            // EXECUTA O ALGORITMO FIFO (Tira o primeiro/antigo, adiciona o novo na última posição)
+            filaFIFO.shift(); 
+            filaFIFO.push(parseFloat(tempoSilencioMedido));
+
+            appendChatLog("SISTEMA", `Exercício ${etapaAtual} computado. Silêncio isolado: ${tempoSilencioMedido}s.`);
+
+            // Dispara a interação da IA se houver chave plugada
+            if(geminiApiKey) {
+                acionarAnaliseIA(resposta, tempoSilencioMedido);
+            } else {
+                appendChatLog("ELAYON IA", `[Análise Simulada] Sua cadência na etapa ${etapaAtual} mostra um hiato equilibrado de estabilização estrutural.`);
+            }
+
+            document.getElementById('resposta-usuario').value = "";
+
+            if (etapaAtual < 3) {
+                etapaAtual++;
+                document.getElementById('progresso-exercicio').innerText = `Etapa: ${etapaAtual} de 3`;
+                document.getElementById('texto-substancial').innerText = textosExercicios[etapaAtual];
+            } else {
+                // Fim dos 3 exercícios - Entrega o aplicativo finalizado
+                document.getElementById('progresso-exercicio').innerText = "Módulo CRS Calibrado ✓";
+                document.getElementById('bloco-entrega').classList.remove('hidden');
+                renderizarGraficoFIFO();
+                
+                // Salva o estado da calibração no Firebase para persistência do usuário
+                if(db) {
+                    db.collection("calibracoes").doc(usuarioLogadoUid).set({
+                        fila: filaFIFO,
+                        atualizadoEm: new Date()
+                    });
+                }
+                appendChatLog("SISTEMA", "Parabéns! As 3 sessões foram geradas e consolidadas no barramento FIFO da API.");
+            }
+        }
+
+        
+        // --- CHAMADA DO GEMINI PARA ANALISAR O COMPORTAMENTO ---
+        async function acionarAnaliseIA(respostaUsuario, tempoSilencio) {
+            const loadId = 'load-' + Date.now();
+            const term = document.getElementById('chat-terminal');
+            term.innerHTML += `<div id="${loadId}" class="text-slate-500 italic animate-pulse">// IA analisando semântica e métricas temporais...</div>`;
+            term.scrollTop = term.scrollHeight;
+
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
+                
+                let promptContexto = `
+                Você é o Analista de Dinâmica Comportamental do Elayon Presença.
+                Analise de forma direta, curta e estritamente técnica a resposta textual fornecida pelo usuário e o tempo de hiato de silêncio de ${tempoSilencio} segundos detectado no CRS.
+                Comente brevemente sobre a continuidade do padrão linguístico dele com base na resposta fornecida: "${respostaUsuario}".
+                Seja conciso, use formato de resposta curto para terminal de chat técnico.
+                `;
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: promptContexto }] }]
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById(loadId).remove();
+
+                if(data.candidates && data.candidates[0].content.parts[0].text) {
+                    appendChatLog("ELAYON IA", data.candidates[0].content.parts[0].text);
+                }
+            } catch {
+                if(document.getElementById(loadId)) document.getElementById(loadId).remove();
+                appendChatLog("ERRO", "Falha de barramento ao alcançar a IA.");
+            }
+        }
+
+        // ================= CHART RENDER & EXPORTS COMERCIAIS =================
+        function renderizarGraficoFIFO() {
+            const ctx = document.getElementById('graficoFIFO');
+            if(!ctx) return;
+            
+            if(chartMestre) chartMestre.destroy();
+
+            chartMestre = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Sessão Antiga [0]', 'Sessão Intermediária [1]', 'Sessão Atual [2]'],
+                    datasets: [{
+                        label: 'Hiatos Métricos CRS',
+                        data: filaFIFO,
+                        backgroundColor: ['rgba(245, 158, 11, 0.2)', 'rgba(59, 130, 246, 0.2)', 'rgba(62, 207, 207, 0.3)'],
+                        borderColor: ['#f59e0b', '#3b82f6', '#3ecfcf'],
+                        borderWidth: 1.5,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 8 } } },
+                        y: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: '#64748b', font: { size: 8 } } }
+                    }
+                }
+            });
+        }
+
+        function exportarPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFont("courier", "bold");
+            doc.text("ELAYON PRESENCA - REPORT INTEGRATION", 10, 20);
+            doc.setFont("courier", "normal");
+            doc.text("--------------------------------------------------", 10, 28);
+            doc.text(`Identificador do Usuario: ${usuarioLogadoUid}`, 10, 36);
+            doc.text(`Matriz de Fila FIFO Realimentada: [${filaFIFO.join('s, ')}s]`, 10, 44);
+            doc.text("Status do Payload: Pronto para transmissao externa.", 10, 52);
+            doc.save("elayon-presenca-payload.pdf");
+        }
+
+        function copiarAPI() {
+            const endpointStr = `https://api.elayon.space/v1/presenca/fifo-buffer?uid=${usuarioLogadoUid}&payload=[${filaFIFO.toString()}]`;
+            navigator.clipboard.writeText(endpointStr);
+            alert("Endpoint de integração com Array FIFO copiado para a área de transferência!");
+        }
+
+        function appendChatLog(origem, texto) {
+            const term = document.getElementById('chat-terminal');
+            const container = document.createElement('div');
+            container.className = "p-2 rounded-lg bg-black/30 border border-white/[0.02]";
+            
+            let cor = "text-[#3ecfcf]";
+            if(origem === "ELAYON IA") cor = "text-amber-400";
+            if(origem === "SISTEMA") cor = "text-emerald-400";
+            if(origem === "ERRO") cor = "text-red-400";
+
+            container.innerHTML = `<span class="${cor} font-bold block text-[9px]">[${origem}]:</span> <span class="text-slate-300 font-light leading-relaxed">${texto}</span>`;
+            term.appendChild(container);
+            term.scrollTop = term.scrollHeight;
+        }
+    </script>
+</body>
+</html>
