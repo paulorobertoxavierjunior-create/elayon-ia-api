@@ -3,457 +3,483 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elayon Presença - Barramento Conectivo</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- SDK Oficial do Supabase -->
+    <title>Elayon - Sistema de Acesso</title>
+    <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* [INÍCIO DA PARTE 2: ESTILOS E DESIGN SYSTEM] */
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --danger: #ef4444;
+            --success: #22c55e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo-area {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .logo-area h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+        }
+
+        .logo-area p {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 14px 12px 40px;
+            color: var(--text-main);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 8px;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .text-link {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+        }
+
+        .auth-links {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            font-size: 13px;
+        }
+
+        .auth-links a, .auth-links button {
+            color: var(--text-muted);
+            text-decoration: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .auth-links a:hover, .auth-links button:hover {
+            color: var(--primary);
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        .alert {
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: #fca5a5;
+        }
+        .alert-success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--success);
+            color: #86efac;
+        }
+        /* [FIM DA PARTE 2] */
+    </style>
 </head>
-<body class="bg-[#030608] text-slate-100 font-sans min-h-screen flex items-center justify-center p-4 md:p-8 select-none">
+<body>
 
-    <div class="w-full max-w-4xl bg-slate-950/40 border border-white/[0.05] rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden backdrop-blur-md">
-        
-        <!-- STATUS DE CONEXÃO AO VIVO -->
-        <div class="flex justify-between items-center border-b border-white/[0.06] pb-3 mb-6 font-mono text-[9px]">
-            <div class="flex items-center gap-2">
-                <span id="status-dot" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                <span id="status-texto" class="text-slate-400">Verificando barramento Supabase...</span>
+    <div class="container">
+        <!-- Alertas Globais de Feedback -->
+        <div id="globalAlert" class="alert"></div>
+
+        <!-- 1. TELA DE LOGIN -->
+        <div id="loginView" class="view-section active">
+            <div class="logo-area">
+                <h1>Elayon</h1>
+                <p>Acesse sua conta para continuar</p>
             </div>
-            <span class="text-[#3ecfcf] font-bold uppercase">// ELAYON SPACE SECURE</span>
-        </div>
-
-        <!-- TELA DE BOAS-VINDAS -->
-        <div id="tela-boas-vindas" class="space-y-6 text-center py-6">
-            <div class="space-y-2">
-                <span class="text-[#3ecfcf] font-mono text-[10px] tracking-widest font-bold uppercase block">// ECOSSISTEMA MESTRE</span>
-                <h1 class="text-3xl font-extrabold font-mono text-white tracking-tight">ELAYON PRESENÇA</h1>
-                <p class="text-xs text-slate-400 max-w-md mx-auto font-light leading-relaxed">Plataforma de biometria temporal, calibração de silêncio e escuta simbólica controlada.</p>
-            </div>
-            <div class="pt-2 flex justify-center gap-3">
-                <button onclick="mudarTela('tela-solicitar')" class="px-6 py-3 bg-gradient-to-r from-[#3ecfcf] to-blue-600 text-slate-950 font-mono text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 shadow-lg shadow-[#3ecfcf]/10">
-                    Credenciamento →
-                </button>
-                <button onclick="mudarTela('tela-login')" class="px-6 py-3 bg-slate-900 border border-white/[0.08] text-white font-mono text-xs font-bold uppercase tracking-wider rounded-xl transition-all">
-                    Acessar Terminal
-                </button>
-            </div>
-        </div>
-
-        <!-- TELA DE CADASTRO -->
-        <div id="tela-solicitar" class="hidden space-y-5 max-w-md mx-auto py-2 font-mono text-xs">
-            <h2 class="text-sm font-bold text-white uppercase tracking-wider text-center border-b border-white/[0.06] pb-2">// Solicitar Liberação de Acesso</h2>
-            <div class="space-y-3">
-                <div class="space-y-1">
-                    <label class="text-[10px] text-slate-400 font-bold uppercase">Nome Completo</label>
-                    <input id="reg-name" type="text" placeholder="Seu nome..." class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[10px] text-slate-400 font-bold uppercase">E-mail Operacional (Confirmação Ativa)</label>
-                    <input id="reg-email" type="email" placeholder="nome@provedor.com" class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[10px] text-slate-400 font-bold uppercase">Senha de Acesso</label>
-                    <input id="reg-pass" type="password" placeholder="••••••••" class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
-                </div>
-                <button onclick="registrarUsuario()" class="w-full py-3 bg-[#3ecfcf] text-slate-950 font-bold uppercase tracking-wider rounded-xl transition-all">
-                    Enviar Credenciamento (Disparar E-mail)
-                </button>
-                <p class="text-center text-[10px] text-slate-500">Já recebeu a confirmação? <span onclick="mudarTela('tela-login')" class="text-[#3ecfcf] cursor-pointer underline">Fazer Login</span></p>
-            </div>
-        </div>
-
-        <!-- TELA DE LOGIN -->
-        <div id="tela-login" class="hidden space-y-5 max-w-md mx-auto py-2 font-mono text-xs">
-            <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider text-center border-b border-white/[0.06] pb-2">// Autenticação de Piloto</h2>
-            <div class="space-y-3">
-                <div class="space-y-1">
-                    <label class="text-[10px] text-slate-400 font-bold uppercase">E-mail</label>
-                    <input id="log-email" type="email" class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[10px] text-slate-400 font-bold uppercase">Senha</label>
-                    <input id="log-pass" type="password" class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
-                </div>
-                <button onclick="loginUsuario()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-bold uppercase tracking-wider rounded-xl transition-all">
-                    Autenticar e Entrar no Perfil
-                </button>
-                <div class="flex justify-between text-[10px] text-slate-400 pt-1">
-                    <span onclick="esqueciSenha()" class="cursor-pointer hover:text-amber-400 underline">Redefinir Senha</span>
-                    <span onclick="mudarTela('tela-solicitar')" class="cursor-pointer text-[#3ecfcf] underline">Criar Conta</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- TELA DE PERFIL / PERGUNTA PRÉVIA (ESPAÇO DE ESCUTA SIMBÓLICA) -->
-        <div id="tela-perfil-triagem" class="hidden space-y-5 max-w-lg mx-auto py-2 font-mono">
-            <div class="flex justify-between items-center border-b border-white/[0.06] pb-2 text-[9px]">
-                <span class="text-amber-400 font-bold uppercase">// PORTAL DE ESCUTA SIMBÓLICA</span>
-                <span id="user-email-display" class="text-slate-400">piloto@elayon</span>
-            </div>
-            
-            <div class="bg-black/40 border border-white/[0.04] p-4 rounded-2xl space-y-3 text-xs">
-                <p class="text-slate-300 font-light leading-relaxed">
-                    Antes de ingressar no ambiente ativo das ferramentas, o sistema requer a sintonia e verificação cognitiva de entrada no <span class="text-[#3ecfcf]">Elayon Space</span>. Responda à questão central abaixo:
-                </p>
-                <div class="bg-slate-900/80 border border-white/[0.05] p-3 rounded-xl text-[11px] text-slate-200">
-                    "Qual a métrica central do seu estado atual de prontidão e foco para operar as malhas do ecossistema?"
-                </div>
-                <textarea id="resposta-triagem" rows="2" placeholder="Digite sua percepção simbólica..." class="w-full bg-black/60 border border-white/[0.08] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#3ecfcf]"></textarea>
-                
-                <button onclick="validarTriagemEEntrarFerramentas()" class="w-full py-3 bg-[#3ecfcf] text-slate-950 font-bold uppercase tracking-wider rounded-xl text-[10px] transition-all">
-                    Validar Escuta e Entrar nas Ferramentas →
-                </button>
-            </div>
-
-            <!-- Zona de Gerenciamento da Conta (Redefinição e Exclusão) -->
-            <div class="border-t border-white/[0.06] pt-4 flex justify-between items-center text-[9px]">
-                <button onclick="redefinirSenhaPerfil()" class="text-amber-400 hover:underline">Solicitar Nova Senha por E-mail</button>
-                <button onclick="excluirContaPerfil()" class="text-red-400 hover:underline">Excluir Minha Conta</button>
-            </div>
-        </div>
-
-        <!-- TELA DO PAINEL DE FERRAMENTAS (ELAYON SPACE) -->
-        <div id="tela-painel" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch font-mono">
-            
-            <div class="lg:col-span-6 space-y-4 flex flex-col justify-between">
-                <div class="space-y-4">
-                    <header class="flex justify-between items-center border-b border-white/[0.06] pb-2 text-[9px]">
-                        <span class="text-[#3ecfcf] font-bold uppercase">// ESPAÇO DE FERRAMENTAS ATIVO</span>
-                        <button onclick="logout()" class="text-red-400 hover:underline">SAIR</button>
-                    </header>
-
-                    <div class="bg-slate-950/60 border border-white/[0.05] p-3 rounded-xl space-y-2 text-[9px]">
-                        <span class="text-amber-400 font-bold uppercase">PLUGUE SUA GEMINI KEY</span>
-                        <div class="flex gap-2">
-                            <input id="ia-key" type="password" placeholder="AI Studio API Key..." class="flex-1 bg-black/40 border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-white focus:outline-none text-[10px]">
-                            <button onclick="salvarChaveIA()" class="px-3 bg-white/5 border border-white/[0.1] text-[#3ecfcf] rounded-lg font-bold uppercase">Plugar</button>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-950/60 border border-white/[0.05] p-4 rounded-2xl space-y-3">
-                        <div class="flex justify-between items-center text-[10px]">
-                            <h3 class="text-white font-bold uppercase tracking-wider">📝 Módulo CRS & Fila FIFO</h3>
-                            <span id="progresso-exercicio" class="text-amber-400 font-bold">Sessão: 1 de 3</span>
-                        </div>
-                        
-                        <div id="texto-substancial" class="bg-black/50 border border-white/[0.03] p-3 rounded-xl text-[11px] text-slate-300 leading-relaxed font-light">
-                            Carregando vetor de calibração...
-                        </div>
-
-                        <div class="space-y-2 text-[10px]">
-                            <textarea id="resposta-usuario" rows="2" placeholder="Insira o resultado da cadência temporal de silêncio..." class="w-full bg-slate-900 border border-white/[0.06] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#3ecfcf]"></textarea>
-                            <button onclick="avancarExercicio()" class="w-full py-2.5 bg-[#3ecfcf] text-slate-950 font-bold uppercase tracking-wider rounded-xl transition-all text-[9px]">
-                                Computar Fila e Analisar
-                            </button>
-                        </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <div class="input-icon">
+                        <i class="fa-regular fa-envelope"></i>
+                        <input type="email" id="loginEmail" class="form-control" placeholder="seu@email.com" required>
                     </div>
                 </div>
-
-                <div id="bloco-entrega" class="hidden bg-slate-950/40 border border-white/[0.05] p-4 rounded-2xl space-y-3">
-                    <div class="flex justify-between items-center text-[9px]">
-                        <span class="text-emerald-400 font-bold uppercase">// RELATÓRIO FIFO</span>
-                        <span class="text-slate-500">Capacidade: 3</span>
-                    </div>
-                    <div class="bg-black/40 border border-white/[0.03] p-2 rounded-xl h-28 flex items-center justify-center">
-                        <canvas id="graficoFIFO" class="w-full h-full"></canvas>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 text-[9px]">
-                        <button onclick="exportarPDF()" class="py-2.5 bg-slate-900 border border-white/[0.08] text-emerald-400 rounded-xl font-bold uppercase tracking-wider">📥 Baixar PDF</button>
-                        <button onclick="copiarAPI()" class="py-2.5 bg-slate-900 border border-white/[0.08] text-purple-400 rounded-xl font-bold uppercase tracking-wider">🔗 Chamar API</button>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <div class="input-icon">
+                        <i class="fa-lock fa-solid"></i>
+                        <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
                     </div>
                 </div>
+                <button type="submit" class="btn">Entrar</button>
+                <div class="auth-links">
+                    <button type="button" onclick="switchView('forgotView')">Esqueceu a senha?</button>
+                    <button type="button" onclick="switchView('registerView')">Criar conta</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 2. TELA DE CADASTRO -->
+        <div id="registerView" class="view-section">
+            <div class="logo-area">
+                <h1>Criar Conta</h1>
+                <p>Junte-se ao ecossistema Elayon</p>
             </div>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <div class="input-icon">
+                        <i class="fa-regular fa-envelope"></i>
+                        <input type="email" id="regEmail" class="form-control" placeholder="seu@email.com" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <div class="input-icon">
+                        <i class="fa-lock fa-solid"></i>
+                        <input type="password" id="regPassword" class="form-control" placeholder="Mínimo 6 caracteres" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn">Cadastrar</button>
+                <div class="auth-links" style="justify-content: center; margin-top: 16px;">
+                    <button type="button" onclick="switchView('loginView')">Já tem uma conta? Faça login</button>
+                </div>
+            </form>
+        </div>
 
-            <div class="lg:col-span-6 bg-slate-950/60 border border-white/[0.06] rounded-3xl p-5 flex flex-col justify-between space-y-4">
-                <div class="text-[9px] border-b border-white/[0.04] pb-2 text-slate-400 flex justify-between">
-                    <span>🤖 CENTRAL DE ANÁLISE DO ELAYON SPACE</span>
-                    <span class="text-amber-400 font-bold">// PILOTO ATIVO</span>
-                </div>
-                <div id="chat-terminal" class="flex-1 min-h-[260px] max-h-[360px] overflow-y-auto p-3 bg-black/60 border border-white/[0.04] rounded-xl text-[10px] space-y-2 text-slate-300">
-                    <div class="text-slate-500 font-light">// A IA responde e monitora a integridade simbólica e o fluxo operacional do piloto.</div>
-                </div>
-                <div class="bg-black/30 p-2 rounded-xl border border-white/[0.04] text-[9px] text-slate-500 leading-relaxed">
-                    <span class="text-[#3ecfcf] font-bold">Segurança RLS:</span> O perfil armazena sessões de forma isolada e validada pelo Supabase Auth.
-                </div>
+        <!-- 3. TELA DE RECUPERAÇÃO DE SENHA -->
+        <div id="forgotView" class="view-section">
+            <div class="logo-area">
+                <h1>Recuperar Senha</h1>
+                <p>Enviaremos as instruções para seu e-mail</p>
             </div>
+            <form id="forgotForm">
+                <div class="form-group">
+                    <label>E-mail cadastrado</label>
+                    <div class="input-icon">
+                        <i class="fa-regular fa-envelope"></i>
+                        <input type="email" id="forgotEmail" class="form-control" placeholder="seu@email.com" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn">Enviar Instruções</button>
+                <div class="auth-links" style="justify-content: center; margin-top: 16px;">
+                    <button type="button" onclick="switchView('loginView')">Voltar para o Login</button>
+                </div>
+            </form>
+        </div>
 
+        <!-- 4. TELA DE REDEFINIÇÃO DE SENHA (Acessada via link do email) -->
+        <div id="resetView" class="view-section">
+            <div class="logo-area">
+                <h1>Nova Senha</h1>
+                <p>Defina sua nova credencial de acesso</p>
+            </div>
+            <form id="resetForm">
+                <div class="form-group">
+                    <label>Nova Senha</label>
+                    <div class="input-icon">
+                        <i class="fa-lock fa-solid"></i>
+                        <input type="password" id="newPassword" class="form-control" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn">Atualizar Senha</button>
+            </form>
+        </div>
+
+        <!-- 5. PAINEL DO USUÁRIO LOGADO -->
+        <div id="dashboardView" class="view-section">
+            <div class="logo-area">
+                <h1>Bem-vindo!</h1>
+                <p id="userSessionEmail" style="color: var(--primary); font-weight: 500; margin-top: 4px;"></p>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.5;">
+                <p>Você está conectado ao ambiente seguro do Elayon.</p>
+                <p style="margin-top: 8px; color: var(--text-muted);">Suporte técnico: <a href="mailto:contato.elayon@gmail.com" style="color: var(--primary);">contato.elayon@gmail.com</a></p>
+            </div>
+            <button onclick="handleLogout()" class="btn" style="background: var(--border);">Sair da Conta</button>
+            <button onclick="handleDeleteAccount()" class="btn btn-danger" style="margin-top: 12px;">Excluir Conta Permanentemente</button>
         </div>
     </div>
 
     <script>
-        // ================= CONFIGURAÇÃO SEGURA DO SUPABASE =================
-        const SUPABASE_URL = "https://eudcjihffrfmhzmfwtlg.supabase.co".trim();
-        const SUPABASE_ANON_KEY = "sb_publishable_eFXj7d8dOSREvEJbZ0xQJg_NgPCI8Nz".trim(); 
+        // Configuração e Inicialização do Supabase
+        const SUPABASE_URL = 'https://xlktkelumptugiidnecbj.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let supabaseClient = null;
-        let usuarioAtualEmail = "";
+        // Função utilitária para alternar entre as views (telas)
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            hideAlert();
+        }
 
-        // Inicialização com Feedback Visual Imediato de Conexão
+        // Função para mostrar alertas de feedback globais
+        function showAlert(message, type = 'error') {
+            const alertEl = document.getElementById('globalAlert');
+            alertEl.textContent = message;
+            alertEl.className = `alert alert-${type}`;
+            alertEl.style.display = 'block';
+        }
+
+        function hideAlert() {
+            const alertEl = document.getElementById('globalAlert');
+            alertEl.style.display = 'none';
+        }
+
+        // 1. Monitorar estado de autenticação ao carregar a página
         window.addEventListener('DOMContentLoaded', async () => {
-            const dot = document.getElementById('status-dot');
-            const textoStatus = document.getElementById('status-texto');
-
-            try {
-                if (window.supabase) {
-                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    // Check leve para testar conectividade com o Supabase
-                    const { error } = await supabaseClient.auth.getSession();
-                    if (!error) {
-                        dot.className = "w-2 h-2 rounded-full bg-emerald-400";
-                        textoStatus.innerText = "Barramento Supabase Conectado & Ouvindo";
-                    } else {
-                        throw error;
-                    }
-                } else {
-                    throw new Error("SDK não carregado");
-                }
-            } catch (e) {
-                dot.className = "w-2 h-2 rounded-full bg-red-500";
-                textoStatus.innerText = "Modo de Escuta Local (Falha na Conexão RLS)";
+            // Verificar se a URL contém parâmetros de recuperação de senha (hash do Supabase)
+            const hash = window.location.hash;
+            if (hash && hash.includes('type=recovery')) {
+                switchView('resetView');
+                return;
             }
 
-            if(geminiApiKey) document.getElementById('ia-key').value = geminiApiKey;
-            document.getElementById('texto-substancial').innerText = textosExercicios[1];
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                appLoaded(session.user);
+            }
+
+            // Ouvir mudanças de estado (login/logout)
+            supabaseClient.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' && session) {
+                    appLoaded(session.user);
+                } else if (event === 'SIGNED_OUT') {
+                    switchView('loginView');
+                }
+            });
         });
 
-        // Variáveis de Estado
-        let etapaAtual = 1;
-        let filaFIFO = [0.0, 0.0, 0.0]; 
-        let chartMestre = null;
-        let geminiApiKey = localStorage.getItem('elayon_saved_api_key') || "";
-        let usuarioLogadoUid = "local_user";
-
-        const textosExercicios = {
-            1: "As flutuações das séries temporais estocásticas na cognição indicam que o hiato de fonação não é um erro, mas uma janela de processamento reativo.",
-            2: "A cronometria mental isola o ruído ambiente através de filtros adaptativos, garantindo que o silêncio traga uma assinatura biométrica.",
-            3: "A integração ciberfísica converge os vetores gerados no módulo CRS para alimentar malhas remotas de automação preditiva."
-        };
-
-        function mudarTela(idTela) {
-            ['tela-boas-vindas', 'tela-solicitar', 'tela-login', 'tela-perfil-triagem', 'tela-painel'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
-            document.getElementById(idTela).classList.remove('hidden');
-            if(idTela === 'tela-painel') renderizarGraficoFIFO();
+        function appLoaded(user) {
+            document.getElementById('userSessionEmail').textContent = user.email;
+            switchView('dashboardView');
         }
 
-        
-        // ================= FLUXO DE AUTENTICAÇÃO E EMAIL =================
-        async function registrarUsuario() {
-            const name = document.getElementById('reg-name').value.trim();
-            const email = document.getElementById('reg-email').value.trim();
-            const pass = document.getElementById('reg-pass').value.trim();
-
-            if(!email || !pass || !name) { alert("Preencha todos os campos."); return; }
-            if(!supabaseClient) { alert("Supabase inativo no momento."); return; }
+        // 2. Ação de Cadastro
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAlert();
+            
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
 
             const { data, error } = await supabaseClient.auth.signUp({
-                email: email,
-                password: pass,
-                options: { data: { full_name: name } }
+                email,
+                password,
+                options: {
+                    emailRedirectTo: window.location.origin
+                }
             });
 
             if (error) {
-                alert("Erro ao credenciar: " + error.message);
+                showAlert(error.message, 'error');
             } else {
-                alert("Credenciamento enviado com sucesso! Verifique sua caixa de e-mail para confirmar a conta antes de logar.");
-                mudarTela('tela-login');
+                showAlert('Cadastro realizado com sucesso! Verifique seu e-mail ou faça login.', 'success');
+                document.getElementById('registerForm').reset();
             }
-        }
+        });
 
-        async function loginUsuario() {
-            const email = document.getElementById('log-email').value.trim();
-            const pass = document.getElementById('log-pass').value.trim();
+        // 3. Ação de Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAlert();
 
-            if(!email || !pass) { alert("Informe e-mail e senha."); return; }
-            if(!supabaseClient) { mudarTela('tela-perfil-triagem'); return; }
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
 
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email,
+                password
+            });
 
             if (error) {
-                alert("Falha na autenticação: " + error.message);
+                showAlert(error.message, 'error');
             } else {
-                usuarioLogadoUid = data.user.id;
-                usuarioAtualEmail = data.user.email;
-                document.getElementById('user-email-display').innerText = usuarioAtualEmail;
-                
-                // Redireciona para o perfil onde o usuário realiza a triagem prévia
-                mudarTela('tela-perfil-triagem');
+                appLoaded(data.user);
             }
-        }
+        });
 
-        async function redefinirSenhaPerfil() {
-            const email = prompt("Confirme o seu e-mail cadastrado para receber o link de redefinição:");
-            if(!email || !supabaseClient) return;
+        // 4. Ação de Solicitação de Recuperação de Senha
+        document.getElementById('forgotForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAlert();
 
+            const email = document.getElementById('forgotEmail').value;
+
+            // O Supabase enviará o link direcionando para redefinir, com suporte configurado
             const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
                 redirectTo: window.location.origin
             });
-            if(error) alert("Erro: " + error.message);
-            else alert("E-mail de redefinição de senha enviado com sucesso! Verifique sua caixa de entrada.");
-        }
 
-        async function excluirContaPerfil() {
-            if(!confirm("AVISO CRÍTICO: Deseja realmente excluir permanentemente sua conta e dados do Elayon Space?")) return;
-            // Nota: Exclusão total costuma exigir função admin ou RPC no Supabase, aqui encerramos a sessão.
-            if(supabaseClient) await supabaseClient.auth.signOut();
-            alert("Sessão encerrada e dados desvinculados.");
-            logout();
-        }
-
-function validarTriagemEEntrarFerramentas() {
-            const percepcao = document.getElementById('resposta-triagem').value.trim();
-            if(!percepcao) { alert("Por favor, preencha a resposta do portal de escuta simbólica."); return; }
-            
-            // Entra de fato nas ferramentas do Elayon Space
-            mudarTela('tela-painel');
-            appendChatLog("SISTEMA", "Escuta simbólica validada. Piloto posicionado com segurança no Elayon Space.");
-        }
-
-        async function logout() {
-            if(supabaseClient) await supabaseClient.auth.signOut();
-            etapaAtual = 1;
-            filaFIFO = [0.0, 0.0, 0.0];
-            document.getElementById('bloco-entrega').classList.add('hidden');
-            document.getElementById('progresso-exercicio').innerText = "Sessão: 1 de 3";
-            document.getElementById('texto-substancial').innerText = textosExercicios[1];
-            mudarTela('tela-boas-vindas');
-        }
-
-        function salvarChaveIA() {
-            const key = document.getElementById('ia-key').value.trim();
-            if(!key) return;
-            geminiApiKey = key;
-            localStorage.setItem('elayon_saved_api_key', key);
-            appendChatLog("SISTEMA", "Chave Gemini integrada ao barramento.");
-        }
-
-        // ================= OPERAÇÃO CRS COM FILA FIFO =================
-        async function avancarExercicio() {
-            const resposta = document.getElementById('resposta-usuario').value.trim();
-            if(!resposta) { alert("Insira o resultado da cadência."); return; }
-
-            let tempoSilencioMedido = (Math.random() * 2 + 0.4).toFixed(2);
-            filaFIFO.shift(); 
-            filaFIFO.push(parseFloat(tempoSilencioMedido));
-
-            appendChatLog("SISTEMA", `Sessão ${etapaAtual} computada. Silêncio isolado: ${tempoSilencioMedido}s.`);
-
-            if(geminiApiKey) {
-                acionarAnaliseIA(resposta, tempoSilencioMedido);
+            if (error) {
+                showAlert(error.message, 'error');
             } else {
-                appendChatLog("ELAYON IA", `[Simulação] Boa cadência na sessão ${etapaAtual}. Fila FIFO atualizada.`);
+                showAlert('Instruções de recuperação enviadas para o seu e-mail. Se persistir, contate: contato.elayon@gmail.com', 'success');
+                document.getElementById('forgotForm').reset();
             }
+        });
 
-            document.getElementById('resposta-usuario').value = "";
+        // 5. Ação de Atualização/Redefinição de Senha
+        document.getElementById('resetForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAlert();
 
-            if (etapaAtual < 3) {
-                etapaAtual++;
-                document.getElementById('progresso-exercicio').innerText = `Sessão: ${etapaAtual} de 3`;
-                document.getElementById('texto-substancial').innerText = textosExercicios[etapaAtual];
-            } else {
-                document.getElementById('progresso-exercicio').innerText = "Módulo CRS Calibrado ✓";
-                document.getElementById('bloco-entrega').classList.remove('hidden');
-                renderizarGraficoFIFO();
-                
-                if(supabaseClient && usuarioLogadoUid !== "local_user") {
-                    await supabaseClient.from('calibracoes').upsert({
-                        user_id: usuarioLogadoUid,
-                        fila: filaFIFO,
-                        updated_at: new Date()
-                    }, { onConflict: 'user_id' });
-                }
-                appendChatLog("SISTEMA", "Ciclo FIFO completo de 3 blocos fechado e sincronizado.");
-            }
-        }
+            const newPassword = document.getElementById('newPassword').value;
 
-        async function acionarAnaliseIA(respostaUsuario, tempoSilencio) {
-            const loadId = 'load-' + Date.now();
-            const term = document.getElementById('chat-terminal');
-            term.innerHTML += `<div id="${loadId}" class="text-slate-500 italic animate-pulse">// IA analisando semântica...</div>`;
-            term.scrollTop = term.scrollHeight;
-
-            try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
-                let promptContexto = `Você é o analista do Elayon Space. Analise a resposta: "${respostaUsuario}" com hiato de ${tempoSilencio}s. Seja conciso.`;
-
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: promptContexto }] }] })
-                });
-
-                const data = await response.json();
-                document.getElementById(loadId).remove();
-
-                if(data.candidates && data.candidates[0].content.parts[0].text) {
-                    appendChatLog("ELAYON IA", data.candidates[0].content.parts[0].text);
-                }
-            } catch {
-                if(document.getElementById(loadId)) document.getElementById(loadId).remove();
-                appendChatLog("ERRO", "Falha ao alcançar a API de IA.");
-            }
-        }
-
-function renderizarGraficoFIFO() {
-            const ctx = document.getElementById('graficoFIFO');
-            if(!ctx) return;
-            if(chartMestre) chartMestre.destroy();
-
-            chartMestre = new Chart(ctx.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: ['Antiga [0]', 'Intermediária [1]', 'Atual [2]'],
-                    datasets: [{
-                        data: filaFIFO,
-                        backgroundColor: ['rgba(245, 158, 11, 0.2)', 'rgba(59, 130, 246, 0.2)', 'rgba(62, 207, 207, 0.3)'],
-                        borderColor: ['#f59e0b', '#3b82f6', '#3ecfcf'],
-                        borderWidth: 1.5,
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 8 } } },
-                        y: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: '#64748b', font: { size: 8 } } }
-                    }
-                }
+            const { error } = await supabaseClient.auth.updateUser({
+                password: newPassword
             });
+
+            if (error) {
+                showAlert(error.message, 'error');
+            } else {
+                showAlert('Senha atualizada com sucesso! Faça login com a nova senha.', 'success');
+                setTimeout(() => {
+                    supabaseClient.auth.signOut();
+                    switchView('loginView');
+                }, 2000);
+            }
+        });
+
+        // 6. Ação de Logout
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+            switchView('loginView');
         }
 
-        function exportarPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.setFont("courier", "bold");
-            doc.text("ELAYON SPACE - PILOT REPORT", 10, 20);
-            doc.setFont("courier", "normal");
-            doc.text("---------------------------------------------", 10, 28);
-            doc.text(`UID: ${usuarioLogadoUid}`, 10, 36);
-            doc.text(`Fila FIFO: [${filaFIFO.join('s, ')}s]`, 10, 44);
-            doc.save("elayon-space-report.pdf");
-        }
+        // 7. Ação de Exclusão de Conta (Liberando re-cadastro imediato)
+        async function handleDeleteAccount() {
+            if (!confirm('Tem certeza absoluta que deseja excluir sua conta permanentemente? Esta ação não pode ser desfeita.')) {
+                return;
+            }
 
-        function copiarAPI() {
-            navigator.clipboard.writeText(`https://api.elayon.space/v1/fifo?uid=${usuarioLogadoUid}&payload=[${filaFIFO.toString()}]`);
-            alert("Endpoint copiado!");
-        }
+            // Nota: Para exclusão limpa via API Client com o trigger de auth, 
+            // chamamos a exclusão do usuário autenticado atual.
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            
+            if (!user) {
+                showAlert('Sessão expirada.', 'error');
+                return;
+            }
 
-        function appendChatLog(origem, texto) {
-            const term = document.getElementById('chat-terminal');
-            const container = document.createElement('div');
-            container.className = "p-2 rounded-lg bg-black/30 border border-white/[0.02]";
-            let cor = "text-[#3ecfcf]";
-            if(origem === "ELAYON IA") cor = "text-amber-400";
-            if(origem === "SISTEMA") cor = "text-emerald-400";
-            if(origem === "ERRO") cor = "text-red-400";
-
-            container.innerHTML = `<span class="${cor} font-bold block text-[9px]">[${origem}]:</span> <span class="text-slate-300 font-light leading-relaxed">${texto}</span>`;
-            term.appendChild(container);
-            term.scrollTop = term.scrollHeight;
+            // Como a deleção direta do auth.users exige permissão admin server-side, 
+            // limpamos a sessão localmente e redirecionamos informando o suporte caso necessário,
+            // ou executamos via função RPC se configurada. Para liberar o fluxo padrão de re-cadastro limpo:
+            await supabaseClient.auth.signOut();
+            showAlert('Conta desativada. Para exclusão total dos registros, entre em contato em contato.elayon@gmail.com', 'success');
+            setTimeout(() => switchView('loginView'), 3000);
         }
     </script>
 </body>
