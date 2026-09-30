@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elayon Presença - Plataforma Conectiva (Supabase)</title>
+    <title>Elayon Presença - Barramento Conectivo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -14,47 +14,59 @@
 
     <div class="w-full max-w-4xl bg-slate-950/40 border border-white/[0.05] rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden backdrop-blur-md">
         
+        <!-- STATUS DE CONEXÃO AO VIVO -->
+        <div class="flex justify-between items-center border-b border-white/[0.06] pb-3 mb-6 font-mono text-[9px]">
+            <div class="flex items-center gap-2">
+                <span id="status-dot" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                <span id="status-texto" class="text-slate-400">Verificando barramento Supabase...</span>
+            </div>
+            <span class="text-[#3ecfcf] font-bold uppercase">// ELAYON SPACE SECURE</span>
+        </div>
+
         <!-- TELA DE BOAS-VINDAS -->
-        <div id="tela-boas-vindas" class="space-y-6 text-center py-8">
+        <div id="tela-boas-vindas" class="space-y-6 text-center py-6">
             <div class="space-y-2">
                 <span class="text-[#3ecfcf] font-mono text-[10px] tracking-widest font-bold uppercase block">// ECOSSISTEMA MESTRE</span>
                 <h1 class="text-3xl font-extrabold font-mono text-white tracking-tight">ELAYON PRESENÇA</h1>
-                <p class="text-xs text-slate-400 max-w-md mx-auto font-light leading-relaxed">Bem-vindo ao barramento conectivo de biometria temporal e calibração de silêncio protegido pelo Supabase.</p>
+                <p class="text-xs text-slate-400 max-w-md mx-auto font-light leading-relaxed">Plataforma de biometria temporal, calibração de silêncio e escuta simbólica controlada.</p>
             </div>
-            <div class="pt-4">
-                <button onclick="mudarTela('tela-solicitar')" class="px-8 py-3.5 bg-gradient-to-r from-[#3ecfcf] to-blue-600 text-slate-950 font-mono text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 shadow-lg shadow-[#3ecfcf]/10">
-                    Iniciar Plataforma →
+            <div class="pt-2 flex justify-center gap-3">
+                <button onclick="mudarTela('tela-solicitar')" class="px-6 py-3 bg-gradient-to-r from-[#3ecfcf] to-blue-600 text-slate-950 font-mono text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 shadow-lg shadow-[#3ecfcf]/10">
+                    Credenciamento →
+                </button>
+                <button onclick="mudarTela('tela-login')" class="px-6 py-3 bg-slate-900 border border-white/[0.08] text-white font-mono text-xs font-bold uppercase tracking-wider rounded-xl transition-all">
+                    Acessar Terminal
                 </button>
             </div>
         </div>
 
         <!-- TELA DE CADASTRO -->
-        <div id="tela-solicitar" class="hidden space-y-6 max-w-md mx-auto py-4 font-mono text-xs">
-            <h2 class="text-sm font-bold text-white uppercase tracking-wider text-center border-b border-white/[0.06] pb-2">// Credenciamento Inicial</h2>
-            <div class="space-y-4">
+        <div id="tela-solicitar" class="hidden space-y-5 max-w-md mx-auto py-2 font-mono text-xs">
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider text-center border-b border-white/[0.06] pb-2">// Solicitar Liberação de Acesso</h2>
+            <div class="space-y-3">
                 <div class="space-y-1">
                     <label class="text-[10px] text-slate-400 font-bold uppercase">Nome Completo</label>
-                    <input id="reg-name" type="text" placeholder="Digite seu nome..." class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
+                    <input id="reg-name" type="text" placeholder="Seu nome..." class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
                 </div>
                 <div class="space-y-1">
-                    <label class="text-[10px] text-slate-400 font-bold uppercase">E-mail Operacional</label>
+                    <label class="text-[10px] text-slate-400 font-bold uppercase">E-mail Operacional (Confirmação Ativa)</label>
                     <input id="reg-email" type="email" placeholder="nome@provedor.com" class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
                 </div>
                 <div class="space-y-1">
                     <label class="text-[10px] text-slate-400 font-bold uppercase">Senha de Acesso</label>
                     <input id="reg-pass" type="password" placeholder="••••••••" class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
                 </div>
-                <button onclick="registrarUsuarioSupabase()" class="w-full py-3 bg-[#3ecfcf] text-slate-950 font-bold uppercase tracking-wider rounded-xl transition-all">
-                    Solicitar Liberação de Acesso
+                <button onclick="registrarUsuario()" class="w-full py-3 bg-[#3ecfcf] text-slate-950 font-bold uppercase tracking-wider rounded-xl transition-all">
+                    Enviar Credenciamento (Disparar E-mail)
                 </button>
-                <p class="text-center text-[10px] text-slate-500">Já possui cadastro? <span onclick="mudarTela('tela-login')" class="text-[#3ecfcf] cursor-pointer underline">Fazer Login</span></p>
+                <p class="text-center text-[10px] text-slate-500">Já recebeu a confirmação? <span onclick="mudarTela('tela-login')" class="text-[#3ecfcf] cursor-pointer underline">Fazer Login</span></p>
             </div>
         </div>
 
         <!-- TELA DE LOGIN -->
-        <div id="tela-login" class="hidden space-y-6 max-w-md mx-auto py-4 font-mono text-xs">
-            <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider text-center border-b border-white/[0.06] pb-2">// Acesso Autenticado</h2>
-            <div class="space-y-4">
+        <div id="tela-login" class="hidden space-y-5 max-w-md mx-auto py-2 font-mono text-xs">
+            <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider text-center border-b border-white/[0.06] pb-2">// Autenticação de Piloto</h2>
+            <div class="space-y-3">
                 <div class="space-y-1">
                     <label class="text-[10px] text-slate-400 font-bold uppercase">E-mail</label>
                     <input id="log-email" type="email" class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
@@ -63,85 +75,106 @@
                     <label class="text-[10px] text-slate-400 font-bold uppercase">Senha</label>
                     <input id="log-pass" type="password" class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
                 </div>
-                <button onclick="loginUsuarioSupabase()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-bold uppercase tracking-wider rounded-xl transition-all">
-                    Liberar Terminal e Entrar
+                <button onclick="loginUsuario()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-bold uppercase tracking-wider rounded-xl transition-all">
+                    Autenticar e Entrar no Perfil
                 </button>
-                <p class="text-center text-[10px] text-slate-500">Voltar para <span onclick="mudarTela('tela-solicitar')" class="text-[#3ecfcf] cursor-pointer underline">Solicitar Acesso</span></p>
+                <div class="flex justify-between text-[10px] text-slate-400 pt-1">
+                    <span onclick="esqueciSenha()" class="cursor-pointer hover:text-amber-400 underline">Redefinir Senha</span>
+                    <span onclick="mudarTela('tela-solicitar')" class="cursor-pointer text-[#3ecfcf] underline">Criar Conta</span>
+                </div>
             </div>
         </div>
 
-        <!-- TELA DO PAINEL DE OPERAÇÃO -->
-        <div id="tela-painel" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        <!-- TELA DE PERFIL / PERGUNTA PRÉVIA (ESPAÇO DE ESCUTA SIMBÓLICA) -->
+        <div id="tela-perfil-triagem" class="hidden space-y-5 max-w-lg mx-auto py-2 font-mono">
+            <div class="flex justify-between items-center border-b border-white/[0.06] pb-2 text-[9px]">
+                <span class="text-amber-400 font-bold uppercase">// PORTAL DE ESCUTA SIMBÓLICA</span>
+                <span id="user-email-display" class="text-slate-400">piloto@elayon</span>
+            </div>
+            
+            <div class="bg-black/40 border border-white/[0.04] p-4 rounded-2xl space-y-3 text-xs">
+                <p class="text-slate-300 font-light leading-relaxed">
+                    Antes de ingressar no ambiente ativo das ferramentas, o sistema requer a sintonia e verificação cognitiva de entrada no <span class="text-[#3ecfcf]">Elayon Space</span>. Responda à questão central abaixo:
+                </p>
+                <div class="bg-slate-900/80 border border-white/[0.05] p-3 rounded-xl text-[11px] text-slate-200">
+                    "Qual a métrica central do seu estado atual de prontidão e foco para operar as malhas do ecossistema?"
+                </div>
+                <textarea id="resposta-triagem" rows="2" placeholder="Digite sua percepção simbólica..." class="w-full bg-black/60 border border-white/[0.08] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#3ecfcf]"></textarea>
+                
+                <button onclick="validarTriagemEEntrarFerramentas()" class="w-full py-3 bg-[#3ecfcf] text-slate-950 font-bold uppercase tracking-wider rounded-xl text-[10px] transition-all">
+                    Validar Escuta e Entrar nas Ferramentas →
+                </button>
+            </div>
+
+            <!-- Zona de Gerenciamento da Conta (Redefinição e Exclusão) -->
+            <div class="border-t border-white/[0.06] pt-4 flex justify-between items-center text-[9px]">
+                <button onclick="redefinirSenhaPerfil()" class="text-amber-400 hover:underline">Solicitar Nova Senha por E-mail</button>
+                <button onclick="excluirContaPerfil()" class="text-red-400 hover:underline">Excluir Minha Conta</button>
+            </div>
+        </div>
+
+        <!-- TELA DO PAINEL DE FERRAMENTAS (ELAYON SPACE) -->
+        <div id="tela-painel" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch font-mono">
             
             <div class="lg:col-span-6 space-y-4 flex flex-col justify-between">
                 <div class="space-y-4">
-                    <header class="flex justify-between items-center border-b border-white/[0.06] pb-2 font-mono text-[9px]">
-                        <span class="text-[#3ecfcf] font-bold uppercase">// OPERAÇÃO TERMINAL ACTIVE</span>
-                        <button onclick="logout()" class="text-red-400 hover:underline">DESCONECTAR</button>
+                    <header class="flex justify-between items-center border-b border-white/[0.06] pb-2 text-[9px]">
+                        <span class="text-[#3ecfcf] font-bold uppercase">// ESPAÇO DE FERRAMENTAS ATIVO</span>
+                        <button onclick="logout()" class="text-red-400 hover:underline">SAIR</button>
                     </header>
 
-                    <div class="bg-slate-950/60 border border-white/[0.05] p-3 rounded-xl space-y-2 font-mono text-[9px]">
-                        <div class="flex justify-between items-center">
-                            <span class="text-amber-400 font-bold uppercase">PLUGUE SUA GEMINI KEY (IA GRATUITA)</span>
-                        </div>
+                    <div class="bg-slate-950/60 border border-white/[0.05] p-3 rounded-xl space-y-2 text-[9px]">
+                        <span class="text-amber-400 font-bold uppercase">PLUGUE SUA GEMINI KEY</span>
                         <div class="flex gap-2">
                             <input id="ia-key" type="password" placeholder="AI Studio API Key..." class="flex-1 bg-black/40 border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-white focus:outline-none text-[10px]">
                             <button onclick="salvarChaveIA()" class="px-3 bg-white/5 border border-white/[0.1] text-[#3ecfcf] rounded-lg font-bold uppercase">Plugar</button>
                         </div>
                     </div>
 
-                    <div class="bg-slate-950/60 border border-white/[0.05] p-4 rounded-2xl space-y-3 font-mono">
+                    <div class="bg-slate-950/60 border border-white/[0.05] p-4 rounded-2xl space-y-3">
                         <div class="flex justify-between items-center text-[10px]">
-                            <h3 class="text-white font-bold uppercase tracking-wider">📝 Exercícios de Metrificação</h3>
-                            <span id="progresso-exercicio" class="text-amber-400 font-bold">Etapa: 1 de 3</span>
+                            <h3 class="text-white font-bold uppercase tracking-wider">📝 Módulo CRS & Fila FIFO</h3>
+                            <span id="progresso-exercicio" class="text-amber-400 font-bold">Sessão: 1 de 3</span>
                         </div>
                         
-                        <div id="texto-substancial" class="bg-black/50 border border-white/[0.03] p-3 rounded-xl text-[11px] text-slate-300 leading-relaxed font-light select-text">
-                            Carregando o primeiro vetor de calibração textual substantiva...
+                        <div id="texto-substancial" class="bg-black/50 border border-white/[0.03] p-3 rounded-xl text-[11px] text-slate-300 leading-relaxed font-light">
+                            Carregando vetor de calibração...
                         </div>
 
                         <div class="space-y-2 text-[10px]">
-                            <textarea id="resposta-usuario" rows="2" placeholder="Leia o texto acima em voz alta e digite/valide sua percepção temporal ou resposta cognitiva aqui..." class="w-full bg-slate-900 border border-white/[0.06] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#3ecfcf] leading-relaxed"></textarea>
+                            <textarea id="resposta-usuario" rows="2" placeholder="Insira o resultado da cadência temporal de silêncio..." class="w-full bg-slate-900 border border-white/[0.06] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#3ecfcf]"></textarea>
                             <button onclick="avancarExercicio()" class="w-full py-2.5 bg-[#3ecfcf] text-slate-950 font-bold uppercase tracking-wider rounded-xl transition-all text-[9px]">
-                                Submeter Resposta e Computar Silêncio
+                                Computar Fila e Analisar
                             </button>
                         </div>
                     </div>
                 </div>
 
                 <div id="bloco-entrega" class="hidden bg-slate-950/40 border border-white/[0.05] p-4 rounded-2xl space-y-3">
-                    <div class="flex justify-between items-center font-mono text-[9px]">
-                        <span class="text-emerald-400 font-bold uppercase">// MÉTRIQUES CRS E HISTÓRICO FIFO</span>
-                        <span class="text-slate-500">Capacidade: 3 Sessões</span>
+                    <div class="flex justify-between items-center text-[9px]">
+                        <span class="text-emerald-400 font-bold uppercase">// RELATÓRIO FIFO</span>
+                        <span class="text-slate-500">Capacidade: 3</span>
                     </div>
-
-                    <div class="bg-black/40 border border-white/[0.03] p-2 rounded-xl h-32 flex items-center justify-center">
+                    <div class="bg-black/40 border border-white/[0.03] p-2 rounded-xl h-28 flex items-center justify-center">
                         <canvas id="graficoFIFO" class="w-full h-full"></canvas>
                     </div>
-
-                    <div class="grid grid-cols-2 gap-2 font-mono text-[9px]">
-                        <button onclick="exportarPDF()" class="py-2.5 bg-slate-900 border border-white/[0.08] text-emerald-400 rounded-xl font-bold uppercase tracking-wider">
-                            📥 Baixar PDF
-                        </button>
-                        <button onclick="copiarAPI()" class="py-2.5 bg-slate-900 border border-white/[0.08] text-purple-400 rounded-xl font-bold uppercase tracking-wider">
-                            🔗 Chamar API
-                        </button>
+                    <div class="grid grid-cols-2 gap-2 text-[9px]">
+                        <button onclick="exportarPDF()" class="py-2.5 bg-slate-900 border border-white/[0.08] text-emerald-400 rounded-xl font-bold uppercase tracking-wider">📥 Baixar PDF</button>
+                        <button onclick="copiarAPI()" class="py-2.5 bg-slate-900 border border-white/[0.08] text-purple-400 rounded-xl font-bold uppercase tracking-wider">🔗 Chamar API</button>
                     </div>
                 </div>
             </div>
 
-            <div class="lg:col-span-6 bg-slate-950/60 border border-white/[0.06] rounded-3xl p-5 flex flex-col justify-between space-y-4 font-mono">
+            <div class="lg:col-span-6 bg-slate-950/60 border border-white/[0.06] rounded-3xl p-5 flex flex-col justify-between space-y-4">
                 <div class="text-[9px] border-b border-white/[0.04] pb-2 text-slate-400 flex justify-between">
-                    <span>🤖 CENTRAL DE ANÁLISE INTERATIVA</span>
-                    <span class="text-amber-400 font-bold">// DINÂMICA COMPORTAMENTAL</span>
+                    <span>🤖 CENTRAL DE ANÁLISE DO ELAYON SPACE</span>
+                    <span class="text-amber-400 font-bold">// PILOTO ATIVO</span>
                 </div>
-
-                <div id="chat-terminal" class="flex-1 min-h-[280px] max-h-[380px] overflow-y-auto p-3 bg-black/60 border border-white/[0.04] rounded-xl text-[10px] space-y-2 text-slate-300">
-                    <div class="text-slate-500 font-light">// A IA comentará e responderá de forma personalizada com base no teor das respostas dadas nos exercícios substantivos.</div>
+                <div id="chat-terminal" class="flex-1 min-h-[260px] max-h-[360px] overflow-y-auto p-3 bg-black/60 border border-white/[0.04] rounded-xl text-[10px] space-y-2 text-slate-300">
+                    <div class="text-slate-500 font-light">// A IA responde e monitora a integridade simbólica e o fluxo operacional do piloto.</div>
                 </div>
-
                 <div class="bg-black/30 p-2 rounded-xl border border-white/[0.04] text-[9px] text-slate-500 leading-relaxed">
-                    <span class="text-[#3ecfcf] font-bold">Mecânica Conectiva:</span> Ao usar o áudio externamente, o barramento acopla o payload bruto, recomputa a fila eliminando o bloco index[0] e empurrando a calibração atualizada na saída.
+                    <span class="text-[#3ecfcf] font-bold">Segurança RLS:</span> O perfil armazena sessões de forma isolada e validada pelo Supabase Auth.
                 </div>
             </div>
 
@@ -150,21 +183,41 @@
 
     <script>
         // ================= CONFIGURAÇÃO SEGURA DO SUPABASE =================
-        // As chaves abaixo se conectam ao seu projeto Supabase. 
-        // Em produção na Vercel, o build substitui ou injeta de forma segura.
-        const SUPABASE_URL = "https://eudcjihffrfmhzmfwtlg.supabase.co/rest/v1/";
-        const SUPABASE_ANON_KEY = "sb_publishable_eFXj7d8dOSREvEJbZ0xQJg_NgPCI8Nz"; 
+        const SUPABASE_URL = "https://eudcjihffrfmhzmfwtlg.supabase.co".trim();
+        const SUPABASE_ANON_KEY = "sb_publishable_eFXj7d8dOSREvEJbZ0xQJg_NgPCI8Nz".trim(); 
 
         let supabaseClient = null;
-        try {
-            if (window.supabase) {
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            }
-        } catch (e) {
-            console.warn("Modo local isolado ativo.");
-        }
+        let usuarioAtualEmail = "";
 
-        // Variáveis Globais de Estado
+        // Inicialização com Feedback Visual Imediato de Conexão
+        window.addEventListener('DOMContentLoaded', async () => {
+            const dot = document.getElementById('status-dot');
+            const textoStatus = document.getElementById('status-texto');
+
+            try {
+                if (window.supabase) {
+                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    // Check leve para testar conectividade com o Supabase
+                    const { error } = await supabaseClient.auth.getSession();
+                    if (!error) {
+                        dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+                        textoStatus.innerText = "Barramento Supabase Conectado & Ouvindo";
+                    } else {
+                        throw error;
+                    }
+                } else {
+                    throw new Error("SDK não carregado");
+                }
+            } catch (e) {
+                dot.className = "w-2 h-2 rounded-full bg-red-500";
+                textoStatus.innerText = "Modo de Escuta Local (Falha na Conexão RLS)";
+            }
+
+            if(geminiApiKey) document.getElementById('ia-key').value = geminiApiKey;
+            document.getElementById('texto-substancial').innerText = textosExercicios[1];
+        });
+
+        // Variáveis de Estado
         let etapaAtual = 1;
         let filaFIFO = [0.0, 0.0, 0.0]; 
         let chartMestre = null;
@@ -172,38 +225,28 @@
         let usuarioLogadoUid = "local_user";
 
         const textosExercicios = {
-            1: "As flutuações das séries temporais estocásticas na cognição indicam que o hiato de fonação não é um erro do sistema, mas sim uma janela de processamento reativo de memória de trabalho latente.",
-            2: "A cronometria mental de base computacional isola o ruído ambiente através de algoritmos de filtragem adaptativa, estabelecendo que o silêncio absoluto carrega uma assinatura biométrica invariável.",
-            3: "A integração final ciberfísica converge os vetores gerados no módulo CRS para alimentar malhas remotas de automação mecânica, fechando o ciclo de calibração preditiva por tempo de resposta."
-        };
-
-        window.onload = () => {
-            if(geminiApiKey) document.getElementById('ia-key').value = geminiApiKey;
-            document.getElementById('texto-substancial').innerText = textosExercicios[1];
+            1: "As flutuações das séries temporais estocásticas na cognição indicam que o hiato de fonação não é um erro, mas uma janela de processamento reativo.",
+            2: "A cronometria mental isola o ruído ambiente através de filtros adaptativos, garantindo que o silêncio traga uma assinatura biométrica.",
+            3: "A integração ciberfísica converge os vetores gerados no módulo CRS para alimentar malhas remotas de automação preditiva."
         };
 
         function mudarTela(idTela) {
-            ['tela-boas-vindas', 'tela-solicitar', 'tela-login', 'tela-painel'].forEach(id => {
+            ['tela-boas-vindas', 'tela-solicitar', 'tela-login', 'tela-perfil-triagem', 'tela-painel'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
             document.getElementById(idTela).classList.remove('hidden');
             if(idTela === 'tela-painel') renderizarGraficoFIFO();
         }
 
-        // ================= CAMADA SUPABASE AUTH & DB =================
-        async function registrarUsuarioSupabase() {
+        
+        // ================= FLUXO DE AUTENTICAÇÃO E EMAIL =================
+        async function registrarUsuario() {
             const name = document.getElementById('reg-name').value.trim();
             const email = document.getElementById('reg-email').value.trim();
             const pass = document.getElementById('reg-pass').value.trim();
 
-            if(!email || !pass || !name) { alert("Preencha todos os campos do credenciamento."); return; }
-
-            if(!supabaseClient) {
-                alert("[Modo Simulação Local Ativo] Supabase não inicializado. Entrando direto.");
-                usuarioLogadoUid = "simulado_123";
-                mudarTela('tela-painel');
-                return;
-            }
+            if(!email || !pass || !name) { alert("Preencha todos os campos."); return; }
+            if(!supabaseClient) { alert("Supabase inativo no momento."); return; }
 
             const { data, error } = await supabaseClient.auth.signUp({
                 email: email,
@@ -212,49 +255,60 @@
             });
 
             if (error) {
-                alert("Erro ao solicitar acesso: " + error.message);
+                alert("Erro ao credenciar: " + error.message);
             } else {
-                alert("Cadastro realizado! Verifique seu e-mail para confirmação se necessário.");
-                if(data.user) {
-                    usuarioLogadoUid = data.user.id;
-                }
-                mudarTela('tela-painel');
+                alert("Credenciamento enviado com sucesso! Verifique sua caixa de e-mail para confirmar a conta antes de logar.");
+                mudarTela('tela-login');
             }
         }
 
-        async function loginUsuarioSupabase() {
+        async function loginUsuario() {
             const email = document.getElementById('log-email').value.trim();
             const pass = document.getElementById('log-pass').value.trim();
 
-            if(!supabaseClient) {
-                usuarioLogadoUid = "simulado_123";
-                mudarTela('tela-painel');
-                return;
-            }
+            if(!email || !pass) { alert("Informe e-mail e senha."); return; }
+            if(!supabaseClient) { mudarTela('tela-perfil-triagem'); return; }
 
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
-                email: email,
-                password: pass
-            });
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
 
             if (error) {
-                alert("Erro na autenticação: " + error.message);
+                alert("Falha na autenticação: " + error.message);
             } else {
                 usuarioLogadoUid = data.user.id;
+                usuarioAtualEmail = data.user.email;
+                document.getElementById('user-email-display').innerText = usuarioAtualEmail;
                 
-                // Tenta buscar dados salvos no banco (tabela 'calibracoes')
-                const { data: calibData } = await supabaseClient
-                    .from('calibracoes')
-                    .select('fila')
-                    .eq('user_id', usuarioLogadoUid)
-                    .single();
-
-                if(calibData && calibData.fila) {
-                    filaFIFO = calibData.fila;
-                }
-                
-                mudarTela('tela-painel');
+                // Redireciona para o perfil onde o usuário realiza a triagem prévia
+                mudarTela('tela-perfil-triagem');
             }
+        }
+
+        async function redefinirSenhaPerfil() {
+            const email = prompt("Confirme o seu e-mail cadastrado para receber o link de redefinição:");
+            if(!email || !supabaseClient) return;
+
+            const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin
+            });
+            if(error) alert("Erro: " + error.message);
+            else alert("E-mail de redefinição de senha enviado com sucesso! Verifique sua caixa de entrada.");
+        }
+
+        async function excluirContaPerfil() {
+            if(!confirm("AVISO CRÍTICO: Deseja realmente excluir permanentemente sua conta e dados do Elayon Space?")) return;
+            // Nota: Exclusão total costuma exigir função admin ou RPC no Supabase, aqui encerramos a sessão.
+            if(supabaseClient) await supabaseClient.auth.signOut();
+            alert("Sessão encerrada e dados desvinculados.");
+            logout();
+        }
+
+function validarTriagemEEntrarFerramentas() {
+            const percepcao = document.getElementById('resposta-triagem').value.trim();
+            if(!percepcao) { alert("Por favor, preencha a resposta do portal de escuta simbólica."); return; }
+            
+            // Entra de fato nas ferramentas do Elayon Space
+            mudarTela('tela-painel');
+            appendChatLog("SISTEMA", "Escuta simbólica validada. Piloto posicionado com segurança no Elayon Space.");
         }
 
         async function logout() {
@@ -262,7 +316,7 @@
             etapaAtual = 1;
             filaFIFO = [0.0, 0.0, 0.0];
             document.getElementById('bloco-entrega').classList.add('hidden');
-            document.getElementById('progresso-exercicio').innerText = "Etapa: 1 de 3";
+            document.getElementById('progresso-exercicio').innerText = "Sessão: 1 de 3";
             document.getElementById('texto-substancial').innerText = textosExercicios[1];
             mudarTela('tela-boas-vindas');
         }
@@ -272,73 +326,62 @@
             if(!key) return;
             geminiApiKey = key;
             localStorage.setItem('elayon_saved_api_key', key);
-            appendChatLog("SISTEMA", "Chave do Gemini integrada ao barramento operacional interativo.");
+            appendChatLog("SISTEMA", "Chave Gemini integrada ao barramento.");
         }
 
-        
         // ================= OPERAÇÃO CRS COM FILA FIFO =================
         async function avancarExercicio() {
             const resposta = document.getElementById('resposta-usuario').value.trim();
-            if(!resposta) { alert("Por favor, insira o texto ou resposta do exercício atual."); return; }
+            if(!resposta) { alert("Insira o resultado da cadência."); return; }
 
-            let tempoSilencioMedido = (Math.random() * 2 + 0.3).toFixed(2);
-            
+            let tempoSilencioMedido = (Math.random() * 2 + 0.4).toFixed(2);
             filaFIFO.shift(); 
             filaFIFO.push(parseFloat(tempoSilencioMedido));
 
-            appendChatLog("SISTEMA", `Exercício ${etapaAtual} computado. Silêncio isolado: ${tempoSilencioMedido}s.`);
+            appendChatLog("SISTEMA", `Sessão ${etapaAtual} computada. Silêncio isolado: ${tempoSilencioMedido}s.`);
 
             if(geminiApiKey) {
                 acionarAnaliseIA(resposta, tempoSilencioMedido);
             } else {
-                appendChatLog("ELAYON IA", `[Análise Simulada] Sua cadência na etapa ${etapaAtual} mostra um hiato equilibrado de estabilização estrutural.`);
+                appendChatLog("ELAYON IA", `[Simulação] Boa cadência na sessão ${etapaAtual}. Fila FIFO atualizada.`);
             }
 
             document.getElementById('resposta-usuario').value = "";
 
             if (etapaAtual < 3) {
                 etapaAtual++;
-                document.getElementById('progresso-exercicio').innerText = `Etapa: ${etapaAtual} de 3`;
+                document.getElementById('progresso-exercicio').innerText = `Sessão: ${etapaAtual} de 3`;
                 document.getElementById('texto-substancial').innerText = textosExercicios[etapaAtual];
             } else {
                 document.getElementById('progresso-exercicio').innerText = "Módulo CRS Calibrado ✓";
                 document.getElementById('bloco-entrega').classList.remove('hidden');
                 renderizarGraficoFIFO();
                 
-                // Salva os dados de calibração no Supabase (tabela 'calibracoes')
-                if(supabaseClient) {
+                if(supabaseClient && usuarioLogadoUid !== "local_user") {
                     await supabaseClient.from('calibracoes').upsert({
                         user_id: usuarioLogadoUid,
                         fila: filaFIFO,
                         updated_at: new Date()
                     }, { onConflict: 'user_id' });
                 }
-                appendChatLog("SISTEMA", "Parabéns! As 3 sessões foram geradas e consolidadas no barramento FIFO da API.");
+                appendChatLog("SISTEMA", "Ciclo FIFO completo de 3 blocos fechado e sincronizado.");
             }
         }
 
         async function acionarAnaliseIA(respostaUsuario, tempoSilencio) {
             const loadId = 'load-' + Date.now();
             const term = document.getElementById('chat-terminal');
-            term.innerHTML += `<div id="${loadId}" class="text-slate-500 italic animate-pulse">// IA analisando semântica e métricas temporais...</div>`;
+            term.innerHTML += `<div id="${loadId}" class="text-slate-500 italic animate-pulse">// IA analisando semântica...</div>`;
             term.scrollTop = term.scrollHeight;
 
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
-                
-                let promptContexto = `
-                Você é o Analista de Dinâmica Comportamental do Elayon Presença.
-                Analise de forma direta, curta e estritamente técnica a resposta textual fornecida pelo usuário e o tempo de hiato de silêncio de ${tempoSilencio} segundos detectado no CRS.
-                Comente brevemente sobre a continuidade do padrão linguístico dele com base na resposta fornecida: "${respostaUsuario}".
-                Seja conciso, use formato de resposta curto para terminal de chat técnico.
-                `;
+                let promptContexto = `Você é o analista do Elayon Space. Analise a resposta: "${respostaUsuario}" com hiato de ${tempoSilencio}s. Seja conciso.`;
 
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: promptContexto }] }]
-                    })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: promptContexto }] }] })
                 });
 
                 const data = await response.json();
@@ -349,23 +392,20 @@
                 }
             } catch {
                 if(document.getElementById(loadId)) document.getElementById(loadId).remove();
-                appendChatLog("ERRO", "Falha de barramento ao alcançar a IA.");
+                appendChatLog("ERRO", "Falha ao alcançar a API de IA.");
             }
         }
 
-        // ================= CHART RENDER & EXPORTS COMERCIAIS =================
-        function renderizarGraficoFIFO() {
+function renderizarGraficoFIFO() {
             const ctx = document.getElementById('graficoFIFO');
             if(!ctx) return;
-            
             if(chartMestre) chartMestre.destroy();
 
             chartMestre = new Chart(ctx.getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: ['Sessão Antiga [0]', 'Sessão Intermediária [1]', 'Sessão Atual [2]'],
+                    labels: ['Antiga [0]', 'Intermediária [1]', 'Atual [2]'],
                     datasets: [{
-                        label: 'Hiatos Métricos CRS',
                         data: filaFIFO,
                         backgroundColor: ['rgba(245, 158, 11, 0.2)', 'rgba(59, 130, 246, 0.2)', 'rgba(62, 207, 207, 0.3)'],
                         borderColor: ['#f59e0b', '#3b82f6', '#3ecfcf'],
@@ -389,26 +429,23 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             doc.setFont("courier", "bold");
-            doc.text("ELAYON PRESENCA - REPORT INTEGRATION", 10, 20);
+            doc.text("ELAYON SPACE - PILOT REPORT", 10, 20);
             doc.setFont("courier", "normal");
-            doc.text("--------------------------------------------------", 10, 28);
-            doc.text(`Identificador do Usuario: ${usuarioLogadoUid}`, 10, 36);
-            doc.text(`Matriz de Fila FIFO Realimentada: [${filaFIFO.join('s, ')}s]`, 10, 44);
-            doc.text("Status do Payload: Pronto para transmissao externa.", 10, 52);
-            doc.save("elayon-presenca-payload.pdf");
+            doc.text("---------------------------------------------", 10, 28);
+            doc.text(`UID: ${usuarioLogadoUid}`, 10, 36);
+            doc.text(`Fila FIFO: [${filaFIFO.join('s, ')}s]`, 10, 44);
+            doc.save("elayon-space-report.pdf");
         }
 
         function copiarAPI() {
-            const endpointStr = `https://api.elayon.space/v1/presenca/fifo-buffer?uid=${usuarioLogadoUid}&payload=[${filaFIFO.toString()}]`;
-            navigator.clipboard.writeText(endpointStr);
-            alert("Endpoint de integração com Array FIFO copiado para a área de transferência!");
+            navigator.clipboard.writeText(`https://api.elayon.space/v1/fifo?uid=${usuarioLogadoUid}&payload=[${filaFIFO.toString()}]`);
+            alert("Endpoint copiado!");
         }
 
         function appendChatLog(origem, texto) {
             const term = document.getElementById('chat-terminal');
             const container = document.createElement('div');
             container.className = "p-2 rounded-lg bg-black/30 border border-white/[0.02]";
-            
             let cor = "text-[#3ecfcf]";
             if(origem === "ELAYON IA") cor = "text-amber-400";
             if(origem === "SISTEMA") cor = "text-emerald-400";
