@@ -3,24 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elayon Presença - Plataforma Conectiva</title>
+    <title>Elayon Presença - Plataforma Conectiva (Supabase)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- SDK Oficial do Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-[#030608] text-slate-100 font-sans min-h-screen flex items-center justify-center p-4 md:p-8 select-none">
 
     <div class="w-full max-w-4xl bg-slate-950/40 border border-white/[0.05] rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden backdrop-blur-md">
         
+        <!-- TELA DE BOAS-VINDAS -->
         <div id="tela-boas-vindas" class="space-y-6 text-center py-8">
             <div class="space-y-2">
                 <span class="text-[#3ecfcf] font-mono text-[10px] tracking-widest font-bold uppercase block">// ECOSSISTEMA MESTRE</span>
                 <h1 class="text-3xl font-extrabold font-mono text-white tracking-tight">ELAYON PRESENÇA</h1>
-                <p class="text-xs text-slate-400 max-w-md mx-auto font-light leading-relaxed">Bem-vindo ao barramento conectivo de biometria temporal e calibração de silêncio para sistemas externos.</p>
+                <p class="text-xs text-slate-400 max-w-md mx-auto font-light leading-relaxed">Bem-vindo ao barramento conectivo de biometria temporal e calibração de silêncio protegido pelo Supabase.</p>
             </div>
             <div class="pt-4">
                 <button onclick="mudarTela('tela-solicitar')" class="px-8 py-3.5 bg-gradient-to-r from-[#3ecfcf] to-blue-600 text-slate-950 font-mono text-xs font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 shadow-lg shadow-[#3ecfcf]/10">
@@ -29,6 +28,7 @@
             </div>
         </div>
 
+        <!-- TELA DE CADASTRO -->
         <div id="tela-solicitar" class="hidden space-y-6 max-w-md mx-auto py-4 font-mono text-xs">
             <h2 class="text-sm font-bold text-white uppercase tracking-wider text-center border-b border-white/[0.06] pb-2">// Credenciamento Inicial</h2>
             <div class="space-y-4">
@@ -44,13 +44,14 @@
                     <label class="text-[10px] text-slate-400 font-bold uppercase">Senha de Acesso</label>
                     <input id="reg-pass" type="password" placeholder="••••••••" class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
                 </div>
-                <button onclick="registrarUsuarioFirebase()" class="w-full py-3 bg-[#3ecfcf] text-slate-950 font-bold uppercase tracking-wider rounded-xl transition-all">
+                <button onclick="registrarUsuarioSupabase()" class="w-full py-3 bg-[#3ecfcf] text-slate-950 font-bold uppercase tracking-wider rounded-xl transition-all">
                     Solicitar Liberação de Acesso
                 </button>
                 <p class="text-center text-[10px] text-slate-500">Já possui cadastro? <span onclick="mudarTela('tela-login')" class="text-[#3ecfcf] cursor-pointer underline">Fazer Login</span></p>
             </div>
         </div>
 
+        <!-- TELA DE LOGIN -->
         <div id="tela-login" class="hidden space-y-6 max-w-md mx-auto py-4 font-mono text-xs">
             <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider text-center border-b border-white/[0.06] pb-2">// Acesso Autenticado</h2>
             <div class="space-y-4">
@@ -62,13 +63,14 @@
                     <label class="text-[10px] text-slate-400 font-bold uppercase">Senha</label>
                     <input id="log-pass" type="password" class="w-full bg-black/50 border border-white/[0.08] rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#3ecfcf]">
                 </div>
-                <button onclick="loginUsuarioFirebase()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-bold uppercase tracking-wider rounded-xl transition-all">
+                <button onclick="loginUsuarioSupabase()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-bold uppercase tracking-wider rounded-xl transition-all">
                     Liberar Terminal e Entrar
                 </button>
                 <p class="text-center text-[10px] text-slate-500">Voltar para <span onclick="mudarTela('tela-solicitar')" class="text-[#3ecfcf] cursor-pointer underline">Solicitar Acesso</span></p>
             </div>
         </div>
 
+        <!-- TELA DO PAINEL DE OPERAÇÃO -->
         <div id="tela-painel" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
             
             <div class="lg:col-span-6 space-y-4 flex flex-col justify-between">
@@ -147,31 +149,28 @@
     </div>
 
     <script>
-        // ================= CONFIGURAÇÃO DO SEU FIREBASE =================
-        const firebaseConfig = {
-            apiKey: "COLE_AQUI_SUA_API_KEY_DO_FIREBASE",
-            authDomain: "SEU_PROJETO.firebaseapp.com",
-            projectId: "SEU_PROJETO",
-            storageBucket: "SEU_PROJETO.appspot.com",
-            messagingSenderId: "SEU_ID",
-            appId: "SEU_APP_ID"
-        };
-        
-        // Inicializa o Firebase (Apenas se as credenciais forem substituídas)
-        if (firebaseConfig.apiKey !== "COLE_AQUI_SUA_API_KEY_DO_FIREBASE") {
-            firebase.initializeApp(firebaseConfig);
+        // ================= CONFIGURAÇÃO SEGURA DO SUPABASE =================
+        // As chaves abaixo se conectam ao seu projeto Supabase. 
+        // Em produção na Vercel, o build substitui ou injeta de forma segura.
+        const SUPABASE_URL = "https://eudcjfhtfrfmhzmfwtlg.supabase.co";
+        const SUPABASE_ANON_KEY = "SUA_PUBLISHABLE_KEY_AQUI"; 
+
+        let supabaseClient = null;
+        try {
+            if (window.supabase) {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (e) {
+            console.warn("Modo local isolado ativo.");
         }
-        const db = typeof firebase !== 'undefined' ? firebase.firestore() : null;
-        const auth = typeof firebase !== 'undefined' ? firebase.auth() : null;
 
         // Variáveis Globais de Estado
         let etapaAtual = 1;
-        let filaFIFO = [0.0, 0.0, 0.0]; // Guarda as últimas 3 sessões de silêncio métrico
+        let filaFIFO = [0.0, 0.0, 0.0]; 
         let chartMestre = null;
         let geminiApiKey = localStorage.getItem('elayon_saved_api_key') || "";
         let usuarioLogadoUid = "local_user";
 
-        // Textos Substanciais Iniciais fornecidos para o Exercício Cognitivo
         const textosExercicios = {
             1: "As flutuações das séries temporais estocásticas na cognição indicam que o hiato de fonação não é um erro do sistema, mas sim uma janela de processamento reativo de memória de trabalho latente.",
             2: "A cronometria mental de base computacional isola o ruído ambiente através de algoritmos de filtragem adaptativa, estabelecendo que o silêncio absoluto carrega uma assinatura biométrica invariável.",
@@ -191,55 +190,75 @@
             if(idTela === 'tela-painel') renderizarGraficoFIFO();
         }
 
-        // ================= CAMADA FIREBASE AUTH & FIRESTORE =================
-        function registrarUsuarioFirebase() {
+        // ================= CAMADA SUPABASE AUTH & DB =================
+        async function registrarUsuarioSupabase() {
             const name = document.getElementById('reg-name').value.trim();
             const email = document.getElementById('reg-email').value.trim();
             const pass = document.getElementById('reg-pass').value.trim();
 
             if(!email || !pass || !name) { alert("Preencha todos os campos do credenciamento."); return; }
 
-            if(!auth) {
-                alert("[Modo Simulação Local Ativo] Firebase não configurado. Entrando direto.");
+            if(!supabaseClient) {
+                alert("[Modo Simulação Local Ativo] Supabase não inicializado. Entrando direto.");
                 usuarioLogadoUid = "simulado_123";
                 mudarTela('tela-painel');
                 return;
             }
 
-            auth.createUserWithEmailAndPassword(email, pass)
-                .then((userCredential) => {
-                    usuarioLogadoUid = userCredential.user.uid;
-                    db.collection("usuarios").doc(usuarioLogadoUid).set({ name, email, criadoEm: new Date() });
-                    alert("Acesso liberado e registrado com sucesso!");
-                    mudarTela('tela-painel');
-                }).catch(err => alert("Erro ao solicitar acesso: " + err.message));
+            const { data, error } = await supabaseClient.auth.signUp({
+                email: email,
+                password: pass,
+                options: { data: { full_name: name } }
+            });
+
+            if (error) {
+                alert("Erro ao solicitar acesso: " + error.message);
+            } else {
+                alert("Cadastro realizado! Verifique seu e-mail para confirmação se necessário.");
+                if(data.user) {
+                    usuarioLogadoUid = data.user.id;
+                }
+                mudarTela('tela-painel');
+            }
         }
 
-        function loginUsuarioFirebase() {
+        async function loginUsuarioSupabase() {
             const email = document.getElementById('log-email').value.trim();
             const pass = document.getElementById('log-pass').value.trim();
 
-            if(!auth) {
+            if(!supabaseClient) {
                 usuarioLogadoUid = "simulado_123";
                 mudarTela('tela-painel');
                 return;
             }
 
-            auth.signInWithEmailAndPassword(email, pass)
-                .then((userCredential) => {
-                    usuarioLogadoUid = userCredential.user.uid;
-                    // Recupera dados antigos se existirem no Firestore
-                    db.collection("calibracoes").doc(usuarioLogadoUid).get().then(doc => {
-                        if(doc.exists && doc.data().fila) {
-                            filaFIFO = doc.data().fila;
-                        }
-                        mudarTela('tela-painel');
-                    });
-                }).catch(err => alert("Erro na autenticação: " + err.message));
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: pass
+            });
+
+            if (error) {
+                alert("Erro na autenticação: " + error.message);
+            } else {
+                usuarioLogadoUid = data.user.id;
+                
+                // Tenta buscar dados salvos no banco (tabela 'calibracoes')
+                const { data: calibData } = await supabaseClient
+                    .from('calibracoes')
+                    .select('fila')
+                    .eq('user_id', usuarioLogadoUid)
+                    .single();
+
+                if(calibData && calibData.fila) {
+                    filaFIFO = calibData.fila;
+                }
+                
+                mudarTela('tela-painel');
+            }
         }
 
-        function logout() {
-            if(auth) auth.signOut();
+        async function logout() {
+            if(supabaseClient) await supabaseClient.auth.signOut();
             etapaAtual = 1;
             filaFIFO = [0.0, 0.0, 0.0];
             document.getElementById('bloco-entrega').classList.add('hidden');
@@ -256,21 +275,19 @@
             appendChatLog("SISTEMA", "Chave do Gemini integrada ao barramento operacional interativo.");
         }
 
+        
         // ================= OPERAÇÃO CRS COM FILA FIFO =================
         async function avancarExercicio() {
             const resposta = document.getElementById('resposta-usuario').value.trim();
             if(!resposta) { alert("Por favor, insira o texto ou resposta do exercício atual."); return; }
 
-            // Simula a metrificação do tempo de silêncio gasto no celular baseado no comprimento da resposta
             let tempoSilencioMedido = (Math.random() * 2 + 0.3).toFixed(2);
             
-            // EXECUTA O ALGORITMO FIFO (Tira o primeiro/antigo, adiciona o novo na última posição)
             filaFIFO.shift(); 
             filaFIFO.push(parseFloat(tempoSilencioMedido));
 
             appendChatLog("SISTEMA", `Exercício ${etapaAtual} computado. Silêncio isolado: ${tempoSilencioMedido}s.`);
 
-            // Dispara a interação da IA se houver chave plugada
             if(geminiApiKey) {
                 acionarAnaliseIA(resposta, tempoSilencioMedido);
             } else {
@@ -284,24 +301,22 @@
                 document.getElementById('progresso-exercicio').innerText = `Etapa: ${etapaAtual} de 3`;
                 document.getElementById('texto-substancial').innerText = textosExercicios[etapaAtual];
             } else {
-                // Fim dos 3 exercícios - Entrega o aplicativo finalizado
                 document.getElementById('progresso-exercicio').innerText = "Módulo CRS Calibrado ✓";
                 document.getElementById('bloco-entrega').classList.remove('hidden');
                 renderizarGraficoFIFO();
                 
-                // Salva o estado da calibração no Firebase para persistência do usuário
-                if(db) {
-                    db.collection("calibracoes").doc(usuarioLogadoUid).set({
+                // Salva os dados de calibração no Supabase (tabela 'calibracoes')
+                if(supabaseClient) {
+                    await supabaseClient.from('calibracoes').upsert({
+                        user_id: usuarioLogadoUid,
                         fila: filaFIFO,
-                        atualizadoEm: new Date()
-                    });
+                        updated_at: new Date()
+                    }, { onConflict: 'user_id' });
                 }
                 appendChatLog("SISTEMA", "Parabéns! As 3 sessões foram geradas e consolidadas no barramento FIFO da API.");
             }
         }
 
-        
-        // --- CHAMADA DO GEMINI PARA ANALISAR O COMPORTAMENTO ---
         async function acionarAnaliseIA(respostaUsuario, tempoSilencio) {
             const loadId = 'load-' + Date.now();
             const term = document.getElementById('chat-terminal');
