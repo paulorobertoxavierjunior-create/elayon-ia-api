@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* [INÍCIO DA PARTE 2: ESTILOS E DESIGN SYSTEM] */
         :root {
             --primary: #6366f1;
             --primary-dark: #4f46e5;
@@ -125,26 +124,9 @@
             margin-top: 8px;
         }
 
-        .btn:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn-danger {
-            background: var(--danger);
-        }
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-
-        .text-link {
-            background: none;
-            border: none;
-            color: var(--primary);
-            font-size: 13px;
-            cursor: pointer;
-            text-decoration: underline;
-            padding: 0;
-        }
+        .btn:hover { background: var(--primary-dark); }
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: #dc2626; }
 
         .auth-links {
             display: flex;
@@ -162,17 +144,10 @@
             cursor: pointer;
         }
 
-        .auth-links a:hover, .auth-links button:hover {
-            color: var(--primary);
-        }
+        .auth-links a:hover, .auth-links button:hover { color: var(--primary); }
 
-        .view-section {
-            display: none;
-        }
-
-        .view-section.active {
-            display: block;
-        }
+        .view-section { display: none; }
+        .view-section.active { display: block; }
 
         .alert {
             padding: 10px 14px;
@@ -191,13 +166,11 @@
             border: 1px solid var(--success);
             color: #86efac;
         }
-        /* [FIM DA PARTE 2] */
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Alertas Globais de Feedback -->
         <div id="globalAlert" class="alert"></div>
 
         <!-- 1. TELA DE LOGIN -->
@@ -278,7 +251,7 @@
             </form>
         </div>
 
-        <!-- 4. TELA DE REDEFINIÇÃO DE SENHA (Acessada via link do email) -->
+        <!-- 4. TELA DE REDEFINIÇÃO DE SENHA -->
         <div id="resetView" class="view-section">
             <div class="logo-area">
                 <h1>Nova Senha</h1>
@@ -312,20 +285,17 @@
     </div>
 
     <script>
-        // Configuração e Inicialização do Supabase
         const SUPABASE_URL = 'https://xlktkelumptugiidnecbj.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
         
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Função utilitária para alternar entre as views (telas)
         function switchView(viewId) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
             hideAlert();
         }
 
-        // Função para mostrar alertas de feedback globais
         function showAlert(message, type = 'error') {
             const alertEl = document.getElementById('globalAlert');
             alertEl.textContent = message;
@@ -338,9 +308,7 @@
             alertEl.style.display = 'none';
         }
 
-        // 1. Monitorar estado de autenticação ao carregar a página
         window.addEventListener('DOMContentLoaded', async () => {
-            // Verificar se a URL contém parâmetros de recuperação de senha (hash do Supabase)
             const hash = window.location.hash;
             if (hash && hash.includes('type=recovery')) {
                 switchView('resetView');
@@ -352,7 +320,6 @@
                 appLoaded(session.user);
             }
 
-            // Ouvir mudanças de estado (login/logout)
             supabaseClient.auth.onAuthStateChange((event, session) => {
                 if (event === 'SIGNED_IN' && session) {
                     appLoaded(session.user);
@@ -362,12 +329,11 @@
             });
         });
 
-        function appLoaded(user) {
+        async function appLoaded(user) {
             document.getElementById('userSessionEmail').textContent = user.email;
             switchView('dashboardView');
         }
 
-        // 2. Ação de Cadastro
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             hideAlert();
@@ -378,9 +344,7 @@
             const { data, error } = await supabaseClient.auth.signUp({
                 email,
                 password,
-                options: {
-                    emailRedirectTo: window.location.origin
-                }
+                options: { emailRedirectTo: window.location.origin }
             });
 
             if (error) {
@@ -391,7 +355,6 @@
             }
         });
 
-        // 3. Ação de Login
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             hideAlert();
@@ -399,10 +362,7 @@
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
 
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
-                email,
-                password
-            });
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
             if (error) {
                 showAlert(error.message, 'error');
@@ -411,14 +371,11 @@
             }
         });
 
-        // 4. Ação de Solicitação de Recuperação de Senha
         document.getElementById('forgotForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             hideAlert();
 
             const email = document.getElementById('forgotEmail').value;
-
-            // O Supabase enviará o link direcionando para redefinir, com suporte configurado
             const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
                 redirectTo: window.location.origin
             });
@@ -426,26 +383,22 @@
             if (error) {
                 showAlert(error.message, 'error');
             } else {
-                showAlert('Instruções de recuperação enviadas para o seu e-mail. Se persistir, contate: contato.elayon@gmail.com', 'success');
+                showAlert('Instruções de recuperação enviadas para o seu e-mail.', 'success');
                 document.getElementById('forgotForm').reset();
             }
         });
 
-        // 5. Ação de Atualização/Redefinição de Senha
         document.getElementById('resetForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             hideAlert();
 
             const newPassword = document.getElementById('newPassword').value;
-
-            const { error } = await supabaseClient.auth.updateUser({
-                password: newPassword
-            });
+            const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
 
             if (error) {
                 showAlert(error.message, 'error');
             } else {
-                showAlert('Senha atualizada com sucesso! Faça login com a nova senha.', 'success');
+                showAlert('Senha atualizada com sucesso! Faça login.', 'success');
                 setTimeout(() => {
                     supabaseClient.auth.signOut();
                     switchView('loginView');
@@ -453,32 +406,15 @@
             }
         });
 
-        // 6. Ação de Logout
         async function handleLogout() {
             await supabaseClient.auth.signOut();
             switchView('loginView');
         }
 
-        // 7. Ação de Exclusão de Conta (Liberando re-cadastro imediato)
         async function handleDeleteAccount() {
-            if (!confirm('Tem certeza absoluta que deseja excluir sua conta permanentemente? Esta ação não pode ser desfeita.')) {
-                return;
-            }
-
-            // Nota: Para exclusão limpa via API Client com o trigger de auth, 
-            // chamamos a exclusão do usuário autenticado atual.
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            
-            if (!user) {
-                showAlert('Sessão expirada.', 'error');
-                return;
-            }
-
-            // Como a deleção direta do auth.users exige permissão admin server-side, 
-            // limpamos a sessão localmente e redirecionamos informando o suporte caso necessário,
-            // ou executamos via função RPC se configurada. Para liberar o fluxo padrão de re-cadastro limpo:
+            if (!confirm('Tem certeza absoluta que deseja excluir sua conta permanentemente?')) return;
             await supabaseClient.auth.signOut();
-            showAlert('Conta desativada. Para exclusão total dos registros, entre em contato em contato.elayon@gmail.com', 'success');
+            showAlert('Conta desativada. Para exclusão total, contate contato.elayon@gmail.com', 'success');
             setTimeout(() => switchView('loginView'), 3000);
         }
     </script>
