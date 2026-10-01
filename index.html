@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elayon - Sistema de Acesso</title>
-    <!-- Supabase CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Google Fonts & Icons -->
+    <title>Elayon Core - Sistema de Acesso</title>
+    <!-- Supabase Client CDN Estável -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -22,14 +21,7 @@
             --danger: #ef4444;
             --success: #22c55e;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
@@ -39,60 +31,22 @@
             align-items: center;
             padding: 20px;
         }
-
         .container {
             width: 100%;
-            max-width: 420px;
+            max-width: 440px;
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 32px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
         }
-
-        .logo-area {
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
-        .logo-area h1 {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text-main);
-            letter-spacing: -0.5px;
-        }
-
-        .logo-area p {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 6px;
-            color: var(--text-muted);
-        }
-
-        .input-icon {
-            position: relative;
-        }
-
-        .input-icon i {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-
+        .logo-area { text-align: center; margin-bottom: 24px; }
+        .logo-area h1 { font-size: 24px; font-weight: 700; color: var(--text-main); letter-spacing: -0.5px; }
+        .logo-area p { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text-muted); }
+        .input-icon { position: relative; }
+        .input-icon i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
         .form-control {
             width: 100%;
             background: #0f172a;
@@ -103,13 +57,7 @@
             font-size: 14px;
             transition: all 0.3s ease;
         }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-        }
-
+        .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
         .btn {
             width: 100%;
             background: var(--primary);
@@ -123,49 +71,21 @@
             transition: background 0.3s ease;
             margin-top: 8px;
         }
-
         .btn:hover { background: var(--primary-dark); }
         .btn-danger { background: var(--danger); }
         .btn-danger:hover { background: #dc2626; }
-
-        .auth-links {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 16px;
-            font-size: 13px;
-        }
-
-        .auth-links a, .auth-links button {
-            color: var(--text-muted);
-            text-decoration: none;
-            background: none;
-            border: none;
-            cursor: pointer;
-        }
-
+        .btn-disabled { background: #334155 !important; color: #64748b !important; cursor: not-allowed !important; }
+        .auth-links { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; font-size: 13px; }
+        .auth-links a, .auth-links button { color: var(--text-muted); text-decoration: none; background: none; border: none; cursor: pointer; }
         .auth-links a:hover, .auth-links button:hover { color: var(--primary); }
-
         .view-section { display: none; }
         .view-section.active { display: block; }
-
-        .alert {
-            padding: 10px 14px;
-            border-radius: 6px;
-            font-size: 13px;
-            margin-bottom: 16px;
-            display: none;
-        }
-        .alert-error {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid var(--danger);
-            color: #fca5a5;
-        }
-        .alert-success {
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid var(--success);
-            color: #86efac;
-        }
+        .alert { padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 16px; display: none; }
+        .alert-error { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); color: #fca5a5; }
+        .alert-success { background: rgba(34, 197, 94, 0.1); border: 1px solid var(--success); color: #86efac; }
+        .profile-card { background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; font-size: 13px; }
+        .profile-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .profile-row span:last-child { font-weight: 600; color: var(--text-main); }
     </style>
 </head>
 <body>
@@ -176,7 +96,7 @@
         <!-- 1. TELA DE LOGIN -->
         <div id="loginView" class="view-section active">
             <div class="logo-area">
-                <h1>Elayon</h1>
+                <h1>Elayon Core</h1>
                 <p>Acesse sua conta para continuar</p>
             </div>
             <form id="loginForm">
@@ -209,6 +129,13 @@
                 <p>Junte-se ao ecossistema Elayon</p>
             </div>
             <form id="registerForm">
+                <div class="form-group">
+                    <label>Nome Completo</label>
+                    <div class="input-icon">
+                        <i class="fa-regular fa-user"></i>
+                        <input type="text" id="regName" class="form-control" placeholder="Seu Nome" required>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label>E-mail</label>
                     <div class="input-icon">
@@ -269,18 +196,35 @@
             </form>
         </div>
 
-        <!-- 5. PAINEL DO USUÁRIO LOGADO -->
+        <!-- 5. PAINEL DE PERFIL E TOKENS -->
         <div id="dashboardView" class="view-section">
             <div class="logo-area">
-                <h1>Bem-vindo!</h1>
+                <h1>Núcleo Elayon</h1>
                 <p id="userSessionEmail" style="color: var(--primary); font-weight: 500; margin-top: 4px;"></p>
             </div>
-            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.5;">
-                <p>Você está conectado ao ambiente seguro do Elayon.</p>
-                <p style="margin-top: 8px; color: var(--text-muted);">Suporte técnico: <a href="mailto:contato.elayon@gmail.com" style="color: var(--primary);">contato.elayon@gmail.com</a></p>
+            
+            <div class="profile-card">
+                <div class="profile-row">
+                    <span>ID Exclusivo:</span>
+                    <span id="profileId" style="font-size: 11px; word-break: break-all;">Carregando...</span>
+                </div>
+                <div class="profile-row">
+                    <span>Função:</span>
+                    <span id="profileRole">usuario</span>
+                </div>
+                <div class="profile-row">
+                    <span>Tokens Disponíveis:</span>
+                    <span id="profileTokens" style="color: var(--success);">0</span>
+                </div>
             </div>
+
+            <!-- Botão de Iniciar Simbiose (Desabilitado) -->
+            <button type="button" class="btn btn-disabled" disabled style="margin-bottom: 12px;" title="Módulo em desenvolvimento">
+                <i class="fa-solid fa-microchip" style="margin-right: 8px;"></i> Iniciar Simbiose (Em breve)
+            </button>
+
             <button onclick="handleLogout()" class="btn" style="background: var(--border);">Sair da Conta</button>
-            <button onclick="handleDeleteAccount()" class="btn btn-danger" style="margin-top: 12px;">Excluir Conta Permanentemente</button>
+            <button onclick="handleDeleteAccount()" class="btn btn-danger" style="margin-top: 10px;">Excluir Conta Permanentemente</button>
         </div>
     </div>
 
@@ -288,7 +232,9 @@
         const SUPABASE_URL = 'https://xlktkelumptugiidnecbj.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
         
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: { persistSession: true, autoRefreshToken: true }
+        });
 
         function switchView(viewId) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
@@ -315,22 +261,42 @@
                 return;
             }
 
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                appLoaded(session.user);
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    await loadUserProfile(session.user);
+                }
+            } catch (err) {
+                console.error("Erro ao verificar sessão:", err);
             }
 
-            supabaseClient.auth.onAuthStateChange((event, session) => {
+            supabaseClient.auth.onAuthStateChange(async (event, session) => {
                 if (event === 'SIGNED_IN' && session) {
-                    appLoaded(session.user);
+                    await loadUserProfile(session.user);
                 } else if (event === 'SIGNED_OUT') {
                     switchView('loginView');
                 }
             });
         });
 
-        async function appLoaded(user) {
+        async function loadUserProfile(user) {
             document.getElementById('userSessionEmail').textContent = user.email;
+            document.getElementById('profileId').textContent = user.id;
+
+            // Busca os dados da tabela profiles criada no Supabase (Tokens, Role, etc.)
+            const { data: profile, error } = await supabaseClient
+                .from('profiles')
+                .select('tokens_balance, user_role')
+                .eq('id', user.id)
+                .single();
+
+            if (profile) {
+                document.getElementById('profileTokens').textContent = profile.tokens_balance ?? 100;
+                document.getElementById('profileRole').textContent = profile.user_role ?? 'usuario';
+            } else {
+                document.getElementById('profileTokens').textContent = '100';
+            }
+
             switchView('dashboardView');
         }
 
@@ -338,20 +304,25 @@
             e.preventDefault();
             hideAlert();
             
+            const name = document.getElementById('regName').value;
             const email = document.getElementById('regEmail').value;
             const password = document.getElementById('regPassword').value;
 
             const { data, error } = await supabaseClient.auth.signUp({
                 email,
                 password,
-                options: { emailRedirectTo: window.location.origin }
+                options: {
+                    data: { full_name: name, user_role: 'usuario' },
+                    emailRedirectTo: window.location.origin
+                }
             });
 
             if (error) {
                 showAlert(error.message, 'error');
             } else {
-                showAlert('Cadastro realizado com sucesso! Verifique seu e-mail ou faça login.', 'success');
+                showAlert('Cadastro realizado com sucesso! Faça login para entrar.', 'success');
                 document.getElementById('registerForm').reset();
+                setTimeout(() => switchView('loginView'), 2500);
             }
         });
 
@@ -366,8 +337,8 @@
 
             if (error) {
                 showAlert(error.message, 'error');
-            } else {
-                appLoaded(data.user);
+            } else if (data.user) {
+                await loadUserProfile(data.user);
             }
         });
 
@@ -414,7 +385,7 @@
         async function handleDeleteAccount() {
             if (!confirm('Tem certeza absoluta que deseja excluir sua conta permanentemente?')) return;
             await supabaseClient.auth.signOut();
-            showAlert('Conta desativada. Para exclusão total, contate contato.elayon@gmail.com', 'success');
+            showAlert('Conta desconectada. Para remoção total dos dados, utilize o painel admin do Supabase.', 'success');
             setTimeout(() => switchView('loginView'), 3000);
         }
     </script>
