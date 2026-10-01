@@ -72,6 +72,33 @@
             margin-top: 8px;
         }
         .btn:hover { background: var(--primary-dark); }
+        .btn-google {
+            background: #ffffff;
+            color: #1e293b;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+        .btn-google:hover { background: #f1f5f9; }
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12px;
+            margin: 16px 0;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border);
+        }
+        .divider::before { margin-right: .75em; }
+        .divider::after { margin-left: .75em; }
         .btn-danger { background: var(--danger); }
         .btn-danger:hover { background: #dc2626; }
         .btn-disabled { background: #334155 !important; color: #64748b !important; cursor: not-allowed !important; }
@@ -99,6 +126,13 @@
                 <h1>Elayon Core</h1>
                 <p>Acesse sua conta para continuar</p>
             </div>
+            
+            <button type="button" class="btn btn-google" onclick="handleGoogleLogin()">
+                <i class="fa-brands fa-google" style="color: #ea4335;"></i> Entrar com o Google
+            </button>
+
+            <div class="divider">ou acesse com e-mail</div>
+
             <form id="loginForm">
                 <div class="form-group">
                     <label>E-mail</label>
@@ -283,7 +317,6 @@
             document.getElementById('userSessionEmail').textContent = user.email;
             document.getElementById('profileId').textContent = user.id;
 
-            // Busca os dados da tabela profiles criada no Supabase (Tokens, Role, etc.)
             const { data: profile, error } = await supabaseClient
                 .from('profiles')
                 .select('tokens_balance, user_role')
@@ -298,6 +331,21 @@
             }
 
             switchView('dashboardView');
+        }
+
+        // Função para Login com o Google OAuth
+        async function handleGoogleLogin() {
+            hideAlert();
+            const { error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin
+                }
+            });
+
+            if (error) {
+                showAlert(error.message, 'error');
+            }
         }
 
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
