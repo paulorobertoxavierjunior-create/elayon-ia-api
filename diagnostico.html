@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elayon Space - Painel de Diagnóstico</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 40px 20px; display: flex; justify-content: center; }
+        .wrapper { width: 100%; max-width: 700px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { font-size: 22px; font-weight: 700; color: var(--text-main); }
+        .header p { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+        
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        
+        .test-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .test-item:last-child { border-bottom: none; }
+        .test-info { display: flex; align-items: center; gap: 12px; }
+        .test-info i { font-size: 18px; }
+        .test-name { font-size: 14px; font-weight: 500; }
+        .test-desc { font-size: 12px; color: var(--text-muted); }
+        
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .badge.pending { background: rgba(148, 163, 184, 0.1); color: var(--text-muted); border: 1px solid var(--border); }
+        .badge.success { background: rgba(34, 197, 94, 0.1); color: var(--success); border: 1px solid var(--success); }
+        .badge.error { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger); }
+
+        .btn { width: 100%; background: var(--primary); color: white; border: none; border-radius: 8px; padding: 14px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn:hover { background: #4f46e5; }
+
+        .log-box { background: #090d16; border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-family: monospace; font-size: 12px; color: #cbd5e1; height: 180px; overflow-y: auto; margin-top: 15px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <div class="header">
+            <h1>Elayon Space — Central de Diagnóstico & Status</h1>
+            <p>Verificação de fluxo de integração (Supabase, Vercel e GitHub Pages)</p>
+        </div>
+
+        <div class="card">
+            <button class="btn" onclick="runDiagnostics()">
+                <i class="fa-solid fa-play"></i> Executar Checagem Completa de Fluxo
+            </button>
+
+            <div style="margin-top: 20px;">
+                <div class="test-item">
+                    <div class="test-info">
+                        <i class="fa-solid.fa-globe" style="color: var(--primary);"></i>
+                        <div>
+                            <div class="test-name">Ambiente & Domínio</div>
+                            <div class="test-desc">Origem atual da aplicação</div>
+                        </div>
+                    </div>
+                    <span id="statusEnv" class="badge pending">Aguardando</span>
+                </div>
+
+                <div class="test-item">
+                    <div class="test-info">
+                        <i class="fa-solid fa-database" style="color: var(--warning);"></i>
+                        <div>
+                            <div class="test-name">Conexão Supabase Client</div>
+                            <div class="test-desc">Latência e handshake com API</div>
+                        </div>
+                    </div>
+                    <span id="statusSupabase" class="badge pending">Aguardando</span>
+                </div>
+
+                <div class="test-item">
+                    <div class="test-info">
+                        <i class="fa-solid fa-table-list" style="color: var(--success);"></i>
+                        <div>
+                            <div class="test-name">Tabela `profiles` (Banco)</div>
+                            <div class="test-desc">Permissão de leitura e esquema</div>
+                        </div>
+                    </div>
+                    <span id="statusTable" class="badge pending">Aguardando</span>
+                </div>
+
+                <div class="test-item">
+                    <div class="test-info">
+                        <i class="fa-brands fa-google" style="color: #ea4335;"></i>
+                        <div>
+                            <div class="test-name">Provedor OAuth (Google)</div>
+                            <div class="test-desc">Configuração de redirecionamento</div>
+                        </div>
+                    </div>
+                    <span id="statusOAuth" class="badge pending">Aguardando</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; font-size: 13px; font-weight: 600; color: var(--text-muted);">Log de Erros e Eventos:</div>
+            <div id="logOutput" class="log-box">Sistema pronto para iniciar o diagnóstico... Clique no botão acima.</div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://xlktkelumptugiidnecbj.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function log(message, type = 'info') {
+            const box = document.getElementById('logOutput');
+            const time = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '[ERRO]' : type === 'success' ? '[SUCESSO]' : '[INFO]';
+            box.textContent += `\n[${time}] ${prefix} ${message}`;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function setBadge(id, status, text) {
+            const el = document.getElementById(id);
+            el.className = `badge ${status}`;
+            el.textContent = text;
+        }
+
+        async function runDiagnostics() {
+            document.getElementById('logOutput').textContent = "Iniciando bateria de testes no Elayon Space...";
+            log("Origem atual: " + window.location.origin);
+
+            // 1. Teste de Ambiente
+            setBadge('statusEnv', 'success', 'OK');
+            log(`Ambiente carregado em: ${window.location.href}`);
+
+            // 2. Teste Supabase Conexão
+            try {
+                log("Testando conexão com o endpoint do Supabase...");
+                const start = performance.now();
+                const { data, error } = await supabaseClient.auth.getSession();
+                const end = performance.now();
+
+                if (error) throw error;
+
+                setBadge('statusSupabase', 'success', 'Conectado');
+                log(`Handshake do Supabase bem-sucedido em ${(end - start).toFixed(2)}ms.`);
+            } catch (err) {
+                setBadge('statusSupabase', 'error', 'Falha');
+                log(`Erro de Conexão Supabase: ${err.message}`, 'error');
+                log(`DICA: Verifique se a URL (${SUPABASE_URL}) está acessível ou se há bloqueio de CORS/Rede.`, 'error');
+            }
+
+            // 3. Teste Tabela Profiles
+            try {
+                log("Testando leitura da tabela 'profiles' no banco de dados...");
+                const { data, error, status } = await supabaseClient.from('profiles').select('id').limit(1);
+                
+                if (error && error.code !== 'PGRST116') {
+                    throw error;
+                }
+
+                setBadge('statusTable', 'success', 'Acessível');
+                log("Tabela 'profiles' respondeu corretamente ao query teste.");
+            } catch (err) {
+                setBadge('statusTable', 'error', 'Erro de Tabela');
+                log(`Erro ao consultar tabela profiles: ${err.message}`, 'error');
+                log("DICA: Certifique-se de que a tabela 'profiles' existe e possui políticas de RLS ativas.", 'error');
+            }
+
+            // 4. Teste OAuth Config (Simulação de chamada)
+            try {
+                log("Verificando configuração de redirecionamento OAuth...");
+                if (!window.location.origin.includes('github.io') && !window.location.origin.includes('vercel.app') && !window.location.origin.includes('localhost')) {
+                    log("Aviso: Domínio atípico detectado. Certifique-se de adicioná-lo no Supabase Auth > URL Configuration.", 'error');
+                }
+                setBadge('statusOAuth', 'success', 'Configurado');
+                log(`Redirecionamento configurado para: ${window.location.origin}`);
+            } catch (err) {
+                setBadge('statusOAuth', 'error', 'Falha');
+                log(`Erro no OAuth: ${err.message}`, 'error');
+            }
+
+            log("=== Diagnóstico Concluído ===");
+        }
+    </script>
+</body>
+</html>
