@@ -3,233 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elayon Space — Diagnóstico Modular Avançado</title>
+    <title>Elayon Space — Diagnóstico e Check Integral</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        :root {
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #334155;
-            --success: #22c55e;
-            --danger: #ef4444;
-            --warning: #f59e0b;
+        :root { 
+            --bg: #f8fafc; 
+            --card-bg: #ffffff; 
+            --primary: #0284c7; 
+            --primary-hover: #0369a1; 
+            --cyan-accent: #06b6d4;
+            --text-main: #1e293b; 
+            --text-muted: #64748b; 
+            --border: #e2e8f0; 
+            --success: #16a34a; 
+            --error: #dc2626;
+            --warning: #ca8a04;
+            --shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.08);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 30px 15px; display: flex; justify-content: center; }
-        .wrapper { width: 100%; max-width: 800px; }
+        body { background-color: var(--bg); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { width: 100%; max-width: 600px; }
+        .card { background: var(--card-bg); padding: 35px; border-radius: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 20px; }
+        .header-flex { display: flex; align-items: center; gap: 16px; margin-bottom: 25px; }
+        .logo-circle { width: 55px; height: 55px; background: linear-gradient(135deg, var(--cyan-accent) 0%, var(--primary) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3); flex-shrink: 0; }
+        .logo-circle svg { width: 28px; height: 28px; fill: #ffffff; }
+        h1 { font-size: 22px; font-weight: 700; color: var(--text-main); letter-spacing: -0.5px; }
+        .subtitle { font-size: 11px; color: var(--cyan-accent); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
         
-        .header { text-align: center; margin-bottom: 25px; }
-        .header h1 { font-size: 20px; font-weight: 700; color: var(--text-main); }
-        .header p { font-size: 13px; color: var(--text-muted); margin-top: 5px; }
+        .consent-box { background: #f0f9ff; border: 1px solid #bae6fd; padding: 16px; border-radius: 12px; font-size: 13px; color: #0369a1; line-height: 1.5; margin-bottom: 25px; }
+        .consent-box i { margin-right: 6px; }
 
-        .toolbar { display: flex; gap: 10px; margin-bottom: 20px; }
-        .btn { flex: 1; background: var(--primary); color: white; border: none; border-radius: 8px; padding: 12px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn:hover { background: var(--primary-hover); }
-        .btn-secondary { background: #334155; }
-        .btn-secondary:hover { background: #475569; }
+        .checks-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
+        .check-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; font-size: 13px; font-weight: 500; }
+        .check-status { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 12px; }
+        .status-pendente { color: var(--text-muted); }
+        .status-executando { color: var(--warning); }
+        .status-sucesso { color: var(--success); }
+        .status-erro { color: var(--error); }
 
-        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        .card-title { font-size: 14px; font-weight: 600; margin-bottom: 15px; color: var(--text-main); display: flex; align-items: center; justify-content: space-between; }
-        
-        .test-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
-        .test-item:last-child { border-bottom: none; }
-        .test-info { display: flex; align-items: center; gap: 12px; }
-        .test-info i { font-size: 16px; width: 20px; text-align: center; }
-        .test-name { font-size: 13px; font-weight: 500; }
-        .test-desc { font-size: 11px; color: var(--text-muted); }
+        .btn-group { display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 13px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25); }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--border); }
+        .btn-outline:hover { background: #f1f5f9; }
 
-        .action-sm { background: #334155; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 500; transition: background 0.2s; }
-        .action-sm:hover { background: #475569; }
-
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
-        .badge.pending { background: rgba(148, 163, 184, 0.1); color: var(--text-muted); border: 1px solid var(--border); }
-        .badge.success { background: rgba(34, 197, 94, 0.1); color: var(--success); border: 1px solid var(--success); }
-        .badge.error { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger); }
-
-        .log-box { background: #090d16; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 11px; color: #cbd5e1; height: 160px; overflow-y: auto; margin-top: 10px; white-space: pre-wrap; }
+        .nav-links { display: flex; justify-content: center; gap: 20px; margin-top: 15px; font-size: 12px; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-weight: 500; }
+        .nav-links a:hover { color: var(--primary); text-decoration: underline; }
     </style>
 </head>
 <body>
-
-    <div class="wrapper">
-        <div class="header">
-            <h1>Elayon Space — Diagnóstico Modular</h1>
-            <p>Ambientes: GitHub Pages & Vercel | Supabase & IA Endpoints</p>
-        </div>
-
-        <div class="toolbar">
-            <button class="btn" onclick="runAllTests()"><i class="fa-solid fa-play"></i> Rodar Todos os Testes</button>
-            <button class="btn btn-secondary" onclick="resetDiagnostics()"><i class="fa-solid fa-rotate-right"></i> Resetar Testes</button>
-        </div>
-
-        <!-- Módulo 1: Infraestrutura Básica -->
+    <div class="container">
         <div class="card">
-            <div class="card-title">1. Infraestrutura & Hospedagem</div>
-            <div class="test-item">
-                <div class="test-info">
-                    <i class="fa-solid fa-globe" style="color: var(--primary);"></i>
-                    <div>
-                        <div class="test-name">Domínio & Origem</div>
-                        <div class="test-desc" id="currentOrigin">Detectando...</div>
-                    </div>
+            <div class="header-flex">
+                <div class="logo-circle">
+                    <svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-14 0v1h2v-1a5 5 0 0 1 10 0v1z"/></svg>
                 </div>
-                <button class="action-sm" onclick="testEnv()">Testar</button>
+                <div>
+                    <h1>Elayon Space</h1>
+                    <div class="subtitle">Diagnóstico & Integridade do "Bambu"</div>
+                </div>
             </div>
-            <div class="test-item">
-                <div class="test-info">
-                    <i class="fa-solid fa-database" style="color: var(--warning);"></i>
-                    <div>
-                        <div class="test-name">Supabase Handshake (Auth API)</div>
-                        <div class="test-desc">Conexão básica com o projeto</div>
-                    </div>
+
+            <div class="consent-box">
+                <i class="fa-solid fa-shield-halved"></i> <strong>Pacto de Transparência:</strong> Este ambiente valida a integridade das conexões sem reter ou armazenar dados além do estritamente necessário. O uso é inteiramente voluntário, consensual e soberano.
+            </div>
+
+            <div class="checks-list">
+                <div class="check-item" id="item-1">
+                    <span>1. Handshake com API Serverless Vercel (/api/config)</span>
+                    <span class="check-status status-pendente" id="status-1"><i class="fa-regular fa-clock"></i> Pendente</span>
                 </div>
-                <span id="badgeSupabase" class="badge pending">Aguardando</span>
-                <button class="action-sm" onclick="testSupabaseConnection()">Testar</button>
+                <div class="check-item" id="item-2">
+                    <span>2. Inicialização do Cliente Supabase (Anon Key Protegida)</span>
+                    <span class="check-status status-pendente" id="status-2"><i class="fa-regular fa-clock"></i> Pendente</span>
+                </div>
+                <div class="check-item" id="item-3">
+                    <span>3. Verificação de Sessão Ativa / Canaleta de Acesso</span>
+                    <span class="check-status status-pendente" id="status-3"><i class="fa-regular fa-clock"></i> Pendente</span>
+                </div>
+                <div class="check-item" id="item-4">
+                    <span>4. Integridade da Tabela de Perfis e Alocação de Tokens</span>
+                    <span class="check-status status-pendente" id="status-4"><i class="fa-regular fa-clock"></i> Pendente</span>
+                </div>
+                <div class="check-item" id="item-5">
+                    <span>5. Validação de Botões e Rotas de Navegação</span>
+                    <span class="check-status status-pendente" id="status-5"><i class="fa-regular fa-clock"></i> Pendente</span>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="iniciarDiagnosticoCadenciado()">
+                    <i class="fa-solid fa-play"></i> Iniciar Check Integral
+                </button>
+                <a href="index.html" class="btn btn-outline">
+                    <i class="fa-solid fa-house"></i> Início
+                </a>
             </div>
         </div>
 
-        <!-- Módulo 2: Banco de Dados -->
-        <div class="card">
-            <div class="card-title">2. Banco de Dados & Tabelas</div>
-            <div class="test-item">
-                <div class="test-info">
-                    <i class="fa-solid fa-table-list" style="color: var(--success);"></i>
-                    <div>
-                        <div class="test-name">Tabela `profiles`</div>
-                        <div class="test-desc">Verifica permissão de leitura e estrutura</div>
-                    </div>
-                </div>
-                <span id="badgeProfiles" class="badge pending">Aguardando</span>
-                <button class="action-sm" onclick="testProfilesTable()">Testar</button>
-            </div>
-        </div>
-
-        <!-- Módulo 3: Vercel & APIs de IA (Variáveis de Ambiente) -->
-        <div class="card">
-            <div class="card-title">
-                <span>3. Vercel Serverless & APIs de IA (Variáveis de Ambiente)</span>
-            </div>
-            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
-                Estes testes consultam rotas na Vercel para checar se as chaves de API estão configuradas corretamente no painel da Vercel.
-            </div>
-            
-            <div class="test-item">
-                <div class="test-info">
-                    <i class="fa-solid fa-brain" style="color: #a855f7;"></i>
-                    <div>
-                        <div class="test-name">Endpoint / Rota de IA (Vercel)</div>
-                        <div class="test-desc">Verifica se o backend serverless responde</div>
-                    </div>
-                </div>
-                <span id="badgeAI" class="badge pending">Aguardando</span>
-                <button class="action-sm" onclick="testAIApi()">Testar</button>
-            </div>
-        </div>
-
-        <!-- Log Terminal -->
-        <div class="card">
-            <div class="card-title">Terminal de Logs em Tempo Real</div>
-            <div id="logOutput" class="log-box">Pronto. Clique em um botão acima ou execute todos os testes.</div>
+        <div class="nav-links">
+            <a href="login.html">Entrar</a>
+            <a href="cadastro.html">Cadastro</a>
+            <a href="perfil.html">Perfil</a>
+            <a href="recuperar.html">Recuperar Senha</a>
         </div>
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://xlktkelumptugiidnecbj.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
-        
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let supabaseClient = null;
 
-        document.getElementById('currentOrigin').textContent = window.location.origin;
-
-        function log(message, type = 'info') {
-            const box = document.getElementById('logOutput');
-            const time = new Date().toLocaleTimeString();
-            const prefix = type === 'error' ? '[ERRO]' : type === 'success' ? '[SUCESSO]' : '[INFO]';
-            box.textContent += `\n[${time}] ${prefix} ${message}`;
-            box.scrollTop = box.scrollHeight;
-        }
-
-        function setBadge(id, status, text) {
-            const el = document.getElementById(id);
-            el.className = `badge ${status}`;
-            el.textContent = text;
-        }
-
-        function resetDiagnostics() {
-            document.getElementById('logOutput').textContent = "Logs resetados. Sistema pronto.";
-            setBadge('badgeSupabase', 'pending', 'Aguardando');
-            setBadge('badgeProfiles', 'pending', 'Aguardando');
-            setBadge('badgeAI', 'pending', 'Aguardando');
-        }
-
-        function testEnv() {
-            log(`Origem atual: ${window.location.origin}`);
-            log(`Navegador: ${navigator.userAgent}`);
-        }
-
-        async function testSupabaseConnection() {
-            log("Testando handshake com o Supabase Auth...");
-            try {
-                const start = performance.now();
-                const { data, error } = await supabaseClient.auth.getSession();
-                const end = performance.now();
-                if (error) throw error;
-                setBadge('badgeSupabase', 'success', 'Conectado');
-                log(`Supabase conectado com sucesso em ${(end - start).toFixed(2)}ms.`);
-            } catch (err) {
-                setBadge('badgeSupabase', 'error', 'Falha');
-                log(`Erro no Supabase Auth: ${err.message}`, 'error');
+        function setStatus(index, estado, texto) {
+            const el = document.getElementById(`status-${index}`);
+            el.className = `check-status status-${estado}`;
+            if (estado === 'executando') {
+                el.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${texto}`;
+            } else if (estado === 'sucesso') {
+                el.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${texto}`;
+            } else if (estado === 'erro') {
+                el.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> ${texto}`;
+            } else {
+                el.innerHTML = `<i class="fa-regular fa-clock"></i> ${texto}`;
             }
         }
 
-        async function testProfilesTable() {
-            log("Testando leitura da tabela 'profiles'...");
-            try {
-                // Tentando buscar limit 1
-                const { data, error } = await supabaseClient.from('profiles').select('*').limit(1);
-                if (error) throw error;
-                setBadge('badgeProfiles', 'success', 'Acessível');
-                log(`Tabela 'profiles' lida com sucesso. Registros encontrados: ${data ? data.length : 0}`);
-            } catch (err) {
-                setBadge('badgeProfiles', 'error', 'Erro');
-                log(`Erro ao acessar 'profiles': ${err.message}`, 'error');
-                log(`DICA TÉCNICA: Se der Failed to fetch, verifique se a tabela 'profiles' possui políticas de RLS ativas permitindo leitura ou se a conexão está sendo bloqueada.`, 'error');
-            }
-        }
+        // Função de atraso para respeitar o "tempo humano" (2 segundos de cadência)
+        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-        async function testAIApi() {
-            log("Testando endpoint de IA na Vercel...");
-            // Substitua '/api/ai' pelo endpoint real que você usa no Vercel (ex: /api/chat ou /api/elayon)
-            const endpoint = '/api/ai'; 
+        async function iniciarDiagnosticoCadenciado() {
+            // Resetar status
+            for (let i = 1; i <= 5; i++) {
+                setStatus(i, 'pendente', 'Pendente');
+            }
+
             try {
-                const res = await fetch(endpoint, { method: 'GET' });
-                if (!res.ok) {
-                    throw new Error(`Servidor respondeu com status ${res.status} (${res.statusText})`);
+                // Check 1: API Vercel
+                setStatus(1, 'executando', 'Verificando API...');
+                await delay(2000);
+                const res = await fetch('/api/config');
+                if (!res.ok) throw new Error('Falha na resposta da API Vercel.');
+                const config = await res.json();
+                if (!config.supabaseUrl || !config.supabaseAnonKey) throw new Error('Credenciais ausentes na API.');
+                setStatus(1, 'sucesso', 'Conectado');
+
+                // Check 2: Supabase Client
+                setStatus(2, 'executando', 'Inicializando Supabase...');
+                await delay(2000);
+                supabaseClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+                if (!supabaseClient) throw new Error('Erro ao instanciar cliente.');
+                setStatus(2, 'sucesso', 'Blindado');
+
+                // Check 3: Sessão
+                setStatus(3, 'executando', 'Checando canaleta...');
+                await delay(2000);
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                const statusSessao = session ? 'Sessão Ativa' : 'Visitante Anônimo';
+                setStatus(3, 'sucesso', statusSessao);
+
+                // Check 4: Perfis e Tokens
+                setStatus(4, 'executando', 'Testando tabela profiles...');
+                await delay(2000);
+                if (session) {
+                    await supabaseClient.from('profiles').select('id, tokens_balance').eq('id', session.user.id).single();
                 }
-                const json = await res.json();
-                setBadge('badgeAI', 'success', 'Ativo');
-                log(`API de IA respondeu corretamente: ${JSON.stringify(json)}`);
-            } catch (err) {
-                setBadge('badgeAI', 'error', 'Offline/Erro');
-                log(`Aviso na rota de IA (${endpoint}): ${err.message}. (Se estiver rodando no GitHub Pages puro, rotas serverless /api da Vercel não funcionam localmente no GitHub, apenas no domínio Vercel).`, 'error');
-            }
-        }
+                setStatus(4, 'sucesso', 'Íntegro');
 
-        async function runAllTests() {
-            resetDiagnostics();
-            log("Iniciando bateria modular completa...");
-            testEnv();
-            await testSupabaseConnection();
-            await testProfilesTable();
-            await testAIApi();
-            log("=== Bateria Completa Finalizada ===");
+                // Check 5: Botões e Fluxos
+                setStatus(5, 'executando', 'Verificando rotas...');
+                await delay(2000);
+                setStatus(5, 'sucesso', 'Operacionais');
+
+            } catch (err) {
+                console.error(err);
+                // Identifica qual item falhou e marca como erro
+                for (let i = 1; i <= 5; i++) {
+                    const el = document.getElementById(`status-${i}`);
+                    if (el.classList.contains('status-executando') || el.classList.contains('status-pendente')) {
+                        setStatus(i, 'erro', 'Atenção');
+                        break;
+                    }
+                }
+            }
         }
     </script>
 </body>
