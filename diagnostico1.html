@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elayon Space — Diagnóstico Técnico</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { background: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; padding: 30px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 600px; background: #1e293b; padding: 25px; border-radius: 12px; border: 1px solid #334155; }
+        h2 { margin-bottom: 15px; font-size: 18px; }
+        button { background: #6366f1; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; }
+        button:hover { background: #4f46e5; }
+        .log { background: #090d16; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 12px; height: 200px; overflow-y: auto; color: #cbd5e1; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Painel de Diagnóstico Técnico</h2>
+        <button onclick="executarTestes()">Rodar Verificação Completa</button>
+        <div id="logBox" class="log">Pronto para iniciar o diagnóstico...</div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://xlktkelumptugiidnecbj.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function log(msg) {
+            const box = document.getElementById('logBox');
+            box.textContent += `\n[${new Date().toLocaleTimeString()}] ${msg}`;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        async function executarTestes() {
+            document.getElementById('logBox').textContent = "Iniciando verificações...";
+            
+            // Teste 1: Auth Handshake
+            try {
+                const { error } = await supabaseClient.auth.getSession();
+                if (error) throw error;
+                log("[SUCESSO] Supabase Auth Handshake OK.");
+            } catch (err) {
+                log("[ERRO] Supabase Auth: " + err.message);
+            }
+
+            // Teste 2: Tabela Profiles
+            try {
+                const { data, error } = await supabaseClient.from('profiles').select('*').limit(1);
+                if (error) throw error;
+                log(`[SUCESSO] Tabela 'profiles' acessível. Registros: ${data.length}`);
+            } catch (err) {
+                log("[ERRO] Tabela 'profiles': " + err.message);
+            }
+
+            // Teste 3: Vercel Serverless API
+            try {
+                const res = await fetch('/api/ai');
+                if (!res.ok) throw new Error(`Status ${res.status}`);
+                const json = await res.json();
+                log("[SUCESSO] API Serverless Vercel: " + JSON.stringify(json));
+            } catch (err) {
+                log("[ERRO] API Serverless (disponível apenas após deploy na Vercel): " + err.message);
+            }
+        }
+    </script>
+</body>
+</html>
