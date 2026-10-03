@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elayon Space — Recuperação de Senha</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg: #f8fafc; --card-bg: #ffffff; --primary: #0284c7; --primary-hover: #0369a1; --text-main: #1e293b; --text-muted: #64748b; --border: #e2e8f0; --success: #16a34a; --error: #dc2626; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .card { background: var(--card-bg); padding: 40px 30px; border-radius: 20px; width: 100%; max-width: 420px; box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.08); border: 1px solid var(--border); }
+        h2 { text-align: center; margin-bottom: 6px; font-size: 22px; color: var(--text-main); }
+        p.subtitle { text-align: center; font-size: 12px; color: var(--text-muted); margin-bottom: 25px; }
+        input { width: 100%; padding: 12px 14px; margin-bottom: 12px; background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; color: var(--text-main); font-size: 14px; }
+        input:focus { outline: none; border-color: var(--primary); background: #fff; }
+        button { width: 100%; padding: 12px; background: var(--primary); border: none; border-radius: 10px; color: #fff; font-weight: 600; cursor: pointer; transition: background 0.2s; font-size: 14px; }
+        button:hover { background: var(--primary-hover); }
+        .msg { font-size: 12px; text-align: center; margin-top: 15px; line-height: 1.5; min-height: 20px; }
+        .footer-link { text-align: center; margin-top: 20px; font-size: 12px; }
+        .footer-link a { color: var(--text-muted); text-decoration: none; }
+        .footer-link a:hover { color: var(--primary); text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Recuperação de Acesso</h2>
+        <p class="subtitle">Instrução Segura de Redefinição</p>
+
+        <input type="email" id="email" placeholder="E-mail cadastrado">
+        <button onclick="enviarRecuperacao()">Enviar Instruções</button>
+
+        <div id="msg" class="msg"></div>
+
+        <div class="footer-link">
+            <a href="login.html"><i class="fa-solid fa-arrow-left"></i> Voltar ao Login</a>
+        </div>
+    </div>
+
+    <script>
+        let supabaseClient = null;
+
+        async function initAuth() {
+            try {
+                const res = await fetch('/api/config');
+                const config = await res.json();
+                supabaseClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+            } catch (err) {
+                console.error("Erro ao carregar configuração segura:", err);
+            }
+        }
+        initAuth();
+
+        async function enviarRecuperacao() {
+            if (!supabaseClient) return alert("Carregando ambiente seguro, tente novamente em instantes.");
+            const email = document.getElementById('email').value.trim();
+            const msg = document.getElementById('msg');
+
+            if (!email) {
+                msg.style.color = 'var(--error)';
+                msg.textContent = 'Informe o seu e-mail.';
+                return;
+            }
+
+            msg.style.color = 'var(--text-muted)';
+            msg.textContent = 'Disparando e-mail de recuperação seguro...';
+
+            const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin + '/redefinir.html'
+            });
+
+            if (error) {
+                msg.style.color = 'var(--error)';
+                msg.textContent = 'Erro: ' + error.message;
+            } else {
+                msg.style.color = 'var(--success)';
+                msg.textContent = 'Instruções enviadas! Verifique sua caixa de entrada.';
+            }
+        }
+    </script>
+</body>
+</html>
