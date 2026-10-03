@@ -3,41 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elayon Space — Login</title>
+    <title>Elayon Space — Entrar</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg: #0f172a; --card: #1e293b; --primary: #6366f1; --primary-hover: #4f46e5; --text: #f8fafc; --muted: #94a3b8; --border: #334155; --error: #ef4444; }
+        :root { --bg: #f8fafc; --card-bg: #ffffff; --primary: #0284c7; --primary-hover: #0369a1; --text-main: #1e293b; --text-muted: #64748b; --border: #e2e8f0; --error: #dc2626; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        .card { background: var(--card); padding: 35px 30px; border-radius: 16px; width: 100%; max-width: 400px; box-shadow: 0 15px 30px rgba(0,0,0,0.6); border: 1px solid var(--border); }
-        h2 { text-align: center; margin-bottom: 6px; font-size: 20px; }
-        p.subtitle { text-align: center; font-size: 12px; color: var(--muted); margin-bottom: 24px; }
-        input { width: 100%; padding: 12px; margin-bottom: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; }
-        button { width: 100%; padding: 12px; background: var(--primary); border: none; border-radius: 8px; color: #fff; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-bottom: 10px; }
+        body { background-color: var(--bg); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .card { background: var(--card-bg); padding: 40px 30px; border-radius: 20px; width: 100%; max-width: 420px; box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.08); border: 1px solid var(--border); }
+        h2 { text-align: center; margin-bottom: 6px; font-size: 22px; color: var(--text-main); }
+        p.subtitle { text-align: center; font-size: 12px; color: var(--text-muted); margin-bottom: 25px; }
+        input { width: 100%; padding: 12px 14px; margin-bottom: 12px; background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; color: var(--text-main); font-size: 14px; }
+        input:focus { outline: none; border-color: var(--primary); background: #fff; }
+        button { width: 100%; padding: 12px; background: var(--primary); border: none; border-radius: 10px; color: #fff; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-bottom: 10px; font-size: 14px; }
         button:hover { background: var(--primary-hover); }
-        .btn-google { background: #ffffff; color: #1e293b; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 500; margin-bottom: 20px; }
+        .btn-google { background: #ffffff; color: var(--text-main); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 500; margin-bottom: 20px; }
         .btn-google:hover { background: #f1f5f9; }
-        .divider { text-align: center; font-size: 11px; color: var(--muted); margin: 15px 0; position: relative; }
-        .msg { font-size: 12px; text-align: center; margin-top: 12px; min-height: 16px; }
-        .links { display: flex; justify-content: space-between; margin-top: 15px; font-size: 12px; }
-        .links a { color: var(--muted); text-decoration: none; }
-        .links a:hover { color: var(--text); text-decoration: underline; }
+        .divider { text-align: center; font-size: 11px; color: var(--text-muted); margin: 15px 0; position: relative; }
+        .msg { font-size: 12px; text-align: center; margin-top: 12px; min-height: 18px; }
+        .links { display: flex; justify-content: space-between; margin-top: 20px; font-size: 12px; }
+        .links a { color: var(--text-muted); text-decoration: none; }
+        .links a:hover { color: var(--primary); text-decoration: underline; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>Entrar no Ecossistema</h2>
-        <p class="subtitle">Identificação Segura</p>
+        <h2>Entrar na Plataforma</h2>
+        <p class="subtitle">Experiência Segura Elayon Space</p>
 
-        <button class="btn-google" onclick="loginGoogle()"><i class="fa-brands fa-google"></i> Entrar com Google</button>
+        <button class="btn-google" onclick="loginGoogle()"><i class="fa-brands fa-google" style="color: #ea4335;"></i> Continuar com Google</button>
         
-        <div class="divider">ou utilize credenciais</div>
+        <div class="divider">ou autentique com e-mail</div>
 
         <input type="email" id="email" placeholder="E-mail de Acesso">
-        <input type="password" id="password" placeholder="Senha">
-        <button onclick="loginEmail()">Entrar na Ferramenta</button>
+        <input type="password" id="password" placeholder="Senha de Segurança">
+        <button onclick="loginEmail()">Acessar Ferramenta</button>
 
         <div id="msg" class="msg"></div>
 
@@ -45,18 +46,27 @@
             <a href="cadastro.html">Criar Conta</a>
             <a href="recuperar.html">Esqueci a senha</a>
         </div>
-        <div style="text-align: center; margin-top: 15px;">
-            <a href="index.html" style="font-size: 11px; color: var(--muted); text-decoration: none;"><i class="fa-solid fa-arrow-left"></i> Voltar ao início</a>
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="index.html" style="font-size: 12px; color: var(--text-muted); text-decoration: none;"><i class="fa-solid fa-arrow-left"></i> Voltar ao início</a>
         </div>
     </div>
 
     <script>
-        const supabaseClient = supabase.createClient(
-            'https://xlktkelumptugiidnecbj.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM'
-        );
+        let supabaseClient = null;
+
+        async function initAuth() {
+            try {
+                const res = await fetch('/api/config');
+                const config = await res.json();
+                supabaseClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+            } catch (err) {
+                console.error("Erro ao carregar configuração segura:", err);
+            }
+        }
+        initAuth();
 
         async function loginGoogle() {
+            if (!supabaseClient) return alert("Carregando ambiente seguro, tente novamente em instantes.");
             const { error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: { redirectTo: window.location.origin + '/perfil.html' }
@@ -65,6 +75,7 @@
         }
 
         async function loginEmail() {
+            if (!supabaseClient) return alert("Carregando ambiente seguro, tente novamente em instantes.");
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value.trim();
             const msg = document.getElementById('msg');
@@ -75,7 +86,7 @@
                 return;
             }
 
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
             if (error) {
                 msg.style.color = 'var(--error)';
                 msg.textContent = 'Falha: ' + error.message;
