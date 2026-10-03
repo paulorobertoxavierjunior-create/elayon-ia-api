@@ -1,7 +1,14 @@
 export default function handler(req, res) {
-  res.status(200).json({ 
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  return res.status(200).json({ 
     status: "online", 
-    message: "Elayon Space AI Gateway ativo com sucesso.",
+    service: "Elayon Space AI Gateway",
     timestamp: new Date().toISOString()
   });
 }
