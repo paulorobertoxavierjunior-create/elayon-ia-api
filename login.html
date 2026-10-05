@@ -1,100 +1,283 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elayon Space — Entrar</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root { --bg: #f8fafc; --card-bg: #ffffff; --primary: #0284c7; --primary-hover: #0369a1; --text-main: #1e293b; --text-muted: #64748b; --border: #e2e8f0; --error: #dc2626; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        .card { background: var(--card-bg); padding: 40px 30px; border-radius: 20px; width: 100%; max-width: 420px; box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.08); border: 1px solid var(--border); }
-        h2 { text-align: center; margin-bottom: 6px; font-size: 22px; color: var(--text-main); }
-        p.subtitle { text-align: center; font-size: 12px; color: var(--text-muted); margin-bottom: 25px; }
-        input { width: 100%; padding: 12px 14px; margin-bottom: 12px; background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; color: var(--text-main); font-size: 14px; }
-        input:focus { outline: none; border-color: var(--primary); background: #fff; }
-        button { width: 100%; padding: 12px; background: var(--primary); border: none; border-radius: 10px; color: #fff; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-bottom: 10px; font-size: 14px; }
-        button:hover { background: var(--primary-hover); }
-        .btn-google { background: #ffffff; color: var(--text-main); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 500; margin-bottom: 20px; }
-        .btn-google:hover { background: #f1f5f9; }
-        .divider { text-align: center; font-size: 11px; color: var(--text-muted); margin: 15px 0; position: relative; }
-        .msg { font-size: 12px; text-align: center; margin-top: 12px; min-height: 18px; }
-        .links { display: flex; justify-content: space-between; margin-top: 20px; font-size: 12px; }
-        .links a { color: var(--text-muted); text-decoration: none; }
-        .links a:hover { color: var(--primary); text-decoration: underline; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elayon Space — Entrar</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <style>
+    :root {
+      --bg1: #eaf7e3;
+      --bg2: #dff4f6;
+      --card: #ffffff;
+      --ink: #0a2a2f;
+      --muted: #4a6b70;
+      --line: #cfe4e7;
+      --accent: #66c7c0;
+      --accent2: #7bd490;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+      --error: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: radial-gradient(circle at top left, var(--bg1), var(--bg2));
+      color: var(--ink);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 40px 30px;
+      box-shadow: var(--shadow);
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 18px;
+      border-radius: 18px;
+      background: #fff;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 28px;
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 26px;
+      line-height: 1.5;
+    }
+
+    .group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font-size: 15px;
+      background: #fdfdfd;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(102, 199, 192, 0.12);
+      background: #fff;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border-radius: 12px;
+      border: none;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: .2s ease;
+      margin-top: 10px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: var(--ink);
+    }
+
+    .google {
+      background: #fff;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .divider {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      margin: 16px 0;
+    }
+
+    .links {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 18px;
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+
+    .links a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    .links a:hover {
+      text-decoration: underline;
+    }
+
+    .msg {
+      margin-top: 14px;
+      min-height: 18px;
+      font-size: 13px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .back {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 12px;
+    }
+
+    .back a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    .back a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-    <div class="card">
-        <h2>Entrar na Plataforma</h2>
-        <p class="subtitle">Experiência Segura Elayon Space</p>
+  <main class="card">
+    <img
+      class="logo"
+      src="./elayon_logo.png"
+      alt="Elayon Space"
+      onerror="this.onerror=null;this.src='https://elayon.space/wp-content/uploads/2026/04/elayon_logo.png';"
+    >
 
-        <button class="btn-google" onclick="loginGoogle()"><i class="fa-brands fa-google" style="color: #ea4335;"></i> Continuar com Google</button>
-        
-        <div class="divider">ou autentique com e-mail</div>
+    <h2>Entrar na plataforma</h2>
+    <p class="subtitle">Acesse com e-mail/senha ou com Google.</p>
 
-        <input type="email" id="email" placeholder="E-mail de Acesso">
-        <input type="password" id="password" placeholder="Senha de Segurança">
-        <button onclick="loginEmail()">Acessar Ferramenta</button>
+    <button class="btn google" id="btnGoogle" type="button">
+      <span>G</span>
+      <span>Continuar com Google</span>
+    </button>
 
-        <div id="msg" class="msg"></div>
+    <div class="divider">ou autentique com e-mail</div>
 
-        <div class="links">
-            <a href="cadastro.html">Criar Conta</a>
-            <a href="recuperar.html">Esqueci a senha</a>
-        </div>
-        <div style="text-align: center; margin-top: 20px;">
-            <a href="index.html" style="font-size: 12px; color: var(--text-muted); text-decoration: none;"><i class="fa-solid fa-arrow-left"></i> Voltar ao início</a>
-        </div>
+    <div class="group">
+      <label for="email">E-mail</label>
+      <input type="email" id="email" placeholder="seu@email.com">
     </div>
 
-    <script>
-        let supabaseClient = null;
+    <div class="group">
+      <label for="password">Senha</label>
+      <input type="password" id="password" placeholder="Sua senha">
+    </div>
 
-        async function initAuth() {
-            try {
-                const res = await fetch('/api/config');
-                const config = await res.json();
-                supabaseClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
-            } catch (err) {
-                console.error("Erro ao carregar configuração segura:", err);
-            }
+    <button class="btn primary" id="btnLogin" type="button">Acessar</button>
+
+    <div id="msg" class="msg"></div>
+
+    <div class="links">
+      <a href="cadastro.html">Criar conta</a>
+      <a href="recuperar.html">Esqueci a senha</a>
+    </div>
+
+    <div class="back">
+      <a href="index.html">Voltar ao início</a>
+    </div>
+  </main>
+
+  <script>
+    let supabaseClient = null;
+
+    async function initAuth() {
+      try {
+        const res = await fetch('/api/config');
+        const config = await res.json();
+        supabaseClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+      } catch (err) {
+        document.getElementById('msg').textContent = 'Erro ao carregar configuração.';
+      }
+    }
+
+    async function loginGoogle() {
+      if (!supabaseClient) return;
+
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/perfil.html'
         }
-        initAuth();
+      });
 
-        async function loginGoogle() {
-            if (!supabaseClient) return alert("Carregando ambiente seguro, tente novamente em instantes.");
-            const { error } = await supabaseClient.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.origin + '/perfil.html' }
-            });
-            if (error) document.getElementById('msg').textContent = 'Erro Google: ' + error.message;
-        }
+      if (error) {
+        document.getElementById('msg').textContent = 'Erro Google: ' + error.message;
+      }
+    }
 
-        async function loginEmail() {
-            if (!supabaseClient) return alert("Carregando ambiente seguro, tente novamente em instantes.");
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value.trim();
-            const msg = document.getElementById('msg');
+    async function loginEmail() {
+      if (!supabaseClient) return;
 
-            if (!email || !password) {
-                msg.style.color = 'var(--error)';
-                msg.textContent = 'Preencha todos os campos.';
-                return;
-            }
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const msg = document.getElementById('msg');
 
-            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) {
-                msg.style.color = 'var(--error)';
-                msg.textContent = 'Falha: ' + error.message;
-                return;
-            }
+      if (!email || !password) {
+        msg.textContent = 'Preencha e-mail e senha.';
+        return;
+      }
 
-            window.location.href = 'perfil.html';
-        }
-    </script>
+      const { error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        msg.textContent = 'Falha: ' + error.message;
+        return;
+      }
+
+      window.location.href = 'perfil.html';
+    }
+
+    document.getElementById('btnGoogle').addEventListener('click', loginGoogle);
+    document.getElementById('btnLogin').addEventListener('click', loginEmail);
+
+    initAuth();
+  </script>
 </body>
 </html>
