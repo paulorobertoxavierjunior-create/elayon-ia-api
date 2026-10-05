@@ -1,51 +1,125 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elayon Space — Humanidade e Tecnologia em Harmonia</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root { 
-            --bg: #f8fafc; 
-            --card-bg: #ffffff; 
-            --primary: #0284c7; 
-            --primary-hover: #0369a1; 
-            --cyan-accent: #06b6d4;
-            --text-main: #1e293b; 
-            --text-muted: #64748b; 
-            --border: #e2e8f0; 
-            --shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.08), 0 8px 10px -6px rgba(2, 132, 199, 0.08);
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        .card { background: var(--card-bg); padding: 45px 35px; border-radius: 20px; width: 100%; max-width: 440px; box-shadow: var(--shadow); border: 1px solid var(--border); text-align: center; }
-        .logo-circle { width: 70px; height: 70px; margin: 0 auto 20px; background: linear-gradient(135deg, var(--cyan-accent) 0%, var(--primary) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3); }
-        .logo-circle svg { width: 36px; height: 36px; fill: #ffffff; }
-        h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; color: var(--text-main); letter-spacing: -0.5px; }
-        .subtitle { font-size: 11px; color: var(--cyan-accent); font-weight: 700; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1.5px; }
-        p { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 35px; }
-        .btn-group { display: flex; flex-direction: column; gap: 12px; }
-        .btn { width: 100%; padding: 13px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; transition: all 0.2s ease; display: inline-block; }
-        .btn-primary { background: var(--primary); color: #fff; border: none; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25); }
-        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
-        .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--border); }
-        .btn-outline:hover { background: #f1f5f9; border-color: var(--text-muted); }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elayon Space • Entrada</title>
+  <style>
+    :root{
+      --bg1:#eaf7e3;
+      --bg2:#dff4f6;
+      --card:#ffffff;
+      --ink:#0a2a2f;
+      --muted:#4a6b70;
+      --line:#cfe4e7;
+      --accent:#66c7c0;
+      --accent2:#7bd490;
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+    }
+
+    *{ box-sizing:border-box; margin:0; padding:0; }
+
+    body{
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:24px;
+      font-family:system-ui,-apple-system,sans-serif;
+      background: radial-gradient(circle at top left, var(--bg1), var(--bg2));
+      color:var(--ink);
+    }
+
+    .card{
+      width:100%;
+      max-width:460px;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:24px;
+      padding:40px 30px;
+      text-align:center;
+      box-shadow:var(--shadow);
+    }
+
+    .logo{
+      width:84px;
+      height:84px;
+      object-fit:contain;
+      margin-bottom:20px;
+      border-radius:18px;
+      background:#fff;
+    }
+
+    h1{
+      font-size:30px;
+      letter-spacing:-1px;
+      margin-bottom:10px;
+    }
+
+    p{
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.6;
+      margin-bottom:28px;
+    }
+
+    .actions{
+      display:grid;
+      gap:12px;
+    }
+
+    .btn{
+      display:block;
+      width:100%;
+      padding:16px;
+      border-radius:14px;
+      text-decoration:none;
+      font-size:16px;
+      font-weight:800;
+      transition:.2s ease;
+    }
+
+    .btn:hover{ transform:translateY(-2px); }
+
+    .primary{
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:var(--ink);
+    }
+
+    .secondary{
+      background:#f0f7f7;
+      border:1px solid var(--line);
+      color:var(--ink);
+    }
+
+    .note{
+      margin-top:24px;
+      font-size:12px;
+      color:var(--muted);
+    }
+  </style>
 </head>
 <body>
-    <div class="card">
-        <div class="logo-circle">
-            <svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-14 0v1h2v-1a5 5 0 0 1 10 0v1z"/></svg>
-        </div>
-        <h1>Elayon Space</h1>
-        <div class="subtitle">Espaço de Escuta Simbólica</div>
-        <p>Humanidade e Tecnologia, em Harmonia. Um ecossistema seguro dedicado à integração cognitiva e autonomia.</p>
-        
-        <div class="btn-group">
-            <a href="login.html" class="btn btn-primary">Acessar Plataforma</a>
-            <a href="cadastro.html" class="btn btn-outline">Criar Conta Simbiótica</a>
-        </div>
+  <main class="card">
+    <img
+      class="logo"
+      src="./elayon_logo.png"
+      alt="Elayon Space"
+      onerror="this.onerror=null;this.src='https://elayon.space/wp-content/uploads/2026/04/elayon_logo.png';"
+    />
+
+    <h1>Bem-vindo ao Elayon</h1>
+    <p>
+      Acesse sua conta ou crie um novo cadastro para entrar no ambiente Elayon.
+    </p>
+
+    <div class="actions">
+      <a class="btn primary" href="login.html">Entrar</a>
+      <a class="btn secondary" href="cadastro.html">Criar cadastro</a>
     </div>
+
+    <div class="note">
+      Entrada simples. Autenticação segura. Sessão individual.
+    </div>
+  </main>
 </body>
 </html>
