@@ -1,115 +1,220 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elayon Space — Perfil Simbiótico</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root { --bg: #f8fafc; --card-bg: #ffffff; --primary: #0284c7; --primary-hover: #0369a1; --cyan: #06b6d4; --text-main: #1e293b; --text-muted: #64748b; --border: #e2e8f0; --success: #16a34a; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        .card { background: var(--card-bg); padding: 40px 30px; border-radius: 20px; width: 100%; max-width: 440px; box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.08); border: 1px solid var(--border); }
-        h2 { font-size: 22px; font-weight: 600; margin-bottom: 4px; color: var(--text-main); }
-        .subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 25px; }
-        .info-group { background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
-        .info-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 10px; }
-        .info-row:last-child { margin-bottom: 0; }
-        .info-label { color: var(--text-muted); }
-        .info-value { font-weight: 600; color: var(--text-main); }
-        .btn { width: 100%; padding: 13px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; }
-        .btn-symbiotic { background: linear-gradient(135deg, var(--cyan) 0%, var(--primary) 100%); color: white; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.25); }
-        .btn-symbiotic:hover { opacity: 0.95; transform: translateY(-1px); }
-        .btn-logout { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
-        .btn-logout:hover { background: #f1f5f9; color: var(--text-main); }
-        .status-msg { text-align: center; font-size: 12px; margin-top: 15px; color: var(--success); min-height: 18px; font-weight: 500; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elayon Space • Perfil</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <style>
+    :root{
+      --bg1:#eaf7e3;
+      --bg2:#dff4f6;
+      --card:#ffffff;
+      --ink:#0a2a2f;
+      --muted:#4a6b70;
+      --line:#cfe4e7;
+      --accent:#66c7c0;
+      --accent2:#7bd490;
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+    }
+
+    *{ box-sizing:border-box; margin:0; padding:0; }
+
+    body{
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:24px;
+      font-family:system-ui,-apple-system,sans-serif;
+      background: radial-gradient(circle at top left, var(--bg1), var(--bg2));
+      color:var(--ink);
+    }
+
+    .card{
+      width:100%;
+      max-width:480px;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:24px;
+      padding:40px 30px;
+      box-shadow:var(--shadow);
+    }
+
+    h1{
+      font-size:28px;
+      margin-bottom:10px;
+      letter-spacing:-1px;
+    }
+
+    .sub{
+      color:var(--muted);
+      font-size:14px;
+      margin-bottom:22px;
+      line-height:1.5;
+    }
+
+    .box{
+      background:#f8fbfb;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:16px;
+      margin-bottom:18px;
+    }
+
+    .row{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      font-size:14px;
+      margin-bottom:10px;
+    }
+
+    .row:last-child{ margin-bottom:0; }
+
+    .label{ color:var(--muted); }
+    .value{ font-weight:700; word-break:break-word; text-align:right; }
+
+    .tokens{
+      color:#0f766e;
+      font-weight:800;
+    }
+
+    .actions{
+      display:grid;
+      gap:12px;
+      margin-top:18px;
+    }
+
+    .btn{
+      display:block;
+      width:100%;
+      padding:16px;
+      border-radius:14px;
+      text-decoration:none;
+      text-align:center;
+      font-size:16px;
+      font-weight:800;
+      border:0;
+      cursor:pointer;
+      transition:.2s ease;
+    }
+
+    .btn:hover{ transform:translateY(-2px); }
+
+    .primary{
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:var(--ink);
+    }
+
+    .secondary{
+      background:#f0f7f7;
+      border:1px solid var(--line);
+      color:var(--ink);
+    }
+
+    .logout{
+      background:transparent;
+      border:1px solid var(--line);
+      color:var(--muted);
+    }
+
+    .msg{
+      margin-top:14px;
+      font-size:13px;
+      color:var(--muted);
+      min-height:18px;
+    }
+  </style>
 </head>
 <body>
-    <div class="card">
-        <h2>Painel do Usuário</h2>
-        <div class="subtitle">Identidade, Tokens & Escuta Simbólica</div>
+  <main class="card">
+    <h1>Seu perfil</h1>
+    <p class="sub">
+      Aqui estão seus dados de acesso e o saldo de tokens da sua conta.
+    </p>
 
-        <div class="info-group">
-            <div class="info-row">
-                <span class="info-label">ID Pessoal:</span>
-                <span class="info-value" id="userId">A carregar...</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Nome:</span>
-                <span class="info-value" id="userName">A carregar...</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Saldo de Tokens:</span>
-                <span class="info-value" id="userTokens" style="color: var(--success);">--</span>
-            </div>
-        </div>
+    <section class="box">
+      <div class="row">
+        <span class="label">ID</span>
+        <span class="value" id="userId">Carregando...</span>
+      </div>
+      <div class="row">
+        <span class="label">Nome</span>
+        <span class="value" id="userName">Carregando...</span>
+      </div>
+      <div class="row">
+        <span class="label">E-mail</span>
+        <span class="value" id="userEmail">Carregando...</span>
+      </div>
+      <div class="row">
+        <span class="label">Tokens</span>
+        <span class="value tokens" id="userTokens">--</span>
+      </div>
+    </section>
 
-        <button class="btn btn-symbiotic" onclick="iniciarConexaoSimbiotica()">
-            <i class="fa-solid fa-network-wired"></i> Iniciar Conexão Simbiótica Voluntária
-        </button>
+    <div class="actions">
+      <a class="btn primary" href="https://project-f7o5k.vercel.app/" target="_blank" rel="noopener noreferrer">
+        Conectar ao Elayon Space
+      </a>
 
-        <button class="btn btn-logout" onclick="fazerLogout()">
-            <i class="fa-solid fa-right-from-bracket"></i> Encerrar Sessão
-        </button>
+      <a class="btn secondary" href="login.html">
+        Voltar ao login
+      </a>
 
-        <div id="statusMsg" class="status-msg"></div>
+      <button class="btn logout" id="btnLogout" type="button">
+        Sair
+      </button>
     </div>
 
-    <script>
-        let supabaseClient = null;
+    <div class="msg" id="msg"></div>
+  </main>
 
-        async function carregarPerfil() {
-            try {
-                const res = await fetch('/api/config');
-                const config = await res.json();
-                supabaseClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+  <script>
+    let supabaseClient = null;
 
-                const { data: { session }, error } = await supabaseClient.auth.getSession();
-                if (!session) {
-                    window.location.href = 'login.html';
-                    return;
-                }
+    async function initAuth() {
+      try {
+        const res = await fetch('/api/config');
+        const config = await res.json();
+        supabaseClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+      } catch (err) {
+        document.getElementById('msg').textContent = 'Erro ao carregar config.';
+        return;
+      }
 
-                const user = session.user;
-                document.getElementById('userId').textContent = user.id.substring(0, 12) + '...';
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.href = 'login.html';
+        return;
+      }
 
-                const { data: profile } = await supabaseClient
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', user.id)
-                    .single();
+      const user = session.user;
+      document.getElementById('userId').textContent = user.id;
+      document.getElementById('userEmail').textContent = user.email || '-';
 
-                if (profile) {
-                    document.getElementById('userName').textContent = profile.full_name || 'Usuário Elayon';
-                    document.getElementById('userTokens').textContent = profile.tokens_balance ?? 100;
-                } else {
-                    document.getElementById('userName').textContent = user.user_metadata?.full_name || 'Usuário Elayon';
-                    document.getElementById('userTokens').textContent = 100;
-                }
-            } catch (err) {
-                console.error("Erro ao carregar perfil:", err);
-            }
-        }
+      try {
+        const resp = await fetch('/api/perfil-seguro', {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
 
-        async function iniciarConexaoSimbiotica() {
-            const msg = document.getElementById('statusMsg');
-            msg.style.color = 'var(--primary)';
-            msg.textContent = 'Estabelecendo handshake simbiótico voluntário...';
-            setTimeout(() => {
-                msg.style.color = 'var(--success)';
-                msg.textContent = 'Conexão simbiótica ativada com harmonia e segurança.';
-            }, 1200);
-        }
+        if (!resp.ok) throw new Error('Falha ao carregar perfil.');
+        const data = await resp.json();
 
-        async function fazerLogout() {
-            if (supabaseClient) await supabaseClient.auth.signOut();
-            window.location.href = 'login.html';
-        }
+        document.getElementById('userName').textContent = data.nome || 'Usuário Elayon';
+        document.getElementById('userTokens').textContent = data.tokens ?? 0;
+      } catch (err) {
+        document.getElementById('msg').textContent = 'Não foi possível carregar tokens.';
+      }
+    }
 
-        carregarPerfil();
-    </script>
+    document.getElementById('btnLogout').addEventListener('click', async () => {
+      if (supabaseClient) await supabaseClient.auth.signOut();
+      window.location.href = 'login.html';
+    });
+
+    initAuth();
+  </script>
 </body>
 </html>
