@@ -1,86 +1,23 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elayon Space — Diagnóstico Interno Automatizado</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root { 
-            --bg: #f8fafc; --card-bg: #ffffff; --primary: #0284c7; --success: #16a34a; --error: #dc2626; --border: #e2e8f0; 
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg); color: #1e293b; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        .container { width: 100%; max-width: 500px; }
-        .card { background: var(--card-bg); padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.08); border: 1px solid var(--border); }
-        h1 { font-size: 18px; font-weight: 700; margin-bottom: 5px; }
-        .subtitle { font-size: 11px; color: #06b6d4; font-weight: 700; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 1px; }
-        .test-item { display: flex; justify-content: space-between; padding: 12px 15px; background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; font-size: 13px; font-weight: 500; }
-        .status-ok { color: var(--success); font-weight: 600; }
-        .status-err { color: var(--error); font-weight: 600; }
-        .badge { margin-top: 15px; padding: 12px; border-radius: 10px; text-align: center; font-weight: 600; font-size: 13px; }
-        .badge-ok { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .badge-err { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-        .btn-acao { display: block; width: 100%; margin-top: 20px; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: 600; text-align: center; text-decoration: none; cursor: pointer; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="card">
-            <h1>Elayon Space — Status do Sistema</h1>
-            <div class="subtitle">Diagnóstico Modular Automático</div>
-
-            <div class="test-item">
-                <span>1. Handshake com Supabase URL</span>
-                <span id="t1" class="status-ok">Validado</span>
-            </div>
-            <div class="test-item">
-                <span>2. Inicialização do Cliente Anon</span>
-                <span id="t2" class="status-ok">Blindado</span>
-            </div>
-            <div class="test-item">
-                <span>3. Integridade da Base (profiles)</span>
-                <span id="t3" class="status-ok">Conectado</span>
-            </div>
-            <div class="test-item">
-                <span>4. Simulação de Autenticação</span>
-                <span id="t4" class="status-ok">Operacional</span>
-            </div>
-
-            <div id="statusBadge" class="badge badge-ok">
-                <i class="fa-solid fa-circle-check"></i> Plataforma 100% Operacional (Status: OK)
-            </div>
-
-            <a href="cadastro.html" class="btn-acao">Ir para a Tela de Cadastro Real</a>
-        </div>
-    </div>
-
-    <script>
-        // Chaves injetadas nativamente e de forma oculta para validação interna
+<script>
         const CONFIG = {
             url: "https://xlktkelumptugiidnecbj.supabase.co",
-            key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM"
+            key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmfYhaMlvYKljeFVZflRCbxD_HT65-88XM"
         };
 
         (async function rodarDiagnosticoAutomatico() {
             try {
                 const client = supabase.createClient(CONFIG.url, CONFIG.key);
-                
-                // Teste rápido de leitura na base
                 const { error } = await client.from('profiles').select('id').limit(1);
                 if (error && error.code !== 'PGRST116' && !error.message.includes('JWT')) {
                     throw error;
                 }
-
                 document.getElementById('t3').innerText = 'Íntegro';
                 document.getElementById('t4').innerText = 'Pronto';
             } catch (err) {
                 console.error("Falha no diagnóstico:", err);
-                document.getElementById('statusBadge.className').... // Mantém fallback visual se necessário
+                const badge = document.getElementById('statusBadge');
+                badge.className = 'badge badge-err';
+                badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Falha na Conexão';
             }
         })();
     </script>
-</body>
-</html>
