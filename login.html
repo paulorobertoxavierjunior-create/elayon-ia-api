@@ -1,283 +1,99 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Elayon Space — Entrar</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elayon Space • Entrar</title>
   <style>
-    :root {
-      --bg1: #eaf7e3;
-      --bg2: #dff4f6;
-      --card: #ffffff;
-      --ink: #0a2a2f;
-      --muted: #4a6b70;
-      --line: #cfe4e7;
-      --accent: #66c7c0;
-      --accent2: #7bd490;
-      --shadow: 0 10px 30px rgba(0, 0, 0, .08);
-      --error: #dc2626;
+    :root{
+      --bg1:#eaf7e3; --bg2:#dff4f6; --card:#ffffff;
+      --ink:#0a2a2f; --muted:#4a6b70; --line:#cfe4e7;
+      --accent:#66c7c0; --accent2:#7bd490; --shadow:0 10px 30px rgba(0,0,0,.08);
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, sans-serif;
-    }
-
-    body {
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 24px;
+    *{ box-sizing:border-box; margin:0; padding:0; }
+    body{
+      min-height:100vh; display:grid; place-items:center; padding:24px;
+      font-family:system-ui,-apple-system,sans-serif;
       background: radial-gradient(circle at top left, var(--bg1), var(--bg2));
-      color: var(--ink);
+      color:var(--ink);
     }
-
-    .card {
-      width: 100%;
-      max-width: 440px;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      padding: 40px 30px;
-      box-shadow: var(--shadow);
+    .card{
+      width:100%; max-width:460px; background:var(--card);
+      border:1px solid var(--line); border-radius:24px; padding:40px 30px;
+      box-shadow:var(--shadow);
     }
-
-    .logo {
-      width: 80px;
-      height: 80px;
-      object-fit: contain;
-      display: block;
-      margin: 0 auto 18px;
-      border-radius: 18px;
-      background: #fff;
+    h1{ font-size:26px; letter-spacing:-1px; margin-bottom:8px; text-align:center; }
+    p{ color:var(--muted); font-size:14px; text-align:center; margin-bottom:24px; }
+    .input-group{ margin-bottom:16px; text-align:left; }
+    label{ display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:var(--ink); }
+    input{
+      width:100%; padding:14px; border:1px solid var(--line); border-radius:12px;
+      font-size:15px; outline:none; transition:.2s;
     }
-
-    h2 {
-      text-align: center;
-      font-size: 28px;
-      letter-spacing: -1px;
-      margin-bottom: 8px;
+    input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px rgba(102,199,192,0.15); }
+    .btn{
+      display:block; width:100%; padding:16px; border:none; border-radius:14px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:var(--ink); font-size:16px; font-weight:800; cursor:pointer;
+      transition:.2s ease; margin-top:10px; text-align:center; text-decoration:none;
     }
-
-    .subtitle {
-      text-align: center;
-      color: var(--muted);
-      font-size: 14px;
-      margin-bottom: 26px;
-      line-height: 1.5;
-    }
-
-    .group {
-      margin-bottom: 14px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--muted);
-    }
-
-    input {
-      width: 100%;
-      padding: 14px 16px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      font-size: 15px;
-      background: #fdfdfd;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(102, 199, 192, 0.12);
-      background: #fff;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 15px;
-      border-radius: 12px;
-      border: none;
-      font-size: 15px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: .2s ease;
-      margin-top: 10px;
-    }
-
-    .btn:hover {
-      transform: translateY(-2px);
-    }
-
-    .primary {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: var(--ink);
-    }
-
-    .google {
-      background: #fff;
-      border: 1px solid var(--line);
-      color: var(--ink);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .divider {
-      text-align: center;
-      font-size: 12px;
-      color: var(--muted);
-      margin: 16px 0;
-    }
-
-    .links {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      margin-top: 18px;
-      font-size: 12px;
-      flex-wrap: wrap;
-    }
-
-    .links a {
-      color: var(--muted);
-      text-decoration: none;
-    }
-
-    .links a:hover {
-      text-decoration: underline;
-    }
-
-    .msg {
-      margin-top: 14px;
-      min-height: 18px;
-      font-size: 13px;
-      text-align: center;
-      color: var(--muted);
-    }
-
-    .back {
-      text-align: center;
-      margin-top: 18px;
-      font-size: 12px;
-    }
-
-    .back a {
-      color: var(--muted);
-      text-decoration: none;
-    }
-
-    .back a:hover {
-      text-decoration: underline;
-    }
+    .btn:hover{ transform:translateY(-2px); }
+    .footer-link{ display:block; text-align:center; margin-top:20px; font-size:14px; color:var(--muted); text-decoration:none; }
+    .footer-link:hover{ color:var(--ink); text-decoration:underline; }
+    #error-msg{ color:#d9534f; font-size:13px; text-align:center; margin-bottom:12px; display:none; }
   </style>
 </head>
 <body>
   <main class="card">
-    <img
-      class="logo"
-      src="./elayon_logo.png"
-      alt="Elayon Space"
-      onerror="this.onerror=null;this.src='https://elayon.space/wp-content/uploads/2026/04/elayon_logo.png';"
-    >
+    <h1>Entrar no Elayon</h1>
+    <p>Aceda ao seu espaço de trabalho e ecossistema.</p>
 
-    <h2>Entrar na plataforma</h2>
-    <p class="subtitle">Acesse com e-mail/senha ou com Google.</p>
+    <div id="error-msg"></div>
 
-    <button class="btn google" id="btnGoogle" type="button">
-      <span>G</span>
-      <span>Continuar com Google</span>
-    </button>
+    <form id="login-form">
+      <div class="input-group">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" required placeholder="seu@email.com" />
+      </div>
+      <div class="input-group">
+        <label for="password">Palavra-passe</label>
+        <input type="password" id="password" required placeholder="A sua palavra-passe" />
+      </div>
+      <button type="submit" class="btn">Entrar</button>
+    </form>
 
-    <div class="divider">ou autentique com e-mail</div>
-
-    <div class="group">
-      <label for="email">E-mail</label>
-      <input type="email" id="email" placeholder="seu@email.com">
-    </div>
-
-    <div class="group">
-      <label for="password">Senha</label>
-      <input type="password" id="password" placeholder="Sua senha">
-    </div>
-
-    <button class="btn primary" id="btnLogin" type="button">Acessar</button>
-
-    <div id="msg" class="msg"></div>
-
-    <div class="links">
-      <a href="cadastro.html">Criar conta</a>
-      <a href="recuperar.html">Esqueci a senha</a>
-    </div>
-
-    <div class="back">
-      <a href="index.html">Voltar ao início</a>
-    </div>
+    <a class="footer-link" href="cadastro.html">Ainda não tem conta? Criar cadastro</a>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    let supabaseClient = null;
+    const SUPABASE_URL = 'A_SUA_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'A_SUA_SUPABASE_ANON_KEY';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    async function initAuth() {
-      try {
-        const res = await fetch('/api/config');
-        const config = await res.json();
-        supabaseClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
-      } catch (err) {
-        document.getElementById('msg').textContent = 'Erro ao carregar configuração.';
-      }
-    }
+    const form = document.getElementById('login-form');
+    const errorDiv = document.getElementById('error-msg');
 
-    async function loginGoogle() {
-      if (!supabaseClient) return;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorDiv.style.display = 'none';
 
-      const { error } = await supabaseClient.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin + '/perfil.html'
-        }
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password,
       });
 
       if (error) {
-        document.getElementById('msg').textContent = 'Erro Google: ' + error.message;
+        errorDiv.textContent = error.message;
+        errorDiv.style.display = 'block';
+      } else {
+        // Redireciona para o painel principal protegido
+        window.location.href = 'app.html';
       }
-    }
-
-    async function loginEmail() {
-      if (!supabaseClient) return;
-
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const msg = document.getElementById('msg');
-
-      if (!email || !password) {
-        msg.textContent = 'Preencha e-mail e senha.';
-        return;
-      }
-
-      const { error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        msg.textContent = 'Falha: ' + error.message;
-        return;
-      }
-
-      window.location.href = 'perfil.html';
-    }
-
-    document.getElementById('btnGoogle').addEventListener('click', loginGoogle);
-    document.getElementById('btnLogin').addEventListener('click', loginEmail);
-
-    initAuth();
+    });
   </script>
 </body>
 </html>
