@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elayon Space • Meu Perfil</title>
+  <style>
+    :root{
+      --bg1:#eaf7e3; --bg2:#dff4f6; --card:#ffffff;
+      --ink:#0a2a2f; --muted:#4a6b70; --line:#cfe4e7;
+      --accent:#66c7c0; --accent2:#7bd490; --shadow:0 10px 30px rgba(0,0,0,.08);
+    }
+    *{ box-sizing:border-box; margin:0; padding:0; }
+    body{
+      min-height:100vh; display:grid; place-items:center; padding:24px;
+      font-family:system-ui,-apple-system,sans-serif;
+      background: radial-gradient(circle at top left, var(--bg1), var(--bg2));
+      color:var(--ink);
+    }
+    .card{
+      width:100%; max-width:520px; background:var(--card);
+      border:1px solid var(--line); border-radius:24px; padding:40px 30px;
+      box-shadow:var(--shadow);
+    }
+    h1{ font-size:26px; letter-spacing:-1px; margin-bottom:8px; text-align:center; }
+    p.subtitle{ color:var(--muted); font-size:14px; text-align:center; margin-bottom:28px; }
+    .info-box{ background: #f4fbf9; border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 16px; }
+    .info-label{ font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .info-value{ font-size: 15px; font-weight: 600; color: var(--ink); word-break: break-all; }
+    
+    .token-row{ display: flex; align-items: center; justify-content: space-between; }
+    .token-controls{ display: flex; align-items: center; gap: 10px; }
+    .btn-token{
+      background: linear-gradient(135deg,var(--accent),var(--accent2));
+      color: var(--ink); border: none; border-radius: 10px;
+      padding: 8px 16px; font-weight: 800; font-size: 15px; cursor: pointer;
+      transition: .2s;
+    }
+    .btn-token:hover{ transform: translateY(-2px); }
+    
+    .btn-logout{
+      display: block; width: 100%; padding: 14px; border: 1px solid #d9534f; border-radius: 14px;
+      background: transparent; color: #d9534f; font-size: 15px; font-weight: 700; cursor: pointer;
+      margin-top: 24px; transition: .2s; text-align: center;
+    }
+    .btn-logout:hover{ background: #d9534f; color: #fff; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Painel do Utilizador</h1>
+    <p class="subtitle">Ecossistema Elayon Space • Gestão de Perfil</p>
+
+    <div class="info-box">
+      <div class="info-label">Identificação (ID)</div>
+      <div class="info-value" id="user-id">A carregar...</div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-label">E-mail</div>
+      <div class="info-value" id="user-email">A carregar...</div>
+    </div>
+
+    <div class="info-box token-row">
+      <div>
+        <div class="info-label">Tokens Recarregáveis</div>
+        <div class="info-value" id="token-balance" style="font-size: 22px;">0</div>
+      </div>
+      <div class="token-controls">
+        <button class="btn-token" id="btn-add-token">+1</button>
+      </div>
+    </div>
+
+    <button class="btn-logout" id="btn-logout">Terminar Sessão</button>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'A_SUA_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'A_SUA_SUPABASE_ANON_KEY';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentUser = null;
+    let currentTokens = 0;
+
+    async function initApp() {
+      // 1. Verifica sessão ativa
+      const { data: { session }, error } = await supabaseClient.auth.getSession();
+      
+      if (error || !session) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      currentUser = session.user;
+      document.getElementById('user-id').textContent = currentUser.id;
+      document.getElementById('user-email').textContent = currentUser.email;
+
+      // 2. Busca dados da tabela profiles (tokens_balance)
+      await fetchProfileData();
+    }
+
+    async function fetchProfileData() {
+      const { data, error } = await supabaseClient
+        .from('profiles')
+        .select('tokens_balance')
+        .eq('id', currentUser.id)
+        .single();
+
+      if (data) {
+        currentTokens = data.tokens_balance || 0;
+        document.getElementById('token-balance').textContent = currentTokens;
+      }
+    }
+
+    // 3. Botão +1 para incrementar tokens na base de dados
+    document.getElementById('btn-add-token').addEventListener('click', async () => {
+      currentTokens += 1;
+      
+      const { error } = await supabaseClient
+        .from('profiles')
+        .update({ tokens_balance: currentTokens })
+        .eq('id', currentUser.id);
+
+      if (!error) {
+        document.getElementById('token-balance').textContent = currentTokens;
+      } else {
+        alert('Erro ao atualizar token: ' + error.message);
+        currentTokens -= 1; // reverte se falhar
+      }
+    });
+
+    // 4. Terminar Sessão
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+      await supabaseClient.auth.signOut();
+      window.location.href = 'login.html';
+    });
+
+    initApp();
+  </script>
+</body>
+</html>
