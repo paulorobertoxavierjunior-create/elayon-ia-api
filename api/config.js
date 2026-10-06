@@ -12,7 +12,7 @@ module.exports = function handler(req, res) {
   const supabaseAnonKey = (process.env.SUPABASE_ANON_KEY || '').trim();
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('[config] SUPABASE_URL ou SUPABASE_ANON_KEY ausentes na Vercel.');
+    console.error('[config] SUPABASE_URL ou SUPABASE_ANON_KEY ausentes na Vercel.'); 
     return res.status(500).json({ error: 'Configuração do servidor incompleta.' });
   }
 
