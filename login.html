@@ -46,7 +46,7 @@
 <body>
   <main class="card">
     <h1>Entrar no Elayon</h1>
-    <p>Aceda ao seu espaço de trabalho e ecossistema.</p>
+    <p>Acesse o seu espaço de trabalho e ecossistema.</p>
 
     <div id="error-msg"></div>
 
@@ -56,8 +56,8 @@
         <input type="email" id="email" required placeholder="seu@email.com" />
       </div>
       <div class="input-group">
-        <label for="password">Palavra-passe</label>
-        <input type="password" id="password" required placeholder="A sua palavra-passe" />
+        <label for="password">Senha</label>
+        <input type="password" id="password" required placeholder="A sua senha" />
       </div>
       <button type="submit" class="btn">Entrar</button>
     </form>
@@ -67,8 +67,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const SUPABASE_URL = 'A_SUA_SUPABASE_URL';
-    const SUPABASE_ANON_KEY = 'A_SUA_SUPABASE_ANON_KEY';
+    const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const form = document.getElementById('login-form');
@@ -90,8 +90,8 @@
         errorDiv.textContent = error.message;
         errorDiv.style.display = 'block';
       } else {
-        // Redireciona para o painel principal protegido
-        window.location.href = 'app.html';
+        // Redireciona para o perfil para mostrar o ID e os tokens
+        window.location.href = 'perfil.html';
       }
     });
   </script>
