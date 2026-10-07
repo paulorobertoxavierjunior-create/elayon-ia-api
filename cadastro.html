@@ -41,6 +41,7 @@
     .back-link{ display:block; text-align:center; margin-top:20px; font-size:14px; color:var(--muted); text-decoration:none; }
     .back-link:hover{ color:var(--ink); text-decoration:underline; }
     #error-msg{ color:#d9534f; font-size:13px; text-align:center; margin-bottom:12px; display:none; }
+    #success-msg{ color:#2b8a3e; font-size:13px; text-align:center; margin-bottom:12px; display:none; }
   </style>
 </head>
 <body>
@@ -49,6 +50,7 @@
     <p>Preencha os dados para iniciar no ecossistema Elayon.</p>
 
     <div id="error-msg"></div>
+    <div id="success-msg"></div>
 
     <form id="signup-form">
       <div class="input-group">
@@ -59,15 +61,13 @@
         <label for="password">Palavra-passe</label>
         <input type="password" id="password" required placeholder="Mínimo de 6 carateres" />
       </div>
-      <button type="submit" class="btn">Registar Conta</button>
+      <button type="submit" class="btn" id="submit-btn">Registar Conta</button>
     </form>
 
     <a class="back-link" href="login.html">← Já tenho uma conta (Entrar)</a>
   </main>
 
-  <!-- Script Supabase (Certifica-te de ajustar com as tuas chaves públicas Anon) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
- <!-- Script Supabase -->
+  <!-- Script Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
@@ -76,27 +76,47 @@
 
     const form = document.getElementById('signup-form');
     const errorDiv = document.getElementById('error-msg');
+    const successDiv = document.getElementById('success-msg');
+    const submitBtn = document.getElementById('submit-btn');
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       errorDiv.style.display = 'none';
+      successDiv.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'A registar...';
 
-      const email = document.getElementById('email').value;
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
 
-      const { data, error } = await supabaseClient.auth.signUp({
-        email: email,
-        password: password,
-        options: {
-          emailRedirectTo: window.location.origin + '/confirmacao.html'
-        }
-      });
+      try {
+        // Registo com redirecionamento de confirmação apontando para a página de perfil/confirmação
+        const { data, error } = await supabaseClient.auth.signUp({
+          email: email,
+          password: password,
+          options: {
+            emailRedirectTo: window.location.origin + '/perfil.html'
+          }
+        });
 
-      if (error) {
-        errorDiv.textContent = error.message;
+        if (error) {
+          throw error;
+        }
+
+        // Se o Supabase estiver configurado com confirmação por e-mail ativada:
+        successDiv.textContent = 'Conta criada com sucesso! Verifique o seu e-mail para confirmar o acesso.';
+        successDiv.style.display = 'block';
+
+        // Opcional: Redirecionar para a página de aviso após 2 segundos
+        setTimeout(() => {
+          window.location.href = 'check-email.html';
+        }, 2500);
+
+      } catch (err) {
+        errorDiv.textContent = err.message || 'Erro ao realizar o registo.';
         errorDiv.style.display = 'block';
-      } else {
-        window.location.href = 'check-email.html';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Registar Conta';
       }
     });
   </script>
