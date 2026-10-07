@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Elayon Space • Perfil</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root{
       --bg1:#eaf7e3;
@@ -121,8 +121,9 @@
     .msg{
       margin-top:14px;
       font-size:13px;
-      color:var(--muted);
+      color:#d9534f;
       min-height:18px;
+      text-align:center;
     }
   </style>
 </head>
@@ -148,7 +149,7 @@
       </div>
       <div class="row">
         <span class="label">Tokens</span>
-        <span class="value tokens" id="userTokens">--</span>
+        <span class="value tokens" id="userTokens">100</span>
       </div>
     </section>
 
@@ -170,20 +171,14 @@
   </main>
 
   <script>
-    let supabaseClient = null;
+    const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function initAuth() {
-      try {
-        const res = await fetch('/api/config');
-        const config = await res.json();
-        supabaseClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
-      } catch (err) {
-        document.getElementById('msg').textContent = 'Erro ao carregar config.';
-        return;
-      }
-
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (!session) {
+      const { data: { session }, error } = await supabaseClient.auth.getSession();
+      
+      if (error || !session) {
         window.location.href = 'login.html';
         return;
       }
@@ -191,26 +186,11 @@
       const user = session.user;
       document.getElementById('userId').textContent = user.id;
       document.getElementById('userEmail').textContent = user.email || '-';
-
-      try {
-        const resp = await fetch('/api/perfil-seguro', {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`
-          }
-        });
-
-        if (!resp.ok) throw new Error('Falha ao carregar perfil.');
-        const data = await resp.json();
-
-        document.getElementById('userName').textContent = data.nome || 'Usuário Elayon';
-        document.getElementById('userTokens').textContent = data.tokens ?? 0;
-      } catch (err) {
-        document.getElementById('msg').textContent = 'Não foi possível carregar tokens.';
-      }
+      document.getElementById('userName').textContent = user.user_metadata?.nome || user.email.split('@')[0];
     }
 
     document.getElementById('btnLogout').addEventListener('click', async () => {
-      if (supabaseClient) await supabaseClient.auth.signOut();
+      await supabaseClient.auth.signOut();
       window.location.href = 'login.html';
     });
 
