@@ -9,6 +9,7 @@
       --bg1:#eaf7e3; --bg2:#dff4f6; --card:#ffffff;
       --ink:#0a2a2f; --muted:#4a6b70; --line:#cfe4e7;
       --accent:#66c7c0; --accent2:#7bd490; --shadow:0 10px 30px rgba(0,0,0,.08);
+      --danger:#d9534f;
     }
     *{ box-sizing:border-box; margin:0; padding:0; }
     body{
@@ -31,6 +32,7 @@
       font-size:15px; outline:none; transition:.2s;
     }
     input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px rgba(102,199,192,0.15); }
+    
     .btn{
       display:block; width:100%; padding:16px; border:none; border-radius:14px;
       background:linear-gradient(135deg,var(--accent),var(--accent2));
@@ -38,9 +40,33 @@
       transition:.2s ease; margin-top:10px; text-align:center; text-decoration:none;
     }
     .btn:hover{ transform:translateY(-2px); }
+
+    /* Estilo para botão inativo de marketing */
+    .btn-disabled {
+      background: #eef2f2 !important;
+      color: #9aa8ab !important;
+      cursor: not-allowed !important;
+      box-shadow: none !important;
+    }
+    .btn-disabled:hover { transform: none !important; }
+
+    .secondary-action {
+      background: transparent; border: 1px solid var(--line); color: var(--muted);
+      margin-top: 8px; font-size: 14px; font-weight: 600;
+    }
+    .secondary-action:hover { color: var(--ink); background: #f8fbfb; }
+
     .footer-link{ display:block; text-align:center; margin-top:20px; font-size:14px; color:var(--muted); text-decoration:none; }
     .footer-link:hover{ color:var(--ink); text-decoration:underline; }
-    #error-msg{ color:#d9534f; font-size:13px; text-align:center; margin-bottom:12px; display:none; }
+
+    .modal-section{
+      display:none; margin-top:16px; padding:16px; border:1px solid var(--line);
+      border-radius:16px; background:#f8fbfb; text-align:left;
+    }
+
+    .msg{ margin-top:14px; font-size:13px; text-align:center; min-height:18px; }
+    .msg-error{ color:var(--danger); }
+    .msg-success{ color:#2b8a3e; }
   </style>
 </head>
 <body>
@@ -48,7 +74,7 @@
     <h1>Entrar no Elayon</h1>
     <p>Acesse o seu espaço de trabalho e ecossistema.</p>
 
-    <div id="error-msg"></div>
+    <div class="msg" id="msg"></div>
 
     <form id="login-form">
       <div class="input-group">
@@ -62,6 +88,23 @@
       <button type="submit" class="btn">Entrar</button>
     </form>
 
+    <!-- Botão de Esqueci a Senha -->
+    <button class="btn secondary-action" id="btnToggleForgot" type="button">Esqueci a minha senha</button>
+
+    <!-- Seção de Recuperação de Senha -->
+    <div class="modal-section" id="secForgot">
+      <div class="input-group" style="margin-bottom:8px;">
+        <label for="forgotEmail">E-mail para recuperação</label>
+        <input type="email" id="forgotEmail" placeholder="Digite seu e-mail cadastrado" />
+      </div>
+      <button class="btn" id="btnSendReset" type="button" style="padding: 12px; font-size: 14px;">Enviar Link de Recuperação</button>
+    </div>
+
+    <!-- Botão de Marketing Inativado (Aguardando link futuro) -->
+    <button class="btn btn-disabled" id="btnMarketing" type="button" disabled title="Em breve para campanhas de marketing">
+      Explorar no Elayon Space 🚀
+    </button>
+
     <a class="footer-link" href="cadastro.html">Ainda não tem conta? Criar cadastro</a>
   </main>
 
@@ -72,13 +115,19 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const form = document.getElementById('login-form');
-    const errorDiv = document.getElementById('error-msg');
+    const msgDiv = document.getElementById('msg');
 
+    function showMsg(text, isError = false) {
+      msgDiv.textContent = text;
+      msgDiv.className = 'msg ' + (isError ? 'msg-error' : 'msg-success');
+    }
+
+    // Login Principal
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      errorDiv.style.display = 'none';
+      msgDiv.textContent = '';
 
-      const email = document.getElementById('email').value;
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
 
       const { data, error } = await supabaseClient.auth.signInWithPassword({
@@ -87,11 +136,38 @@
       });
 
       if (error) {
-        errorDiv.textContent = error.message;
-        errorDiv.style.display = 'block';
+        showMsg(error.message, true);
       } else {
-        // Redireciona para o perfil para mostrar o ID e os tokens
         window.location.href = 'perfil.html';
+      }
+    });
+
+    // Toggle Caixa de Recuperação
+    document.getElementById('btnToggleForgot').addEventListener('click', () => {
+      const sec = document.getElementById('secForgot');
+      sec.style.display = sec.style.display === 'block' ? 'none' : 'block';
+      msgDiv.textContent = '';
+    });
+
+    // Enviar E-mail de Recuperação de Senha
+    document.getElementById('btnSendReset').addEventListener('click', async () => {
+      const email = document.getElementById('forgotEmail').value.trim();
+      if (!email) {
+        showMsg('Insira o seu e-mail para recuperar a palavra-passe.', true);
+        return;
+      }
+
+      showMsg('A enviar link de recuperação...');
+
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/perfil.html'
+      });
+
+      if (error) {
+        showMsg('Erro: ' + error.message, true);
+      } else {
+        showMsg('Link enviado com sucesso! Verifique sua caixa de entrada e spam.', false);
+        document.getElementById('secForgot').style.display = 'none';
       }
     });
   </script>
