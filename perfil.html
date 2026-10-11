@@ -41,10 +41,50 @@
       box-shadow:var(--shadow);
     }
 
+    /* Seção do Avatar / Foto */
+    .avatar-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .avatar-img {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--accent);
+      background: #e2f1f1;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .avatar-upload-btn {
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink);
+      background: #f0f7f7;
+      border: 1px solid var(--line);
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    .avatar-upload-btn:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    #fileInput { display: none; }
+
     h1{
-      font-size:28px;
-      margin-bottom:10px;
+      font-size:26px;
+      margin-bottom:4px;
       letter-spacing:-1px;
+      text-align: center;
     }
 
     .sub{
@@ -52,6 +92,7 @@
       font-size:14px;
       margin-bottom:22px;
       line-height:1.5;
+      text-align: center;
     }
 
     .box{
@@ -65,15 +106,42 @@
     .row{
       display:flex;
       justify-content:space-between;
+      align-items:center;
       gap:12px;
       font-size:14px;
-      margin-bottom:10px;
+      margin-bottom:12px;
     }
 
     .row:last-child{ margin-bottom:0; }
 
     .label{ color:var(--muted); }
     .value{ font-weight:700; word-break:break-word; text-align:right; }
+
+    .edit-name-group {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .edit-name-input {
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      width: 140px;
+    }
+
+    .btn-icon {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--muted);
+      padding: 4px;
+    }
+
+    .btn-icon:hover { color: var(--ink); }
 
     .tokens{
       color:#0f766e;
@@ -153,24 +221,41 @@
 </head>
 <body>
   <main class="card">
-    <h1>Seu perfil</h1>
-    <p class="sub">
-      Aqui estão seus dados de acesso e o saldo de tokens da sua conta.
-    </p>
+    <!-- Avatar / Foto de Perfil -->
+    <div class="avatar-wrapper">
+      <img id="avatarImage" class="avatar-img" src="https://api.dicebear.com/7.x/bottts/svg?seed=Elayon" alt="Foto de Perfil" />
+      <label for="fileInput" class="avatar-upload-btn">Alterar Foto 📷</label>
+      <input type="file" id="fileInput" accept="image/*" />
+    </div>
+
+    <h1>Seu Perfil</h1>
+    <p class="sub">Gestão de conta, tokens e dados pessoais do ecossistema.</p>
 
     <section class="box">
       <div class="row">
         <span class="label">ID</span>
         <span class="value" id="userId">Carregando...</span>
       </div>
+
+      <!-- Nome Editável -->
       <div class="row">
         <span class="label">Nome</span>
-        <span class="value" id="userName">Carregando...</span>
+        <div id="nameDisplayContainer" class="edit-name-group">
+          <span class="value" id="userName">Carregando...</span>
+          <button class="btn-icon" id="btnEditName" title="Editar nome">✏️</button>
+        </div>
+        <div id="nameEditContainer" class="edit-name-group" style="display:none;">
+          <input type="text" id="inputName" class="edit-name-input" />
+          <button class="btn-icon" id="btnSaveName" title="Guardar">💾</button>
+          <button class="btn-icon" id="btnCancelName" title="Cancelar">❌</button>
+        </div>
       </div>
+
       <div class="row">
         <span class="label">E-mail</span>
         <span class="value" id="userEmail">Carregando...</span>
       </div>
+
       <div class="row">
         <span class="label">Tokens</span>
         <span class="value tokens" id="userTokens">100</span>
@@ -178,7 +263,7 @@
     </section>
 
     <div class="actions">
-      <!-- Transição fluida para o Elayon Avaliação passando sessão -->
+      <!-- Transição fluida para o Elayon Avaliação -->
       <a class="btn primary" id="btnStartAvaliacao" href="https://paulorobertoxavierjunior-create.github.io/elayon-avaliacao/" target="_blank" rel="noopener noreferrer">
         Iniciar Elayon Avaliação
       </a>
@@ -207,7 +292,7 @@
         <input type="password" id="confirmPassword" placeholder="Repita a nova palavra-passe" />
       </div>
       <button class="btn primary" id="btnSavePassword" type="button">Guardar Nova Palavra-passe</button>
-      <button class="btn logout" style="margin-top:8px;" id="btnSendResetEmail" type="button">Receber Link de Troca por E-mail</button>
+      <button class="btn logout" style="margin-top:8px;" id="btnSendResetEmail" type="button">Receber Link por E-mail</button>
     </div>
 
     <!-- Seção: Autoexclusão em 2 Etapas -->
@@ -253,10 +338,12 @@
       const defaultName = currentUser.user_metadata?.nome || currentUser.email.split('@')[0];
       document.getElementById('userName').textContent = defaultName;
 
-      // Garantir existência do perfil e ler saldo de tokens
+      // Avatar padrão gerado com base no ID
+      document.getElementById('avatarImage').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.id}`;
+
       await syncUserProfile(currentUser, defaultName);
 
-      // Prepara o link para o Elayon Avaliação levando os dados do utilizador
+      // Link com dados para a Avaliação
       const avaliacaoUrl = new URL('https://paulorobertoxavierjunior-create.github.io/elayon-avaliacao/');
       avaliacaoUrl.searchParams.set('uid', currentUser.id);
       avaliacaoUrl.searchParams.set('email', currentUser.email);
@@ -272,7 +359,6 @@
           .single();
 
         if (error && error.code === 'PGRST116') {
-          // Perfil não existe, criar automaticamente
           const { data: newProfile } = await supabaseClient
             .from('profiles')
             .insert([{ id: user.id, email: user.email, nome: defaultName, tokens: 100 }])
@@ -284,13 +370,82 @@
         if (profile) {
           document.getElementById('userTokens').textContent = profile.tokens ?? 100;
           if (profile.nome) document.getElementById('userName').textContent = profile.nome;
+          if (profile.avatar_url) document.getElementById('avatarImage').src = profile.avatar_url;
         }
       } catch (e) {
         document.getElementById('userTokens').textContent = 100;
       }
     }
 
-    // Toggle Seções
+    // --- Edição do Nome ---
+    document.getElementById('btnEditName').addEventListener('click', () => {
+      document.getElementById('inputName').value = document.getElementById('userName').textContent;
+      document.getElementById('nameDisplayContainer').style.display = 'none';
+      document.getElementById('nameEditContainer').style.display = 'flex';
+    });
+
+    document.getElementById('btnCancelName').addEventListener('click', () => {
+      document.getElementById('nameDisplayContainer').style.display = 'flex';
+      document.getElementById('nameEditContainer').style.display = 'none';
+    });
+
+    document.getElementById('btnSaveName').addEventListener('click', async () => {
+      const newName = document.getElementById('inputName').value.trim();
+      if (!newName) return;
+
+      showMsg('A atualizar nome...');
+
+      // Atualiza na tabela profiles
+      const { error } = await supabaseClient
+        .from('profiles')
+        .update({ nome: newName })
+        .eq('id', currentUser.id);
+
+      if (!error) {
+        // Atualiza no Auth Metadata
+        await supabaseClient.auth.updateUser({ data: { nome: newName } });
+        document.getElementById('userName').textContent = newName;
+        document.getElementById('nameDisplayContainer').style.display = 'flex';
+        document.getElementById('nameEditContainer').style.display = 'none';
+        showMsg('Nome atualizado com sucesso!');
+      } else {
+        showMsg('Erro ao atualizar nome: ' + error.message, true);
+      }
+    });
+
+    // --- Upload de Foto / Avatar ---
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (file.size > 2 * 1024 * 1024) {
+        showMsg('A imagem deve ter no máximo 2MB.', true);
+        return;
+      }
+
+      showMsg('A carregar nova foto...');
+
+      const reader = new FileReader();
+      reader.onload = async function(evt) {
+        const base64Image = evt.target.result;
+
+        // Atualizar foto na tabela profiles
+        const { error } = await supabaseClient
+          .from('profiles')
+          .update({ avatar_url: base64Image })
+          .eq('id', currentUser.id);
+
+        if (!error) {
+          document.getElementById('avatarImage').src = base64Image;
+          showMsg('Foto de perfil atualizada!');
+        } else {
+          showMsg('Erro ao guardar foto: ' + error.message, true);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // --- Outras Funções (Palavra-passe / Exclusão / Sair) ---
     document.getElementById('btnTogglePassword').addEventListener('click', () => {
       const sec = document.getElementById('secPassword');
       sec.style.display = sec.style.display === 'block' ? 'none' : 'block';
@@ -303,7 +458,6 @@
       document.getElementById('secPassword').style.display = 'none';
     });
 
-    // Guardar Nova Palavra-passe
     document.getElementById('btnSavePassword').addEventListener('click', async () => {
       const newP = document.getElementById('newPassword').value;
       const confP = document.getElementById('confirmPassword').value;
@@ -327,7 +481,6 @@
       }
     });
 
-    // Enviar link de redefinição por e-mail
     document.getElementById('btnSendResetEmail').addEventListener('click', async () => {
       const { error } = await supabaseClient.auth.resetPasswordForEmail(currentUser.email, {
         redirectTo: window.location.origin + '/perfil.html'
@@ -336,11 +489,10 @@
       if (error) {
         showMsg('Erro ao enviar e-mail: ' + error.message, true);
       } else {
-        showMsg('E-mail de redefinição enviado! Verifique a sua caixa de entrada.');
+        showMsg('E-mail enviado! Verifique a sua caixa de entrada.');
       }
     });
 
-    // Autoexclusão da Conta
     document.getElementById('btnConfirmDelete').addEventListener('click', async () => {
       const confirmVal = document.getElementById('deleteConfirmInput').value.trim();
 
@@ -350,19 +502,15 @@
       }
 
       try {
-        // Remover registro da tabela publica
         await supabaseClient.from('profiles').delete().eq('id', currentUser.id);
-        
-        // Terminar sessão e redirecionar
         await supabaseClient.auth.signOut();
-        alert('Sua conta foi excluída com sucesso.');
+        alert('Sua conta foi excluída.');
         window.location.href = 'login.html';
       } catch (err) {
         showMsg('Erro ao eliminar a conta: ' + err.message, true);
       }
     });
 
-    // Sair
     document.getElementById('btnLogout').addEventListener('click', async () => {
       await supabaseClient.auth.signOut();
       window.location.href = 'login.html';
