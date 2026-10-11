@@ -90,7 +90,6 @@
       const password = document.getElementById('password').value;
 
       try {
-        // Registo com redirecionamento de confirmação apontando para a página de perfil/confirmação
         const { data, error } = await supabaseClient.auth.signUp({
           email: email,
           password: password,
@@ -103,17 +102,19 @@
           throw error;
         }
 
-        // Se o Supabase estiver configurado com confirmação por e-mail ativada:
         successDiv.textContent = 'Conta criada com sucesso! Verifique o seu e-mail para confirmar o acesso.';
         successDiv.style.display = 'block';
 
-        // Opcional: Redirecionar para a página de aviso após 2 segundos
         setTimeout(() => {
-          window.location.href = 'check-email.html';
+          window.location.href = 'login.html';
         }, 2500);
 
       } catch (err) {
-        errorDiv.textContent = err.message || 'Erro ao realizar o registo.';
+        let userMsg = err.message || 'Erro ao realizar o registo.';
+        if (userMsg.includes('already registered')) {
+          userMsg = 'Este e-mail já está registado. Tente entrar ou recuperar a palavra-passe.';
+        }
+        errorDiv.textContent = userMsg;
         errorDiv.style.display = 'block';
         submitBtn.disabled = false;
         submitBtn.textContent = 'Registar Conta';
