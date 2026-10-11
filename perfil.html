@@ -41,13 +41,12 @@
       box-shadow:var(--shadow);
     }
 
-    /* Seção do Avatar / Foto */
+    /* Avatar / Foto */
     .avatar-wrapper {
       display: flex;
       flex-direction: column;
       align-items: center;
       margin-bottom: 20px;
-      position: relative;
     }
 
     .avatar-img {
@@ -80,12 +79,41 @@
 
     #fileInput { display: none; }
 
-    h1{
-      font-size:26px;
-      margin-bottom:4px;
-      letter-spacing:-1px;
+    /* Nome no Topo Editável */
+    .header-name-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    h1 {
+      font-size: 26px;
+      letter-spacing: -1px;
       text-align: center;
     }
+
+    .edit-name-input {
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 18px;
+      outline: none;
+      width: 180px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .btn-icon {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--muted);
+      padding: 4px;
+    }
+    .btn-icon:hover { color: var(--ink); }
 
     .sub{
       color:var(--muted);
@@ -117,36 +145,31 @@
     .label{ color:var(--muted); }
     .value{ font-weight:700; word-break:break-word; text-align:right; }
 
-    .edit-name-group {
+    .tokens-group {
       display: flex;
-      gap: 6px;
       align-items: center;
+      gap: 8px;
     }
-
-    .edit-name-input {
-      padding: 6px 10px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      font-size: 14px;
-      outline: none;
-      width: 140px;
-    }
-
-    .btn-icon {
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      font-size: 14px;
-      color: var(--muted);
-      padding: 4px;
-    }
-
-    .btn-icon:hover { color: var(--ink); }
 
     .tokens{
       color:#0f766e;
       font-weight:800;
     }
+
+    .btn-plus {
+      background: var(--accent);
+      color: var(--ink);
+      border: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      font-weight: 800;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: .2s;
+    }
+    .btn-plus:hover { transform: scale(1.1); }
 
     .actions{
       display:grid;
@@ -221,34 +244,31 @@
 </head>
 <body>
   <main class="card">
-    <!-- Avatar / Foto de Perfil -->
+    <!-- Avatar / Foto -->
     <div class="avatar-wrapper">
       <img id="avatarImage" class="avatar-img" src="https://api.dicebear.com/7.x/bottts/svg?seed=Elayon" alt="Foto de Perfil" />
       <label for="fileInput" class="avatar-upload-btn">Alterar Foto 📷</label>
       <input type="file" id="fileInput" accept="image/*" />
     </div>
 
-    <h1>Seu Perfil</h1>
+    <!-- Nome no Topo com Edição -->
+    <div class="header-name-container" id="nameDisplayContainer">
+      <h1 id="userName">Carregando...</h1>
+      <button class="btn-icon" id="btnEditName" title="Editar nome">✏️</button>
+    </div>
+    
+    <div class="header-name-container" id="nameEditContainer" style="display:none; margin-bottom: 8px;">
+      <input type="text" id="inputName" class="edit-name-input" />
+      <button class="btn-icon" id="btnSaveName" title="Guardar">💾</button>
+      <button class="btn-icon" id="btnCancelName" title="Cancelar">❌</button>
+    </div>
+
     <p class="sub">Gestão de conta, tokens e dados pessoais do ecossistema.</p>
 
     <section class="box">
       <div class="row">
         <span class="label">ID</span>
-        <span class="value" id="userId">Carregando...</span>
-      </div>
-
-      <!-- Nome Editável -->
-      <div class="row">
-        <span class="label">Nome</span>
-        <div id="nameDisplayContainer" class="edit-name-group">
-          <span class="value" id="userName">Carregando...</span>
-          <button class="btn-icon" id="btnEditName" title="Editar nome">✏️</button>
-        </div>
-        <div id="nameEditContainer" class="edit-name-group" style="display:none;">
-          <input type="text" id="inputName" class="edit-name-input" />
-          <button class="btn-icon" id="btnSaveName" title="Guardar">💾</button>
-          <button class="btn-icon" id="btnCancelName" title="Cancelar">❌</button>
-        </div>
+        <span class="value" id="userId" style="font-size:11px;">Carregando...</span>
       </div>
 
       <div class="row">
@@ -258,12 +278,14 @@
 
       <div class="row">
         <span class="label">Tokens</span>
-        <span class="value tokens" id="userTokens">100</span>
+        <div class="tokens-group">
+          <span class="value tokens" id="userTokens">100</span>
+          <button class="btn-plus" id="btnAddToken" title="Adicionar Token">+</button>
+        </div>
       </div>
     </section>
 
     <div class="actions">
-      <!-- Transição fluida para o Elayon Avaliação -->
       <a class="btn primary" id="btnStartAvaliacao" href="https://paulorobertoxavierjunior-create.github.io/elayon-avaliacao/" target="_blank" rel="noopener noreferrer">
         Iniciar Elayon Avaliação
       </a>
@@ -291,11 +313,11 @@
         <label for="confirmPassword">Confirmar Palavra-passe</label>
         <input type="password" id="confirmPassword" placeholder="Repita a nova palavra-passe" />
       </div>
-      <button class="btn primary" id="btnSavePassword" type="button">Guardar Nova Palavra-passe</button>
-      <button class="btn logout" style="margin-top:8px;" id="btnSendResetEmail" type="button">Receber Link por E-mail</button>
+      <!-- Botão único de Salve Changes para a palavra-passe -->
+      <button class="btn primary" id="btnSavePassword" type="button">Guardar Alterações</button>
     </div>
 
-    <!-- Seção: Autoexclusão em 2 Etapas -->
+    <!-- Seção: Autoexclusão -->
     <div class="modal-section" id="secDelete">
       <p style="font-size:13px; color:var(--danger); margin-bottom:10px; text-align:left;">
         <strong>Atenção:</strong> Esta ação é irreversível. Todos os seus tokens e dados serão apagados.
@@ -317,6 +339,7 @@
 
     const msgDiv = document.getElementById('msg');
     let currentUser = null;
+    let currentTokens = 100;
 
     function showMsg(text, isError = false) {
       msgDiv.textContent = text;
@@ -337,13 +360,10 @@
 
       const defaultName = currentUser.user_metadata?.nome || currentUser.email.split('@')[0];
       document.getElementById('userName').textContent = defaultName;
-
-      // Avatar padrão gerado com base no ID
       document.getElementById('avatarImage').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.id}`;
 
       await syncUserProfile(currentUser, defaultName);
 
-      // Link com dados para a Avaliação
       const avaliacaoUrl = new URL('https://paulorobertoxavierjunior-create.github.io/elayon-avaliacao/');
       avaliacaoUrl.searchParams.set('uid', currentUser.id);
       avaliacaoUrl.searchParams.set('email', currentUser.email);
@@ -368,16 +388,28 @@
         }
 
         if (profile) {
-          document.getElementById('userTokens').textContent = profile.tokens ?? 100;
+          currentTokens = profile.tokens ?? 100;
+          document.getElementById('userTokens').textContent = currentTokens;
           if (profile.nome) document.getElementById('userName').textContent = profile.nome;
           if (profile.avatar_url) document.getElementById('avatarImage').src = profile.avatar_url;
         }
       } catch (e) {
-        document.getElementById('userTokens').textContent = 100;
+        document.getElementById('userTokens').textContent = currentTokens;
       }
     }
 
-    // --- Edição do Nome ---
+    // Botão de adicionar token (+)
+    document.getElementById('btnAddToken').addEventListener('click', async () => {
+      currentTokens += 1;
+      document.getElementById('userTokens').textContent = currentTokens;
+
+      await supabaseClient
+        .from('profiles')
+        .update({ tokens: currentTokens })
+        .eq('id', currentUser.id);
+    });
+
+    // Edição do Nome no Topo
     document.getElementById('btnEditName').addEventListener('click', () => {
       document.getElementById('inputName').value = document.getElementById('userName').textContent;
       document.getElementById('nameDisplayContainer').style.display = 'none';
@@ -393,27 +425,25 @@
       const newName = document.getElementById('inputName').value.trim();
       if (!newName) return;
 
-      showMsg('A atualizar nome...');
+      showMsg('A guardar nome...');
 
-      // Atualiza na tabela profiles
       const { error } = await supabaseClient
         .from('profiles')
         .update({ nome: newName })
         .eq('id', currentUser.id);
 
       if (!error) {
-        // Atualiza no Auth Metadata
         await supabaseClient.auth.updateUser({ data: { nome: newName } });
         document.getElementById('userName').textContent = newName;
         document.getElementById('nameDisplayContainer').style.display = 'flex';
         document.getElementById('nameEditContainer').style.display = 'none';
-        showMsg('Nome atualizado com sucesso!');
+        showMsg('Alterações guardadas com sucesso!');
       } else {
-        showMsg('Erro ao atualizar nome: ' + error.message, true);
+        showMsg('Erro ao guardar nome: ' + error.message, true);
       }
     });
 
-    // --- Upload de Foto / Avatar ---
+    // Upload de Foto
     document.getElementById('fileInput').addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -423,13 +453,12 @@
         return;
       }
 
-      showMsg('A carregar nova foto...');
+      showMsg('A atualizar foto...');
 
       const reader = new FileReader();
       reader.onload = async function(evt) {
         const base64Image = evt.target.result;
 
-        // Atualizar foto na tabela profiles
         const { error } = await supabaseClient
           .from('profiles')
           .update({ avatar_url: base64Image })
@@ -445,7 +474,7 @@
       reader.readAsDataURL(file);
     });
 
-    // --- Outras Funções (Palavra-passe / Exclusão / Sair) ---
+    // Toggle Seções
     document.getElementById('btnTogglePassword').addEventListener('click', () => {
       const sec = document.getElementById('secPassword');
       sec.style.display = sec.style.display === 'block' ? 'none' : 'block';
@@ -458,6 +487,7 @@
       document.getElementById('secPassword').style.display = 'none';
     });
 
+    // Guardar Palavra-passe com Botão Único
     document.getElementById('btnSavePassword').addEventListener('click', async () => {
       const newP = document.getElementById('newPassword').value;
       const confP = document.getElementById('confirmPassword').value;
@@ -476,23 +506,14 @@
       if (error) {
         showMsg('Erro ao atualizar palavra-passe: ' + error.message, true);
       } else {
-        showMsg('Palavra-passe alterada com sucesso!');
+        showMsg('Alterações guardadas com sucesso!');
         document.getElementById('secPassword').style.display = 'none';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
       }
     });
 
-    document.getElementById('btnSendResetEmail').addEventListener('click', async () => {
-      const { error } = await supabaseClient.auth.resetPasswordForEmail(currentUser.email, {
-        redirectTo: window.location.origin + '/perfil.html'
-      });
-
-      if (error) {
-        showMsg('Erro ao enviar e-mail: ' + error.message, true);
-      } else {
-        showMsg('E-mail enviado! Verifique a sua caixa de entrada.');
-      }
-    });
-
+    // Excluir Conta
     document.getElementById('btnConfirmDelete').addEventListener('click', async () => {
       const confirmVal = document.getElementById('deleteConfirmInput').value.trim();
 
