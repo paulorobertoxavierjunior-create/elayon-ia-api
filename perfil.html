@@ -16,6 +16,7 @@
       --accent:#66c7c0;
       --accent2:#7bd490;
       --shadow:0 10px 30px rgba(0,0,0,.08);
+      --danger:#d9534f;
     }
 
     *{ box-sizing:border-box; margin:0; padding:0; }
@@ -88,11 +89,11 @@
     .btn{
       display:block;
       width:100%;
-      padding:16px;
+      padding:14px;
       border-radius:14px;
       text-decoration:none;
       text-align:center;
-      font-size:16px;
+      font-size:15px;
       font-weight:800;
       border:0;
       cursor:pointer;
@@ -118,13 +119,36 @@
       color:var(--muted);
     }
 
+    .danger-btn{
+      background:#fff2f2;
+      border:1px solid #f5c6cb;
+      color:var(--danger);
+    }
+
+    .modal-section{
+      display:none;
+      margin-top:16px;
+      padding:16px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:#fff;
+    }
+
+    .input-group{ margin-bottom:12px; text-align:left; }
+    label{ display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:var(--ink); }
+    input{
+      width:100%; padding:10px; border:1px solid var(--line); border-radius:10px;
+      font-size:14px; outline:none;
+    }
+
     .msg{
       margin-top:14px;
       font-size:13px;
-      color:#d9534f;
       min-height:18px;
       text-align:center;
     }
+    .msg-error{ color:var(--danger); }
+    .msg-success{ color:#2b8a3e; }
   </style>
 </head>
 <body>
@@ -154,18 +178,48 @@
     </section>
 
     <div class="actions">
-      <!-- Link apontando cirurgicamente para o index do elayon-avaliacao -->
-      <a class="btn primary" href="https://paulorobertoxavierjunior-create.github.io/elayon-avaliacao/" target="_blank" rel="noopener noreferrer">
+      <!-- Transição fluida para o Elayon Avaliação passando sessão -->
+      <a class="btn primary" id="btnStartAvaliacao" href="https://paulorobertoxavierjunior-create.github.io/elayon-avaliacao/" target="_blank" rel="noopener noreferrer">
         Iniciar Elayon Avaliação
       </a>
 
-      <a class="btn secondary" href="login.html">
-        Voltar ao login
-      </a>
+      <button class="btn secondary" id="btnTogglePassword" type="button">
+        Alterar Palavra-passe
+      </button>
 
       <button class="btn logout" id="btnLogout" type="button">
         Sair
       </button>
+
+      <button class="btn danger-btn" id="btnToggleDelete" type="button">
+        Excluir Conta
+      </button>
+    </div>
+
+    <!-- Seção: Alterar Palavra-passe -->
+    <div class="modal-section" id="secPassword">
+      <div class="input-group">
+        <label for="newPassword">Nova Palavra-passe</label>
+        <input type="password" id="newPassword" placeholder="Mínimo 6 carateres" />
+      </div>
+      <div class="input-group">
+        <label for="confirmPassword">Confirmar Palavra-passe</label>
+        <input type="password" id="confirmPassword" placeholder="Repita a nova palavra-passe" />
+      </div>
+      <button class="btn primary" id="btnSavePassword" type="button">Guardar Nova Palavra-passe</button>
+      <button class="btn logout" style="margin-top:8px;" id="btnSendResetEmail" type="button">Receber Link de Troca por E-mail</button>
+    </div>
+
+    <!-- Seção: Autoexclusão em 2 Etapas -->
+    <div class="modal-section" id="secDelete">
+      <p style="font-size:13px; color:var(--danger); margin-bottom:10px; text-align:left;">
+        <strong>Atenção:</strong> Esta ação é irreversível. Todos os seus tokens e dados serão apagados.
+      </p>
+      <div class="input-group">
+        <label for="deleteConfirmInput">Digite <strong>EXCLUIR</strong> para confirmar:</label>
+        <input type="text" id="deleteConfirmInput" placeholder="EXCLUIR" />
+      </div>
+      <button class="btn danger-btn" id="btnConfirmDelete" type="button">Confirmar Exclusão Definitiva</button>
     </div>
 
     <div class="msg" id="msg"></div>
@@ -173,8 +227,16 @@
 
   <script>
     const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const msgDiv = document.getElementById('msg');
+    let currentUser = null;
+
+    function showMsg(text, isError = false) {
+      msgDiv.textContent = text;
+      msgDiv.className = 'msg ' + (isError ? 'msg-error' : 'msg-success');
+    }
 
     async function initAuth() {
       const { data: { session }, error } = await supabaseClient.auth.getSession();
@@ -184,12 +246,123 @@
         return;
       }
 
-      const user = session.user;
-      document.getElementById('userId').textContent = user.id;
-      document.getElementById('userEmail').textContent = user.email || '-';
-      document.getElementById('userName').textContent = user.user_metadata?.nome || user.email.split('@')[0];
+      currentUser = session.user;
+      document.getElementById('userId').textContent = currentUser.id;
+      document.getElementById('userEmail').textContent = currentUser.email || '-';
+
+      const defaultName = currentUser.user_metadata?.nome || currentUser.email.split('@')[0];
+      document.getElementById('userName').textContent = defaultName;
+
+      // Garantir existência do perfil e ler saldo de tokens
+      await syncUserProfile(currentUser, defaultName);
+
+      // Prepara o link para o Elayon Avaliação levando os dados do utilizador
+      const avaliacaoUrl = new URL('https://paulorobertoxavierjunior-create.github.io/elayon-avaliacao/');
+      avaliacaoUrl.searchParams.set('uid', currentUser.id);
+      avaliacaoUrl.searchParams.set('email', currentUser.email);
+      document.getElementById('btnStartAvaliacao').href = avaliacaoUrl.toString();
     }
 
+    async function syncUserProfile(user, defaultName) {
+      try {
+        let { data: profile, error } = await supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error && error.code === 'PGRST116') {
+          // Perfil não existe, criar automaticamente
+          const { data: newProfile } = await supabaseClient
+            .from('profiles')
+            .insert([{ id: user.id, email: user.email, nome: defaultName, tokens: 100 }])
+            .select()
+            .single();
+          profile = newProfile;
+        }
+
+        if (profile) {
+          document.getElementById('userTokens').textContent = profile.tokens ?? 100;
+          if (profile.nome) document.getElementById('userName').textContent = profile.nome;
+        }
+      } catch (e) {
+        document.getElementById('userTokens').textContent = 100;
+      }
+    }
+
+    // Toggle Seções
+    document.getElementById('btnTogglePassword').addEventListener('click', () => {
+      const sec = document.getElementById('secPassword');
+      sec.style.display = sec.style.display === 'block' ? 'none' : 'block';
+      document.getElementById('secDelete').style.display = 'none';
+    });
+
+    document.getElementById('btnToggleDelete').addEventListener('click', () => {
+      const sec = document.getElementById('secDelete');
+      sec.style.display = sec.style.display === 'block' ? 'none' : 'block';
+      document.getElementById('secPassword').style.display = 'none';
+    });
+
+    // Guardar Nova Palavra-passe
+    document.getElementById('btnSavePassword').addEventListener('click', async () => {
+      const newP = document.getElementById('newPassword').value;
+      const confP = document.getElementById('confirmPassword').value;
+
+      if (!newP || newP.length < 6) {
+        showMsg('A palavra-passe deve ter pelo menos 6 carateres.', true);
+        return;
+      }
+      if (newP !== confP) {
+        showMsg('As palavras-passe introduzidas não coincidem.', true);
+        return;
+      }
+
+      const { error } = await supabaseClient.auth.updateUser({ password: newP });
+
+      if (error) {
+        showMsg('Erro ao atualizar palavra-passe: ' + error.message, true);
+      } else {
+        showMsg('Palavra-passe alterada com sucesso!');
+        document.getElementById('secPassword').style.display = 'none';
+      }
+    });
+
+    // Enviar link de redefinição por e-mail
+    document.getElementById('btnSendResetEmail').addEventListener('click', async () => {
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(currentUser.email, {
+        redirectTo: window.location.origin + '/perfil.html'
+      });
+
+      if (error) {
+        showMsg('Erro ao enviar e-mail: ' + error.message, true);
+      } else {
+        showMsg('E-mail de redefinição enviado! Verifique a sua caixa de entrada.');
+      }
+    });
+
+    // Autoexclusão da Conta
+    document.getElementById('btnConfirmDelete').addEventListener('click', async () => {
+      const confirmVal = document.getElementById('deleteConfirmInput').value.trim();
+
+      if (confirmVal !== 'EXCLUIR') {
+        showMsg('Escreva EXCLUIR para confirmar a eliminação.', true);
+        return;
+      }
+
+      try {
+        // Remover registro da tabela publica
+        await supabaseClient.from('profiles').delete().eq('id', currentUser.id);
+        
+        // Terminar sessão e redirecionar
+        await supabaseClient.auth.signOut();
+        alert('Sua conta foi excluída com sucesso.');
+        window.location.href = 'login.html';
+      } catch (err) {
+        showMsg('Erro ao eliminar a conta: ' + err.message, true);
+      }
+    });
+
+    // Sair
     document.getElementById('btnLogout').addEventListener('click', async () => {
       await supabaseClient.auth.signOut();
       window.location.href = 'login.html';
