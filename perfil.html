@@ -251,7 +251,7 @@
       <input type="file" id="fileInput" accept="image/*" />
     </div>
 
-    <!-- Nome no Topo com Edição -->
+    <!-- Nome no Topo Editável -->
     <div class="header-name-container" id="nameDisplayContainer">
       <h1 id="userName">Carregando...</h1>
       <button class="btn-icon" id="btnEditName" title="Editar nome">✏️</button>
@@ -328,7 +328,7 @@
       <button class="btn danger-btn" id="btnConfirmDelete" type="button">Confirmar Exclusão Definitiva</button>
     </div>
 
-    <!-- BOTÃO GLOBAL DE SALVAR ALTERAÇÕES NO SUPABASE -->
+    <!-- BOTÃO GLOBAL REAL -->
     <div style="margin-top: 20px;">
       <button class="btn primary" id="btnSaveChanges" style="background: linear-gradient(135deg, #2a9d8f, #3ecfcf); color: #fff;">
         💾 Salvar Alterações no Supabase
@@ -398,7 +398,7 @@
           document.getElementById('userTokens').textContent = currentTokens;
           if (profile.nome) document.getElementById('userName').textContent = profile.nome;
           
-          if (profile.avatar_url) {
+          if (profile.avatar_url && profile.avatar_url.trim() !== '') {
             currentAvatarBase64 = profile.avatar_url;
             document.getElementById('avatarImage').src = profile.avatar_url;
           } else {
@@ -411,14 +411,14 @@
       }
     }
 
-    // Adicionar Token (+) na memória local
+    // Adicionar Token (+) na memória
     document.getElementById('btnAddToken').addEventListener('click', () => {
       currentTokens += 1;
       document.getElementById('userTokens').textContent = currentTokens;
-      showMsg('Token adicionado (clique em Salvar para gravar no banco).');
+      showMsg('Token adicionado! Clique em "Salvar Alterações" para confirmar no banco.');
     });
 
-    // Edição do Nome
+    // Edição de Nome
     document.getElementById('btnEditName').addEventListener('click', () => {
       document.getElementById('inputName').value = document.getElementById('userName').textContent;
       document.getElementById('nameDisplayContainer').style.display = 'none';
@@ -436,33 +436,59 @@
       document.getElementById('userName').textContent = newName;
       document.getElementById('nameDisplayContainer').style.display = 'flex';
       document.getElementById('nameEditContainer').style.display = 'none';
-      showMsg('Nome alterado (clique em Salvar para gravar no banco).');
+      showMsg('Nome alterado! Clique em "Salvar Alterações" para confirmar no banco.');
     });
 
-    // Upload de Foto (Prepara na memória)
+    // Upload e Compressão Automática da Foto (Ajuste para não quebrar)
     document.getElementById('fileInput').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
-      if (file.size > 2 * 1024 * 1024) {
-        showMsg('A imagem deve ter no máximo 2MB.', true);
-        return;
-      }
-
       const reader = new FileReader();
       reader.onload = function(evt) {
-        currentAvatarBase64 = evt.target.result;
-        document.getElementById('avatarImage').src = currentAvatarBase64;
-        showMsg('Nova foto carregada (clique em Salvar para gravar no banco).');
+        const img = new Image();
+        img.onload = function() {
+          // Redimensiona para max 200x200px para ser leve e perfeito no Supabase
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const maxSize = 200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxSize) {
+              height *= maxSize / width;
+              width = maxSize;
+            }
+          } else {
+            if (height > maxSize) {
+              width *= maxSize / height;
+              height = maxSize;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Gera imagem JPEG comprimida leve
+          currentAvatarBase64 = canvas.toDataURL('image/jpeg', 0.8);
+          document.getElementById('avatarImage').src = currentAvatarBase64;
+          showMsg('Foto atualizada com sucesso! Clique em "Salvar Alterações".');
+        };
+        img.src = evt.target.result;
       };
       reader.readAsDataURL(file);
     });
 
-    // BOTÃO GLOBAL: SALVAR TUDO NO SUPABASE DE VERDADE
+    // SALVAR TUDO NO SUPABASE DE FORMA DEFINITIVA
     document.getElementById('btnSaveChanges').addEventListener('click', async () => {
       if (!currentUser) return;
 
-      showMsg('A salvar alterações no Supabase...');
+      showMsg('A gravar dados no Supabase...');
+      const btn = document.getElementById('btnSaveChanges');
+      btn.disabled = true;
+
       const finalName = document.getElementById('userName').textContent;
 
       const updateData = {
@@ -474,17 +500,20 @@
         updateData.avatar_url = currentAvatarBase64;
       }
 
+      // 1. Atualizar a tabela profiles
       const { error } = await supabaseClient
         .from('profiles')
-        .update(updateData)
-        .eq('id', currentUser.id);
+        .upsert({ id: currentUser.id, email: currentUser.email, ...updateData });
 
       if (!error) {
+        // 2. Atualizar Metadata do Auth
         await supabaseClient.auth.updateUser({ data: { nome: finalName } });
         showMsg('✅ Alterações salvas com sucesso no Supabase!');
       } else {
         showMsg('Erro ao salvar no Supabase: ' + error.message, true);
       }
+
+      btn.disabled = false;
     });
 
     // Toggle Seções
