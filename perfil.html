@@ -246,7 +246,7 @@
   <main class="card">
     <!-- Avatar / Foto -->
     <div class="avatar-wrapper">
-      <img id="avatarImage" class="avatar-img" src="https://api.dicebear.com/7.x/bottts/svg?seed=Elayon" alt="Foto de Perfil" />
+      <img id="avatarImage" class="avatar-img" src="" alt="Foto de Perfil" />
       <label for="fileInput" class="avatar-upload-btn">Alterar Foto 📷</label>
       <input type="file" id="fileInput" accept="image/*" />
     </div>
@@ -313,7 +313,7 @@
         <label for="confirmPassword">Confirmar Palavra-passe</label>
         <input type="password" id="confirmPassword" placeholder="Repita a nova palavra-passe" />
       </div>
-      <!-- Botão único de Salve Changes para a palavra-passe -->
+      <!-- Botão de Guardar Alterações para a palavra-passe -->
       <button class="btn primary" id="btnSavePassword" type="button">Guardar Alterações</button>
     </div>
 
@@ -360,8 +360,8 @@
 
       const defaultName = currentUser.user_metadata?.nome || currentUser.email.split('@')[0];
       document.getElementById('userName').textContent = defaultName;
-      document.getElementById('avatarImage').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.id}`;
 
+      // Sincroniza e puxa os dados corretos do banco ANTES de renderizar imagens padrão
       await syncUserProfile(currentUser, defaultName);
 
       const avaliacaoUrl = new URL('https://paulorobertoxavierjunior-create.github.io/elayon-avaliacao/');
@@ -391,10 +391,17 @@
           currentTokens = profile.tokens ?? 100;
           document.getElementById('userTokens').textContent = currentTokens;
           if (profile.nome) document.getElementById('userName').textContent = profile.nome;
-          if (profile.avatar_url) document.getElementById('avatarImage').src = profile.avatar_url;
+          
+          // Define a foto salva ou usa o avatar padrão gerado se estiver vazia
+          if (profile.avatar_url) {
+            document.getElementById('avatarImage').src = profile.avatar_url;
+          } else {
+            document.getElementById('avatarImage').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id}`;
+          }
         }
       } catch (e) {
         document.getElementById('userTokens').textContent = currentTokens;
+        document.getElementById('avatarImage').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id}`;
       }
     }
 
