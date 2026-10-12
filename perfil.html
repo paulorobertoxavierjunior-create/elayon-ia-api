@@ -259,7 +259,7 @@
     
     <div class="header-name-container" id="nameEditContainer" style="display:none; margin-bottom: 8px;">
       <input type="text" id="inputName" class="edit-name-input" />
-      <button class="btn-icon" id="btnSaveName" title="Guardar">💾</button>
+      <button class="btn-icon" id="btnSaveNameInline" title="Confirmar Nome">💾</button>
       <button class="btn-icon" id="btnCancelName" title="Cancelar">❌</button>
     </div>
 
@@ -313,8 +313,7 @@
         <label for="confirmPassword">Confirmar Palavra-passe</label>
         <input type="password" id="confirmPassword" placeholder="Repita a nova palavra-passe" />
       </div>
-      <!-- Botão de Guardar Alterações para a palavra-passe -->
-      <button class="btn primary" id="btnSavePassword" type="button">Guardar Alterações</button>
+      <button class="btn primary" id="btnSavePassword" type="button">Atualizar Palavra-passe</button>
     </div>
 
     <!-- Seção: Autoexclusão -->
@@ -329,6 +328,13 @@
       <button class="btn danger-btn" id="btnConfirmDelete" type="button">Confirmar Exclusão Definitiva</button>
     </div>
 
+    <!-- BOTÃO GLOBAL DE SALVAR ALTERAÇÕES NO SUPABASE -->
+    <div style="margin-top: 20px;">
+      <button class="btn primary" id="btnSaveChanges" style="background: linear-gradient(135deg, #2a9d8f, #3ecfcf); color: #fff;">
+        💾 Salvar Alterações no Supabase
+      </button>
+    </div>
+
     <div class="msg" id="msg"></div>
   </main>
 
@@ -340,6 +346,7 @@
     const msgDiv = document.getElementById('msg');
     let currentUser = null;
     let currentTokens = 100;
+    let currentAvatarBase64 = null;
 
     function showMsg(text, isError = false) {
       msgDiv.textContent = text;
@@ -361,7 +368,6 @@
       const defaultName = currentUser.user_metadata?.nome || currentUser.email.split('@')[0];
       document.getElementById('userName').textContent = defaultName;
 
-      // Sincroniza e puxa os dados corretos do banco ANTES de renderizar imagens padrão
       await syncUserProfile(currentUser, defaultName);
 
       const avaliacaoUrl = new URL('https://paulorobertoxavierjunior-create.github.io/elayon-avaliacao/');
@@ -392,8 +398,8 @@
           document.getElementById('userTokens').textContent = currentTokens;
           if (profile.nome) document.getElementById('userName').textContent = profile.nome;
           
-          // Define a foto salva ou usa o avatar padrão gerado se estiver vazia
           if (profile.avatar_url) {
+            currentAvatarBase64 = profile.avatar_url;
             document.getElementById('avatarImage').src = profile.avatar_url;
           } else {
             document.getElementById('avatarImage').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id}`;
@@ -405,18 +411,14 @@
       }
     }
 
-    // Botão de adicionar token (+)
-    document.getElementById('btnAddToken').addEventListener('click', async () => {
+    // Adicionar Token (+) na memória local
+    document.getElementById('btnAddToken').addEventListener('click', () => {
       currentTokens += 1;
       document.getElementById('userTokens').textContent = currentTokens;
-
-      await supabaseClient
-        .from('profiles')
-        .update({ tokens: currentTokens })
-        .eq('id', currentUser.id);
+      showMsg('Token adicionado (clique em Salvar para gravar no banco).');
     });
 
-    // Edição do Nome no Topo
+    // Edição do Nome
     document.getElementById('btnEditName').addEventListener('click', () => {
       document.getElementById('inputName').value = document.getElementById('userName').textContent;
       document.getElementById('nameDisplayContainer').style.display = 'none';
@@ -428,30 +430,17 @@
       document.getElementById('nameEditContainer').style.display = 'none';
     });
 
-    document.getElementById('btnSaveName').addEventListener('click', async () => {
+    document.getElementById('btnSaveNameInline').addEventListener('click', () => {
       const newName = document.getElementById('inputName').value.trim();
       if (!newName) return;
-
-      showMsg('A guardar nome...');
-
-      const { error } = await supabaseClient
-        .from('profiles')
-        .update({ nome: newName })
-        .eq('id', currentUser.id);
-
-      if (!error) {
-        await supabaseClient.auth.updateUser({ data: { nome: newName } });
-        document.getElementById('userName').textContent = newName;
-        document.getElementById('nameDisplayContainer').style.display = 'flex';
-        document.getElementById('nameEditContainer').style.display = 'none';
-        showMsg('Alterações guardadas com sucesso!');
-      } else {
-        showMsg('Erro ao guardar nome: ' + error.message, true);
-      }
+      document.getElementById('userName').textContent = newName;
+      document.getElementById('nameDisplayContainer').style.display = 'flex';
+      document.getElementById('nameEditContainer').style.display = 'none';
+      showMsg('Nome alterado (clique em Salvar para gravar no banco).');
     });
 
-    // Upload de Foto
-    document.getElementById('fileInput').addEventListener('change', async (e) => {
+    // Upload de Foto (Prepara na memória)
+    document.getElementById('fileInput').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
@@ -460,25 +449,42 @@
         return;
       }
 
-      showMsg('A atualizar foto...');
-
       const reader = new FileReader();
-      reader.onload = async function(evt) {
-        const base64Image = evt.target.result;
-
-        const { error } = await supabaseClient
-          .from('profiles')
-          .update({ avatar_url: base64Image })
-          .eq('id', currentUser.id);
-
-        if (!error) {
-          document.getElementById('avatarImage').src = base64Image;
-          showMsg('Foto de perfil atualizada!');
-        } else {
-          showMsg('Erro ao guardar foto: ' + error.message, true);
-        }
+      reader.onload = function(evt) {
+        currentAvatarBase64 = evt.target.result;
+        document.getElementById('avatarImage').src = currentAvatarBase64;
+        showMsg('Nova foto carregada (clique em Salvar para gravar no banco).');
       };
       reader.readAsDataURL(file);
+    });
+
+    // BOTÃO GLOBAL: SALVAR TUDO NO SUPABASE DE VERDADE
+    document.getElementById('btnSaveChanges').addEventListener('click', async () => {
+      if (!currentUser) return;
+
+      showMsg('A salvar alterações no Supabase...');
+      const finalName = document.getElementById('userName').textContent;
+
+      const updateData = {
+        nome: finalName,
+        tokens: currentTokens
+      };
+
+      if (currentAvatarBase64) {
+        updateData.avatar_url = currentAvatarBase64;
+      }
+
+      const { error } = await supabaseClient
+        .from('profiles')
+        .update(updateData)
+        .eq('id', currentUser.id);
+
+      if (!error) {
+        await supabaseClient.auth.updateUser({ data: { nome: finalName } });
+        showMsg('✅ Alterações salvas com sucesso no Supabase!');
+      } else {
+        showMsg('Erro ao salvar no Supabase: ' + error.message, true);
+      }
     });
 
     // Toggle Seções
@@ -494,7 +500,7 @@
       document.getElementById('secPassword').style.display = 'none';
     });
 
-    // Guardar Palavra-passe com Botão Único
+    // Guardar Palavra-passe
     document.getElementById('btnSavePassword').addEventListener('click', async () => {
       const newP = document.getElementById('newPassword').value;
       const confP = document.getElementById('confirmPassword').value;
@@ -513,7 +519,7 @@
       if (error) {
         showMsg('Erro ao atualizar palavra-passe: ' + error.message, true);
       } else {
-        showMsg('Alterações guardadas com sucesso!');
+        showMsg('Palavra-passe atualizada com sucesso!');
         document.getElementById('secPassword').style.display = 'none';
         document.getElementById('newPassword').value = '';
         document.getElementById('confirmPassword').value = '';
