@@ -7,15 +7,15 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root{
-      --bg1:#eaf7e3;
-      --bg2:#dff4f6;
+      --bg1:#f4f9f4;
+      --bg2:#eaf4f6;
       --card:#ffffff;
       --ink:#0a2a2f;
       --muted:#4a6b70;
-      --line:#cfe4e7;
-      --accent:#66c7c0;
-      --accent2:#7bd490;
-      --shadow:0 10px 30px rgba(0,0,0,.08);
+      --line:#d8e8eb;
+      --accent:#2a9d8f;
+      --accent2:#3ecfcf;
+      --shadow:0 10px 30px rgba(0,0,0,0.06);
       --danger:#d9534f;
     }
 
@@ -41,6 +41,25 @@
       box-shadow:var(--shadow);
     }
 
+    /* Logo no Topo */
+    .logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .logo-img {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--accent);
+      margin-bottom: 12px;
+      background: #fff;
+    }
+
+    /* Avatar / Foto */
     .avatar-wrapper {
       display: flex;
       flex-direction: column;
@@ -49,23 +68,23 @@
     }
 
     .avatar-img {
-      width: 96px;
-      height: 96px;
+      width: 84px;
+      height: 84px;
       border-radius: 50%;
       object-fit: cover;
       border: 3px solid var(--accent);
       background: #e2f1f1;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
 
     .avatar-upload-btn {
-      margin-top: 10px;
-      font-size: 12px;
+      margin-top: 8px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--ink);
       background: #f0f7f7;
       border: 1px solid var(--line);
-      padding: 6px 14px;
+      padding: 5px 12px;
       border-radius: 20px;
       cursor: pointer;
       transition: .2s;
@@ -87,7 +106,7 @@
     }
 
     h1 {
-      font-size: 26px;
+      font-size: 24px;
       letter-spacing: -1px;
       text-align: center;
     }
@@ -96,7 +115,7 @@
       padding: 6px 10px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      font-size: 18px;
+      font-size: 16px;
       outline: none;
       width: 180px;
       font-weight: 700;
@@ -107,7 +126,7 @@
       background: transparent;
       border: none;
       cursor: pointer;
-      font-size: 16px;
+      font-size: 15px;
       color: var(--muted);
       padding: 4px;
     }
@@ -115,14 +134,14 @@
 
     .sub{
       color:var(--muted);
-      font-size:14px;
-      margin-bottom:22px;
-      line-height:1.5;
+      font-size:13px;
+      margin-bottom:20px;
+      line-height:1.4;
       text-align: center;
     }
 
     .box{
-      background:#f8fbfb;
+      background:#f8fbfa;
       border:1px solid var(--line);
       border-radius:16px;
       padding:16px;
@@ -134,7 +153,7 @@
       justify-content:space-between;
       align-items:center;
       gap:12px;
-      font-size:14px;
+      font-size:13px;
       margin-bottom:12px;
     }
 
@@ -150,16 +169,16 @@
     }
 
     .tokens{
-      color:#0f766e;
+      color:var(--accent);
       font-weight:800;
     }
 
     .btn-plus {
       background: var(--accent);
-      color: var(--ink);
+      color: #fff;
       border: none;
-      width: 26px;
-      height: 26px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       font-weight: 800;
       cursor: pointer;
@@ -182,7 +201,7 @@
       border-radius:14px;
       text-decoration:none;
       text-align:center;
-      font-size:15px;
+      font-size:14px;
       font-weight:800;
       border:0;
       cursor:pointer;
@@ -192,8 +211,8 @@
     .btn:hover{ transform:translateY(-2px); }
 
     .primary{
-      background:linear-gradient(135deg,var(--accent),var(--accent2));
-      color:var(--ink);
+      background:linear-gradient(135deg, var(--accent), var(--accent2));
+      color:#fff;
     }
 
     .secondary{
@@ -224,15 +243,15 @@
     }
 
     .input-group{ margin-bottom:12px; text-align:left; }
-    label{ display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:var(--ink); }
+    label{ display:block; font-size:11px; font-weight:600; margin-bottom:4px; color:var(--ink); text-transform: uppercase; }
     input{
       width:100%; padding:10px; border:1px solid var(--line); border-radius:10px;
-      font-size:14px; outline:none;
+      font-size:13px; outline:none; background: #fafcfc;
     }
 
     .msg{
       margin-top:14px;
-      font-size:13px;
+      font-size:12px;
       min-height:18px;
       text-align:center;
     }
@@ -242,12 +261,19 @@
 </head>
 <body>
   <main class="card">
+    <!-- Logo Oficial Elayon -->
+    <div class="logo-container">
+      <img src="elayon_logo.png" alt="Elayon Logo" class="logo-img" onerror="this.style.display='none'" />
+    </div>
+
+    <!-- Avatar / Foto -->
     <div class="avatar-wrapper">
       <img id="avatarImage" class="avatar-img" src="" alt="Foto de Perfil" />
       <label for="fileInput" class="avatar-upload-btn">Alterar Foto 📷</label>
       <input type="file" id="fileInput" accept="image/*" />
     </div>
 
+    <!-- Nome no Topo com Edição -->
     <div class="header-name-container" id="nameDisplayContainer">
       <h1 id="userName">Carregando...</h1>
       <button class="btn-icon" id="btnEditName" title="Editar nome">✏️</button>
@@ -264,7 +290,7 @@
     <section class="box">
       <div class="row">
         <span class="label">ID</span>
-        <span class="value" id="userId" style="font-size:11px;">Carregando...</span>
+        <span class="value" id="userId" style="font-size:10px;">Carregando...</span>
       </div>
 
       <div class="row">
@@ -282,8 +308,8 @@
     </section>
 
     <div class="actions">
-      <!-- Botão alterado para Acessar Cockpit, mantendo a mesma aba e repassando parâmetros de autenticação -->
-      <a class="btn primary" id="btnStartAvaliacao" href="#">
+      <!-- Botão para acessar o Cockpit unificado na mesma aba -->
+      <a class="btn primary" id="btnStartAvaliacao" href="cockpit.html">
         Acessar Cockpit
       </a>
 
@@ -294,12 +320,9 @@
       <button class="btn logout" id="btnLogout" type="button">
         Sair
       </button>
-
-      <button class="btn danger-btn" id="btnToggleDelete" type="button">
-        Excluir Conta
-      </button>
     </div>
 
+    <!-- Seção: Alterar Palavra-passe -->
     <div class="modal-section" id="secPassword">
       <div class="input-group">
         <label for="newPassword">Nova Palavra-passe</label>
@@ -312,21 +335,29 @@
       <button class="btn primary" id="btnSavePassword" type="button">Atualizar Palavra-passe</button>
     </div>
 
-    <div class="modal-section" id="secDelete">
-      <p style="font-size:13px; color:var(--danger); margin-bottom:10px; text-align:left;">
-        <strong>Atenção:</strong> Esta ação é irreversível. Todos os seus tokens e dados serão apagados.
-      </p>
-      <div class="input-group">
-        <label for="deleteConfirmInput">Digite <strong>EXCLUIR</strong> para confirmar:</label>
-        <input type="text" id="deleteConfirmInput" placeholder="EXCLUIR" />
-      </div>
-      <button class="btn danger-btn" id="btnConfirmDelete" type="button">Confirmar Exclusão Definitiva</button>
-    </div>
-
-    <div style="margin-top: 20px;">
-      <button class="btn primary" id="btnSaveChanges" style="background: linear-gradient(135deg, #2a9d8f, #3ecfcf); color: #fff;">
+    <!-- Seção: Salvar Alterações -->
+    <div style="margin-top: 18px;">
+      <button class="btn primary" id="btnSaveChanges">
         💾 Salvar Alterações no Supabase
       </button>
+    </div>
+
+    <!-- SEÇÃO DE EXCLUSÃO DE CONTA (Isolada e no final com espaçamento seguro) -->
+    <div style="margin-top: 40px; border-top: 1px solid var(--line); padding-top: 25px;">
+      <button class="btn danger-btn" id="btnToggleDelete" type="button">
+        Excluir Conta
+      </button>
+
+      <div class="modal-section" id="secDelete" style="margin-top: 14px;">
+        <p style="font-size:12px; color:var(--danger); margin-bottom:10px; text-align:left; line-height: 1.4;">
+          <strong>Atenção:</strong> Esta ação é irreversível. Todos os seus tokens e dados serão apagados permanentemente.
+        </p>
+        <div class="input-group">
+          <label for="deleteConfirmInput">Digite <strong>EXCLUIR</strong> para confirmar:</label>
+          <input type="text" id="deleteConfirmInput" placeholder="EXCLUIR" />
+        </div>
+        <button class="btn danger-btn" id="btnConfirmDelete" type="button">Confirmar Exclusão Definitiva</button>
+      </div>
     </div>
 
     <div class="msg" id="msg"></div>
@@ -364,8 +395,8 @@
 
       await syncUserProfile(currentUser, defaultName);
 
-      // Apontamento para o Cockpit dentro do repositório elayon-avaliacao (ou elayon-ia-api conforme estruturado) na mesma aba
-      const cockpitUrl = new URL('https://paulorobertoxavierjunior-create.github.io/elayon-avaliacao/cockpit.html');
+      // Aponta para o cockpit integrado na mesma pasta
+      const cockpitUrl = new URL('cockpit.html', window.location.href);
       cockpitUrl.searchParams.set('uid', currentUser.id);
       cockpitUrl.searchParams.set('email', currentUser.email);
       document.getElementById('btnStartAvaliacao').href = cockpitUrl.toString();
