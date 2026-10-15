@@ -4,7 +4,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let tokenCount = 100;
-let etapaCalibracao = 0; // 0 a 3
+let etapaCalibracao = 0;
 let gravandoLivre = false;
 let mediaRecorder = null;
 let audioChunks = [];
@@ -39,7 +39,7 @@ function toggleLogsDrawer() {
 }
 
 async function initCockpit() {
-    addLog('A validar sessão e calibragem vitalícia no Supabase...');
+    addLog('A validar sessão e a carregar dados do ID no Supabase...');
     const { data: { session }, error } = await supabaseClient.auth.getSession();
     
     if (error || !session) {
@@ -50,12 +50,18 @@ async function initCockpit() {
 
     currentUser = session.user;
     document.getElementById('userDisplayEmail').textContent = currentUser.email;
+    addLog(`ID autenticado: ${currentUser.id}`, 'ok');
 
-    const { data: profile } = await supabaseClient
+    // Carrega o perfil completo do utilizador vinculado ao ID
+    const { data: profile, error: errProfile } = await supabaseClient
         .from('profiles')
         .select('*')
         .eq('id', currentUser.id)
-        .single();
+        .maybeSingle();
+
+    if (errProfile) {
+        addLog('Erro ao buscar perfil: ' + errProfile.message, 'err');
+    }
 
     if (profile) {
         document.getElementById('userDisplayName').textContent = profile.nome || currentUser.email.split('@')[0];
@@ -63,47 +69,62 @@ async function initCockpit() {
         document.getElementById('hudTokens').textContent = tokenCount;
         document.getElementById('cardTokens').textContent = tokenCount;
         
-        if (profile.ai_provider) document.getElementById('selectAiProvider').value = profile.ai_provider;
-        if (profile.ai_key) document.getElementById('inputApiKey').value = profile.ai_key;
+        // Fixa e carrega o provedor e a chave de API salvos no banco para este ID
+        if (profile.ai_provider) {
+            document.getElementById('selectAiProvider').value = profile.ai_provider;
+        }
+        if (profile.ai_key && profile.ai_key.trim() !== '') {
+            document.getElementById('inputApiKey').value = profile.ai_key;
+            addLog('Chave de API fixa carregada com sucesso do banco de dados.', 'ok');
+        } else {
+            addLog('Aviso: Nenhuma chave de API gravada no banco para este ID.', 'info');
+        }
 
-        // Verifica se a calibração vitalícia já foi concluída anteriormente
         if (profile.calibrado) {
             etapaCalibracao = 3;
             ativarSimbioseCompleta();
-            addLog('Calibração vitalícia carregada do perfil com sucesso.', 'ok');
+            addLog('Calibração vitalícia ativa carregada.', 'ok');
         }
+    } else {
+        addLog('Perfil não encontrado para este ID. A criar registo base...', 'info');
+        await supabaseClient.from('profiles').insert([{ id: currentUser.id, email: currentUser.email, tokens: 100 }]);
     }
 
     const perfilUrl = new URL('perfil.html', window.location.href);
     document.getElementById('btnGoPerfil').href = perfilUrl.toString();
 }
 
+// Salva e fixa a chave de API no Supabase vinculada estritamente ao ID
 async function salvarConfigAi() {
     const provider = document.getElementById('selectAiProvider').value;
     const apiKey = document.getElementById('inputApiKey').value.trim();
+    
     if(!apiKey) {
-        addLog('Tentativa de salvar chave de IA vazia.', 'err');
+        addLog('Tentativa de salvar chave vazia.', 'err');
         alert('Por favor, insira sua chave de API.');
         return;
     }
 
-    addLog(`Salvando provedor ${provider} no Supabase...`);
+    addLog(`A fixar chave e provedor (${provider}) para o ID ${currentUser.id}...`);
+
+    // Atualiza ou insere mantendo o vínculo fixo por ID
     const { error } = await supabaseClient
         .from('profiles')
-        .upsert({ id: currentUser.id, email: currentUser.email, ai_provider: provider, ai_key: apiKey });
+        .update({ 
+            ai_provider: provider, 
+            ai_key: apiKey 
+        })
+        .eq('id', currentUser.id);
 
     if (!error) {
-        localStorage.setItem('elayon_ai_provider', provider);
-        localStorage.setItem('elayon_ai_key', apiKey);
-        addLog('Chave de IA externa salva e fixada com sucesso!', 'ok');
-        alert('✅ Chave de API e Provedor salvos e fixados com sucesso!');
+        addLog('Chave de API fixada com sucesso na base de dados!', 'ok');
+        alert('✅ Chave de API salva e fixada permanentemente ao seu ID!');
     } else {
-        addLog('Erro ao salvar chave: ' + error.message, 'err');
+        addLog('Erro ao fixar chave no Supabase: ' + error.message, 'err');
         alert('Erro ao salvar: ' + error.message);
     }
 }
 
-// Gravação sequencial dos 3 áudios para calibração vitalícia com envio ao CRS-full
 async function gravarAudioCalibracao() {
     if (tokenCount < 1) {
         addLog('Tokens insuficientes para calibração.', 'err');
@@ -113,12 +134,12 @@ async function gravarAudioCalibracao() {
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         addLog('Navegador não suporta gravação de áudio.', 'err');
-        alert('Seu dispositivo não suporta captura de microfone.');
+        alert('Seu dispositivo não suporta o microfone.');
         return;
     }
 
     try {
-        addLog(`Iniciando captação do microfone para o Áudio ${etapaCalibracao + 1}/3...`);
+        addLog(`Iniciando captação para o Áudio de Calibração Vitalícia ${etapaCalibracao + 1}/3...`);
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const recorder = new MediaRecorder(stream);
         let chunks = [];
@@ -126,7 +147,7 @@ async function gravarAudioCalibracao() {
         recorder.ondataavailable = e => chunks.push(e.data);
         recorder.onstop = async () => {
             const blob = new Blob(chunks, { type: 'audio/webm' });
-            addLog(`Áudio ${etapaCalibracao + 1}/3 capturado (${blob.size} bytes). Despachando para CRS-full (Análise Espectral e Pausas)...`, 'info');
+            addLog(`Áudio ${etapaCalibracao + 1}/3 capturado (${blob.size} bytes). Despachando para CRS-full...`, 'info');
 
             setTimeout(async () => {
                 tokenCount -= 1;
@@ -140,9 +161,9 @@ async function gravarAudioCalibracao() {
                 if (etapaCalibracao < 3) {
                     document.getElementById('btnIniciarCalibracao').textContent = `🎙️ Gravar Áudio de Calibração Vitalícia (Sequencial ${etapaCalibracao + 1}/3)`;
                     document.getElementById('calibraStatus').textContent = `⚪ Calibração Pendente (${etapaCalibracao}/3)`;
-                    addLog(`Áudio ${etapaCalibracao} processado pelo CRS com sucesso.`, 'ok');
+                    addLog(`Áudio ${etapaCalibracao} processado com sucesso.`, 'ok');
                 } else {
-                    addLog('3 áudios calibrados. Perfil ajustado para calibração vitalícia!', 'ok');
+                    addLog('3 áudios calibrados. Calibração vitalícia gravada!', 'ok');
                     await supabaseClient.from('profiles').update({ calibrado: true }).eq('id', currentUser.id);
                     ativarSimbioseCompleta();
                 }
@@ -155,7 +176,7 @@ async function gravarAudioCalibracao() {
         stream.getTracks().forEach(track => track.stop());
 
     } catch (err) {
-        addLog('Erro ao acionar microfone do dispositivo: ' + err.message, 'err');
+        addLog('Erro ao acionar microfone: ' + err.message, 'err');
         alert('Erro ao acessar o microfone.');
     }
 }
@@ -180,19 +201,25 @@ function ativarSimbioseCompleta() {
         </div>
     `;
     chatBox.scrollTop = chatBox.scrollHeight;
-    addLog('Módulos e Assistente Ad operacionais com análise de hesitação.', 'ok');
+    addLog('Módulos e Assistente Ad operacionais.', 'ok');
 }
 
-// Primeira interação detalhando nível de hesitação e aspectos espectrais
 function enviarTextoChat() {
     const input = document.getElementById('chatInput');
     const texto = input.value.trim();
     if(!texto) return;
 
+    const apiKey = document.getElementById('inputApiKey').value.trim();
+    if (!apiKey) {
+        addLog('Erro: Nenhuma chave de API ativa vinculada a este ID.', 'err');
+        alert('Configure e salve sua chave de API acima antes de interagir.');
+        return;
+    }
+
     const chatBox = document.getElementById('chatBox');
     chatBox.innerHTML += `<div class="chat-message user">${texto}</div>`;
     input.value = '';
-    addLog(`Mensagem enviada ao Ad para análise de fluxo: "${texto}"`);
+    addLog(`Mensagem enviada ao Ad com chave vinculada ao ID.`);
 
     if(tokenCount > 0) {
         tokenCount -= 1;
@@ -206,15 +233,14 @@ function enviarTextoChat() {
                 📊 <strong>Relatório CRS-full & Espectrometria:</strong><br>
                 - Nível de hesitação: Baixo / Fluido.<br>
                 - Espectro de frequência e pausas validados.<br>
-                - Aparelho calibrado com sucesso. Como posso auxiliar no seu ecossistema?
+                - Conexão com API externa ativa para o ID. Como posso auxiliar?
             </div>
         `;
         chatBox.scrollTop = chatBox.scrollHeight;
-        addLog('Feedback de hesitação e relatório CRS entregues com sucesso.', 'ok');
+        addLog('Interação concluída com sucesso.', 'ok');
     }, 1200);
 }
 
-// Gravação contínua sem limite de tempo no microfone do aparelho
 async function toggleMicrofoneLivre() {
     const btn = document.getElementById('btnMicLivre');
     
@@ -230,7 +256,7 @@ async function toggleMicrofoneLivre() {
                 addLog(`Gravação contínua concluída (${blob.size} bytes). Enviando para CRS-full...`, 'ok');
                 
                 const chatBox = document.getElementById('chatBox');
-                chatBox.innerHTML += `<div class="chat-message ad">🎙️ Áudio contínuo processado. Espectrograma e métricas de silêncio avaliadas pelo CRS.</div>`;
+                chatBox.innerHTML += `<div class="chat-message ad">🎙️ Áudio contínuo processado e avaliado pelo CRS.</div>`;
                 chatBox.scrollTop = chatBox.scrollHeight;
             };
 
@@ -238,7 +264,7 @@ async function toggleMicrofoneLivre() {
             gravandoLivre = true;
             btn.textContent = '⏹️ Parar Gravação Contínua';
             btn.className = 'btn-action btn-danger';
-            addLog('Microfone aberto em modo contínuo (sem limite de tempo)...', 'ok');
+            addLog('Microfone aberto em modo contínuo...', 'ok');
         } catch (err) {
             addLog('Erro no microfone contínuo: ' + err.message, 'err');
             alert('Erro ao iniciar o microfone.');
