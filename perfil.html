@@ -32,6 +32,7 @@
     }
 
     .card{
+      position: relative;
       width:100%;
       max-width:480px;
       background:var(--card);
@@ -41,29 +42,28 @@
       box-shadow:var(--shadow);
     }
 
-    /* Logo no Topo */
-    .logo-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 24px;
+    /* Logo no Canto Superior Esquerdo (Reduzida 20%) */
+    .top-logo-container {
+      position: absolute;
+      top: 20px;
+      left: 20px;
     }
 
-    .logo-img {
-      width: 72px;
-      height: 72px;
+    .logo-img-small {
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       object-fit: cover;
-      border: 2px solid var(--accent);
-      margin-bottom: 12px;
+      border: 1.5px solid var(--accent);
       background: #fff;
     }
 
-    /* Avatar / Foto */
+    /* Avatar / Foto Principal */
     .avatar-wrapper {
       display: flex;
       flex-direction: column;
       align-items: center;
+      margin-top: 10px;
       margin-bottom: 20px;
     }
 
@@ -261,9 +261,9 @@
 </head>
 <body>
   <main class="card">
-    <!-- Logo Oficial Elayon -->
-    <div class="logo-container">
-      <img src="elayon_logo.png" alt="Elayon Logo" class="logo-img" onerror="this.style.display='none'" />
+    <!-- Logo 20% Menor no Canto Superior Esquerdo -->
+    <div class="top-logo-container">
+      <img src="elayon_logo.png" alt="Elayon Logo" class="logo-img-small" onerror="this.style.display='none'" />
     </div>
 
     <!-- Avatar / Foto -->
@@ -308,7 +308,7 @@
     </section>
 
     <div class="actions">
-      <!-- Botão para acessar o Cockpit unificado na mesma aba -->
+      <!-- Endereçamento interno correto no mesmo repositório -->
       <a class="btn primary" id="btnStartAvaliacao" href="cockpit.html">
         Acessar Cockpit
       </a>
@@ -342,7 +342,7 @@
       </button>
     </div>
 
-    <!-- SEÇÃO DE EXCLUSÃO DE CONTA (Isolada e no final com espaçamento seguro) -->
+    <!-- SEÇÃO DE EXCLUSÃO DE CONTA -->
     <div style="margin-top: 40px; border-top: 1px solid var(--line); padding-top: 25px;">
       <button class="btn danger-btn" id="btnToggleDelete" type="button">
         Excluir Conta
@@ -395,7 +395,6 @@
 
       await syncUserProfile(currentUser, defaultName);
 
-      // Aponta para o cockpit integrado na mesma pasta
       const cockpitUrl = new URL('cockpit.html', window.location.href);
       cockpitUrl.searchParams.set('uid', currentUser.id);
       cockpitUrl.searchParams.set('email', currentUser.email);
