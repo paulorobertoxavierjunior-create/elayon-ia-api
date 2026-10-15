@@ -41,7 +41,6 @@
       box-shadow:var(--shadow);
     }
 
-    /* Avatar / Foto */
     .avatar-wrapper {
       display: flex;
       flex-direction: column;
@@ -79,7 +78,6 @@
 
     #fileInput { display: none; }
 
-    /* Nome no Topo Editável */
     .header-name-container {
       display: flex;
       align-items: center;
@@ -244,14 +242,12 @@
 </head>
 <body>
   <main class="card">
-    <!-- Avatar / Foto -->
     <div class="avatar-wrapper">
       <img id="avatarImage" class="avatar-img" src="" alt="Foto de Perfil" />
       <label for="fileInput" class="avatar-upload-btn">Alterar Foto 📷</label>
       <input type="file" id="fileInput" accept="image/*" />
     </div>
 
-    <!-- Nome no Topo Editável -->
     <div class="header-name-container" id="nameDisplayContainer">
       <h1 id="userName">Carregando...</h1>
       <button class="btn-icon" id="btnEditName" title="Editar nome">✏️</button>
@@ -286,10 +282,10 @@
     </section>
 
     <div class="actions">
-    <!-- No perfil.html -->
-<a class="btn primary" id="btnStartAvaliacao" href="https://paulorobertoxavierjunior-create.github.io/elayon-avaliacao/cockpit.html" target="_blank" rel="noopener noreferrer">
-  Iniciar Conexão Simbiótica
-</a>
+      <!-- Botão alterado para Acessar Cockpit, mantendo a mesma aba e repassando parâmetros de autenticação -->
+      <a class="btn primary" id="btnStartAvaliacao" href="#">
+        Acessar Cockpit
+      </a>
 
       <button class="btn secondary" id="btnTogglePassword" type="button">
         Alterar Palavra-passe
@@ -304,7 +300,6 @@
       </button>
     </div>
 
-    <!-- Seção: Alterar Palavra-passe -->
     <div class="modal-section" id="secPassword">
       <div class="input-group">
         <label for="newPassword">Nova Palavra-passe</label>
@@ -317,7 +312,6 @@
       <button class="btn primary" id="btnSavePassword" type="button">Atualizar Palavra-passe</button>
     </div>
 
-    <!-- Seção: Autoexclusão -->
     <div class="modal-section" id="secDelete">
       <p style="font-size:13px; color:var(--danger); margin-bottom:10px; text-align:left;">
         <strong>Atenção:</strong> Esta ação é irreversível. Todos os seus tokens e dados serão apagados.
@@ -329,7 +323,6 @@
       <button class="btn danger-btn" id="btnConfirmDelete" type="button">Confirmar Exclusão Definitiva</button>
     </div>
 
-    <!-- BOTÃO GLOBAL REAL -->
     <div style="margin-top: 20px;">
       <button class="btn primary" id="btnSaveChanges" style="background: linear-gradient(135deg, #2a9d8f, #3ecfcf); color: #fff;">
         💾 Salvar Alterações no Supabase
@@ -371,10 +364,11 @@
 
       await syncUserProfile(currentUser, defaultName);
 
-      const avaliacaoUrl = new URL('https://paulorobertoxavierjunior-create.github.io/elayon-avaliacao/');
-      avaliacaoUrl.searchParams.set('uid', currentUser.id);
-      avaliacaoUrl.searchParams.set('email', currentUser.email);
-      document.getElementById('btnStartAvaliacao').href = avaliacaoUrl.toString();
+      // Apontamento para o Cockpit dentro do repositório elayon-avaliacao (ou elayon-ia-api conforme estruturado) na mesma aba
+      const cockpitUrl = new URL('https://paulorobertoxavierjunior-create.github.io/elayon-avaliacao/cockpit.html');
+      cockpitUrl.searchParams.set('uid', currentUser.id);
+      cockpitUrl.searchParams.set('email', currentUser.email);
+      document.getElementById('btnStartAvaliacao').href = cockpitUrl.toString();
     }
 
     async function syncUserProfile(user, defaultName) {
@@ -412,14 +406,12 @@
       }
     }
 
-    // Adicionar Token (+) na memória
     document.getElementById('btnAddToken').addEventListener('click', () => {
       currentTokens += 1;
       document.getElementById('userTokens').textContent = currentTokens;
       showMsg('Token adicionado! Clique em "Salvar Alterações" para confirmar no banco.');
     });
 
-    // Edição de Nome
     document.getElementById('btnEditName').addEventListener('click', () => {
       document.getElementById('inputName').value = document.getElementById('userName').textContent;
       document.getElementById('nameDisplayContainer').style.display = 'none';
@@ -440,7 +432,6 @@
       showMsg('Nome alterado! Clique em "Salvar Alterações" para confirmar no banco.');
     });
 
-    // Upload e Compressão Automática da Foto (Ajuste para não quebrar)
     document.getElementById('fileInput').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -449,7 +440,6 @@
       reader.onload = function(evt) {
         const img = new Image();
         img.onload = function() {
-          // Redimensiona para max 200x200px para ser leve e perfeito no Supabase
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
           const maxSize = 200;
@@ -472,7 +462,6 @@
           canvas.height = height;
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Gera imagem JPEG comprimida leve
           currentAvatarBase64 = canvas.toDataURL('image/jpeg', 0.8);
           document.getElementById('avatarImage').src = currentAvatarBase64;
           showMsg('Foto atualizada com sucesso! Clique em "Salvar Alterações".');
@@ -482,7 +471,6 @@
       reader.readAsDataURL(file);
     });
 
-    // SALVAR TUDO NO SUPABASE DE FORMA DEFINITIVA
     document.getElementById('btnSaveChanges').addEventListener('click', async () => {
       if (!currentUser) return;
 
@@ -501,13 +489,11 @@
         updateData.avatar_url = currentAvatarBase64;
       }
 
-      // 1. Atualizar a tabela profiles
       const { error } = await supabaseClient
         .from('profiles')
         .upsert({ id: currentUser.id, email: currentUser.email, ...updateData });
 
       if (!error) {
-        // 2. Atualizar Metadata do Auth
         await supabaseClient.auth.updateUser({ data: { nome: finalName } });
         showMsg('✅ Alterações salvas com sucesso no Supabase!');
       } else {
@@ -517,7 +503,6 @@
       btn.disabled = false;
     });
 
-    // Toggle Seções
     document.getElementById('btnTogglePassword').addEventListener('click', () => {
       const sec = document.getElementById('secPassword');
       sec.style.display = sec.style.display === 'block' ? 'none' : 'block';
@@ -530,7 +515,6 @@
       document.getElementById('secPassword').style.display = 'none';
     });
 
-    // Guardar Palavra-passe
     document.getElementById('btnSavePassword').addEventListener('click', async () => {
       const newP = document.getElementById('newPassword').value;
       const confP = document.getElementById('confirmPassword').value;
@@ -556,7 +540,6 @@
       }
     });
 
-    // Excluir Conta
     document.getElementById('btnConfirmDelete').addEventListener('click', async () => {
       const confirmVal = document.getElementById('deleteConfirmInput').value.trim();
 
