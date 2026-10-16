@@ -2,7 +2,7 @@
 // ELAYON SPACE • MOTOR DO COCKPIT (JS UNIFICADO)
 // ==========================================
 const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6Inhsa3FnZmRzYmprIiwiaWF0IjoxNzkwNzc1ODk4LCJleHAiOjIxMDYzNTE4OTh9.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
@@ -14,7 +14,6 @@ let mediaRecorder = null;
 let audioChunks = [];
 let audioContext = null;
 let analyser = null;
-let logsAbertos = false;
 let activeCamada = 'usuario';
 
 // ------------------------------------------
@@ -32,20 +31,8 @@ function addLog(msg, tipo = 'info') {
     body.scrollTop = body.scrollHeight;
     
     const count = body.querySelectorAll('.log-item').length;
-    document.getElementById('logCount').textContent = count;
-}
-
-function toggleLogsDrawer() {
-    logsAbertos = !logsAbertos;
-    const drawer = document.getElementById('logsDrawer');
-    const icon = document.getElementById('logToggleIcon');
-    if (logsAbertos) {
-        drawer.style.transform = 'translateY(0)';
-        icon.textContent = '▼ Recolher';
-    } else {
-        drawer.style.transform = 'translateY(105px)';
-        icon.textContent = '▲ Expandir';
-    }
+    const logCountEl = document.getElementById('logCount');
+    if (logCountEl) logCountEl.textContent = count;
 }
 
 // ------------------------------------------
@@ -92,7 +79,8 @@ async function initCockpit() {
     }
 
     currentUser = session.user;
-    document.getElementById('userDisplayEmail').textContent = currentUser.email;
+    const emailEl = document.getElementById('userDisplayEmail');
+    if (emailEl) emailEl.textContent = currentUser.email;
     addLog(`ID autenticado com sucesso: ${currentUser.id}`, 'ok');
 
     // Carrega o perfil completo do utilizador vinculado estritamente ao ID
@@ -107,16 +95,21 @@ async function initCockpit() {
     }
 
     if (profile) {
-        document.getElementById('userDisplayName').textContent = profile.nome || currentUser.email.split('@')[0];
+        const nameEl = document.getElementById('userDisplayName');
+        if (nameEl) nameEl.textContent = profile.nome || currentUser.email.split('@')[0];
+        
         tokenCount = profile.tokens ?? 100;
-        document.getElementById('hudTokens').textContent = tokenCount;
+        const tokensEl = document.getElementById('hudTokens');
+        if (tokensEl) tokensEl.textContent = tokenCount;
         
         // Verifica e carrega a chave de API e provedor vinculados
         if (profile.ai_provider) {
-            document.getElementById('selectAiProvider').value = profile.ai_provider;
+            const providerEl = document.getElementById('selectAiProvider');
+            if (providerEl) providerEl.value = profile.ai_provider;
         }
         if (profile.ai_key && profile.ai_key.trim() !== '') {
-            document.getElementById('inputApiKey').value = profile.ai_key;
+            const keyEl = document.getElementById('inputApiKey');
+            if (keyEl) keyEl.value = profile.ai_key;
             ativarInterfaceIA(true);
             addLog('Chave de API fixa carregada com sucesso do banco de dados.', 'ok');
         } else {
@@ -126,9 +119,12 @@ async function initCockpit() {
 
         if (profile.calibrado) {
             etapaCalibracao = 3;
-            document.getElementById('calibraStatus').textContent = '✅ Calibrado (3/3)';
-            document.getElementById('calibraStatus').style.background = '#d4edda';
-            document.getElementById('calibraStatus').style.color = '#155724';
+            const calibraEl = document.getElementById('calibraStatus');
+            if (calibraEl) {
+                calibraEl.textContent = '✅ Calibrado (3/3)';
+                calibraEl.style.background = '#d4edda';
+                calibraEl.style.color = '#155724';
+            }
             addLog('Calibração vitalícia ativa carregada.', 'ok');
         }
     } else {
@@ -137,7 +133,8 @@ async function initCockpit() {
     }
 
     const perfilUrl = new URL('perfil.html', window.location.href);
-    document.getElementById('btnGoPerfil').href = perfilUrl.toString();
+    const btnPerfil = document.getElementById('btnGoPerfil');
+    if (btnPerfil) btnPerfil.href = perfilUrl.toString();
 }
 
 function ativarInterfaceIA(ativo) {
@@ -147,19 +144,27 @@ function ativarInterfaceIA(ativo) {
     const btnMic = document.getElementById('btnMicSimple');
 
     if (ativo) {
-        statusIa.textContent = 'ATIVA';
-        statusIa.style.color = 'var(--success)';
-        inputChat.disabled = false;
-        inputChat.placeholder = 'Converse com o Ad (contexto total ativo)...';
-        btnSend.disabled = false;
-        btnMic.disabled = false;
+        if (statusIa) {
+            statusIa.textContent = 'ATIVA';
+            statusIa.style.color = 'var(--success)';
+        }
+        if (inputChat) {
+            inputChat.disabled = false;
+            inputChat.placeholder = 'Converse com o Ad (contexto total ativo)...';
+        }
+        if (btnSend) btnSend.disabled = false;
+        if (btnMic) btnMic.disabled = false;
     } else {
-        statusIa.textContent = 'INATIVA';
-        statusIa.style.color = 'var(--danger)';
-        inputChat.disabled = true;
-        inputChat.placeholder = 'Insira e salve a chave de API acima...';
-        btnSend.disabled = true;
-        btnMic.disabled = true;
+        if (statusIa) {
+            statusIa.textContent = 'INATIVA';
+            statusIa.style.color = 'var(--danger)';
+        }
+        if (inputChat) {
+            inputChat.disabled = true;
+            inputChat.placeholder = 'Insira e salve a chave de API acima...';
+        }
+        if (btnSend) btnSend.disabled = true;
+        if (btnMic) btnMic.disabled = true;
     }
 }
 
@@ -167,8 +172,12 @@ function ativarInterfaceIA(ativo) {
 // SALVAR CHAVE E VINCULAR AO ID
 // ------------------------------------------
 async function salvarConfigAi() {
-    const provider = document.getElementById('selectAiProvider').value;
-    const apiKey = document.getElementById('inputApiKey').value.trim();
+    const providerEl = document.getElementById('selectAiProvider');
+    const keyEl = document.getElementById('inputApiKey');
+    if (!providerEl || !keyEl) return;
+
+    const provider = providerEl.value;
+    const apiKey = keyEl.value.trim();
     
     if(!apiKey) {
         addLog('Tentativa de salvar chave vazia.', 'err');
@@ -193,20 +202,23 @@ async function salvarConfigAi() {
         
         // Mensagem de boas-vindas da IA
         const chatBox = document.getElementById('chatBox');
-        chatBox.innerHTML += `
-            <div class="chat-message ad">
-                <strong>Ad (Elayon Space):</strong><br>
-                Seja bem-vindo ao ecossistema. Conexão estabelecida com sucesso. Como posso auxiliar na sua escuta simbólica hoje?
-            </div>
-        `;
-        chatBox.scrollTop = chatBox.scrollHeight;
+        if (chatBox) {
+            chatBox.innerHTML += `
+                <div class="chat-message ad">
+                    <strong>Ad (Elayon Space):</strong><br>
+                    Seja bem-vindo ao ecossistema. Conexão estabelecida com sucesso. Como posso auxiliar na sua escuta simbólica hoje?
+                </div>
+            `;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
     } else {
         addLog('Erro ao fixar chave no Supabase: ' + error.message, 'err');
         alert('Erro ao salvar: ' + error.message);
     }
 }
 
-document.getElementById('btnSalvarIa').addEventListener('click', salvarConfigAi);
+const btnSalvarIa = document.getElementById('btnSalvarIa');
+if (btnSalvarIa) btnSalvarIa.addEventListener('click', salvarConfigAi);
 
 // ------------------------------------------
 // SELEÇÃO DE CAMADAS (HEALTH & PSIQ)
@@ -214,8 +226,9 @@ document.getElementById('btnSalvarIa').addEventListener('click', salvarConfigAi)
 function setCamada(id, desc, btn) {
     activeCamada = id;
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('healthTabContent').textContent = desc;
+    if (btn) btn.classList.add('active');
+    const contentEl = document.getElementById('healthTabContent');
+    if (contentEl) contentEl.textContent = desc;
     addLog(`Camada de acompanhamento alterada para: ${id}`);
 }
 
@@ -224,7 +237,8 @@ function setCamada(id, desc, btn) {
 // ------------------------------------------
 async function toggleMicrofone() {
     const btn = document.getElementById('btnMicSimple');
-    const apiKey = document.getElementById('inputApiKey').value.trim();
+    const keyEl = document.getElementById('inputApiKey');
+    const apiKey = keyEl ? keyEl.value.trim() : '';
     
     if (!apiKey) {
         alert('Configure e salve sua chave de API antes de iniciar a captação por voz.');
@@ -254,8 +268,10 @@ async function toggleMicrofone() {
 
             mediaRecorder.start();
             isRecording = true;
-            btn.textContent = '⏹️ Parar & Confirmar Envio (Max 30s)';
-            btn.style.background = 'var(--danger)';
+            if (btn) {
+                btn.textContent = '⏹️ Parar & Confirmar Envio (Max 30s)';
+                btn.style.background = 'var(--danger)';
+            }
             addLog('Microfone aberto em modo de escuta (teto de 30s)...', 'ok');
 
             // Timeout automático de segurança de 30 segundos
@@ -265,8 +281,10 @@ async function toggleMicrofone() {
                     mediaRecorder.stream.getTracks().forEach(track => track.stop());
                     if (audioContext) audioContext.close();
                     isRecording = false;
-                    btn.textContent = '🎙️ Gravar Fala (Até 30s)';
-                    btn.style.background = 'linear-gradient(135deg, #d9534f, #f06292)';
+                    if (btn) {
+                        btn.textContent = '🎙️ Gravar Fala (Até 30s)';
+                        btn.style.background = 'linear-gradient(135deg, #d9534f, #f06292)';
+                    }
                     addLog('Limite de 30s atingido. Gravação encerrada automaticamente.', 'info');
                 }
             }, 30000);
@@ -280,13 +298,16 @@ async function toggleMicrofone() {
         mediaRecorder.stream.getTracks().forEach(track => track.stop());
         if (audioContext) audioContext.close();
         isRecording = false;
-        btn.textContent = '🎙️ Gravar Fala (Até 30s)';
-        btn.style.background = 'linear-gradient(135deg, #d9534f, #f06292)';
+        if (btn) {
+            btn.textContent = '🎙️ Gravar Fala (Até 30s)';
+            btn.style.background = 'linear-gradient(135deg, #d9534f, #f06292)';
+        }
         addLog('Gravação encerrada manualmente pelo piloto.');
     }
 }
 
-document.getElementById('btnMicSimple').addEventListener('click', toggleMicrofone);
+const btnMicSimple = document.getElementById('btnMicSimple');
+if (btnMicSimple) btnMicSimple.addEventListener('click', toggleMicrofone);
 
 function desenharOndaAudio() {
     const canvas = document.getElementById('audioWaveform');
@@ -332,7 +353,8 @@ async function processarEEnviarCRS(audioBlob) {
     // Consumo de tokens: 1 da ferramenta + 1 do processamento do CRS = 2 tokens
     if (tokenCount >= 2) {
         tokenCount -= 2;
-        document.getElementById('hudTokens').textContent = tokenCount;
+        const tokensEl = document.getElementById('hudTokens');
+        if (tokensEl) tokensEl.textContent = tokenCount;
         await supabaseClient.from('profiles').update({ tokens: tokenCount }).eq('id', currentUser.id);
         addLog(`Tokens consumidos: -2 (Saldo atual: ${tokenCount})`, 'ok');
     } else {
@@ -359,11 +381,14 @@ async function processarEEnviarCRS(audioBlob) {
     // Validação da calibração (3 interações completas)
     if (etapaCalibracao < 3) {
         etapaCalibracao += 1;
-        document.getElementById('calibraStatus').textContent = `⚪ Calibração ${etapaCalibracao}/3`;
+        const calibraEl = document.getElementById('calibraStatus');
+        if (calibraEl) calibraEl.textContent = `⚪ Calibração ${etapaCalibracao}/3`;
         if (etapaCalibracao >= 3) {
-            document.getElementById('calibraStatus').textContent = '✅ Calibrado (3/3)';
-            document.getElementById('calibraStatus').style.background = '#d4edda';
-            document.getElementById('calibraStatus').style.color = '#155724';
+            if (calibraEl) {
+                calibraEl.textContent = '✅ Calibrado (3/3)';
+                calibraEl.style.background = '#d4edda';
+                calibraEl.style.color = '#155724';
+            }
             await supabaseClient.from('profiles').update({ calibrado: true }).eq('id', currentUser.id);
             addLog('Calibração vitalícia concluída e gravada no perfil!', 'ok');
         }
@@ -371,14 +396,16 @@ async function processarEEnviarCRS(audioBlob) {
 
     // Injeta interação no Chat com contexto total
     const chatBox = document.getElementById('chatBox');
-    chatBox.innerHTML += `<div class="chat-message user">🎙️ Áudio capturado e enviado via camada ${activeCamada}.</div>`;
-    chatBox.innerHTML += `
-        <div class="chat-message ad">
-            <strong>Ad (Elayon Space):</strong><br>
-            Relatório do CRS integrado à memória FIFO. Frequência e ritmo analisados sob a camada <em>${activeCamada}</em>. Como podemos avançar?
-        </div>
-    `;
-    chatBox.scrollTop = chatBox.scrollHeight;
+    if (chatBox) {
+        chatBox.innerHTML += `<div class="chat-message user">🎙️ Áudio capturado e enviado via camada ${activeCamada}.</div>`;
+        chatBox.innerHTML += `
+            <div class="chat-message ad">
+                <strong>Ad (Elayon Space):</strong><br>
+                Relatório do CRS integrado à memória FIFO. Frequência e ritmo analisados sob a camada <em>${activeCamada}</em>. Como podemos avançar?
+            </div>
+        `;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
     addLog('Interação concluída com sucesso e somada ao contexto FIFO.', 'ok');
 }
 
@@ -387,42 +414,55 @@ async function processarEEnviarCRS(audioBlob) {
 // ------------------------------------------
 function enviarTextoChat() {
     const input = document.getElementById('chatInput');
+    if (!input) return;
     const texto = input.value.trim();
     if(!texto) return;
 
-    const apiKey = document.getElementById('inputApiKey').value.trim();
+    const keyEl = document.getElementById('inputApiKey');
+    const apiKey = keyEl ? keyEl.value.trim() : '';
     if (!apiKey) {
         alert('Configure sua chave de API antes de interagir.');
         return;
     }
 
     const chatBox = document.getElementById('chatBox');
-    chatBox.innerHTML += `<div class="chat-message user">${texto}</div>`;
+    if (chatBox) {
+        chatBox.innerHTML += `<div class="chat-message user">${texto}</div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
     input.value = '';
     addLog(`Mensagem de texto enviada ao Ad.`);
 
     if(tokenCount > 0) {
         tokenCount -= 1;
-        document.getElementById('hudTokens').textContent = tokenCount;
+        const tokensEl = document.getElementById('hudTokens');
+        if (tokensEl) tokensEl.textContent = tokenCount;
         supabaseClient.from('profiles').update({ tokens: tokenCount }).eq('id', currentUser.id);
     }
 
     setTimeout(() => {
-        chatBox.innerHTML += `
-            <div class="chat-message ad">
-                <strong>Ad (Elayon Space):</strong><br>
-                Compreendido. Contexto avaliado e somado à nossa linha temporal. Como sigo orientando?
-            </div>
-        `;
-        chatBox.scrollTop = chatBox.scrollHeight;
+        if (chatBox) {
+            chatBox.innerHTML += `
+                <div class="chat-message ad">
+                    <strong>Ad (Elayon Space):</strong><br>
+                    Compreendido. Contexto avaliado e somado à nossa linha temporal. Como sigo orientando?
+                </div>
+            `;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
         addLog('Resposta da IA integrada com sucesso.', 'ok');
     }, 1000);
 }
 
-document.getElementById('btnSendChat').addEventListener('click', enviarTextoChat);
-document.getElementById('chatInput').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') enviarTextoChat();
-});
+const btnSendChat = document.getElementById('btnSendChat');
+if (btnSendChat) btnSendChat.addEventListener('click', enviarTextoChat);
+
+const chatInput = document.getElementById('chatInput');
+if (chatInput) {
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') enviarTextoChat();
+    });
+}
 
 // Inicialização automática do motor ao abrir o cockpit
 initCockpit();
