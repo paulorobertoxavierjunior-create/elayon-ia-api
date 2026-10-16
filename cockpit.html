@@ -72,7 +72,6 @@
         }
         .btn-primary { background: linear-gradient(135deg, var(--accent), #3ecfcf); color: #fff; box-shadow: 0 4px 15px var(--accent-glow); }
         .btn-primary:hover { transform: translateY(-2px); }
-        .btn-danger { background: #fff2f2; border: 1px solid #f5c6cb; color: var(--danger); }
 
         /* Abas do Módulo Health & PsiQ */
         .health-container {
@@ -87,29 +86,24 @@
         .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
         .tab-content { font-size: 12px; color: var(--muted); line-height: 1.5; min-height: 40px; }
 
-        /* Chat e Microfone Simples */
+        /* Chat e Espectroide */
         .chat-section {
             background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line);
             box-shadow: var(--shadow); margin-bottom: 20px;
         }
         .chat-box {
-            background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; height: 200px;
+            background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; height: 260px;
             overflow-y: auto; padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;
         }
         .chat-message { font-size: 12px; padding: 8px 12px; border-radius: 8px; max-width: 85%; line-height: 1.4; }
         .chat-message.ad { background: #e2f1f0; color: var(--ink); align-self: flex-start; border-left: 3px solid var(--accent); }
         .chat-message.user { background: var(--accent); color: #fff; align-self: flex-end; }
         
-        /* Gráfico de Áudio em Tempo Real e Relatório do CRS */
+        /* Espectroide Visual em Tempo Real */
         .waveform-container {
-            background: #0a2a2f; border-radius: 10px; padding: 10px; margin-bottom: 10px; text-align: center;
+            background: #0a2a2f; border-radius: 10px; padding: 8px; margin-bottom: 12px; text-align: center;
         }
-        canvas#audioWaveform { width: 100%; height: 50px; display: block; }
-        
-        .crs-report-box {
-            background: #fff8e6; border: 1px solid #ffeeba; border-radius: 10px; padding: 12px;
-            font-family: monospace; font-size: 11px; color: #856404; margin-bottom: 12px; white-space: pre-wrap;
-        }
+        canvas#audioWaveform { width: 100%; height: 60px; display: block; border-radius: 6px; }
 
         /* Ferramentas e Módulos */
         .tool-grid { display: flex; flex-direction: column; gap: 10px; }
@@ -142,7 +136,7 @@
         </header>
 
         <main>
-            <!-- CARTÃO DO PILOTO (LOGO NO CANTO ESQUERDO) -->
+            <!-- CARTÃO DO PILOTO -->
             <div class="profile-card">
                 <img src="elayon_logo.png" alt="Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/48';">
                 <div class="profile-info">
@@ -170,7 +164,7 @@
                 <button class="btn-action btn-primary" style="margin-top: 4px; padding: 10px;" id="btnSalvarIa">Salvar e Ativar IA</button>
             </section>
 
-            <!-- MÓDULOS DE SAÚDE: ELAYON HEALTH & PSIQ -->
+            <!-- MÓDULOS DE SAÚDE & CAMADAS -->
             <div class="section-label">Camadas de Acompanhamento</div>
             <section class="health-container">
                 <div class="tabs-header">
@@ -184,24 +178,19 @@
                 </div>
             </section>
 
-            <!-- CHAT E CAPTURA DE ÁUDIO COM MÉRICAS DO CRS -->
+            <!-- CHAT SIMBIÓTICO E ESPECTROIDE DE FONAÇÃO -->
             <section class="chat-section">
-                <h3 style="font-size: 13px; margin-bottom: 8px; color: var(--ink);">💬 Escuta Simbólica & Captura de Fonação (Max 30s)</h3>
+                <h3 style="font-size: 13px; margin-bottom: 8px; color: var(--ink);">💬 Escuta Simbólica & Assistência Natural</h3>
                 
                 <div class="chat-box" id="chatBox">
                     <div class="chat-message ad">
-                        Insira e salve sua chave de API acima para ativar o sistema e iniciar a calibração de 3 áudios.
+                        Insira e salve sua chave de API acima para iniciar a assistência natural e calibração de fonação.
                     </div>
                 </div>
 
-                <!-- GRÁFICO EM TEMPO REAL DA FONAÇÃO -->
+                <!-- ESPECTROIDE VISUAL DE FREQUÊNCIA -->
                 <div class="waveform-container">
                     <canvas id="audioWaveform"></canvas>
-                </div>
-
-                <!-- CAMPO REAL DO RELATÓRIO DO CRS -->
-                <div class="crs-report-box" id="crsReportBox">
-📊 [Aguardando interação por voz para exibir relatório bruto do CRS...]
                 </div>
 
                 <!-- CONTROLES DE CHAT E MICROFONE -->
@@ -215,7 +204,7 @@
                 </button>
             </section>
 
-            <!-- MÓDULOS E FERRAMENTAS DO ECOSSISTEMA -->
+            <!-- MÓDULOS E FERRAMENTAS DA FORJA -->
             <div class="section-label">Ferramentas & Módulos da Forja</div>
             <div class="tool-grid">
                 <button class="btn-action btn-primary" style="background: #0a2a2f;" onclick="window.print()">📄 Exportar Relatório de Diagnóstico (PDF)</button>
@@ -232,7 +221,7 @@
         </main>
     </div>
 
-    <!-- GAVETA DE LOGS DE AUDITORIA DE API INTERNA E CRS -->
+    <!-- GAVETA DE LOGS DE AUDITORIA -->
     <div class="logs-drawer" id="logsDrawer" style="transform: translateY(105px);">
         <div class="logs-header" onclick="
             const d = document.getElementById('logsDrawer');
@@ -240,11 +229,11 @@
             if(d.style.transform === 'translateY(0px)') { d.style.transform = 'translateY(105px)'; i.textContent='▲ Expandir'; }
             else { d.style.transform = 'translateY(0px)'; i.textContent='▼ Recolher'; }
         ">
-            <span>📋 Auditoria de API Interna & Logs do CRS (<span id="logCount">1</span>)</span>
+            <span>📋 Auditoria de API Interna (<span id="logCount">1</span>)</span>
             <span id="logToggleIcon">▲ Expandir</span>
         </div>
         <div class="logs-body" id="logsBody">
-            <div class="log-item">[INIT] Cockpit pronto. Aguardando vínculo de IA e token de fonação.</div>
+            <div class="log-item">[INIT] Cockpit pronto. Aguardando vínculo de IA.</div>
         </div>
     </div>
 
@@ -256,7 +245,7 @@
         }
     </script>
 
-    <!-- INCLUSÃO OBRIGATÓRIA DO MOTOR JS DO COCKPIT -->
+    <!-- INCLUSÃO DO MOTOR JS -->
     <script src="cockpit.js"></script>
 </body>
 </html>
