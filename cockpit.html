@@ -86,26 +86,26 @@
         .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
         .tab-content { font-size: 12px; color: var(--muted); line-height: 1.5; min-height: 40px; }
 
-        /* Chat e Espectroide */
+        /* Chat Limpo & Espectroide */
         .chat-section {
             background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line);
             box-shadow: var(--shadow); margin-bottom: 20px;
         }
         .chat-box {
-            background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; height: 260px;
+            background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; height: 240px;
             overflow-y: auto; padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;
         }
         .chat-message { font-size: 12px; padding: 8px 12px; border-radius: 8px; max-width: 85%; line-height: 1.4; }
         .chat-message.ad { background: #e2f1f0; color: var(--ink); align-self: flex-start; border-left: 3px solid var(--accent); }
         .chat-message.user { background: var(--accent); color: #fff; align-self: flex-end; }
         
-        /* Espectroide Visual em Tempo Real */
+        /* Canvas do Espectroide Visual em Tempo Real */
         .waveform-container {
             background: #0a2a2f; border-radius: 10px; padding: 8px; margin-bottom: 12px; text-align: center;
         }
         canvas#audioWaveform { width: 100%; height: 60px; display: block; border-radius: 6px; }
 
-        /* Ferramentas e Módulos */
+        /* Ferramentas e Módulos da Forja */
         .tool-grid { display: flex; flex-direction: column; gap: 10px; }
         .tool-btn {
             background: var(--card); border: 1px solid var(--line); padding: 14px; border-radius: 12px;
@@ -168,13 +168,13 @@
             <div class="section-label">Camadas de Acompanhamento</div>
             <section class="health-container">
                 <div class="tabs-header">
-                    <button class="tab-btn active" onclick="setCamada('usuario', 'Utilize a camada Elayon Health na sua IA. A IA global irá receber metadados do centro de pesquisas no futuro e vai somar assim como o CRS.', this)">Health: Usuário</button>
-                    <button class="tab-btn" onclick="setCamada('paciente', 'Camada de acompanhamento clínico do paciente com conexão direta com o médico.', this)">Health: Paciente</button>
-                    <button class="tab-btn" onclick="setCamada('piloto_medico', 'Painel de supervisão do Piloto-Médico para monitoramento em tempo real.', this)">Piloto-Médico</button>
-                    <button class="tab-btn" onclick="setCamada('psiq', 'Acompanhamento psicológico especializado e análise psicoemocional contínua.', this)">PsiQ</button>
+                    <button class="tab-btn active" onclick="setCamada('usuario', 'Camada de Usuário ativa. A IA global opera integrando fonação e métricas em background.', this)">Health: Usuário</button>
+                    <button class="tab-btn" onclick="setCamada('paciente', 'Camada de Paciente ativa. Direcionada para monitoramento clínico e suporte integrado.', this)">Health: Paciente</button>
+                    <button class="tab-btn" onclick="setCamada('piloto_medico', 'Painel de supervisão do Piloto-Médico para telemetria avançada.', this)">Piloto-Médico</button>
+                    <button class="tab-btn" onclick="setCamada('psiq', 'Acompanhamento psicológico especializado e análise psicoemocional.', this)">PsiQ</button>
                 </div>
                 <div class="tab-content" id="healthTabContent">
-                    Utilize a camada Elayon Health na sua IA. A IA global irá receber metadados do centro de pesquisas no futuro e vai somar assim como o CRS.
+                    Camada de Usuário ativa. A IA global opera integrando fonação e métricas em background.
                 </div>
             </section>
 
@@ -184,11 +184,11 @@
                 
                 <div class="chat-box" id="chatBox">
                     <div class="chat-message ad">
-                        Insira e salve sua chave de API acima para iniciar a assistência natural e calibração de fonação.
+                        Insira e salve sua chave de API acima para iniciar a assistência natural e a captura de fonação.
                     </div>
                 </div>
 
-                <!-- ESPECTROIDE VISUAL DE FREQUÊNCIA -->
+                <!-- ESPECTROIDE VISUAL DE FREQUÊNCIA (BARRAS EM TEMPO REAL) -->
                 <div class="waveform-container">
                     <canvas id="audioWaveform"></canvas>
                 </div>
@@ -249,4 +249,3 @@
     <script src="cockpit.js"></script>
 </body>
 </html>
- 
