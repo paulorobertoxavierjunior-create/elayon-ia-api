@@ -18,7 +18,7 @@
             color: var(--ink); font-family: system-ui, -apple-system, sans-serif;
             display: flex; flex-direction: column; align-items: center; padding: 20px; padding-bottom: 90px;
         }
-        .container { width: 100%; max-width: 600px; }
+        .container { width: 100%; max-width: 650px; }
         
         /* HUD Superior */
         .hud-header {
@@ -35,11 +35,10 @@
         }
         .btn-perfil:hover { background: var(--accent); color: #fff; }
 
-        /* Cartão do Piloto com Logo na Esquerda */
+        /* Cartão do Piloto */
         .profile-card {
             background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line);
             margin-bottom: 20px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 16px;
-            position: relative;
         }
         .logo-img { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; }
         .profile-info { flex: 1; text-align: left; }
@@ -73,7 +72,7 @@
         .btn-primary { background: linear-gradient(135deg, var(--accent), #3ecfcf); color: #fff; box-shadow: 0 4px 15px var(--accent-glow); }
         .btn-primary:hover { transform: translateY(-2px); }
 
-        /* Abas do Módulo Health & PsiQ */
+        /* Abas de Camadas */
         .health-container {
             background: var(--card); border-radius: 16px; padding: 20px; border: 1px solid var(--line);
             margin-bottom: 20px; box-shadow: var(--shadow);
@@ -86,26 +85,52 @@
         .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
         .tab-content { font-size: 12px; color: var(--muted); line-height: 1.5; min-height: 40px; }
 
-        /* Chat Limpo & Espectroide */
+        /* PAINEL DAS 3 CAIXAS DE CONEXÃO FIFO (SEPARADO DO CHAT) */
+        .fifo-panel-section {
+            background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line);
+            box-shadow: var(--shadow); margin-bottom: 20px;
+        }
+        .fifo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .connection-card {
+            background: #f8fbfa; border: 1px solid var(--line); border-radius: 14px; padding: 12px;
+            display: flex; flex-direction: column; gap: 8px; text-align: left;
+        }
+        .connection-title { font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase; }
+        .connection-meta { font-size: 9px; color: var(--muted); }
+        .connection-snapshot {
+            width: 100%; height: 50px; background: #0a2a2f; border-radius: 6px; object-fit: cover; border: 1px solid var(--line);
+        }
+        .connection-audio { width: 100%; height: 28px; }
+        .connection-report {
+            background: #fff8e6; border: 1px solid #ffeeba; border-radius: 6px; padding: 6px;
+            font-family: monospace; font-size: 9px; color: #856404; max-height: 55px; overflow-y: auto; white-space: pre-wrap;
+        }
+
+        /* CHAT 100% LIMPO (APENAS TEXTO HUMANO/IA) */
         .chat-section {
             background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line);
             box-shadow: var(--shadow); margin-bottom: 20px;
         }
         .chat-box {
-            background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; height: 240px;
+            background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; height: 220px;
             overflow-y: auto; padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;
         }
         .chat-message { font-size: 12px; padding: 8px 12px; border-radius: 8px; max-width: 85%; line-height: 1.4; }
         .chat-message.ad { background: #e2f1f0; color: var(--ink); align-self: flex-start; border-left: 3px solid var(--accent); }
         .chat-message.user { background: var(--accent); color: #fff; align-self: flex-end; }
         
-        /* Canvas do Espectroide Visual em Tempo Real */
+        /* Espectroide Visual (Barras em Tempo Real) */
         .waveform-container {
             background: #0a2a2f; border-radius: 10px; padding: 8px; margin-bottom: 12px; text-align: center;
         }
         canvas#audioWaveform { width: 100%; height: 60px; display: block; border-radius: 6px; }
 
-        /* Ferramentas e Módulos da Forja */
+        /* Ferramentas e Módulos */
         .tool-grid { display: flex; flex-direction: column; gap: 10px; }
         .tool-btn {
             background: var(--card); border: 1px solid var(--line); padding: 14px; border-radius: 12px;
@@ -168,34 +193,61 @@
             <div class="section-label">Camadas de Acompanhamento</div>
             <section class="health-container">
                 <div class="tabs-header">
-                    <button class="tab-btn active" onclick="setCamada('usuario', 'Camada de Usuário ativa. A IA global opera integrando fonação e métricas em background.', this)">Health: Usuário</button>
-                    <button class="tab-btn" onclick="setCamada('paciente', 'Camada de Paciente ativa. Direcionada para monitoramento clínico e suporte integrado.', this)">Health: Paciente</button>
-                    <button class="tab-btn" onclick="setCamada('piloto_medico', 'Painel de supervisão do Piloto-Médico para telemetria avançada.', this)">Piloto-Médico</button>
-                    <button class="tab-btn" onclick="setCamada('psiq', 'Acompanhamento psicológico especializado e análise psicoemocional.', this)">PsiQ</button>
+                    <button class="tab-btn active" onclick="setCamada('usuario', 'Camada de Usuário ativa.', this)">Health: Usuário</button>
+                    <button class="tab-btn" onclick="setCamada('paciente', 'Camada de Paciente ativa.', this)">Health: Paciente</button>
+                    <button class="tab-btn" onclick="setCamada('piloto_medico', 'Painel de supervisão do Piloto-Médico.', this)">Piloto-Médico</button>
+                    <button class="tab-btn" onclick="setCamada('psiq', 'Acompanhamento psicológico especializado.', this)">PsiQ</button>
                 </div>
                 <div class="tab-content" id="healthTabContent">
                     Camada de Usuário ativa. A IA global opera integrando fonação e métricas em background.
                 </div>
             </section>
 
-            <!-- CHAT SIMBIÓTICO E ESPECTROIDE DE FONAÇÃO -->
+            <!-- PAINEL DAS 3 CAIXAS DE CONEXÃO FIFO (ISOLADO DO CHAT) -->
+            <div class="section-label">Buffer de Conexões Fônicas (FIFO 3/3)</div>
+            <section class="fifo-panel-section">
+                <h3 style="font-size: 12px; color: var(--ink); margin-bottom: 6px;">📊 Últimas Interações Capturadas</h3>
+                <div class="fifo-grid" id="conexoesFifoGrid">
+                    <!-- Preenchido dinamicamente pelo JS -->
+                    <div class="connection-card">
+                        <div class="connection-title">🔗 Mais Recente</div>
+                        <div class="connection-meta">Aguardando fonação...</div>
+                        <div style="background:#0a2a2f; height:50px; border-radius:6px;"></div>
+                        <div class="connection-report">Relatório CRS Vazio</div>
+                    </div>
+                    <div class="connection-card">
+                        <div class="connection-title">🔗 Anterior</div>
+                        <div class="connection-meta">Aguardando fonação...</div>
+                        <div style="background:#0a2a2f; height:50px; border-radius:6px;"></div>
+                        <div class="connection-report">Relatório CRS Vazio</div>
+                    </div>
+                    <div class="connection-card">
+                        <div class="connection-title">🔗 Terceira</div>
+                        <div class="connection-meta">Aguardando fonação...</div>
+                        <div style="background:#0a2a2f; height:50px; border-radius:6px;"></div>
+                        <div class="connection-report">Relatório CRS Vazio</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CHAT 100% LIMPO (APENAS TEXTO HUMANO / IA) -->
             <section class="chat-section">
-                <h3 style="font-size: 13px; margin-bottom: 8px; color: var(--ink);">💬 Escuta Simbólica & Assistência Natural</h3>
+                <h3 style="font-size: 13px; margin-bottom: 8px; color: var(--ink);">💬 Chat Simbiótico (Assistência Natural)</h3>
                 
                 <div class="chat-box" id="chatBox">
                     <div class="chat-message ad">
-                        Insira e salve sua chave de API acima para iniciar a assistência natural e a captura de fonação.
+                        <strong>Ad (Elayon Space):</strong> Olá! Estou pronto. O chat permanece limpo apenas com nossa conversa, enquanto suas fonações alimentam em background o buffer de conexões. Como posso ajudar?
                     </div>
                 </div>
 
-                <!-- ESPECTROIDE VISUAL DE FREQUÊNCIA (BARRAS EM TEMPO REAL) -->
+                <!-- ESPECTROIDE VISUAL DE FREQUÊNCIA (BARRAS) -->
                 <div class="waveform-container">
                     <canvas id="audioWaveform"></canvas>
                 </div>
 
                 <!-- CONTROLES DE CHAT E MICROFONE -->
                 <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <input type="text" id="chatInput" placeholder="Aguardando ativação da IA..." disabled style="flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; background: #f0f4f5;">
+                    <input type="text" id="chatInput" placeholder="Converse livremente com o Ad..." disabled style="flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; background: #f0f4f5;">
                     <button class="btn-action btn-primary" id="btnSendChat" disabled style="width: 70px; margin: 0; padding: 10px;">Enviar</button>
                 </div>
 
@@ -204,7 +256,7 @@
                 </button>
             </section>
 
-            <!-- MÓDULOS E FERRAMENTAS DA FORJA -->
+            <!-- FERRAMENTAS & MÓDULOS -->
             <div class="section-label">Ferramentas & Módulos da Forja</div>
             <div class="tool-grid">
                 <button class="btn-action btn-primary" style="background: #0a2a2f;" onclick="window.print()">📄 Exportar Relatório de Diagnóstico (PDF)</button>
@@ -221,7 +273,7 @@
         </main>
     </div>
 
-    <!-- GAVETA DE LOGS DE AUDITORIA -->
+    <!-- GAVETA DE LOGS -->
     <div class="logs-drawer" id="logsDrawer" style="transform: translateY(105px);">
         <div class="logs-header" onclick="
             const d = document.getElementById('logsDrawer');
@@ -233,7 +285,7 @@
             <span id="logToggleIcon">▲ Expandir</span>
         </div>
         <div class="logs-body" id="logsBody">
-            <div class="log-item">[INIT] Cockpit pronto. Aguardando vínculo de IA.</div>
+            <div class="log-item">[INIT] Cockpit isolado pronto.</div>
         </div>
     </div>
 
@@ -244,8 +296,6 @@
             document.getElementById('healthTabContent').textContent = desc;
         }
     </script>
-
-    <!-- INCLUSÃO DO MOTOR JS -->
     <script src="cockpit.js"></script>
 </body>
 </html>
