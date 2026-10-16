@@ -2,7 +2,7 @@
 // ELAYON SPACE • MOTOR DO COCKPIT (JS UNIFICADO & BLINDADO)
 // ==========================================
 const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6Inhsa3FnZmRzYmprIiwiaWF0IjoxNzkwNzc1ODk4LCJleHAiOjIxMDYzNTE4OTh9.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
@@ -66,69 +66,70 @@ function renderizarRelatoriosNaTela() {
 }
 
 // ------------------------------------------
-// INICIALIZAÇÃO BLINDADA & SESSÃO ESTREITA
+// INICIALIZAÇÃO & SEGURANÇA ESTREITA DE SESSÃO
 // ------------------------------------------
 async function initCockpit() {
-    addLog('A validar autenticação de sessão no Supabase...');
+    addLog('A validar autenticação estrita no Supabase...');
     
-    // Valida se existe uma sessão real e ativa no navegador
+    // Bloqueio de segurança: Valida sessão ativa no navegador
     const { data: { session }, error } = await supabaseClient.auth.getSession();
     
     if (error || !session || !session.user) {
-        addLog('ACESSO BLOQUEADO: Sessão ausente ou inválida. Redirecionando para 404.', 'err');
+        addLog('ACESSO BLOQUEADO: Sessão ausente. Redirecionando para 404.', 'err');
         window.location.replace('404.html');
         return;
     }
 
     currentUser = session.user;
+    
+    // Exibe o e-mail no HUD/Cartão
     const emailEl = document.getElementById('userDisplayEmail');
     if (emailEl) emailEl.textContent = currentUser.email;
     addLog(`ID autenticado com sucesso: ${currentUser.id}`, 'ok');
 
     try {
-        // Usa a API segura /api/perfil-seguro criada por você para buscar os dados protegidos
-        const resp = await fetch('/api/perfil-seguro', {
-            headers: {
-                'Authorization': `Bearer ${session.access_token}`
-            }
-        });
-
-        if (!resp.ok) {
-            throw new Error('Falha ao obter perfil seguro da API.');
-        }
-
-        const profileData = await resp.json();
-
-        const nameEl = document.getElementById('userDisplayName');
-        if (nameEl) nameEl.textContent = profileData.nome || currentUser.email.split('@')[0];
-        
-        tokenCount = profileData.tokens ?? 100;
-        const tokensEl = document.getElementById('hudTokens');
-        if (tokensEl) tokensEl.textContent = tokensEl;
-
-        // Tenta buscar configurações extras de IA direto do Supabase caso existam colunas correspondentes
-        const { data: profileExtra } = await supabaseClient
+        // Sincroniza e busca o perfil real do usuário no banco (tokens, nome, chaves)
+        let { data: profile, error: errProfile } = await supabaseClient
             .from('profiles')
-            .select('ai_provider, ai_key, calibrado')
+            .select('*')
             .eq('id', currentUser.id)
             .maybeSingle();
 
-        if (profileExtra) {
-            if (profileExtra.ai_provider) {
+        if (errProfile || !profile) {
+            addLog('Perfil não encontrado no Supabase. Criando registo base...', 'info');
+            const defaultName = currentUser.user_metadata?.nome || currentUser.email.split('@')[0];
+            const { data: newProfile } = await supabaseClient
+                .from('profiles')
+                .insert([{ id: currentUser.id, email: currentUser.email, nome: defaultName, tokens: 100 }])
+                .select()
+                .single();
+            profile = newProfile;
+        }
+
+        if (profile) {
+            const nameEl = document.getElementById('userDisplayName');
+            if (nameEl) nameEl.textContent = profile.nome || profile.full_name || currentUser.email.split('@')[0];
+            
+            // Pega o saldo real de tokens da base de dados (suporta tanto 'tokens' quanto 'tokens_balance')
+            tokenCount = profile.tokens ?? profile.tokens_balance ?? 100;
+            const tokensEl = document.getElementById('hudTokens');
+            if (tokensEl) tokensEl.textContent = tokenCount;
+
+            if (profile.ai_provider) {
                 const providerEl = document.getElementById('selectAiProvider');
-                if (providerEl) providerEl.value = profileExtra.ai_provider;
+                if (providerEl) providerEl.value = profile.ai_provider;
             }
-            if (profileExtra.ai_key && profileExtra.ai_key.trim() !== '') {
+            if (profile.ai_key && profile.ai_key.trim() !== '') {
                 const keyEl = document.getElementById('inputApiKey');
-                if (keyEl) keyEl.value = profileExtra.ai_key;
+                if (keyEl) keyEl.value = profile.ai_key;
                 ativarInterfaceIA(true);
-                addLog('Chave de API carregada com sucesso.', 'ok');
+                addLog('Chave de API carregada com sucesso do banco.', 'ok');
             } else {
                 ativarInterfaceIA(false);
                 addLog('Aviso: Nenhuma chave de API gravada no banco para este ID.', 'info');
             }
 
-            if (profileExtra.calibrado) {
+            if (profile.calibrado) {
                 etapaCalibracao = 3;
                 const calibraEl = document.getElementById('calibraStatus');
                 if (calibraEl) {
@@ -139,9 +140,10 @@ async function initCockpit() {
             }
         }
     } catch (err) {
-        addLog('Erro ao carregar dados do perfil: ' + err.message, 'err');
+        addLog('Erro ao carregar perfil: ' + err.message, 'err');
     }
 
+    // Configura o link do botão de perfil com rastreabilidade
     const perfilUrl = new URL('perfil.html', window.location.href);
     const btnPerfil = document.getElementById('btnGoPerfil');
     if (btnPerfil) btnPerfil.href = perfilUrl.toString();
@@ -199,11 +201,12 @@ async function salvarConfigAi() {
 
     const { error } = await supabaseClient
         .from('profiles')
-        .update({ 
+        .upsert({ 
+            id: currentUser.id,
+            email: currentUser.email,
             ai_provider: provider, 
             ai_key: apiKey 
-        })
-        .eq('id', currentUser.id);
+        });
 
     if (!error) {
         addLog('Chave de API fixada com sucesso na base de dados!', 'ok');
@@ -361,7 +364,9 @@ async function processarEEnviarCRS(audioBlob) {
         tokenCount -= 2;
         const tokensEl = document.getElementById('hudTokens');
         if (tokensEl) tokensEl.textContent = tokenCount;
-        await supabaseClient.from('profiles').update({ tokens_balance: tokenCount }).eq('id', currentUser.id);
+        
+        // Atualiza o saldo no banco de dados (suporta 'tokens' e 'tokens_balance')
+        await supabaseClient.from('profiles').update({ tokens: tokenCount, tokens_balance: tokenCount }).eq('id', currentUser.id);
         addLog(`Tokens consumidos: -2 (Saldo atual: ${tokenCount})`, 'ok');
     } else {
         addLog('Aviso: Tokens insuficientes para processamento completo.', 'err');
@@ -414,7 +419,7 @@ async function processarEEnviarCRS(audioBlob) {
 // ------------------------------------------
 // ENVIO DE TEXTO NO CHAT
 // ------------------------------------------
-function enviarTextoChat() {
+async function enviarTextoChat() {
     const input = document.getElementById('chatInput');
     if (!input) return;
     const texto = input.value.trim();
@@ -439,7 +444,7 @@ function enviarTextoChat() {
         tokenCount -= 1;
         const tokensEl = document.getElementById('hudTokens');
         if (tokensEl) tokensEl.textContent = tokenCount;
-        supabaseClient.from('profiles').update({ tokens_balance: tokenCount }).eq('id', currentUser.id);
+        await supabaseClient.from('profiles').update({ tokens: tokenCount, tokens_balance: tokenCount }).eq('id', currentUser.id);
     }
 
     setTimeout(() => {
@@ -466,5 +471,5 @@ if (chatInput) {
     });
 }
 
-// Inicialização da verificação de segurança ao carregar
+// Inicialização automática do motor ao carregar a página
 initCockpit();
