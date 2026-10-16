@@ -40,7 +40,7 @@ function addLog(msg, tipo = 'info') {
 // ------------------------------------------
 function adicionarRelatorioFIFO(novoRelatorio) {
     if (arrayRelatoriosCRS.length >= 3) {
-        const removido = arrayRelatoriosCRS.shift(); // Remove o mais antigo automaticamente
+        const removido = arrayRelatoriosCRS.shift(); 
         addLog(`[FIFO] Limite de 3 relatórios atingido. Relatório mais antigo (${removido.timestamp}) removido da base.`, 'info');
     }
     arrayRelatoriosCRS.push(novoRelatorio);
@@ -85,52 +85,61 @@ async function initCockpit() {
     if (emailEl) emailEl.textContent = currentUser.email;
     addLog(`ID autenticado com sucesso: ${currentUser.id}`, 'ok');
 
-    // Carrega o perfil completo vinculado estritamente ao ID da sessão
-    const { data: profile, error: errProfile } = await supabaseClient
-        .from('profiles')
-        .select('*')
-        .eq('id', currentUser.id)
-        .maybeSingle();
-
-    if (errProfile) {
-        addLog('Erro ao buscar perfil: ' + errProfile.message, 'err');
-    }
-
-    if (profile) {
-        const nameEl = document.getElementById('userDisplayName');
-        if (nameEl) nameEl.textContent = profile.nome || currentUser.email.split('@')[0];
-        
-        tokenCount = profile.tokens ?? 100;
-        const tokensEl = document.getElementById('hudTokens');
-        if (tokensEl) tokensEl.textContent = tokenCount;
-        
-        if (profile.ai_provider) {
-            const providerEl = document.getElementById('selectAiProvider');
-            if (providerEl) providerEl.value = profile.ai_provider;
-        }
-        if (profile.ai_key && profile.ai_key.trim() !== '') {
-            const keyEl = document.getElementById('inputApiKey');
-            if (keyEl) keyEl.value = profile.ai_key;
-            ativarInterfaceIA(true);
-            addLog('Chave de API fixa carregada do banco de dados.', 'ok');
-        } else {
-            ativarInterfaceIA(false);
-            addLog('Aviso: Nenhuma chave de API gravada no banco para este ID.', 'info');
-        }
-
-        if (profile.calibrado) {
-            etapaCalibracao = 3;
-            const calibraEl = document.getElementById('calibraStatus');
-            if (calibraEl) {
-                calibraEl.textContent = '✅ Calibrado (3/3)';
-                calibraEl.style.background = '#d4edda';
-                calibraEl.style.color = '#155724';
+    try {
+        // Usa a API segura /api/perfil-seguro criada por você para buscar os dados protegidos
+        const resp = await fetch('/api/perfil-seguro', {
+            headers: {
+                'Authorization': `Bearer ${session.access_token}`
             }
-            addLog('Calibração vitalícia ativa carregada.', 'ok');
+        });
+
+        if (!resp.ok) {
+            throw new Error('Falha ao obter perfil seguro da API.');
         }
-    } else {
-        addLog('Criando perfil base no Supabase para este ID...', 'info');
-        await supabaseClient.from('profiles').insert([{ id: currentUser.id, email: currentUser.email, tokens: 100 }]);
+
+        const profileData = await resp.json();
+
+        const nameEl = document.getElementById('userDisplayName');
+        if (nameEl) nameEl.textContent = profileData.nome || currentUser.email.split('@')[0];
+        
+        tokenCount = profileData.tokens ?? 100;
+        const tokensEl = document.getElementById('hudTokens');
+        if (tokensEl) tokensEl.textContent = tokensEl;
+
+        // Tenta buscar configurações extras de IA direto do Supabase caso existam colunas correspondentes
+        const { data: profileExtra } = await supabaseClient
+            .from('profiles')
+            .select('ai_provider, ai_key, calibrado')
+            .eq('id', currentUser.id)
+            .maybeSingle();
+
+        if (profileExtra) {
+            if (profileExtra.ai_provider) {
+                const providerEl = document.getElementById('selectAiProvider');
+                if (providerEl) providerEl.value = profileExtra.ai_provider;
+            }
+            if (profileExtra.ai_key && profileExtra.ai_key.trim() !== '') {
+                const keyEl = document.getElementById('inputApiKey');
+                if (keyEl) keyEl.value = profileExtra.ai_key;
+                ativarInterfaceIA(true);
+                addLog('Chave de API carregada com sucesso.', 'ok');
+            } else {
+                ativarInterfaceIA(false);
+                addLog('Aviso: Nenhuma chave de API gravada no banco para este ID.', 'info');
+            }
+
+            if (profileExtra.calibrado) {
+                etapaCalibracao = 3;
+                const calibraEl = document.getElementById('calibraStatus');
+                if (calibraEl) {
+                    calibraEl.textContent = '✅ Calibrado (3/3)';
+                    calibraEl.style.background = '#d4edda';
+                    calibraEl.style.color = '#155724';
+                }
+            }
+        }
+    } catch (err) {
+        addLog('Erro ao carregar dados do perfil: ' + err.message, 'err');
     }
 
     const perfilUrl = new URL('perfil.html', window.location.href);
@@ -352,7 +361,7 @@ async function processarEEnviarCRS(audioBlob) {
         tokenCount -= 2;
         const tokensEl = document.getElementById('hudTokens');
         if (tokensEl) tokensEl.textContent = tokenCount;
-        await supabaseClient.from('profiles').update({ tokens: tokenCount }).eq('id', currentUser.id);
+        await supabaseClient.from('profiles').update({ tokens_balance: tokenCount }).eq('id', currentUser.id);
         addLog(`Tokens consumidos: -2 (Saldo atual: ${tokenCount})`, 'ok');
     } else {
         addLog('Aviso: Tokens insuficientes para processamento completo.', 'err');
@@ -430,7 +439,7 @@ function enviarTextoChat() {
         tokenCount -= 1;
         const tokensEl = document.getElementById('hudTokens');
         if (tokensEl) tokensEl.textContent = tokenCount;
-        supabaseClient.from('profiles').update({ tokens: tokenCount }).eq('id', currentUser.id);
+        supabaseClient.from('profiles').update({ tokens_balance: tokenCount }).eq('id', currentUser.id);
     }
 
     setTimeout(() => {
