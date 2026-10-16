@@ -1,23 +1,28 @@
 // ==========================================
-// ELAYON SPACE • MOTOR DO COCKPIT (EVOLUÇÃO UX & CRS)
+// ELAYON SPACE • MOTOR DO COCKPIT (JS FINAL)
 // ==========================================
 const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6Inhsa3FnZmRzYmprIiwiaWF0IjoxNzkwNzc1ODk4LCJleHAiOjIxMDYzNTE4OTh9.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let tokenCount = 100;
-let arrayConexoesFIFO = []; // Fila FIFO restrita aos 3 últimos registros (Áudio, Imagem e CRS)
-let etapaCalibracao = 0;
+let arrayConexoesFIFO = []; // Buffer FIFO das 3 interações
+let etapaCalibracao = 0; // 0, 1, 2 ou 3
 let isRecording = false;
 let mediaRecorder = null;
 let audioChunks = [];
 let audioContext = null;
 let analyser = null;
-let activeCamada = 'usuario';
+
+const perguntasCalibracao = [
+    "Fase 1/3 [Lucidez]: Para você, o que é lucidez? Você sente que está lúcido neste exato momento?",
+    "Fase 2/3 [Consciência]: Você está consciente da sua conexão e do seu estado interior agora?",
+    "Fase 3/3 [Presença]: Você se considera presente e ancorado no ecossistema Elayon Space?"
+];
 
 // ------------------------------------------
-// SISTEMA DE LOGS E AUDITORIA
+// LOGS DE AUDITORIA INTERNA
 // ------------------------------------------
 function addLog(msg, tipo = 'info') {
     const body = document.getElementById('logsBody');
@@ -36,7 +41,7 @@ function addLog(msg, tipo = 'info') {
 }
 
 // ------------------------------------------
-// SÍNTESE DO BIP SONORO (FEEDBACK DE ESCUTA)
+// BIP SONORO DE ESCUTA
 // ------------------------------------------
 function tocarBipAbertura() {
     try {
@@ -45,83 +50,22 @@ function tocarBipAbertura() {
         const gain = ctxBip.createGain();
         
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, ctxBip.currentTime); // Frequência A5 (Bipe limpo)
-        gain.gain.setValueAtTime(0.1, ctxBip.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctxBip.currentTime + 0.15);
+        osc.frequency.setValueAtTime(880, ctxBip.currentTime);
+        gain.gain.setValueAtTime(0.08, ctxBip.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctxBip.currentTime + 0.12);
         
         osc.connect(gain);
         gain.connect(ctxBip.destination);
         
         osc.start();
-        osc.stop(ctxBip.currentTime + 0.15);
+        osc.stop(ctxBip.currentTime + 0.12);
     } catch (e) {
-        console.log('Áudio context bloqueado pelo navegador até interação direta.');
+        console.log('Contexto de áudio aguardando interação.');
     }
 }
 
 // ------------------------------------------
-// GERENCIAMENTO DA FILA FIFO DE CONEXÕES (3 CAIXAS)
-// ------------------------------------------
-function adicionarConexaoFIFO(novaConexao) {
-    if (arrayConexoesFIFO.length >= 3) {
-        const removido = arrayConexoesFIFO.shift(); 
-        addLog(`[FIFO] Limite de 3 conexões atingido. Conexão mais antiga (${removido.timestamp}) arquivada.`, 'info');
-    }
-    arrayConexoesFIFO.push(novaConexao);
-    renderizarConexoesNaTela();
-}
-
-function renderizarConexoesNaTela() {
-    let containerCaixas = document.getElementById('conexoesContainer');
-    
-    // Se o container de caixas dinâmicas ainda não existir no HTML, criamos logo acima do relatório bruto
-    if (!containerCaixas) {
-        const refBox = document.getElementById('crsReportBox');
-        if (refBox && refBox.parentNode) {
-            containerCaixas = document.createElement('div');
-            containerCaixas.id = 'conexoesContainer';
-            containerCaixas.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 12px;';
-            refBox.parentNode.insertBefore(containerCaixas, refBox);
-        }
-    }
-
-    if (!containerCaixas) return;
-
-    const labelsOrdem = ['Terceira (Anterior)', 'Anterior (Recente)', 'Mais Recente'];
-    let htmlContent = '';
-
-    arrayConexoesFIFO.forEach((conexao, idx) => {
-        const tituloBox = labelsOrdem[idx] || `Conexão #${idx + 1}`;
-        htmlContent += `
-            <div style="background: #ffffff; border: 1px solid var(--line); border-radius: 12px; padding: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); text-align: left;">
-                <div style="font-size: 10px; font-weight: 800; color: var(--accent); margin-bottom: 6px; text-transform: uppercase;">🔗 ${tituloBox}</div>
-                <div style="font-size: 9px; color: var(--muted); margin-bottom: 6px;">🕒 [${conexao.timestamp}] • Camada: ${conexao.camada}</div>
-                <img src="${conexao.snapshotImg}" alt="Gráfico de Onda" style="width: 100%; height: 40px; border-radius: 6px; object-fit: cover; background: #0a2a2f; margin-bottom: 6px; border: 1px solid var(--line);">
-                <audio controls src="${conexao.audioUrl}" style="width: 100%; height: 28px; margin-bottom: 6px;"></audio>
-                <div style="font-family: monospace; font-size: 9px; color: #856404; background: #fff8e6; padding: 6px; border-radius: 6px; max-height: 60px; overflow-y: auto;">
-                    Hz: ${conexao.metricas.ritmo_frequencia_hz} | Hesit: ${conexao.metricas.hesitacao_score}
-                </div>
-            </div>
-        `;
-    });
-
-    containerCaixas.innerHTML = htmlContent;
-
-    // Atualiza também o relatório unificado do CRS tradicional para manter retrocompatibilidade
-    const box = document.getElementById('crsReportBox');
-    if (box) {
-        let textoRelatorios = `📊 DOSSIÊ DE CONEXÕES ATIVAS (${arrayConexoesFIFO.length}/3):\n\n`;
-        arrayConexoesFIFO.forEach((rel, i) => {
-            textoRelatorios += `--- SESSÃO #${i + 1} [${rel.timestamp}] ---\n`;
-            textoRelatorios += `UID: ${rel.uid} | Camada: ${rel.camada}\n`;
-            textoRelatorios += `Métricas CRS: ${JSON.stringify(rel.metricas, null, 2)}\n\n`;
-        });
-        box.textContent = textoRelatorios;
-    }
-}
-
-// ------------------------------------------
-// INICIALIZAÇÃO & SEGURANÇA ESTREITA DE SESSÃO
+// INICIALIZAÇÃO & PERFIL DO SUPABASE
 // ------------------------------------------
 async function initCockpit() {
     addLog('A validar autenticação estrita no Supabase...');
@@ -135,9 +79,6 @@ async function initCockpit() {
     }
 
     currentUser = session.user;
-    
-    const emailEl = document.getElementById('userDisplayEmail');
-    if (emailEl) emailEl.textContent = currentUser.email;
     addLog(`ID autenticado com sucesso: ${currentUser.id}`, 'ok');
 
     try {
@@ -148,19 +89,22 @@ async function initCockpit() {
             .maybeSingle();
 
         if (errProfile || !profile) {
-            addLog('Perfil não encontrado no Supabase. Criando registo base...', 'info');
             const defaultName = currentUser.user_metadata?.nome || currentUser.email.split('@')[0];
             const { data: newProfile } = await supabaseClient
                 .from('profiles')
-                .insert([{ id: currentUser.id, email: currentUser.email, nome: defaultName, tokens: 100 }])
+                .insert([{ id: currentUser.id, email: currentUser.email, nome: defaultName, tokens: 100, calibrado: false }])
                 .select()
                 .single();
             profile = newProfile;
         }
 
         if (profile) {
+            // Preenche dados do perfil automaticamente no HTML
             const nameEl = document.getElementById('userDisplayName');
             if (nameEl) nameEl.textContent = profile.nome || profile.full_name || currentUser.email.split('@')[0];
+            
+            const emailEl = document.getElementById('userDisplayEmail');
+            if (emailEl) emailEl.textContent = `ID: ${currentUser.id.substring(0, 8)}... • ${profile.email}`;
             
             tokenCount = profile.tokens ?? profile.tokens_balance ?? 100;
             const tokensEl = document.getElementById('hudTokens');
@@ -177,17 +121,17 @@ async function initCockpit() {
                 addLog('Chave de API carregada com sucesso do banco.', 'ok');
             } else {
                 ativarInterfaceIA(false);
-                addLog('Aviso: Nenhuma chave de API gravada no banco para este ID.', 'info');
+                addLog('Aviso: Nenhuma chave de API gravada no banco.', 'info');
             }
 
             if (profile.calibrado) {
                 etapaCalibracao = 3;
-                const calibraEl = document.getElementById('calibraStatus');
-                if (calibraEl) {
-                    calibraEl.textContent = '✅ Calibrado (3/3)';
-                    calibraEl.style.background = '#d4edda';
-                    calibraEl.style.color = '#155724';
-                }
+                atualizarStatusCalibracaoUI(true);
+                addLog('Perfil já se encontra calibrado (3/3).', 'ok');
+            } else {
+                etapaCalibracao = 0;
+                atualizarStatusCalibracaoUI(false);
+                iniciarPromptCalibracaoAd();
             }
         }
     } catch (err) {
@@ -197,6 +141,35 @@ async function initCockpit() {
     const perfilUrl = new URL('perfil.html', window.location.href);
     const btnPerfil = document.getElementById('btnGoPerfil');
     if (btnPerfil) btnPerfil.href = perfilUrl.toString();
+}
+
+function atualizarStatusCalibracaoUI(isCalibrado) {
+    const calibraEl = document.getElementById('calibraStatus');
+    if (!calibraEl) return;
+    
+    if (isCalibrado) {
+        calibraEl.textContent = '✅ Calibrado (3/3)';
+        calibraEl.style.background = '#d4edda';
+        calibraEl.style.color = '#155724';
+    } else {
+        calibraEl.textContent = `⚪ Calibração ${etapaCalibracao}/3`;
+        calibraEl.style.background = '#fff3cd';
+        calibraEl.style.color = '#856404';
+    }
+}
+
+function iniciarPromptCalibracaoAd() {
+    const chatBox = document.getElementById('chatBox');
+    if (chatBox && etapaCalibracao === 0) {
+        chatBox.innerHTML += `
+            <div class="chat-message ad">
+                <strong>Ad (Elayon Space):</strong> Olá! Para iniciarmos nossa simbiose, precisamos realizar a calibração de fonação em 3 etapas obrigatórias.<br><br>
+                <strong>${perguntasCalibracao[0]}</strong><br>
+                <em>Grave sua fala para registrar a primeira métrica.</em>
+            </div>
+        `;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
 }
 
 function ativarInterfaceIA(ativo) {
@@ -212,7 +185,7 @@ function ativarInterfaceIA(ativo) {
         }
         if (inputChat) {
             inputChat.disabled = false;
-            inputChat.placeholder = 'Converse livremente com o Ad (assistência total)...';
+            inputChat.placeholder = 'Converse com o Ad sobre qualquer tema...';
         }
         if (btnSend) btnSend.disabled = false;
         if (btnMic) btnMic.disabled = false;
@@ -231,7 +204,7 @@ function ativarInterfaceIA(ativo) {
 }
 
 // ------------------------------------------
-// SALVAR CHAVE E VINCULAR AO ID
+// SALVAR CHAVE DE API
 // ------------------------------------------
 async function salvarConfigAi() {
     const providerEl = document.getElementById('selectAiProvider');
@@ -242,12 +215,9 @@ async function salvarConfigAi() {
     const apiKey = keyEl.value.trim();
     
     if(!apiKey) {
-        addLog('Tentativa de salvar chave vazia.', 'err');
         alert('Por favor, insira sua chave de API.');
         return;
     }
-
-    addLog(`A fixar chave e provedor (${provider}) para o ID ${currentUser.id}...`);
 
     const { error } = await supabaseClient
         .from('profiles')
@@ -259,22 +229,10 @@ async function salvarConfigAi() {
         });
 
     if (!error) {
-        addLog('Chave de API fixada com sucesso na base de dados!', 'ok');
         ativarInterfaceIA(true);
-        alert('✅ Chave de API salva e fixada permanentemente ao seu ID!');
-        
-        const chatBox = document.getElementById('chatBox');
-        if (chatBox) {
-            chatBox.innerHTML += `
-                <div class="chat-message ad">
-                    <strong>Ad (Elayon Space):</strong><br>
-                    Conexão estabelecida com sucesso. Estou pronto para atuar como sua assistência completa com suporte às camadas de fonação. Como posso ajudar?
-                </div>
-            `;
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
+        alert('✅ Chave de API salva com sucesso!');
+        addLog('Chave de API salva no Supabase.', 'ok');
     } else {
-        addLog('Erro ao fixar chave no Supabase: ' + error.message, 'err');
         alert('Erro ao salvar: ' + error.message);
     }
 }
@@ -283,19 +241,44 @@ const btnSalvarIa = document.getElementById('btnSalvarIa');
 if (btnSalvarIa) btnSalvarIa.addEventListener('click', salvarConfigAi);
 
 // ------------------------------------------
-// SELEÇÃO DE CAMADAS (HEALTH & PSIQ)
+// GERENCIAMENTO DAS 3 CAIXAS FIFO (UI)
 // ------------------------------------------
-function setCamada(id, desc, btn) {
-    activeCamada = id;
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-    const contentEl = document.getElementById('healthTabContent');
-    if (contentEl) contentEl.textContent = desc;
-    addLog(`Camada de acompanhamento alterada para: ${id}`);
+function renderizarCaixasFIFO() {
+    const labelsOrdem = ['Mais Recente', 'Anterior', 'Terceira'];
+    const gridEl = document.getElementById('conexoesFifoGrid');
+    if (!gridEl) return;
+
+    let html = '';
+    for (let i = 0; i < 3; i++) {
+        const conexao = arrayConexoesFIFO[i];
+        const tituloBox = labelsOrdem[i];
+
+        if (conexao) {
+            html += `
+                <div class="connection-card">
+                    <div class="connection-title">🔗 ${tituloBox}</div>
+                    <div class="connection-meta">🕒 [${conexao.timestamp}]</div>
+                    <img src="${conexao.snapshotImg}" class="connection-snapshot" alt="Espectro">
+                    <audio controls src="${conexao.audioUrl}" class="connection-audio"></audio>
+                    <div class="connection-report">Hz: ${conexao.metricas.ritmo_frequencia_hz} | Hesit: ${conexao.metricas.hesitacao_score}</div>
+                </div>
+            `;
+        } else {
+            html += `
+                <div class="connection-card">
+                    <div class="connection-title">🔗 ${tituloBox}</div>
+                    <div class="connection-meta">Aguardando calibração...</div>
+                    <div style="background:#0a2a2f; height:45px; border-radius:6px;"></div>
+                    <div class="connection-report">CRS Pendente</div>
+                </div>
+            `;
+        }
+    }
+    gridEl.innerHTML = html;
 }
 
 // ------------------------------------------
-// CAPTURA DE FONAÇÃO, BIP E SNAPSHOT DO GRÁFICO
+// CAPTURA DE FONAÇÃO & ESPECTROIDE
 // ------------------------------------------
 async function toggleMicrofone() {
     const btn = document.getElementById('btnMicSimple');
@@ -303,13 +286,12 @@ async function toggleMicrofone() {
     const apiKey = keyEl ? keyEl.value.trim() : '';
     
     if (!apiKey) {
-        alert('Configure e salve sua chave de API antes de iniciar a captação por voz.');
+        alert('Configure e salve sua chave de API antes de gravar.');
         return;
     }
 
     if (!isRecording) {
         try {
-            // Dispara o bip sonoro de abertura da escuta
             tocarBipAbertura();
 
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -318,31 +300,30 @@ async function toggleMicrofone() {
 
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
             const source = audioContext.createMediaStreamSource(stream);
             source.connect(analyser);
-            desenharOndaAudio();
+            
+            desenharEspectroide();
 
             mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
             mediaRecorder.onstop = async () => {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                 const audioUrl = URL.createObjectURL(audioBlob);
                 
-                // Captura a foto (snapshot JPEG) do canvas atual da onda sonora
                 const canvas = document.getElementById('audioWaveform');
                 const snapshotImg = canvas ? canvas.toDataURL('image/jpeg', 0.85) : '';
 
-                addLog(`Gravação finalizada (${audioBlob.size} bytes). Despachando para CRS-full...`, 'info');
-                
                 await processarEEnviarCRS(audioBlob, audioUrl, snapshotImg);
             };
 
             mediaRecorder.start();
             isRecording = true;
             if (btn) {
-                btn.textContent = '⏹️ Parar & Confirmar Envio (Max 30s)';
+                btn.textContent = '⏹️ Parar & Confirmar Fonação (Max 30s)';
                 btn.style.background = 'var(--danger)';
             }
-            addLog('Microfone aberto em modo de escuta com bip ativo (teto de 30s)...', 'ok');
+            addLog('Espectroide de escuta ativo...', 'ok');
 
             setTimeout(() => {
                 if (isRecording && mediaRecorder && mediaRecorder.state === 'recording') {
@@ -351,15 +332,13 @@ async function toggleMicrofone() {
                     if (audioContext) audioContext.close();
                     isRecording = false;
                     if (btn) {
-                        btn.textContent = '🎙️ Gravar Fala (Até 30s)';
+                        btn.textContent = '🎙️ Gravar Fala (Calibração / Fonação)';
                         btn.style.background = 'linear-gradient(135deg, #d9534f, #f06292)';
                     }
-                    addLog('Limite de 30s atingido. Gravação encerrada automaticamente.', 'info');
                 }
             }, 30000);
 
         } catch (err) {
-            addLog('Erro ao acionar microfone: ' + err.message, 'err');
             alert('Erro ao acessar o microfone.');
         }
     } else {
@@ -368,17 +347,16 @@ async function toggleMicrofone() {
         if (audioContext) audioContext.close();
         isRecording = false;
         if (btn) {
-            btn.textContent = '🎙️ Gravar Fala (Até 30s)';
+            btn.textContent = '🎙️ Gravar Fala (Calibração / Fonação)';
             btn.style.background = 'linear-gradient(135deg, #d9534f, #f06292)';
         }
-        addLog('Gravação encerrada manualmente pelo piloto.');
     }
 }
 
 const btnMicSimple = document.getElementById('btnMicSimple');
 if (btnMicSimple) btnMicSimple.addEventListener('click', toggleMicrofone);
 
-function desenharOndaAudio() {
+function desenharEspectroide() {
     const canvas = document.getElementById('audioWaveform');
     if (!canvas || !analyser) return;
     const ctx = canvas.getContext('2d');
@@ -391,93 +369,127 @@ function desenharOndaAudio() {
             return;
         }
         requestAnimationFrame(draw);
-        analyser.getByteTimeDomainData(dataArray);
+        analyser.getByteFrequencyData(dataArray);
 
         ctx.fillStyle = '#0a2a2f';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#2a9d8f';
-        ctx.beginPath();
 
-        const sliceWidth = canvas.width * 1.0 / bufferLength;
+        const barWidth = (canvas.width / bufferLength) * 2.5;
         let x = 0;
 
         for (let i = 0; i < bufferLength; i++) {
-            const v = dataArray[i] / 128.0;
-            const y = v * canvas.height / 2;
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-            x += sliceWidth;
+            const barHeight = (dataArray[i] / 255) * canvas.height;
+            const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0);
+            gradient.addColorStop(0, '#2a9d8f');
+            gradient.addColorStop(1, '#3ecfcf');
+
+            ctx.fillStyle = gradient;
+            ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+            x += barWidth + 1;
         }
-        ctx.lineTo(canvas.width, canvas.height / 2);
-        ctx.stroke();
     }
     draw();
 }
 
 // ------------------------------------------
-// PROCESSAMENTO DO CRS, TOKENS E CAIXAS FIFO
+// PROCESSAMENTO DO CRS E CALIBRAÇÃO
 // ------------------------------------------
 async function processarEEnviarCRS(audioBlob, audioUrl, snapshotImg) {
     if (tokenCount >= 2) {
         tokenCount -= 2;
         const tokensEl = document.getElementById('hudTokens');
         if (tokensEl) tokensEl.textContent = tokenCount;
-        
         await supabaseClient.from('profiles').update({ tokens: tokenCount, tokens_balance: tokenCount }).eq('id', currentUser.id);
-        addLog(`Tokens consumidos: -2 (Saldo atual: ${tokenCount})`, 'ok');
-    } else {
-        addLog('Aviso: Tokens insuficientes para processamento completo.', 'err');
     }
 
     const novaConexao = {
         timestamp: new Date().toLocaleTimeString(),
-        uid: currentUser.id,
-        camada: activeCamada,
         audioUrl: audioUrl,
         snapshotImg: snapshotImg,
         metricas: {
             tamanho_blob_bytes: audioBlob.size,
-            ritmo_frequencia_hz: Math.floor(130 + Math.random() * 60),
-            hesitacao_score: (Math.random() * 0.35).toFixed(2),
-            silencio_intencional: '0 (Preservado)',
-            espectro_status: 'OK'
+            ritmo_frequencia_hz: Math.floor(140 + Math.random() * 50),
+            hesitacao_score: (Math.random() * 0.25).toFixed(2)
         }
     };
 
-    adicionarConexaoFIFO(novaConexao);
-
-    if (etapaCalibracao < 3) {
-        etapaCalibracao += 1;
-        const calibraEl = document.getElementById('calibraStatus');
-        if (calibraEl) calibraEl.textContent = `⚪ Calibração ${etapaCalibracao}/3`;
-        if (etapaCalibracao >= 3) {
-            if (calibraEl) {
-                calibraEl.textContent = '✅ Calibrado (3/3)';
-                calibraEl.style.background = '#d4edda';
-                calibraEl.style.color = '#155724';
-            }
-            await supabaseClient.from('profiles').update({ calibrado: true }).eq('id', currentUser.id);
-            addLog('Calibração vitalícia concluída e gravada no perfil!', 'ok');
-        }
+    if (arrayConexoesFIFO.length >= 3) {
+        arrayConexoesFIFO.shift();
     }
+    arrayConexoesFIFO.push(novaConexao);
+    renderizarCaixasFIFO();
 
     const chatBox = document.getElementById('chatBox');
-    if (chatBox) {
-        chatBox.innerHTML += `<div class="chat-message user">🎙️ Áudio capturado e despachado (Camada: ${activeCamada}).</div>`;
-        chatBox.innerHTML += `
-            <div class="chat-message ad">
-                <strong>Ad (Elayon Space):</strong><br>
-                Frequência e ritmo mapeados sob a camada <em>${activeCamada}</em> e armazenados nas conexões ativas. Como posso auxiliar nos seus próximos passos?
-            </div>
-        `;
-        chatBox.scrollTop = chatBox.scrollHeight;
+    
+    if (etapaCalibracao < 3) {
+        etapaCalibracao += 1;
+        atualizarStatusCalibracaoUI(etapaCalibracao === 3);
+
+        if (etapaCalibracao < 3) {
+            if (chatBox) {
+                chatBox.innerHTML += `<div class="chat-message user">🎙️ [Fonação de Calibração ${etapaCalibracao}/3 enviada]</div>`;
+                chatBox.innerHTML += `
+                    <div class="chat-message ad">
+                        <strong>Ad (Elayon Space):</strong> Registrado com sucesso!<br><br>
+                        <strong>${perguntasCalibracao[etapaCalibracao]}</strong>
+                    </div>
+                `;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        } else {
+            await supabaseClient.from('profiles').update({ calibrado: true }).eq('id', currentUser.id);
+            if (chatBox) {
+                chatBox.innerHTML += `<div class="chat-message user">🎙️ [Fonação finalizada 3/3]</div>`;
+                chatBox.innerHTML += `
+                    <div class="chat-message ad">
+                        <strong>Ad (Elayon Space):</strong> 🟢 Calibração vitalícia concluída com sucesso! Agora nossa simbiose está completa. O chat está totalmente aberto para conversas livres.
+                    </div>
+                `;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+            addLog('Calibração vitalícia gravada no Supabase!', 'ok');
+        }
+    } else {
+        if (chatBox) {
+            chatBox.innerHTML += `<div class="chat-message user">🎙️ [Fonação registrada]</div>`;
+            chatBox.innerHTML += `
+                <div class="chat-message ad">
+                    <strong>Ad (Elayon Space):</strong> Nova fonação integrada ao buffer FIFO. Como posso prosseguir?
+                </div>
+            `;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
     }
-    addLog('Sessão de fonação integrada com sucesso ao buffer visual.', 'ok');
 }
 
 // ------------------------------------------
-// ENVIO DE TEXTO NO CHAT LIVRE
+// RESETAR CALIBRAÇÃO E LOGS
+// ------------------------------------------
+async function zerarCalibracaoESessao() {
+    if (!confirm('⚠️ Deseja realmente excluir todas as interações e refazer a calibração do zero?')) return;
+
+    etapaCalibracao = 0;
+    arrayConexoesFIFO = [];
+    renderizarCaixasFIFO();
+    atualizarStatusCalibracaoUI(false);
+
+    await supabaseClient.from('profiles').update({ calibrado: false }).eq('id', currentUser.id);
+
+    const chatBox = document.getElementById('chatBox');
+    if (chatBox) {
+        chatBox.innerHTML = `
+            <div class="chat-message ad">
+                <strong>Ad (Elayon Space):</strong> Sistema reiniciado. Vamos refazer a calibração.<br><br>
+                <strong>${perguntasCalibracao[0]}</strong>
+            </div>
+        `;
+    }
+    addLog('Calibração e buffer zerados pelo piloto.', 'err');
+    alert('🔄 Dados limpos. Pode iniciar uma nova calibração.');
+}
+
+// ------------------------------------------
+// CHAT LIVRE COM O AD
 // ------------------------------------------
 async function enviarTextoChat() {
     const input = document.getElementById('chatInput');
@@ -498,7 +510,6 @@ async function enviarTextoChat() {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
     input.value = '';
-    addLog(`Mensagem de texto enviada ao Ad.`);
 
     if(tokenCount > 0) {
         tokenCount -= 1;
@@ -511,13 +522,11 @@ async function enviarTextoChat() {
         if (chatBox) {
             chatBox.innerHTML += `
                 <div class="chat-message ad">
-                    <strong>Ad (Elayon Space):</strong><br>
-                    Entendido perfeitamente. Como assistente completo, sigo alinhado com suas diretrizes técnicas e operacionais. O que mais deseja estruturar?
+                    <strong>Ad (Elayon Space):</strong> Compreendido. Como IA global do Elayon Space, sigo alinhado com suas diretrizes conversacionais e técnicas. O que mais deseja estruturar?
                 </div>
             `;
             chatBox.scrollTop = chatBox.scrollHeight;
         }
-        addLog('Resposta da IA integrada com sucesso.', 'ok');
     }, 1000);
 }
 
@@ -531,5 +540,5 @@ if (chatInput) {
     });
 }
 
-// Inicialização automática do motor ao carregar a página
+// Inicializa o cockpit ao carregar a página
 initCockpit();
