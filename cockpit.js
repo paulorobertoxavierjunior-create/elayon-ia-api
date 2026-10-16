@@ -1,5 +1,5 @@
 // ==========================================
-// ELAYON SPACE • MOTOR DO COCKPIT (JS UNIFICADO)
+// ELAYON SPACE • MOTOR DO COCKPIT (JS UNIFICADO & BLINDADO)
 // ==========================================
 const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6Inhsa3FnZmRzYmprIiwiaWF0IjoxNzkwNzc1ODk4LCJleHAiOjIxMDYzNTE4OTh9.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
@@ -66,15 +66,17 @@ function renderizarRelatoriosNaTela() {
 }
 
 // ------------------------------------------
-// INICIALIZAÇÃO & CONEXÃO FIEL DO USUÁRIO
+// INICIALIZAÇÃO BLINDADA & SESSÃO ESTREITA
 // ------------------------------------------
 async function initCockpit() {
-    addLog('A validar sessão e a carregar dados do ID no Supabase...');
+    addLog('A validar autenticação de sessão no Supabase...');
+    
+    // Valida se existe uma sessão real e ativa no navegador
     const { data: { session }, error } = await supabaseClient.auth.getSession();
     
-    if (error || !session) {
-        addLog('Sessão expirada. A redirecionar para o perfil.', 'err');
-        window.location.href = 'perfil.html';
+    if (error || !session || !session.user) {
+        addLog('ACESSO BLOQUEADO: Sessão ausente ou inválida. Redirecionando para 404.', 'err');
+        window.location.replace('404.html');
         return;
     }
 
@@ -83,7 +85,7 @@ async function initCockpit() {
     if (emailEl) emailEl.textContent = currentUser.email;
     addLog(`ID autenticado com sucesso: ${currentUser.id}`, 'ok');
 
-    // Carrega o perfil completo do utilizador vinculado estritamente ao ID
+    // Carrega o perfil completo vinculado estritamente ao ID da sessão
     const { data: profile, error: errProfile } = await supabaseClient
         .from('profiles')
         .select('*')
@@ -102,7 +104,6 @@ async function initCockpit() {
         const tokensEl = document.getElementById('hudTokens');
         if (tokensEl) tokensEl.textContent = tokenCount;
         
-        // Verifica e carrega a chave de API e provedor vinculados
         if (profile.ai_provider) {
             const providerEl = document.getElementById('selectAiProvider');
             if (providerEl) providerEl.value = profile.ai_provider;
@@ -111,7 +112,7 @@ async function initCockpit() {
             const keyEl = document.getElementById('inputApiKey');
             if (keyEl) keyEl.value = profile.ai_key;
             ativarInterfaceIA(true);
-            addLog('Chave de API fixa carregada com sucesso do banco de dados.', 'ok');
+            addLog('Chave de API fixa carregada do banco de dados.', 'ok');
         } else {
             ativarInterfaceIA(false);
             addLog('Aviso: Nenhuma chave de API gravada no banco para este ID.', 'info');
@@ -128,7 +129,7 @@ async function initCockpit() {
             addLog('Calibração vitalícia ativa carregada.', 'ok');
         }
     } else {
-        addLog('Perfil não encontrado para este ID. A criar registo base...', 'info');
+        addLog('Criando perfil base no Supabase para este ID...', 'info');
         await supabaseClient.from('profiles').insert([{ id: currentUser.id, email: currentUser.email, tokens: 100 }]);
     }
 
@@ -200,7 +201,6 @@ async function salvarConfigAi() {
         ativarInterfaceIA(true);
         alert('✅ Chave de API salva e fixada permanentemente ao seu ID!');
         
-        // Mensagem de boas-vindas da IA
         const chatBox = document.getElementById('chatBox');
         if (chatBox) {
             chatBox.innerHTML += `
@@ -251,7 +251,6 @@ async function toggleMicrofone() {
             mediaRecorder = new MediaRecorder(stream);
             audioChunks = [];
 
-            // Inicializa visualizador gráfico de onda (AudioContext)
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioContext.createAnalyser();
             const source = audioContext.createMediaStreamSource(stream);
@@ -274,7 +273,6 @@ async function toggleMicrofone() {
             }
             addLog('Microfone aberto em modo de escuta (teto de 30s)...', 'ok');
 
-            // Timeout automático de segurança de 30 segundos
             setTimeout(() => {
                 if (isRecording && mediaRecorder && mediaRecorder.state === 'recording') {
                     mediaRecorder.stop();
@@ -350,7 +348,6 @@ function desenharOndaAudio() {
 // PROCESSAMENTO DO CRS, TOKENS E FIFO
 // ------------------------------------------
 async function processarEEnviarCRS(audioBlob) {
-    // Consumo de tokens: 1 da ferramenta + 1 do processamento do CRS = 2 tokens
     if (tokenCount >= 2) {
         tokenCount -= 2;
         const tokensEl = document.getElementById('hudTokens');
@@ -361,7 +358,6 @@ async function processarEEnviarCRS(audioBlob) {
         addLog('Aviso: Tokens insuficientes para processamento completo.', 'err');
     }
 
-    // Simula a chegada do relatório estruturado do CRS-full
     const novoRelatorio = {
         timestamp: new Date().toLocaleTimeString(),
         uid: currentUser.id,
@@ -375,10 +371,8 @@ async function processarEEnviarCRS(audioBlob) {
         }
     };
 
-    // Adiciona na Fila FIFO (rotaciona mantendo apenas os 3 últimos)
     adicionarRelatorioFIFO(novoRelatorio);
 
-    // Validação da calibração (3 interações completas)
     if (etapaCalibracao < 3) {
         etapaCalibracao += 1;
         const calibraEl = document.getElementById('calibraStatus');
@@ -394,7 +388,6 @@ async function processarEEnviarCRS(audioBlob) {
         }
     }
 
-    // Injeta interação no Chat com contexto total
     const chatBox = document.getElementById('chatBox');
     if (chatBox) {
         chatBox.innerHTML += `<div class="chat-message user">🎙️ Áudio capturado e enviado via camada ${activeCamada}.</div>`;
@@ -464,5 +457,5 @@ if (chatInput) {
     });
 }
 
-// Inicialização automática do motor ao abrir o cockpit
+// Inicialização da verificação de segurança ao carregar
 initCockpit();
