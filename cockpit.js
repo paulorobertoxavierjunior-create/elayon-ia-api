@@ -269,7 +269,7 @@ function inicializarReconhecimentoVoz() {
 }
 
 // ------------------------------------------
-// CAPTURA DE FONAÇÃO & ESPECTROIDE VIVO
+// CAPTURA DE FONAÇÃO & ESPECTROIDE VIVO (ATUALIZADO)
 // ------------------------------------------
 async function toggleMicrofone() {
     const btn = document.getElementById('btnMicSimple');
@@ -324,7 +324,7 @@ async function toggleMicrofone() {
                 statusEl.textContent = 'GRAVANDO VIVO';
                 statusEl.style.color = '#ff6b6b';
             }
-            addLog('Espectroide de escuta fônica e transcrição ativos...', 'ok');
+            addLog('Espectroide vivo e escuta fônica ativos...', 'ok');
 
             setTimeout(() => {
                 if (isRecording && mediaRecorder && mediaRecorder.state === 'recording') {
@@ -355,13 +355,10 @@ function pararGravacaoAudio() {
         btn.style.background = 'linear-gradient(135deg, #d9534f, #f06292)';
     }
     if (statusEl) {
-        statusEl.textContent = 'STANDBY';
+        statusEl.textContent = 'CONGELADO / SALVO';
         statusEl.style.color = '#3ecfcf';
     }
 }
-
-const btnMicSimple = document.getElementById('btnMicSimple');
-if (btnMicSimple) btnMicSimple.addEventListener('click', toggleMicrofone);
 
 function desenharEspectroideVivo() {
     const canvas = document.getElementById('audioWaveform');
@@ -372,7 +369,7 @@ function desenharEspectroideVivo() {
 
     function draw() {
         if (!isRecording) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Quando para de gravar, o último quadro fica congelado na tela perfeitamente visível
             return;
         }
         requestAnimationFrame(draw);
@@ -397,6 +394,7 @@ function desenharEspectroideVivo() {
     }
     draw();
 }
+
 
 // ------------------------------------------
 // BUFFER FIFO DAS 3 CAIXAS (UI)
