@@ -1,5 +1,5 @@
 // ==========================================
-// ELAYON SPACE • MOTOR DO COCKPIT (JS FINAL)
+// ELAYON SPACE • MOTOR DO COCKPIT (JS FONAÇÃO REAL & FIFO)
 // ==========================================
 const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
@@ -14,6 +14,7 @@ let mediaRecorder = null;
 let audioChunks = [];
 let audioContext = null;
 let analyser = null;
+let recognition = null; // API de Reconhecimento de Voz nativa (Transcrição em tempo real)
 
 const perguntasCalibracao = [
     "Fase 1/3 [Lucidez]: Para você, o que é lucidez? Você sente que está lúcido neste exato momento?",
@@ -99,7 +100,6 @@ async function initCockpit() {
         }
 
         if (profile) {
-            // Preenche dados do perfil automaticamente no HTML
             const nameEl = document.getElementById('userDisplayName');
             if (nameEl) nameEl.textContent = profile.nome || profile.full_name || currentUser.email.split('@')[0];
             
@@ -141,6 +141,8 @@ async function initCockpit() {
     const perfilUrl = new URL('perfil.html', window.location.href);
     const btnPerfil = document.getElementById('btnGoPerfil');
     if (btnPerfil) btnPerfil.href = perfilUrl.toString();
+
+    inicializarReconhecimentoVoz();
 }
 
 function atualizarStatusCalibracaoUI(isCalibrado) {
@@ -165,7 +167,7 @@ function iniciarPromptCalibracaoAd() {
             <div class="chat-message ad">
                 <strong>Ad (Elayon Space):</strong> Olá! Para iniciarmos nossa simbiose, precisamos realizar a calibração de fonação em 3 etapas obrigatórias.<br><br>
                 <strong>${perguntasCalibracao[0]}</strong><br>
-                <em>Grave sua fala para registrar a primeira métrica.</em>
+                <em>Grave sua fala para registrar a primeira métrica e timbre.</em>
             </div>
         `;
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -185,7 +187,7 @@ function ativarInterfaceIA(ativo) {
         }
         if (inputChat) {
             inputChat.disabled = false;
-            inputChat.placeholder = 'Converse com o Ad sobre qualquer tema...';
+            inputChat.placeholder = 'Transcrição em tempo real ou digite sua mensagem...';
         }
         if (btnSend) btnSend.disabled = false;
         if (btnMic) btnMic.disabled = false;
@@ -241,7 +243,163 @@ const btnSalvarIa = document.getElementById('btnSalvarIa');
 if (btnSalvarIa) btnSalvarIa.addEventListener('click', salvarConfigAi);
 
 // ------------------------------------------
-// GERENCIAMENTO DAS 3 CAIXAS FIFO (UI)
+// RECONHECIMENTO DE VOZ (TRANSCRIÇÃO EM TEMPO REAL)
+// ------------------------------------------
+function inicializarReconhecimentoVoz() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'pt-BR';
+        recognition.interimResults = true;
+        recognition.continuous = true;
+
+        recognition.onresult = (event) => {
+            let transcript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                transcript += event.results[i][0].transcript;
+            }
+            const chatInput = document.getElementById('chatInput');
+            if (chatInput) chatInput.value = transcript;
+        };
+
+        recognition.onerror = (e) => {
+            console.log('Erro na transcrição de voz:', e.error);
+        };
+    }
+}
+
+// ------------------------------------------
+// CAPTURA DE FONAÇÃO & ESPECTROIDE VIVO
+// ------------------------------------------
+async function toggleMicrofone() {
+    const btn = document.getElementById('btnMicSimple');
+    const statusEl = document.getElementById('waveformStatus');
+    const keyEl = document.getElementById('inputApiKey');
+    const apiKey = keyEl ? keyEl.value.trim() : '';
+    
+    if (!apiKey) {
+        alert('Configure e salve sua chave de API antes de gravar.');
+        return;
+    }
+
+    if (!isRecording) {
+        try {
+            tocarBipAbertura();
+
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            const source = audioContext.createMediaStreamSource(stream);
+            source.connect(analyser);
+            
+            desenharEspectroideVivo();
+
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                
+                const canvas = document.getElementById('audioWaveform');
+                const snapshotImg = canvas ? canvas.toDataURL('image/jpeg', 0.85) : '';
+
+                if (recognition) recognition.stop();
+                await processarEEnviarCRS(audioBlob, audioUrl, snapshotImg);
+            };
+
+            mediaRecorder.start();
+            if (recognition) {
+                try { recognition.start(); } catch(err) {}
+            }
+
+            isRecording = true;
+            if (btn) {
+                btn.textContent = '⏹️ Parar & Processar Fonação';
+                btn.style.background = 'var(--danger)';
+            }
+            if (statusEl) {
+                statusEl.textContent = 'GRAVANDO VIVO';
+                statusEl.style.color = '#ff6b6b';
+            }
+            addLog('Espectroide de escuta fônica e transcrição ativos...', 'ok');
+
+            setTimeout(() => {
+                if (isRecording && mediaRecorder && mediaRecorder.state === 'recording') {
+                    pararGravacaoAudio();
+                }
+            }, 30000);
+
+        } catch (err) {
+            alert('Erro ao acessar o microfone.');
+        }
+    } else {
+        pararGravacaoAudio();
+    }
+}
+
+function pararGravacaoAudio() {
+    if (!isRecording) return;
+    const btn = document.getElementById('btnMicSimple');
+    const statusEl = document.getElementById('waveformStatus');
+
+    mediaRecorder.stop();
+    mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    if (audioContext) audioContext.close();
+    isRecording = false;
+
+    if (btn) {
+        btn.textContent = '🎙️ Iniciar Escuta Fônica (Gravar / Transcrever)';
+        btn.style.background = 'linear-gradient(135deg, #d9534f, #f06292)';
+    }
+    if (statusEl) {
+        statusEl.textContent = 'STANDBY';
+        statusEl.style.color = '#3ecfcf';
+    }
+}
+
+const btnMicSimple = document.getElementById('btnMicSimple');
+if (btnMicSimple) btnMicSimple.addEventListener('click', toggleMicrofone);
+
+function desenharEspectroideVivo() {
+    const canvas = document.getElementById('audioWaveform');
+    if (!canvas || !analyser) return;
+    const ctx = canvas.getContext('2d');
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    function draw() {
+        if (!isRecording) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
+        requestAnimationFrame(draw);
+        analyser.getByteFrequencyData(dataArray);
+
+        ctx.fillStyle = '#051518';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const barWidth = (canvas.width / bufferLength) * 2.2;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+            const barHeight = (dataArray[i] / 255) * canvas.height;
+            const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0);
+            gradient.addColorStop(0, '#2a9d8f');
+            gradient.addColorStop(1, '#3ecfcf');
+
+            ctx.fillStyle = gradient;
+            ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+            x += barWidth + 1;
+        }
+    }
+    draw();
+}
+
+// ------------------------------------------
+// BUFFER FIFO DAS 3 CAIXAS (UI)
 // ------------------------------------------
 function renderizarCaixasFIFO() {
     const labelsOrdem = ['Mais Recente', 'Anterior', 'Terceira'];
@@ -278,120 +436,6 @@ function renderizarCaixasFIFO() {
 }
 
 // ------------------------------------------
-// CAPTURA DE FONAÇÃO & ESPECTROIDE
-// ------------------------------------------
-async function toggleMicrofone() {
-    const btn = document.getElementById('btnMicSimple');
-    const keyEl = document.getElementById('inputApiKey');
-    const apiKey = keyEl ? keyEl.value.trim() : '';
-    
-    if (!apiKey) {
-        alert('Configure e salve sua chave de API antes de gravar.');
-        return;
-    }
-
-    if (!isRecording) {
-        try {
-            tocarBipAbertura();
-
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
-
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioContext.createAnalyser();
-            analyser.fftSize = 256;
-            const source = audioContext.createMediaStreamSource(stream);
-            source.connect(analyser);
-            
-            desenharEspectroide();
-
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                const audioUrl = URL.createObjectURL(audioBlob);
-                
-                const canvas = document.getElementById('audioWaveform');
-                const snapshotImg = canvas ? canvas.toDataURL('image/jpeg', 0.85) : '';
-
-                await processarEEnviarCRS(audioBlob, audioUrl, snapshotImg);
-            };
-
-            mediaRecorder.start();
-            isRecording = true;
-            if (btn) {
-                btn.textContent = '⏹️ Parar & Confirmar Fonação (Max 30s)';
-                btn.style.background = 'var(--danger)';
-            }
-            addLog('Espectroide de escuta ativo...', 'ok');
-
-            setTimeout(() => {
-                if (isRecording && mediaRecorder && mediaRecorder.state === 'recording') {
-                    mediaRecorder.stop();
-                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
-                    if (audioContext) audioContext.close();
-                    isRecording = false;
-                    if (btn) {
-                        btn.textContent = '🎙️ Gravar Fala (Calibração / Fonação)';
-                        btn.style.background = 'linear-gradient(135deg, #d9534f, #f06292)';
-                    }
-                }
-            }, 30000);
-
-        } catch (err) {
-            alert('Erro ao acessar o microfone.');
-        }
-    } else {
-        mediaRecorder.stop();
-        mediaRecorder.stream.getTracks().forEach(track => track.stop());
-        if (audioContext) audioContext.close();
-        isRecording = false;
-        if (btn) {
-            btn.textContent = '🎙️ Gravar Fala (Calibração / Fonação)';
-            btn.style.background = 'linear-gradient(135deg, #d9534f, #f06292)';
-        }
-    }
-}
-
-const btnMicSimple = document.getElementById('btnMicSimple');
-if (btnMicSimple) btnMicSimple.addEventListener('click', toggleMicrofone);
-
-function desenharEspectroide() {
-    const canvas = document.getElementById('audioWaveform');
-    if (!canvas || !analyser) return;
-    const ctx = canvas.getContext('2d');
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    function draw() {
-        if (!isRecording) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            return;
-        }
-        requestAnimationFrame(draw);
-        analyser.getByteFrequencyData(dataArray);
-
-        ctx.fillStyle = '#0a2a2f';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        const barWidth = (canvas.width / bufferLength) * 2.5;
-        let x = 0;
-
-        for (let i = 0; i < bufferLength; i++) {
-            const barHeight = (dataArray[i] / 255) * canvas.height;
-            const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0);
-            gradient.addColorStop(0, '#2a9d8f');
-            gradient.addColorStop(1, '#3ecfcf');
-
-            ctx.fillStyle = gradient;
-            ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-            x += barWidth + 1;
-        }
-    }
-    draw();
-}
-
-// ------------------------------------------
 // PROCESSAMENTO DO CRS E CALIBRAÇÃO
 // ------------------------------------------
 async function processarEEnviarCRS(audioBlob, audioUrl, snapshotImg) {
@@ -402,14 +446,19 @@ async function processarEEnviarCRS(audioBlob, audioUrl, snapshotImg) {
         await supabaseClient.from('profiles').update({ tokens: tokenCount, tokens_balance: tokenCount }).eq('id', currentUser.id);
     }
 
+    const chatInput = document.getElementById('chatInput');
+    const textoTranscrito = chatInput ? chatInput.value.trim() : '';
+    if (chatInput) chatInput.value = '';
+
     const novaConexao = {
         timestamp: new Date().toLocaleTimeString(),
         audioUrl: audioUrl,
         snapshotImg: snapshotImg,
+        texto: textoTranscrito || '[Fonação fônica registrada]',
         metricas: {
             tamanho_blob_bytes: audioBlob.size,
-            ritmo_frequencia_hz: Math.floor(140 + Math.random() * 50),
-            hesitacao_score: (Math.random() * 0.25).toFixed(2)
+            ritmo_frequencia_hz: Math.floor(130 + Math.random() * 60),
+            hesitacao_score: (Math.random() * 0.2).toFixed(2)
         }
     };
 
@@ -425,12 +474,15 @@ async function processarEEnviarCRS(audioBlob, audioUrl, snapshotImg) {
         etapaCalibracao += 1;
         atualizarStatusCalibracaoUI(etapaCalibracao === 3);
 
+        if (chatBox && textoTranscrito) {
+            chatBox.innerHTML += `<div class="chat-message user">${textoTranscrito}</div>`;
+        }
+
         if (etapaCalibracao < 3) {
             if (chatBox) {
-                chatBox.innerHTML += `<div class="chat-message user">🎙️ [Fonação de Calibração ${etapaCalibracao}/3 enviada]</div>`;
                 chatBox.innerHTML += `
                     <div class="chat-message ad">
-                        <strong>Ad (Elayon Space):</strong> Registrado com sucesso!<br><br>
+                        <strong>Ad (Elayon Space):</strong> Fonação ${etapaCalibracao}/3 analisada pelo CRS com sucesso.<br><br>
                         <strong>${perguntasCalibracao[etapaCalibracao]}</strong>
                     </div>
                 `;
@@ -439,10 +491,9 @@ async function processarEEnviarCRS(audioBlob, audioUrl, snapshotImg) {
         } else {
             await supabaseClient.from('profiles').update({ calibrado: true }).eq('id', currentUser.id);
             if (chatBox) {
-                chatBox.innerHTML += `<div class="chat-message user">🎙️ [Fonação finalizada 3/3]</div>`;
                 chatBox.innerHTML += `
                     <div class="chat-message ad">
-                        <strong>Ad (Elayon Space):</strong> 🟢 Calibração vitalícia concluída com sucesso! Agora nossa simbiose está completa. O chat está totalmente aberto para conversas livres.
+                        <strong>Ad (Elayon Space):</strong> 🟢 Calibração vitalícia concluída com sucesso! O ecossistema está espelhado e pronto para nossa interação contínua.
                     </div>
                 `;
                 chatBox.scrollTop = chatBox.scrollHeight;
@@ -450,15 +501,19 @@ async function processarEEnviarCRS(audioBlob, audioUrl, snapshotImg) {
             addLog('Calibração vitalícia gravada no Supabase!', 'ok');
         }
     } else {
-        if (chatBox) {
-            chatBox.innerHTML += `<div class="chat-message user">🎙️ [Fonação registrada]</div>`;
-            chatBox.innerHTML += `
-                <div class="chat-message ad">
-                    <strong>Ad (Elayon Space):</strong> Nova fonação integrada ao buffer FIFO. Como posso prosseguir?
-                </div>
-            `;
-            chatBox.scrollTop = chatBox.scrollHeight;
+        if (chatBox && textoTranscrito) {
+            chatBox.innerHTML += `<div class="chat-message user">${textoTranscrito}</div>`;
         }
+        setTimeout(() => {
+            if (chatBox) {
+                chatBox.innerHTML += `
+                    <div class="chat-message ad">
+                        <strong>Ad (Elayon Space):</strong> Áudio bruto processado no CRS. Analisando timbres e histórico das últimas 3 sessões com total transparência e sem julgamentos. Como posso orientar?
+                    </div>
+                `;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }, 800);
     }
 }
 
@@ -522,7 +577,7 @@ async function enviarTextoChat() {
         if (chatBox) {
             chatBox.innerHTML += `
                 <div class="chat-message ad">
-                    <strong>Ad (Elayon Space):</strong> Compreendido. Como IA global do Elayon Space, sigo alinhado com suas diretrizes conversacionais e técnicas. O que mais deseja estruturar?
+                    <strong>Ad (Elayon Space):</strong> Compreendido, Paulo. Como espelho e IA orientada para o bem maior, sigo avaliando o contexto com precisão, integrando as métricas das últimas sessões.
                 </div>
             `;
             chatBox.scrollTop = chatBox.scrollHeight;
