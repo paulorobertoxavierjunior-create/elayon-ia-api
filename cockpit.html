@@ -20,7 +20,7 @@
         }
         .container { width: 100%; max-width: 650px; }
         
-        /* HUD Superior */
+        /* [BLOCO 1] HUD Superior */
         .hud-header {
             background: var(--card); border: 1px solid var(--line); border-radius: 16px;
             padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
@@ -35,7 +35,7 @@
         }
         .btn-perfil:hover { background: var(--accent); color: #fff; }
 
-        /* Cartão do Piloto & Perfil Automático */
+        /* [BLOCO 2] Cartão do Piloto & Perfil Automático */
         .profile-card {
             background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line);
             margin-bottom: 20px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 16px;
@@ -46,7 +46,7 @@
         .profile-info p { font-size: 11px; color: var(--muted); font-family: monospace; }
         .calibra-tag { font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; background: #fff3cd; color: #856404; }
 
-        /* Configuração de IA */
+        /* [BLOCO 3] Configuração de IA & API Interna */
         .ai-config-card {
             background: var(--card); border-radius: 16px; padding: 20px; border: 1px solid var(--line);
             margin-bottom: 20px; box-shadow: var(--shadow);
@@ -72,7 +72,7 @@
         .btn-primary { background: linear-gradient(135deg, var(--accent), #3ecfcf); color: #fff; box-shadow: 0 4px 15px var(--accent-glow); }
         .btn-primary:hover { transform: translateY(-2px); }
 
-        /* Camadas Especializadas (Elayon Health & PsiQ com Menus Retráteis) */
+        /* [BLOCO 4] Camadas Especializadas (Elayon Health & PsiQ) */
         .health-container {
             background: var(--card); border-radius: 16px; padding: 20px; border: 1px solid var(--line);
             margin-bottom: 20px; box-shadow: var(--shadow);
@@ -86,7 +86,7 @@
         .sub-menu { display: none; margin-top: 6px; background: #f0f7f7; padding: 8px; border-radius: 10px; border: 1px solid var(--line); }
         .tab-content { font-size: 12px; color: var(--muted); line-height: 1.5; margin-top: 8px; }
 
-        /* Painel das 3 Caixas FIFO (Isolado do Chat) */
+        /* [BLOCO 5] Buffer FIFO das 3 Caixas de Conexão Fônica */
         .fifo-panel-section {
             background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line);
             box-shadow: var(--shadow); margin-bottom: 20px; transition: max-height 0.3s ease;
@@ -112,7 +112,7 @@
             font-family: monospace; font-size: 9px; color: #856404; max-height: 55px; overflow-y: auto; white-space: pre-wrap;
         }
 
-        /* Chat 100% Limpo (Texto e Texto) */
+        /* [BLOCO 6] Chat Simbiótico & Espectroide Visual em Tempo Real */
         .chat-section {
             background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line);
             box-shadow: var(--shadow); margin-bottom: 20px;
@@ -125,13 +125,16 @@
         .chat-message.ad { background: #e2f1f0; color: var(--ink); align-self: flex-start; border-left: 3px solid var(--accent); }
         .chat-message.user { background: var(--accent); color: #fff; align-self: flex-end; }
         
-        /* Espectroide Visual em Tempo Real */
+        /* Canvas do Espectroide Vivo (Gera ondas reais, Hz e Timbre) */
         .waveform-container {
-            background: #0a2a2f; border-radius: 10px; padding: 8px; margin-bottom: 12px; text-align: center;
+            background: #0a2a2f; border-radius: 10px; padding: 8px; margin-bottom: 12px; text-align: center; position: relative;
         }
-        canvas#audioWaveform { width: 100%; height: 60px; display: block; border-radius: 6px; }
+        canvas#audioWaveform { width: 100%; height: 60px; display: block; border-radius: 6px; background: #051518; }
+        .waveform-status {
+            position: absolute; top: 12px; right: 16px; font-size: 9px; font-family: monospace; color: #3ecfcf; background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 4px;
+        }
 
-        /* Ferramentas & Módulos da Forja */
+        /* [BLOCO 7] Ferramentas & Módulos da Forja */
         .tool-grid { display: flex; flex-direction: column; gap: 10px; }
         .tool-btn {
             background: var(--card); border: 1px solid var(--line); padding: 14px; border-radius: 12px;
@@ -141,7 +144,7 @@
         .tool-btn span.badge { font-size: 10px; background: var(--bg2); padding: 4px 8px; border-radius: 6px; color: var(--muted); }
         .tool-btn.em-breve { opacity: 0.5; pointer-events: none; }
 
-        /* Gaveta de Logs (Recolhida por padrão) */
+        /* [BLOCO 8] Gaveta de Logs */
         .logs-drawer {
             position: fixed; bottom: 0; left: 0; right: 0; background: #0a2a2f; color: #eaf4f6;
             border-top-left-radius: 16px; border-top-right-radius: 16px; box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
@@ -162,7 +165,7 @@
         </header>
 
         <main>
-            <!-- CARTÃO DO PILOTO (PERFIL AUTOMÁTICO DO SUPABASE) -->
+            <!-- CARTÃO DO PILOTO -->
             <div class="profile-card">
                 <img id="userAvatarImg" src="elayon_logo.png" alt="Avatar" class="logo-img" onerror="this.src='https://via.placeholder.com/48';">
                 <div class="profile-info">
@@ -172,7 +175,7 @@
                 <span class="calibra-tag" id="calibraStatus">⚪ Calibração 0/3</span>
             </div>
 
-            <!-- CONFIGURAÇÃO DE IA EXTERNA & BOTÃO DE ATIVAÇÃO / FECHAMENTO -->
+            <!-- CONFIGURAÇÃO DE IA & API INTERNA -->
             <section class="ai-config-card" id="aiConfigCard">
                 <h3>🧠 Ativação de IA Externa & API Interna</h3>
                 <div class="input-group">
@@ -191,24 +194,22 @@
                 <button class="btn-action" style="background: var(--bg2); color: var(--ink); border: 1px solid var(--line); margin-top: 6px;" onclick="togglePainelAnalise()">🗂️ Encolher / Expandir Painel de Análise</button>
             </section>
 
-            <!-- CAMADAS DE ACOMPANHAMENTO (ELAYON HEALTH & PSIQ) -->
+            <!-- CAMADAS DE ACOMPANHAMENTO -->
             <div class="section-label">Camadas de Acompanhamento</div>
             <section class="health-container">
                 <div class="tabs-header">
-                    <!-- Elayon Health com sub-opções -->
                     <div style="flex: 1; min-width: 140px;">
                         <button class="tab-btn active" style="width: 100%;" onclick="toggleSubMenu('healthSubMenu')">🧬 Elayon Health ▾</button>
                         <div id="healthSubMenu" class="sub-menu">
-                            <button class="tab-btn" style="width: 100%; margin-bottom: 4px;" onclick="selecionarCamadaSub('Health: Paciente', 'Conexão clínica com o médico estabelecida.')">Paciente</button>
-                            <button class="tab-btn" style="width: 100%;" onclick="selecionarCamadaSub('Health: Piloto-Médico', 'Painel de supervisão médica ativo.')">Piloto-Médico</button>
+                            <button class="tab-btn" style="width: 100%; margin-bottom: 4px;" onclick="selecionarCamadaSub('Health: Paciente', 'Conexão clínica estabelecida.')">Paciente</button>
+                            <button class="tab-btn" style="width: 100%;" onclick="selecionarCamadaSub('Health: Piloto-Médico', 'Painel médico ativo.')">Piloto-Médico</button>
                         </div>
                     </div>
-                    <!-- PsiQ com sub-opções -->
                     <div style="flex: 1; min-width: 140px;">
                         <button class="tab-btn" style="width: 100%;" onclick="toggleSubMenu('psiqSubMenu')">🧠 PsiQ ▾</button>
                         <div id="psiqSubMenu" class="sub-menu">
                             <button class="tab-btn" style="width: 100%; margin-bottom: 4px;" onclick="selecionarCamadaSub('PsiQ: Paciente', 'Acompanhamento psicoemocional ativo.')">Paciente</button>
-                            <button class="tab-btn" style="width: 100%;" onclick="selecionarCamadaSub('PsiQ: Piloto-Psicólogo', 'Painel de supervisão psicológica ativo.')">Piloto-Psicólogo</button>
+                            <button class="tab-btn" style="width: 100%;" onclick="selecionarCamadaSub('PsiQ: Piloto-Psicólogo', 'Painel psicológico ativo.')">Piloto-Psicólogo</button>
                         </div>
                     </div>
                 </div>
@@ -217,10 +218,10 @@
                 </div>
             </section>
 
-            <!-- PAINEL DAS 3 CAIXAS DE CONEXÃO FIFO (ISOLADO DO CHAT) -->
+            <!-- BUFFER FIFO DAS 3 CAIXAS DE CONEXÃO -->
             <div class="section-label">Buffer de Conexões Fônicas (FIFO 3/3)</div>
             <section class="fifo-panel-section" id="fifoPanelSection">
-                <h3 style="font-size: 12px; color: var(--ink); margin-bottom: 6px;">📊 Análises Ativas de Calibração</h3>
+                <h3 style="font-size: 12px; color: var(--ink); margin-bottom: 6px;">📊 Análises Ativas de Calibração & CRS</h3>
                 <div class="fifo-grid" id="conexoesFifoGrid">
                     <div class="connection-card">
                         <div class="connection-title">🔗 Mais Recente</div>
@@ -243,29 +244,30 @@
                 </div>
             </section>
 
-            <!-- CHAT SIMBIÓTICO (APENAS TEXTO HUMANO / IA) -->
+            <!-- CHAT SIMBIÓTICO & ESPECTROIDE AO VIVO -->
             <section class="chat-section">
-                <h3 style="font-size: 13px; margin-bottom: 8px; color: var(--ink);">💬 Chat Simbiótico (Assistência Natural)</h3>
+                <h3 style="font-size: 13px; margin-bottom: 8px; color: var(--ink);">💬 Chat Simbiótico & Captura Fônica Real</h3>
                 
                 <div class="chat-box" id="chatBox">
                     <div class="chat-message ad">
-                        <strong>Ad (Elayon Space):</strong> Olá! Para iniciarmos, insira sua chave de API e realize a calibração de fonação respondendo às 3 etapas de lucidez, consciência e presença.
+                        <strong>Ad (Elayon Space):</strong> Olá! Estou pronto. Ative sua API e utilize o microfone abaixo para conversarmos, capturar timbres e calibrar nossa simbiose.
                     </div>
                 </div>
 
-                <!-- ESPECTROIDE VISUAL DE FREQUÊNCIA (BARRAS) -->
+                <!-- ESPECTROIDE VISUAL AO VIVO (FREQUÊNCIA E HZ REAIS) -->
                 <div class="waveform-container">
+                    <div class="waveform-status" id="waveformStatus">STANDBY</div>
                     <canvas id="audioWaveform"></canvas>
                 </div>
 
                 <!-- CONTROLES DE CHAT E MICROFONE -->
                 <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <input type="text" id="chatInput" placeholder="Converse com o Ad..." disabled style="flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; background: #f0f4f5;">
+                    <input type="text" id="chatInput" placeholder="Transcrição em tempo real ou texto livre..." disabled style="flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; background: #f0f4f5;">
                     <button class="btn-action btn-primary" id="btnSendChat" disabled style="width: 70px; margin: 0; padding: 10px;">Enviar</button>
                 </div>
 
                 <button class="btn-action btn-primary" id="btnMicSimple" disabled style="background: linear-gradient(135deg, #d9534f, #f06292);">
-                    🎙️ Gravar Fala (Calibração / Fonação)
+                    🎙️ Iniciar Escuta Fônica (Gravar / Transcrever)
                 </button>
             </section>
 
@@ -293,7 +295,7 @@
         </main>
     </div>
 
-    <!-- GAVETA DE LOGS (RECOLHIDA POR PADRÃO) -->
+    <!-- GAVETA DE LOGS -->
     <div class="logs-drawer" id="logsDrawer" style="transform: translateY(105px);">
         <div class="logs-header" onclick="
             const d = document.getElementById('logsDrawer');
@@ -305,7 +307,7 @@
             <span id="logToggleIcon">▲ Expandir</span>
         </div>
         <div class="logs-body" id="logsBody">
-            <div class="log-item">[INIT] Cockpit estruturado pronto.</div>
+            <div class="log-item">[INIT] Módulo HTML de fonação real estruturado.</div>
         </div>
     </div>
 
@@ -314,12 +316,8 @@
             const m = document.getElementById(menuId);
             if(m) m.style.display = m.style.display === 'block' ? 'none' : 'block';
         }
-        function selecionarCamada(nome, desc) {
-            document.getElementById('healthTabContent').textContent = desc;
-        }
         function selecionarCamadaSub(nome, desc) {
             document.getElementById('healthTabContent').textContent = `Camada ativa: [${nome}] - ${desc}`;
-            // Fecha os submenus ao selecionar
             document.getElementById('healthSubMenu').style.display = 'none';
             document.getElementById('psiqSubMenu').style.display = 'none';
         }
