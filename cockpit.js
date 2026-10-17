@@ -1,5 +1,5 @@
 // ==========================================
-// ELAYON SPACE • MOTOR DO COCKPIT (JS FONAÇÃO REAL & FIFO)
+// ELAYON SPACE • MOTOR DO COCKPIT (JS FONAÇÃO REAL & FIFO - v10.3)
 // ==========================================
 const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
@@ -7,14 +7,15 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let tokenCount = 100;
-let arrayConexoesFIFO = []; // Buffer FIFO das 3 interações
-let etapaCalibracao = 0; // 0, 1, 2 ou 3
+let arrayConexoesFIFO = []; 
+let etapaCalibracao = 0; 
 let isRecording = false;
 let mediaRecorder = null;
 let audioChunks = [];
 let audioContext = null;
 let analyser = null;
-let recognition = null; // API de Reconhecimento de Voz nativa (Transcrição em tempo real)
+let recognition = null; 
+let animationFrameId = null;
 
 const perguntasCalibracao = [
     "Fase 1/3 [Lucidez]: Para você, o que é lucidez? Você sente que está lúcido neste exato momento?",
@@ -69,7 +70,7 @@ function tocarBipAbertura() {
 // INICIALIZAÇÃO & PERFIL DO SUPABASE
 // ------------------------------------------
 async function initCockpit() {
-    addLog('A validar autenticação estrita no Supabase...');
+    addLog('[INIT] A validar autenticação estrita no Supabase (v10.3)...');
     
     const { data: { session }, error } = await supabaseClient.auth.getSession();
     
@@ -191,6 +192,7 @@ function ativarInterfaceIA(ativo) {
         }
         if (btnSend) btnSend.disabled = false;
         if (btnMic) btnMic.disabled = false;
+        addLog('Interface de IA e Microfone ativadas.', 'ok');
     } else {
         if (statusIa) {
             statusIa.textContent = 'INATIVA';
@@ -263,13 +265,13 @@ function inicializarReconhecimentoVoz() {
         };
 
         recognition.onerror = (e) => {
-            console.log('Erro na transcrição de voz:', e.error);
+            addLog('Erro na transcrição de voz: ' + e.error, 'err');
         };
     }
 }
 
 // ------------------------------------------
-// CAPTURA DE FONAÇÃO & ESPECTROIDE VIVO (ATUALIZADO)
+// CAPTURA DE FONAÇÃO & ESPECTROIDE VIVO (BLOCO ROBUSTO)
 // ------------------------------------------
 async function toggleMicrofone() {
     const btn = document.getElementById('btnMicSimple');
@@ -277,16 +279,28 @@ async function toggleMicrofone() {
     const keyEl = document.getElementById('inputApiKey');
     const apiKey = keyEl ? keyEl.value.trim() : '';
     
+    addLog(`[MIC] Tentativa de acionamento. API Key presente: ${Boolean(apiKey)}`, apiKey ? 'ok' : 'err');
+
     if (!apiKey) {
         alert('Configure e salve sua chave de API antes de gravar.');
+        return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        const msg = 'ERRO: Este navegador não suporta captura de áudio.';
+        addLog(msg, 'err');
+        alert(msg);
         return;
     }
 
     if (!isRecording) {
         try {
             tocarBipAbertura();
+            addLog('[MIC] Solicitando permissão de microfone...', 'info');
 
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            addLog('[MIC] Permissão concedida. Iniciando gravador e analisador...', 'ok');
+
             mediaRecorder = new MediaRecorder(stream);
             audioChunks = [];
 
@@ -296,10 +310,12 @@ async function toggleMicrofone() {
             const source = audioContext.createMediaStreamSource(stream);
             source.connect(analyser);
             
+            isRecording = true;
             desenharEspectroideVivo();
 
             mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
             mediaRecorder.onstop = async () => {
+                addLog('[MIC] Gravação parada. Processando arquivo de áudio e snapshot...', 'info');
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                 const audioUrl = URL.createObjectURL(audioBlob);
                 
@@ -315,7 +331,6 @@ async function toggleMicrofone() {
                 try { recognition.start(); } catch(err) {}
             }
 
-            isRecording = true;
             if (btn) {
                 btn.textContent = '⏹️ Parar & Processar Fonação';
                 btn.style.background = 'var(--danger)';
@@ -324,7 +339,6 @@ async function toggleMicrofone() {
                 statusEl.textContent = 'GRAVANDO VIVO';
                 statusEl.style.color = '#ff6b6b';
             }
-            addLog('Espectroide vivo e escuta fônica ativos...', 'ok');
 
             setTimeout(() => {
                 if (isRecording && mediaRecorder && mediaRecorder.state === 'recording') {
@@ -333,7 +347,9 @@ async function toggleMicrofone() {
             }, 30000);
 
         } catch (err) {
-            alert('Erro ao acessar o microfone.');
+            const erroMsg = `FALHA NO MIC: ${err.name} - ${err.message}`;
+            addLog(erroMsg, 'err');
+            alert('Não foi possível acessar o microfone: ' + err.message);
         }
     } else {
         pararGravacaoAudio();
@@ -345,10 +361,16 @@ function pararGravacaoAudio() {
     const btn = document.getElementById('btnMicSimple');
     const statusEl = document.getElementById('waveformStatus');
 
-    mediaRecorder.stop();
-    mediaRecorder.stream.getTracks().forEach(track => track.stop());
-    if (audioContext) audioContext.close();
     isRecording = false;
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    }
+    if (audioContext && audioContext.state !== 'closed') {
+        audioContext.close();
+    }
 
     if (btn) {
         btn.textContent = '🎙️ Iniciar Escuta Fônica (Gravar / Transcrever)';
@@ -358,6 +380,7 @@ function pararGravacaoAudio() {
         statusEl.textContent = 'CONGELADO / SALVO';
         statusEl.style.color = '#3ecfcf';
     }
+    addLog('[MIC] Escuta fônica encerrada com sucesso.', 'ok');
 }
 
 function desenharEspectroideVivo() {
@@ -368,11 +391,8 @@ function desenharEspectroideVivo() {
     const dataArray = new Uint8Array(bufferLength);
 
     function draw() {
-        if (!isRecording) {
-            // Quando para de gravar, o último quadro fica congelado na tela perfeitamente visível
-            return;
-        }
-        requestAnimationFrame(draw);
+        if (!isRecording) return;
+        animationFrameId = requestAnimationFrame(draw);
         analyser.getByteFrequencyData(dataArray);
 
         ctx.fillStyle = '#051518';
@@ -394,7 +414,6 @@ function desenharEspectroideVivo() {
     }
     draw();
 }
-
 
 // ------------------------------------------
 // BUFFER FIFO DAS 3 CAIXAS (UI)
