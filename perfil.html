@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -42,7 +42,6 @@
       box-shadow:var(--shadow);
     }
 
-    /* Logo no Canto Superior Esquerdo (Reduzida 20%) */
     .top-logo-container {
       position: absolute;
       top: 20px;
@@ -58,7 +57,6 @@
       background: #fff;
     }
 
-    /* Avatar / Foto Principal */
     .avatar-wrapper {
       display: flex;
       flex-direction: column;
@@ -261,21 +259,18 @@
 </head>
 <body>
   <main class="card">
-    <!-- Logo 20% Menor no Canto Superior Esquerdo -->
     <div class="top-logo-container">
       <img src="elayon_logo.png" alt="Elayon Logo" class="logo-img-small" onerror="this.style.display='none'" />
     </div>
 
-    <!-- Avatar / Foto -->
     <div class="avatar-wrapper">
       <img id="avatarImage" class="avatar-img" src="" alt="Foto de Perfil" />
       <label for="fileInput" class="avatar-upload-btn">Alterar Foto 📷</label>
       <input type="file" id="fileInput" accept="image/*" />
     </div>
 
-    <!-- Nome no Topo com Edição -->
     <div class="header-name-container" id="nameDisplayContainer">
-      <h1 id="userName">Carregando...</h1>
+      <h1 id="userName">A carregar...</h1>
       <button class="btn-icon" id="btnEditName" title="Editar nome">✏️</button>
     </div>
     
@@ -285,17 +280,17 @@
       <button class="btn-icon" id="btnCancelName" title="Cancelar">❌</button>
     </div>
 
-    <p class="sub">Gestão de conta, tokens e dados pessoais do ecossistema.</p>
+    <p class="sub">Gestão de conta, tokens e dados pessoais do ecossistema Elayon.</p>
 
     <section class="box">
       <div class="row">
         <span class="label">ID</span>
-        <span class="value" id="userId" style="font-size:10px;">Carregando...</span>
+        <span class="value" id="userId" style="font-size:10px;">A carregar...</span>
       </div>
 
       <div class="row">
         <span class="label">E-mail</span>
-        <span class="value" id="userEmail">Carregando...</span>
+        <span class="value" id="userEmail">A carregar...</span>
       </div>
 
       <div class="row">
@@ -308,9 +303,8 @@
     </section>
 
     <div class="actions">
-      <!-- Endereçamento interno correto no mesmo repositório -->
       <a class="btn primary" id="btnStartAvaliacao" href="cockpit.html">
-        Acessar Cockpit
+        Aceder ao Cockpit Supremo
       </a>
 
       <button class="btn secondary" id="btnTogglePassword" type="button">
@@ -322,7 +316,6 @@
       </button>
     </div>
 
-    <!-- Seção: Alterar Palavra-passe -->
     <div class="modal-section" id="secPassword">
       <div class="input-group">
         <label for="newPassword">Nova Palavra-passe</label>
@@ -335,14 +328,12 @@
       <button class="btn primary" id="btnSavePassword" type="button">Atualizar Palavra-passe</button>
     </div>
 
-    <!-- Seção: Salvar Alterações -->
     <div style="margin-top: 18px;">
       <button class="btn primary" id="btnSaveChanges">
         💾 Salvar Alterações no Supabase
       </button>
     </div>
 
-    <!-- SEÇÃO DE EXCLUSÃO DE CONTA -->
     <div style="margin-top: 40px; border-top: 1px solid var(--line); padding-top: 25px;">
       <button class="btn danger-btn" id="btnToggleDelete" type="button">
         Excluir Conta
