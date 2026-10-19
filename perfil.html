@@ -3,262 +3,79 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Elayon Space • Perfil</title>
+  <title>Elayon Space • Perfil Modular</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root{
-      --bg1:#f4f9f4;
-      --bg2:#eaf4f6;
-      --card:#ffffff;
-      --ink:#0a2a2f;
-      --muted:#4a6b70;
-      --line:#d8e8eb;
-      --accent:#2a9d8f;
-      --accent2:#3ecfcf;
-      --shadow:0 10px 30px rgba(0,0,0,0.06);
-      --danger:#d9534f;
+      --bg1:#f4f9f4; --bg2:#eaf4f6; --card:#ffffff;
+      --ink:#0a2a2f; --muted:#4a6b70; --line:#d8e8eb;
+      --accent:#2a9d8f; --accent2:#3ecfcf; --shadow:0 10px 30px rgba(0,0,0,0.06);
+      --danger:#d9534f; --success:#2b8a3e;
     }
-
     *{ box-sizing:border-box; margin:0; padding:0; }
-
     body{
-      min-height:100vh;
-      display:grid;
-      place-items:center;
-      padding:24px;
+      min-height:100vh; display:grid; place-items:center; padding:24px;
       font-family:system-ui,-apple-system,sans-serif;
       background: radial-gradient(circle at top left, var(--bg1), var(--bg2));
       color:var(--ink);
     }
-
     .card{
-      position: relative;
-      width:100%;
-      max-width:480px;
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:24px;
-      padding:40px 30px;
-      box-shadow:var(--shadow);
+      position: relative; width:100%; max-width:480px; background:var(--card);
+      border:1px solid var(--line); border-radius:24px; padding:40px 30px; box-shadow:var(--shadow);
     }
-
-    .top-logo-container {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-    }
-
-    .logo-img-small {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 1.5px solid var(--accent);
-      background: #fff;
-    }
-
-    .avatar-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 10px;
-      margin-bottom: 20px;
-    }
-
-    .avatar-img {
-      width: 84px;
-      height: 84px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid var(--accent);
-      background: #e2f1f1;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    .avatar-upload-btn {
-      margin-top: 8px;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--ink);
-      background: #f0f7f7;
-      border: 1px solid var(--line);
-      padding: 5px 12px;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: .2s;
-    }
-
-    .avatar-upload-btn:hover {
-      background: var(--accent);
-      color: #fff;
-    }
-
+    /* SESSÃO 1: Identidade e Logo */
+    .top-logo-container { position: absolute; top: 20px; left: 20px; }
+    .logo-img-small { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent); background: #fff; }
+    .avatar-wrapper { display: flex; flex-direction: column; align-items: center; margin-top: 10px; margin-bottom: 20px; }
+    .avatar-img { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); background: #e2f1f1; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .avatar-upload-btn { margin-top: 8px; font-size: 11px; font-weight: 700; color: var(--ink); background: #f0f7f7; border: 1px solid var(--line); padding: 5px 12px; border-radius: 20px; cursor: pointer; transition: .2s; }
+    .avatar-upload-btn:hover { background: var(--accent); color: #fff; }
     #fileInput { display: none; }
-
-    .header-name-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 4px;
-    }
-
-    h1 {
-      font-size: 24px;
-      letter-spacing: -1px;
-      text-align: center;
-    }
-
-    .edit-name-input {
-      padding: 6px 10px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      font-size: 16px;
-      outline: none;
-      width: 180px;
-      font-weight: 700;
-      text-align: center;
-    }
-
-    .btn-icon {
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      font-size: 15px;
-      color: var(--muted);
-      padding: 4px;
-    }
+    .header-name-container { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 4px; }
+    h1 { font-size: 24px; letter-spacing: -1px; text-align: center; }
+    .edit-name-input { padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 16px; outline: none; width: 180px; font-weight: 700; text-align: center; }
+    .btn-icon { background: transparent; border: none; cursor: pointer; font-size: 15px; color: var(--muted); padding: 4px; }
     .btn-icon:hover { color: var(--ink); }
+    .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; line-height: 1.4; text-align: center; }
 
-    .sub{
-      color:var(--muted);
-      font-size:13px;
-      margin-bottom:20px;
-      line-height:1.4;
-      text-align: center;
-    }
-
-    .box{
-      background:#f8fbfa;
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:16px;
-      margin-bottom:18px;
-    }
-
-    .row{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      font-size:13px;
-      margin-bottom:12px;
-    }
-
-    .row:last-child{ margin-bottom:0; }
-
-    .label{ color:var(--muted); }
-    .value{ font-weight:700; word-break:break-word; text-align:right; }
-
-    .tokens-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .tokens{
-      color:var(--accent);
-      font-weight:800;
-    }
-
-    .btn-plus {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      font-weight: 800;
-      cursor: pointer;
-      display: grid;
-      place-items: center;
-      transition: .2s;
-    }
+    /* SESSÃO 2: Dados e Tokens */
+    .box { background: #f8fbfa; border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 18px; }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 13px; margin-bottom: 12px; }
+    .row:last-child { margin-bottom: 0; }
+    .label { color: var(--muted); }
+    .value { font-weight: 700; word-break: break-word; text-align: right; }
+    .tokens-group { display: flex; align-items: center; gap: 8px; }
+    .tokens { color: var(--accent); font-weight: 800; }
+    .btn-plus { background: var(--accent); color: #fff; border: none; width: 24px; height: 24px; border-radius: 50%; font-weight: 800; cursor: pointer; display: grid; place-items: center; transition: .2s; }
     .btn-plus:hover { transform: scale(1.1); }
 
-    .actions{
-      display:grid;
-      gap:12px;
-      margin-top:18px;
-    }
+    /* SESSÃO 3: Calibração da IA Ad */
+    .ai-setup-box { background: #f0f7f7; border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-top: 18px; margin-bottom: 18px; text-align: left; }
+    .ai-setup-box h3 { font-size: 13px; color: var(--ink); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .ai-status-badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700; background: #fff3cd; color: #856404; }
+    .ai-status-badge.ativo { background: #d4edda; color: #155724; }
 
-    .btn{
-      display:block;
-      width:100%;
-      padding:14px;
-      border-radius:14px;
-      text-decoration:none;
-      text-align:center;
-      font-size:14px;
-      font-weight:800;
-      border:0;
-      cursor:pointer;
-      transition:.2s ease;
-    }
-
-    .btn:hover{ transform:translateY(-2px); }
-
-    .primary{
-      background:linear-gradient(135deg, var(--accent), var(--accent2));
-      color:#fff;
-    }
-
-    .secondary{
-      background:#f0f7f7;
-      border:1px solid var(--line);
-      color:var(--ink);
-    }
-
-    .logout{
-      background:transparent;
-      border:1px solid var(--line);
-      color:var(--muted);
-    }
-
-    .danger-btn{
-      background:#fff2f2;
-      border:1px solid #f5c6cb;
-      color:var(--danger);
-    }
-
-    .modal-section{
-      display:none;
-      margin-top:16px;
-      padding:16px;
-      border:1px solid var(--line);
-      border-radius:16px;
-      background:#fff;
-    }
-
-    .input-group{ margin-bottom:12px; text-align:left; }
-    label{ display:block; font-size:11px; font-weight:600; margin-bottom:4px; color:var(--ink); text-transform: uppercase; }
-    input{
-      width:100%; padding:10px; border:1px solid var(--line); border-radius:10px;
-      font-size:13px; outline:none; background: #fafcfc;
-    }
-
-    .msg{
-      margin-top:14px;
-      font-size:12px;
-      min-height:18px;
-      text-align:center;
-    }
-    .msg-error{ color:var(--danger); }
-    .msg-success{ color:#2b8a3e; }
+    /* SESSÃO 4: Ações Principais e Modais */
+    .actions { display: grid; gap: 12px; margin-top: 18px; }
+    .btn { display: block; width: 100%; padding: 14px; border-radius: 14px; text-decoration: none; text-align: center; font-size: 14px; font-weight: 800; border: 0; cursor: pointer; transition: .2s ease; }
+    .btn:hover { transform: translateY(-2px); }
+    .primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+    .secondary { background: #f0f7f7; border: 1px solid var(--line); color: var(--ink); }
+    .logout { background: transparent; border: 1px solid var(--line); color: var(--muted); }
+    .danger-btn { background: #fff2f2; border: 1px solid #f5c6cb; color: var(--danger); }
+    .modal-section { display: none; margin-top: 16px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+    .input-group { margin-bottom: 12px; text-align: left; }
+    label { display: block; font-size: 11px; font-weight: 600; margin-bottom: 4px; color: var(--ink); text-transform: uppercase; }
+    input, select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 13px; outline: none; background: #fafcfc; }
+    .msg { margin-top: 14px; font-size: 12px; min-height: 18px; text-align: center; }
+    .msg-error { color: var(--danger); }
+    .msg-success { color: #2b8a3e; }
   </style>
 </head>
 <body>
   <main class="card">
+    
+    <!-- [SESSÃO 1] Identidade Visual e Nome -->
     <div class="top-logo-container">
       <img src="elayon_logo.png" alt="Elayon Logo" class="logo-img-small" onerror="this.style.display='none'" />
     </div>
@@ -280,19 +97,12 @@
       <button class="btn-icon" id="btnCancelName" title="Cancelar">❌</button>
     </div>
 
-    <p class="sub">Gestão de conta, tokens e dados pessoais do ecossistema Elayon.</p>
+    <p class="sub">Gestão de conta, tokens e calibração da IA Ad do ecossistema Elayon.</p>
 
+    <!-- [SESSÃO 2] Metadados da Conta & Tokens -->
     <section class="box">
-      <div class="row">
-        <span class="label">ID</span>
-        <span class="value" id="userId" style="font-size:10px;">A carregar...</span>
-      </div>
-
-      <div class="row">
-        <span class="label">E-mail</span>
-        <span class="value" id="userEmail">A carregar...</span>
-      </div>
-
+      <div class="row"><span class="label">ID</span><span class="value" id="userId" style="font-size:10px;">A carregar...</span></div>
+      <div class="row"><span class="label">E-mail</span><span class="value" id="userEmail">A carregar...</span></div>
       <div class="row">
         <span class="label">Tokens</span>
         <div class="tokens-group">
@@ -302,18 +112,34 @@
       </div>
     </section>
 
+    <!-- [SESSÃO 3] Calibração Interna da IA Ad -->
+    <section class="ai-setup-box">
+      <h3>
+        🧠 Cadastro & IA Ad (Global)
+        <span id="aiStatusBadge" class="ai-status-badge">NÃO CONFIGURADA</span>
+      </h3>
+      <div class="input-group">
+        <label for="selectAiProvider">Provedor de Inteligência</label>
+        <select id="selectAiProvider">
+          <option value="gemini" selected>Google Gemini (1.5 Pro)</option>
+          <option value="openai">OpenAI (GPT-4o)</option>
+          <option value="anthropic">Anthropic (Claude 3.5)</option>
+        </select>
+      </div>
+      <div class="input-group" style="margin-bottom: 8px;">
+        <label for="inputApiKey">Chave de API Interna / Externa</label>
+        <input type="password" id="inputApiKey" placeholder="Cole sua chave de API..." autocomplete="off" />
+      </div>
+      <button class="btn primary" id="btnSalvarAiConfig" style="padding: 10px; font-size: 12px;" type="button">
+        Salvar Configuração e Calibrar IA
+      </button>
+    </section>
+
+    <!-- [SESSÃO 4] Navegação & Gestão de Segurança (Senha e Exclusão) -->
     <div class="actions">
-      <a class="btn primary" id="btnStartAvaliacao" href="cockpit.html">
-        Aceder ao Cockpit Supremo
-      </a>
-
-      <button class="btn secondary" id="btnTogglePassword" type="button">
-        Alterar Palavra-passe
-      </button>
-
-      <button class="btn logout" id="btnLogout" type="button">
-        Sair
-      </button>
+      <a class="btn primary" id="btnStartAvaliacao" href="cockpit.html">Aceder ao Cockpit Supremo 🚀</a>
+      <button class="btn secondary" id="btnTogglePassword" type="button">Alterar Palavra-passe</button>
+      <button class="btn logout" id="btnLogout" type="button">Sair</button>
     </div>
 
     <div class="modal-section" id="secPassword">
@@ -329,16 +155,11 @@
     </div>
 
     <div style="margin-top: 18px;">
-      <button class="btn primary" id="btnSaveChanges">
-        💾 Salvar Alterações no Supabase
-      </button>
+      <button class="btn primary" id="btnSaveChanges">💾 Salvar Alterações no Supabase</button>
     </div>
 
     <div style="margin-top: 40px; border-top: 1px solid var(--line); padding-top: 25px;">
-      <button class="btn danger-btn" id="btnToggleDelete" type="button">
-        Excluir Conta
-      </button>
-
+      <button class="btn danger-btn" id="btnToggleDelete" type="button">Excluir Conta</button>
       <div class="modal-section" id="secDelete" style="margin-top: 14px;">
         <p style="font-size:12px; color:var(--danger); margin-bottom:10px; text-align:left; line-height: 1.4;">
           <strong>Atenção:</strong> Esta ação é irreversível. Todos os seus tokens e dados serão apagados permanentemente.
@@ -353,8 +174,10 @@
 
     <div class="msg" id="msg"></div>
   </main>
-
   <script>
+    // ==========================================
+    // CONFIGURAÇÃO INICIAL E SUPABASE
+    // ==========================================
     const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -369,9 +192,11 @@
       msgDiv.className = 'msg ' + (isError ? 'msg-error' : 'msg-success');
     }
 
+    // ==========================================
+    // SESSÃO 1 & 2: INICIALIZAÇÃO E SINCRONIZAÇÃO
+    // ==========================================
     async function initAuth() {
       const { data: { session }, error } = await supabaseClient.auth.getSession();
-      
       if (error || !session) {
         window.location.href = 'login.html';
         return;
@@ -395,17 +220,13 @@
     async function syncUserProfile(user, defaultName) {
       try {
         let { data: profile, error } = await supabaseClient
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+          .from('profiles').select('*').eq('id', user.id).single();
 
         if (error && error.code === 'PGRST116') {
           const { data: newProfile } = await supabaseClient
             .from('profiles')
             .insert([{ id: user.id, email: user.email, nome: defaultName, tokens: 100 }])
-            .select()
-            .single();
+            .select().single();
           profile = newProfile;
         }
 
@@ -420,6 +241,14 @@
           } else {
             document.getElementById('avatarImage').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id}`;
           }
+
+          if (profile.ai_provider) {
+            document.getElementById('selectAiProvider').value = profile.ai_provider;
+          }
+          if (profile.ai_key) {
+            document.getElementById('inputApiKey').value = profile.ai_key;
+            atualizarBadgeStatusAi(true);
+          }
         }
       } catch (e) {
         document.getElementById('userTokens').textContent = currentTokens;
@@ -427,10 +256,50 @@
       }
     }
 
+    // ==========================================
+    // SESSÃO 3: GESTÃO DA CALIBRAÇÃO DA IA AD
+    // ==========================================
+    function atualizarBadgeStatusAi(ativo) {
+      const badge = document.getElementById('aiStatusBadge');
+      if (ativo) {
+        badge.textContent = 'CONFIGURADA E ATIVA';
+        badge.className = 'ai-status-badge ativo';
+      } else {
+        badge.textContent = 'NÃO CONFIGURADA';
+        badge.className = 'ai-status-badge';
+      }
+    }
+
+    document.getElementById('btnSalvarAiConfig').addEventListener('click', async () => {
+      const provider = document.getElementById('selectAiProvider').value;
+      const apiKey = document.getElementById('inputApiKey').value.trim();
+
+      if (!apiKey) {
+        showMsg('Insira uma chave de API válida para calibrar a IA.', true);
+        return;
+      }
+
+      localStorage.setItem('elayon_ai_provider', provider);
+      localStorage.setItem('elayon_ai_key', apiKey);
+
+      if (currentUser) {
+        await supabaseClient
+          .from('profiles')
+          .update({ ai_provider: provider, ai_key: apiKey, calibrado: true })
+          .eq('id', currentUser.id);
+      }
+
+      atualizarBadgeStatusAi(true);
+      showMsg('✅ IA Ad calibrada e configurada com sucesso!');
+    });
+
+    // ==========================================
+    // SESSÃO 4: EDIÇÃO DE PERFIL, SENHA E TOKENS
+    // ==========================================
     document.getElementById('btnAddToken').addEventListener('click', () => {
       currentTokens += 1;
       document.getElementById('userTokens').textContent = currentTokens;
-      showMsg('Token adicionado! Clique em "Salvar Alterações" para confirmar no banco.');
+      showMsg('Token adicionado! Clique em "Salvar Alterações".');
     });
 
     document.getElementById('btnEditName').addEventListener('click', () => {
@@ -450,13 +319,12 @@
       document.getElementById('userName').textContent = newName;
       document.getElementById('nameDisplayContainer').style.display = 'flex';
       document.getElementById('nameEditContainer').style.display = 'none';
-      showMsg('Nome alterado! Clique em "Salvar Alterações" para confirmar no banco.');
+      showMsg('Nome alterado! Clique em "Salvar Alterações".');
     });
 
     document.getElementById('fileInput').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = function(evt) {
         const img = new Image();
@@ -464,28 +332,14 @@
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
           const maxSize = 200;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > maxSize) {
-              height *= maxSize / width;
-              width = maxSize;
-            }
-          } else {
-            if (height > maxSize) {
-              width *= maxSize / height;
-              height = maxSize;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
+          let width = img.width, height = img.height;
+          if (width > height) { if (width > maxSize) { height *= maxSize / width; width = maxSize; } }
+          else { if (height > maxSize) { width *= maxSize / height; height = maxSize; } }
+          canvas.width = width; canvas.height = height;
           ctx.drawImage(img, 0, 0, width, height);
-
           currentAvatarBase64 = canvas.toDataURL('image/jpeg', 0.8);
           document.getElementById('avatarImage').src = currentAvatarBase64;
-          showMsg('Foto atualizada com sucesso! Clique em "Salvar Alterações".');
+          showMsg('Foto atualizada! Clique em "Salvar Alterações".');
         };
         img.src = evt.target.result;
       };
@@ -494,33 +348,26 @@
 
     document.getElementById('btnSaveChanges').addEventListener('click', async () => {
       if (!currentUser) return;
-
       showMsg('A gravar dados no Supabase...');
       const btn = document.getElementById('btnSaveChanges');
       btn.disabled = true;
 
       const finalName = document.getElementById('userName').textContent;
+      const provider = document.getElementById('selectAiProvider').value;
+      const apiKey = document.getElementById('inputApiKey').value.trim();
 
-      const updateData = {
-        nome: finalName,
-        tokens: currentTokens
-      };
-
-      if (currentAvatarBase64) {
-        updateData.avatar_url = currentAvatarBase64;
-      }
+      const updateData = { nome: finalName, tokens: currentTokens, ai_provider: provider, ai_key: apiKey };
+      if (currentAvatarBase64) updateData.avatar_url = currentAvatarBase64;
 
       const { error } = await supabaseClient
-        .from('profiles')
-        .upsert({ id: currentUser.id, email: currentUser.email, ...updateData });
+        .from('profiles').upsert({ id: currentUser.id, email: currentUser.email, ...updateData });
 
       if (!error) {
         await supabaseClient.auth.updateUser({ data: { nome: finalName } });
-        showMsg('✅ Alterações salvas com sucesso no Supabase!');
+        showMsg('✅ Alterações e calibração salvas no Supabase!');
       } else {
-        showMsg('Erro ao salvar no Supabase: ' + error.message, true);
+        showMsg('Erro ao salvar: ' + error.message, true);
       }
-
       btn.disabled = false;
     });
 
@@ -539,21 +386,12 @@
     document.getElementById('btnSavePassword').addEventListener('click', async () => {
       const newP = document.getElementById('newPassword').value;
       const confP = document.getElementById('confirmPassword').value;
-
-      if (!newP || newP.length < 6) {
-        showMsg('A palavra-passe deve ter pelo menos 6 carateres.', true);
-        return;
-      }
-      if (newP !== confP) {
-        showMsg('As palavras-passe introduzidas não coincidem.', true);
-        return;
-      }
+      if (!newP || newP.length < 6) { showMsg('Mínimo 6 carateres.', true); return; }
+      if (newP !== confP) { showMsg('As palavras-passe não coincidem.', true); return; }
 
       const { error } = await supabaseClient.auth.updateUser({ password: newP });
-
-      if (error) {
-        showMsg('Erro ao atualizar palavra-passe: ' + error.message, true);
-      } else {
+      if (error) { showMsg('Erro: ' + error.message, true); }
+      else {
         showMsg('Palavra-passe atualizada com sucesso!');
         document.getElementById('secPassword').style.display = 'none';
         document.getElementById('newPassword').value = '';
@@ -562,20 +400,17 @@
     });
 
     document.getElementById('btnConfirmDelete').addEventListener('click', async () => {
-      const confirmVal = document.getElementById('deleteConfirmInput').value.trim();
-
-      if (confirmVal !== 'EXCLUIR') {
-        showMsg('Escreva EXCLUIR para confirmar a eliminação.', true);
+      if (document.getElementById('deleteConfirmInput').value.trim() !== 'EXCLUIR') {
+        showMsg('Escreva EXCLUIR para confirmar.', true);
         return;
       }
-
       try {
         await supabaseClient.from('profiles').delete().eq('id', currentUser.id);
         await supabaseClient.auth.signOut();
-        alert('Sua conta foi excluída.');
+        alert('Conta excluída.');
         window.location.href = 'login.html';
       } catch (err) {
-        showMsg('Erro ao eliminar a conta: ' + err.message, true);
+        showMsg('Erro: ' + err.message, true);
       }
     });
 
@@ -588,4 +423,3 @@
   </script>
 </body>
 </html>
- 
