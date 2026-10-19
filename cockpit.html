@@ -3,20 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elayon Space • Cockpit do Piloto (Modular)</title>
+    <title>Elayon Space • Cockpit do Piloto (Fundo Branco)</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg1: #0f172a; --bg2: #1a1f3a; --card: rgba(30, 41, 59, 0.85);
-            --ink: #f1f5f9; --muted: #94a3b8; --line: rgba(14, 165, 233, 0.2);
-            --accent: #0ea5e9; --accent-glow: rgba(14, 165, 233, 0.25);
-            --success: #2b8a3e; --danger: #ef4444; --warning: #f59e0b;
-            --shadow: 0 10px 30px rgba(0,0,0,0.4);
+            --bg1: #f4f9f4; 
+            --bg2: #eaf4f6; 
+            --card: #ffffff;
+            --ink: #0a2a2f; 
+            --muted: #4a6b70; 
+            --line: #d8e8eb;
+            --accent: #2a9d8f; 
+            --accent2: #3ecfcf;
+            --accent-glow: rgba(42, 157, 143, 0.15);
+            --success: #2b8a3e; 
+            --danger: #d9534f; 
+            --warning: #f59e0b;
+            --shadow: 0 10px 30px rgba(0,0,0,0.06);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            min-height: 100vh; background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 50%, #0f2a1f 100%);
-            color: var(--ink); font-family: system-ui, -apple-system, sans-serif;
+            min-height: 100vh; 
+            background: radial-gradient(circle at top left, var(--bg1), var(--bg2));
+            color: var(--ink); 
+            font-family: system-ui, -apple-system, sans-serif;
             display: flex; flex-direction: column; align-items: center; padding: 20px; padding-bottom: 90px;
         }
         .container { width: 100%; max-width: 950px; display: grid; gap: 20px; }
@@ -25,12 +35,12 @@
         .hud-header {
             background: var(--card); border: 1px solid var(--line); border-radius: 16px;
             padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
-            backdrop-filter: blur(10px); box-shadow: var(--shadow);
+            box-shadow: var(--shadow);
         }
         .hud-info { font-size: 11px; font-weight: 700; color: var(--muted); }
         .hud-info span { color: var(--accent); }
         .btn-perfil {
-            background: rgba(255,255,255,0.05); border: 1px solid var(--line); color: var(--ink);
+            background: #f0f7f7; border: 1px solid var(--line); color: var(--ink);
             padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 700;
             cursor: pointer; text-decoration: none; transition: 0.2s;
         }
@@ -38,35 +48,35 @@
 
         .profile-card {
             background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line);
-            backdrop-filter: blur(10px); box-shadow: var(--shadow); display: flex; align-items: center; gap: 16px;
+            box-shadow: var(--shadow); display: flex; align-items: center; gap: 16px;
         }
-        .logo-img { width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; }
+        .logo-img { width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; background: #fff; }
         .profile-info { flex: 1; text-align: left; }
         .profile-info h2 { font-size: 18px; color: var(--ink); margin-bottom: 2px; }
         .profile-info p { font-size: 11px; color: var(--muted); font-family: monospace; }
-        .calibra-tag { font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .calibra-tag { font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
 
         /* [SESSÃO 2] Chat Simbiótico & Escuta Fônica (One-Button Mic) */
         .chat-section {
             background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line);
-            backdrop-filter: blur(10px); box-shadow: var(--shadow);
+            box-shadow: var(--shadow);
         }
         .section-title { font-size: 13px; margin-bottom: 8px; color: var(--accent); font-weight: 800; display: flex; align-items: center; gap: 6px; }
         
         .chat-box {
-            background: rgba(15, 23, 42, 0.6); border: 1px solid var(--line); border-radius: 12px; height: 200px;
+            background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; height: 200px;
             overflow-y: auto; padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;
         }
         .chat-message { font-size: 12px; padding: 8px 12px; border-radius: 8px; max-width: 85%; line-height: 1.4; }
-        .chat-message.ad { background: rgba(14, 165, 233, 0.15); color: var(--ink); align-self: flex-start; border-left: 3px solid var(--accent); }
+        .chat-message.ad { background: #e2f1f0; color: var(--ink); align-self: flex-start; border-left: 3px solid var(--accent); }
         .chat-message.user { background: var(--accent); color: #fff; align-self: flex-end; }
         
         .waveform-container {
-            background: #051518; border-radius: 10px; padding: 8px; margin-bottom: 12px; text-align: center; position: relative; border: 1px solid var(--line);
+            background: #0a2a2f; border-radius: 10px; padding: 8px; margin-bottom: 12px; text-align: center; position: relative; border: 1px solid var(--line);
         }
         canvas.live-canvas { width: 100%; height: 50px; display: block; border-radius: 6px; background: #051518; }
         .waveform-status {
-            position: absolute; top: 10px; right: 14px; font-size: 9px; font-family: monospace; color: var(--accent); background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px;
+            position: absolute; top: 10px; right: 14px; font-size: 9px; font-family: monospace; color: #3ecfcf; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px;
         }
 
         .btn-action {
@@ -74,7 +84,7 @@
             font-weight: 800; border: none; cursor: pointer; text-align: center; transition: 0.2s;
             text-decoration: none; margin-bottom: 10px;
         }
-        .btn-primary { background: linear-gradient(135deg, #0284c7, var(--accent)); color: #fff; box-shadow: 0 4px 15px var(--accent-glow); }
+        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; box-shadow: 0 4px 15px var(--accent-glow); }
         .btn-primary:hover { transform: translateY(-2px); }
 
         /* [SESSÃO 3] Buffer FIFO (3 Caixas Diminutas de Conexão Fônica) */
@@ -86,7 +96,7 @@
 
         .fifo-panel-section {
             background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line);
-            backdrop-filter: blur(10px); box-shadow: var(--shadow);
+            box-shadow: var(--shadow);
         }
         .fifo-grid {
             display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;
@@ -94,14 +104,14 @@
         @media(max-width: 768px) { .fifo-grid { grid-template-columns: 1fr; } }
 
         .connection-card {
-            background: rgba(15, 23, 42, 0.5); border: 1px solid var(--line); border-radius: 12px; padding: 10px;
+            background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; padding: 10px;
             display: flex; flex-direction: column; gap: 6px; text-align: left;
         }
         .connection-title { font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase; }
         .connection-meta { font-size: 9px; color: var(--muted); }
         .connection-report {
-            background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 6px; padding: 6px;
-            font-family: monospace; font-size: 9px; color: #fcd34d; max-height: 50px; overflow-y: auto; white-space: pre-wrap;
+            background: #fff8e6; border: 1px solid #ffeeba; border-radius: 6px; padding: 6px;
+            font-family: monospace; font-size: 9px; color: #856404; max-height: 50px; overflow-y: auto; white-space: pre-wrap;
         }
     </style>
 </head>
@@ -140,11 +150,11 @@
             </div>
 
             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                <input type="text" id="chatInput" placeholder="Transcrição fônica em tempo real..." disabled style="flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; background: rgba(15,23,42,0.5); color: var(--ink);">
+                <input type="text" id="chatInput" placeholder="Transcrição fônica em tempo real..." disabled style="flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; background: #fafcfc; color: var(--ink);">
                 <button class="btn-action btn-primary" id="btnSendChat" disabled style="width: 70px; margin: 0; padding: 10px;">Enviar</button>
             </div>
 
-            <button class="btn-action btn-primary" id="btnMicSimple" disabled style="background: linear-gradient(135deg, #ef4444, #f43f5e);">
+            <button class="btn-action btn-primary" id="btnMicSimple" disabled style="background: linear-gradient(135deg, var(--danger), #f06292);">
                 🎙️ Iniciar Escuta Fônica (Gravar / Transcrever)
             </button>
         </section>
@@ -171,35 +181,34 @@
             </div>
         </section>
 
-
         <!-- [SESSÃO 4] Mini-Gráficos Educativos & Métricas Fônicas Avançadas (CRS) -->
-        <section class="metrics-section" style="background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); backdrop-filter: blur(10px); box-shadow: var(--shadow);">
+        <section class="metrics-section" style="background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);">
             <div class="section-title">📊 Espectroide Analítico & Expressão Humana (Motor CRS)</div>
             <p style="font-size: 11px; color: var(--muted); margin-bottom: 12px; line-height: 1.4;">
                 Cada aba gráfica abaixo mede uma camada distinta da fonação humana. O sistema processa frequências, pausas rítmicas e tensões vocais em tempo real para alimentar a simbiose com a IA Ad.
             </p>
 
             <div class="metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 15px;">
-                <div class="metric-box" style="padding: 10px; background: rgba(14, 165, 233, 0.08); border: 1px solid var(--line); border-radius: 8px; text-align: center;">
+                <div class="metric-box" style="padding: 10px; background: #f8fbfa; border: 1px solid var(--line); border-radius: 8px; text-align: center;">
                     <div class="metric-label" style="font-size: 10px; color: var(--muted); text-transform: uppercase;">Energia RMS</div>
                     <div class="metric-value" id="mRms" style="font-weight: 900; font-size: 20px; color: var(--accent); font-family: 'Courier New', monospace;">0.000</div>
                 </div>
-                <div class="metric-box" style="padding: 10px; background: rgba(14, 165, 233, 0.08); border: 1px solid var(--line); border-radius: 8px; text-align: center;">
+                <div class="metric-box" style="padding: 10px; background: #f8fbfa; border: 1px solid var(--line); border-radius: 8px; text-align: center;">
                     <div class="metric-label" style="font-size: 10px; color: var(--muted); text-transform: uppercase;">Silêncio %</div>
                     <div class="metric-value" id="mSil" style="font-weight: 900; font-size: 20px; color: var(--accent); font-family: 'Courier New', monospace;">0.0</div>
                 </div>
-                <div class="metric-box" style="padding: 10px; background: rgba(14, 165, 233, 0.08); border: 1px solid var(--line); border-radius: 8px; text-align: center;">
+                <div class="metric-box" style="padding: 10px; background: #f8fbfa; border: 1px solid var(--line); border-radius: 8px; text-align: center;">
                     <div class="metric-label" style="font-size: 10px; color: var(--muted); text-transform: uppercase;">Freq. Média (Hz)</div>
                     <div class="metric-value" id="mFreq" style="font-weight: 900; font-size: 20px; color: var(--accent); font-family: 'Courier New', monospace;">0</div>
                 </div>
-                <div class="metric-box" style="padding: 10px; background: rgba(14, 165, 233, 0.08); border: 1px solid var(--line); border-radius: 8px; text-align: center;">
+                <div class="metric-box" style="padding: 10px; background: #f8fbfa; border: 1px solid var(--line); border-radius: 8px; text-align: center;">
                     <div class="metric-label" style="font-size: 10px; color: var(--muted); text-transform: uppercase;">Variância Tímbrica</div>
                     <div class="metric-value" id="mVar" style="font-weight: 900; font-size: 20px; color: var(--accent); font-family: 'Courier New', monospace;">0.00</div>
                 </div>
             </div>
 
             <!-- Gráfico 1: FFT -->
-            <div class="canvasWrap" style="background: rgba(15, 23, 42, 0.8); border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin-top: 10px;">
+            <div class="canvasWrap" style="background: #f8fbfa; border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin-top: 10px;">
                 <div style="font-size: 11px; font-weight: bold; color: var(--accent); margin-bottom: 2px;">📈 1. Espectro de Frequência (FFT / Timbre)</div>
                 <div style="font-size: 10px; color: var(--muted); margin-bottom: 6px;">
                     <strong>O que mede:</strong> Decomposição das ondas sonoras em faixas de Hz. Identifica a riqueza harmônica, brilho da voz, tom fundamental e texturas acústicas da fala.
@@ -208,7 +217,7 @@
             </div>
 
             <!-- Gráfico 2: Detecção de Silêncio e Ritmo -->
-            <div class="canvasWrap" style="background: rgba(15, 23, 42, 0.8); border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin-top: 12px;">
+            <div class="canvasWrap" style="background: #f8fbfa; border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin-top: 12px;">
                 <div style="font-size: 11px; font-weight: bold; color: var(--accent); margin-bottom: 2px;">⏱️ 2. Mapeamento de Silêncio & Ritmo (CRS Temporal)</div>
                 <div style="font-size: 10px; color: var(--muted); margin-bottom: 6px;">
                     <strong>O que mede:</strong> Captura as pausas estratégicas, respirações, hesitações e o ritmo cadenciado do discurso, avaliando o fluxo temporal da simbiose.
@@ -217,7 +226,7 @@
             </div>
 
             <!-- Gráfico 3: Dimensões CRS (8 Linhas Vetoriais) -->
-            <div class="canvasWrap" style="background: rgba(15, 23, 42, 0.8); border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin-top: 12px;">
+            <div class="canvasWrap" style="background: #f8fbfa; border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin-top: 12px;">
                 <div style="font-size: 11px; font-weight: bold; color: var(--accent); margin-bottom: 2px;">🌐 3. Vetorização Multidimensional (8 Linhas CRS)</div>
                 <div style="font-size: 10px; color: var(--muted); margin-bottom: 6px;">
                     <strong>O que mede:</strong> Converte os eixos comportamentais, cognitivos e fônicos em 8 vetores normalizados, gerando o perfil sintético unificado da interação.
@@ -228,22 +237,22 @@
 
         <!-- [SESSÃO 5] Ferramentas do Ecossistema & Módulos -->
         <div class="section-label">Camadas Complementares do Ecossistema</div>
-        <section class="tools-section" style="background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); backdrop-filter: blur(10px); box-shadow: var(--shadow);">
+        <section class="tools-section" style="background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);">
             <div class="tool-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 15px;">
-                <a href="#" class="tool-btn" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--line); padding: 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 12px;"><span>🧬 Elayon Health</span> <span class="badge" style="font-size:9px; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; color:var(--muted);">Ativo</span></a>
-                <a href="#" class="tool-btn" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--line); padding: 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 12px;"><span>🧠 Elayon PsiQ</span> <span class="badge" style="font-size:9px; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; color:var(--muted);">Ativo</span></a>
-                <a href="#" class="tool-btn" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--line); padding: 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 12px;"><span>🦁 Elayon Vibes 8</span> <span class="badge" style="font-size:9px; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; color:var(--muted);">Vibração</span></a>
-                <a href="#" class="tool-btn" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--line); padding: 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 12px;"><span>💻 Elayon PC</span> <span class="badge" style="font-size:9px; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; color:var(--muted);">Dev</span></a>
-                <a href="#" class="tool-btn" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--line); padding: 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 12px;"><span>⚙️ Elayon Mechanics</span> <span class="badge" style="font-size:9px; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; color:var(--muted);">IoT</span></a>
+                <a href="#" class="tool-btn" style="background: #f8fbfa; border: 1px solid var(--line); padding: 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 12px;"><span>🧬 Elayon Health</span> <span class="badge" style="font-size:9px; background:#e2f1f1; padding:2px 6px; border-radius:4px; color:var(--muted);">Ativo</span></a>
+                <a href="#" class="tool-btn" style="background: #f8fbfa; border: 1px solid var(--line); padding: 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 12px;"><span>🧠 Elayon PsiQ</span> <span class="badge" style="font-size:9px; background:#e2f1f1; padding:2px 6px; border-radius:4px; color:var(--muted);">Ativo</span></a>
+                <a href="#" class="tool-btn" style="background: #f8fbfa; border: 1px solid var(--line); padding: 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 12px;"><span>🦁 Elayon Vibes 8</span> <span class="badge" style="font-size:9px; background:#e2f1f1; padding:2px 6px; border-radius:4px; color:var(--muted);">Vibração</span></a>
+                <a href="#" class="tool-btn" style="background: #f8fbfa; border: 1px solid var(--line); padding: 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 12px;"><span>💻 Elayon PC</span> <span class="badge" style="font-size:9px; background:#e2f1f1; padding:2px 6px; border-radius:4px; color:var(--muted);">Dev</span></a>
+                <a href="#" class="tool-btn" style="background: #f8fbfa; border: 1px solid var(--line); padding: 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 12px;"><span>⚙️ Elayon Mechanics</span> <span class="badge" style="font-size:9px; background:#e2f1f1; padding:2px 6px; border-radius:4px; color:var(--muted);">IoT</span></a>
             </div>
             
             <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <button class="btn-action btn-primary" style="flex: 1; margin:0; background: #0284c7;" id="btnRelatorioImparcial">📄 Iniciar Conexões Simbióticas & Relatório</button>
-                <button class="btn-action" style="flex: 1; margin:0; background: rgba(255,255,255,0.05); border: 1px solid var(--line); color: var(--ink);" id="btnTutorial">💡 Tutorial do Cockpit</button>
+                <button class="btn-action btn-primary" style="flex: 1; margin:0;" id="btnRelatorioImparcial">📄 Iniciar Conexões Simbióticas & Relatório</button>
+                <button class="btn-action" style="flex: 1; margin:0; background: #f0f7f7; border: 1px solid var(--line); color: var(--ink);" id="btnTutorial">💡 Tutorial do Cockpit</button>
             </div>
             
             <div>
-                <button class="btn-action" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger);" id="btnEncerrarConexao">
+                <button class="btn-action" style="background: #fff2f2; border: 1px solid #f5c6cb; color: var(--danger);" id="btnEncerrarConexao">
                     🔚 Encerrar Conexão Simbiótica
                 </button>
             </div>
@@ -252,13 +261,13 @@
     </div>
 
     <!-- [SESSÃO 6] Gaveta de Logs de Auditoria -->
-    <div class="logs-drawer" id="logsDrawer" style="position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; color: #f1f5f9; border-top-left-radius: 16px; border-top-right-radius: 16px; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); transition: transform 0.3s ease; z-index: 1000; transform: translateY(115px); border-top: 1px solid var(--line);">
-        <div class="logs-header" id="logsToggleBtn" style="padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+    <div class="logs-drawer" id="logsDrawer" style="position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; color: var(--ink); border-top-left-radius: 16px; border-top-right-radius: 16px; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); transition: transform 0.3s ease; z-index: 1000; transform: translateY(115px); border-top: 1px solid var(--line);">
+        <div class="logs-header" id="logsToggleBtn" style="padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 11px; font-weight: 700; text-transform: uppercase; background: #f8fbfa; border-top-left-radius: 16px; border-top-right-radius: 16px;">
             <span>📋 Auditoria Fônica & Logs do Sistema (<span id="logCount">1</span>)</span>
             <span id="logToggleIcon">▲ Expandir Logs</span>
         </div>
-        <div class="logs-body" id="logsBody" style="max-height: 120px; overflow-y: auto; padding: 0 16px 12px 16px; font-family: monospace; font-size: 10px; display: flex; flex-direction: column; gap: 4px;">
-            <div class="log-item">[INIT] Estrutura modular do Cockpit pronta para receber o cockpit.js.</div>
+        <div class="logs-body" id="logsBody" style="max-height: 120px; overflow-y: auto; padding: 12px; font-family: monospace; font-size: 10px; display: flex; flex-direction: column; gap: 4px; background: #fff;">
+            <div class="log-item">[INIT] Estrutura modular limpa (fundo branco) carregada com sucesso.</div>
         </div>
     </div>
 
