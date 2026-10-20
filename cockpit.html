@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elayon Space • Cockpit do Piloto (Espectroide & CRS Intuitivo)</title>
+    <title>Elayon Space • Cockpit do Piloto (MVP 8 Gráficos & CRS)</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -56,23 +56,34 @@
         .profile-info p { font-size: 11px; color: var(--muted); font-family: monospace; }
         .calibra-tag { font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
 
-        /* [SESSÃO 2] Espectroide Analítico (Logo abaixo do perfil) */
-        .metrics-section {
+        /* [SESSÃO 2] Evidência CRS (Acima dos Gráficos) */
+        .crs-evidence-card {
             background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);
+            border-left: 4px solid var(--accent);
         }
         .section-title { font-size: 13px; margin-bottom: 8px; color: var(--accent); font-weight: 800; display: flex; align-items: center; gap: 6px; }
-        .canvasWrap {
-            background: #f8fbfa; border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin-top: 10px;
-        }
-        canvas.live-canvas { width: 100%; height: 60px; display: block; border-radius: 6px; background: #051518; }
 
-        /* [SESSÃO 3] Chat Simbiótico & Supermicrofone Elayon Space */
+        /* [SESSÃO 3] As 8 Estantes Gráficas Retráteis (Sanfonadas) */
+        .graphs-wrapper { display: grid; gap: 12px; }
+        details.graph-accordion {
+            background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden;
+            transition: 0.2s;
+        }
+        details.graph-accordion[open] { border-color: var(--accent); }
+        summary.graph-summary {
+            padding: 14px 18px; font-size: 12px; font-weight: 800; color: var(--ink); cursor: pointer;
+            background: #f8fbfa; display: flex; justify-content: space-between; align-items: center; user-select: none;
+        }
+        summary.graph-summary:hover { background: #f0f7f7; color: var(--accent); }
+        .graph-body { padding: 16px; background: #fff; border-top: 1px solid var(--line); }
+        .canvas-box { width: 100%; height: 180px; border-radius: 10px; background: #050c12; display: block; border: 1px solid var(--line); }
+
+        /* [SESSÃO 4] Chat Simbiótico & Supermicrofone Elayon Space */
         .chat-section {
-            background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line);
-            box-shadow: var(--shadow);
+            background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);
         }
         .chat-box {
-            background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; height: 200px;
+            background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; height: 180px;
             overflow-y: auto; padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;
         }
         .chat-message { font-size: 12px; padding: 8px 12px; border-radius: 8px; max-width: 85%; line-height: 1.4; }
@@ -86,6 +97,24 @@
         }
         .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; box-shadow: 0 4px 15px var(--accent-glow); }
         .btn-primary:hover { transform: translateY(-2px); }
+
+        /* [SESSÃO 5] Buffer FIFO & As 3 Sessões de Histórico */
+        .session-history-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;
+        }
+        @media(max-width: 768px) { .session-history-grid { grid-template-columns: 1fr; } }
+        .session-box {
+            background: #f8fbfa; border: 1px solid var(--line); border-radius: 14px; padding: 14px; text-align: left;
+        }
+
+        /* [SESSÃO 6] Ferramentas do Ecossistema (Inabilitadas até calibração) */
+        .tool-btn {
+            background: #f8fbfa; border: 1px solid var(--line); padding: 12px; border-radius: 10px;
+            text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between;
+            align-items: center; font-size: 12px; opacity: 0.5; pointer-events: none; transition: 0.2s;
+        }
+        .tool-btn.liberado { opacity: 1; pointer-events: auto; }
+        .tool-btn.liberado:hover { background: var(--accent); color: #fff; }
     </style>
 </head>
 <body>
@@ -107,98 +136,150 @@
             <span class="calibra-tag" id="calibraStatus">⚪ Calibração 0/3</span>
         </div>
 
-        <!-- [SESSÃO 2] Espectroide Analítico (Logo abaixo do perfil) -->
-        <section class="metrics-section">
-            <div class="section-title">📊 Espectroide Analítico & Fonação Humana</div>
-            <p style="font-size: 11px; color: var(--muted); margin-bottom: 10px; line-height: 1.4;">
-                Monitoramento visual em tempo real das frequências, harmônicos e pausas rítmicas captadas pela fonação.
+        <!-- [SESSÃO 2] Evidência CRS (Cognitive Rhythm & Silence) Principal -->
+        <section class="crs-evidence-card">
+            <div class="section-title">🌐 Evidência Principal CRS (Motor de Simbiose)</div>
+            <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px; line-height: 1.4;">
+                Indicador primário ativo. Monitora a harmonia entre o fluxo temporal da fala e as pausas reflexivas do operador antes de alimentar o relatório da IA.
             </p>
-
-            <div class="canvasWrap">
-                <div style="font-size: 11px; font-weight: bold; color: var(--accent); margin-bottom: 2px;">📈 1. Espectro de Frequência (FFT / Timbre)</div>
-                <canvas class="live-canvas" id="cvFft" width="600" height="80"></canvas>
-            </div>
-
-            <div class="canvasWrap">
-                <div style="font-size: 11px; font-weight: bold; color: var(--accent); margin-bottom: 2px;">⏱️ 2. Mapeamento de Silêncio & Ritmo Temporal</div>
-                <canvas class="live-canvas" id="cvSil" width="600" height="80"></canvas>
+            <div style="background: #f8fbfa; border: 1px solid var(--line); border-radius: 10px; padding: 12px; font-family: monospace; font-size: 11px; color: var(--accent);" id="crsEvidenciaStatus">
+                [CRS] Aguardando ativação do Supermicrofone para inicializar vetorização...
             </div>
         </section>
 
-        <!-- [SESSÃO 3] Chat Simbiótico & Supermicrofone Elayon Space -->
+        <!-- [SESSÃO 3] As 8 Estantes de Gráficos Individuais e Retráteis -->
+        <div class="section-title">📊 As 8 Dimensões Fônicas & Acústicas (Estantes Retráteis)</div>
+        <div class="graphs-wrapper">
+            
+            <!-- Gráfico 1 -->
+            <details class="graph-accordion">
+                <summary class="graph-summary">🟦 I. Frequência / Altura / Tom (F₀ & Jitter)</summary>
+                <div class="graph-body">
+                    <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">Mede a vibração das pregas vocais por segundo, estabilidade periódica e desvio padrão tonal.</p>
+                    <canvas class="canvas-box" id="cvGraph1"></canvas>
+                </div>
+            </details>
+
+            <!-- Gráfico 2 -->
+            <details class="graph-accordion">
+                <summary class="graph-summary">🟧 II. Intensidade / Volume / Força (SPL & Shimmer)</summary>
+                <div class="graph-body">
+                    <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">Mede a amplitude da onda sonora, limites dinâmicos e variação ciclo a ciclo na força vocal.</p>
+                    <canvas class="canvas-box" id="cvGraph2"></canvas>
+                </div>
+            </details>
+
+            <!-- Gráfico 3 -->
+            <details class="graph-accordion">
+                <summary class="graph-summary">🟩 III. Qualidade / Timbre / Ruído (HNR, Formantes & CPPS)</summary>
+                <div class="graph-body">
+                    <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">Mede a relação harmônico-ruído, formantes do trato vocal e o pico cepstral suavizado (clareza e soprosidade).</p>
+                    <canvas class="canvas-box" id="cvGraph3"></canvas>
+                </div>
+            </details>
+
+            <!-- Gráfico 4 -->
+            <details class="graph-accordion">
+                <summary class="graph-summary">🟨 IV. Prosódia / Entonação / Dinâmica (TMF & Quociente s/z)</summary>
+                <div class="graph-body">
+                    <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">Mede contornos de entonação, tempo máximo de fonação e eficiência respiratória/glótica.</p>
+                    <canvas class="canvas-box" id="cvGraph4"></canvas>
+                </div>
+            </details>
+
+            <!-- Gráfico 5 -->
+            <details class="graph-accordion">
+                <summary class="graph-summary">🟪 V. Perceptivo-Auditivo (Escalas GRBAS / CAPE-V)</summary>
+                <div class="graph-body">
+                    <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">Mapeamento vetorial de grau geral, rugosidade, soprosidade, astenia e tensão vocal.</p>
+                    <canvas class="canvas-box" id="cvGraph5"></canvas>
+                </div>
+            </details>
+
+            <!-- Gráfico 6 -->
+            <details class="graph-accordion">
+                <summary class="graph-summary">🟫 VI. Aerodinâmica (Fluxo de Ar & Pressão Subglótica)</summary>
+                <div class="graph-body">
+                    <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">Mede a quantidade de ar passando pela glote, pressão subglotica e eficiência fonatória.</p>
+                    <canvas class="canvas-box" id="cvGraph6"></canvas>
+                </div>
+            </details>
+
+            <!-- Gráfico 7 -->
+            <details class="graph-accordion">
+                <summary class="graph-summary">🟩 VII. Eletroglotografia (EGG — Contato das Pregas Vocais)</summary>
+                <div class="graph-body">
+                    <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">Mede diretamente o quociente de contato e fechamento glótico na fonte.</p>
+                    <canvas class="canvas-box" id="cvGraph7"></canvas>
+                </div>
+            </details>
+
+            <!-- Gráfico 8 -->
+            <details class="graph-accordion">
+                <summary class="graph-summary">🟦 VIII. Contexto Ambiental & Vibração Periférica</summary>
+                <div class="graph-body">
+                    <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">Mede transmissão mecânica corporal, ruído ambiente (dBA), distância do microfone e temperatura.</p>
+                    <canvas class="canvas-box" id="cvGraph8"></canvas>
+                </div>
+            </details>
+
+        </div>
+
+        <!-- [SESSÃO 4] Chat Simbiótico & Supermicrofone Elayon Space -->
         <section class="chat-section">
-            <div class="section-title">🎙️ Supermicrofone Elayon Space & Chat Simbiótico (Ad)</div>
+            <div class="section-title">🎙️ Supermicrofone Elayon Space & Chat Simbiótico</div>
             
             <div class="chat-box" id="chatBox">
                 <div class="chat-message ad">
-                    <strong>Ad (Elayon Space):</strong> Olá, Paulo! Meus ouvidos sensoriais estão ativos. Utilize o Supermicrofone abaixo para conversarmos e capturarmos todas as nuances da sua voz.
+                    <strong>Ad (Elayon Space):</strong> Olá, Paulo! Meus ouvidos sensoriais estão ativos. Ative o Supermicrofone para disparar os 8 gráficos em tempo real, gravar a fonação e alimentar o relatório CRS.
                 </div>
             </div>
 
             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                <input type="text" id="chatInput" placeholder="Transcrição fônica ou mensagem de texto..." disabled style="flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; background: #fafcfc; color: var(--ink);">
+                <input type="text" id="chatInput" placeholder="Transcrição fônica em tempo real ou texto..." disabled style="flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; background: #fafcfc; color: var(--ink);">
                 <button class="btn-action btn-primary" id="btnSendChat" disabled style="width: 70px; margin: 0; padding: 10px;">Enviar</button>
             </div>
 
             <button class="btn-action btn-primary" id="btnMicSimple" disabled style="background: linear-gradient(135deg, var(--danger), #f06292);">
-                🎙️ Ativar Supermicrofone (Escuta Fônica Total)
+                🎙️ Ligar Supermicrofone & Disparar Gráficos
             </button>
         </section>
 
-        <!-- [SESSÃO 4] Aba Exclusiva de Métricas CRS (Relatórios Interpretados pela IA) -->
-        <section class="metrics-section" style="background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);">
-            <div class="section-title">🧠 Relatório e Métricas CRS (Cognitive Rhythm & Silence)</div>
-            <p style="font-size: 11px; color: var(--muted); margin-bottom: 12px; line-height: 1.4;">
-                Abaixo estão as leituras interpretadas diretamente pela IA, traduzindo padrões de eco, cadência e ressonância em diagnósticos claros e sem números frios.
-            </p>
-
-            <div style="background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; padding: 14px; font-size: 12px; line-height: 1.5; color: var(--ink);">
-                <div style="font-weight: 800; color: var(--accent); margin-bottom: 6px;">📋 Síntese Comportamental & Tímbrica Atual:</div>
-                <p id="crsInterpretacaoTexto" style="color: var(--muted); font-style: italic;">
-                    "Aguardando a primeira escuta fônica eativação do Supermicrofone para gerar o diagnóstico qualitativo da simbiose..."
-                </p>
-            </div>
-        </section>
-
-        <!-- [SESSÃO 5] Buffer FIFO de Conexões Fônicas -->
-        <div style="font-size: 11px; font-weight: bold; color: var(--muted); margin: 10px 0; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center;">
-            Buffer de Conexões Fônicas (FIFO 3/3) <span style="flex: 1; height: 1px; background: var(--line); margin-left: 10px;"></span>
-        </div>
+        <!-- [SESSÃO 5] As 3 Sessões de Histórico & Buffer FIFO -->
+        <div class="section-title">📦 Buffer FIFO & As 3 Sessões de Histórico Fônico</div>
         <section style="background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);">
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;" id="conexoesFifoGrid">
-                <div style="background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; padding: 10px;">
-                    <div style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase;">🔗 1. Mais Recente</div>
-                    <div style="font-size: 9px; color: var(--muted); margin: 4px 0;">Aguardando captura...</div>
-                    <div style="background: #fff8e6; border: 1px solid #ffeeba; border-radius: 6px; padding: 6px; font-size: 9px; color: #856404;">CRS Pendente</div>
+            <div class="session-history-grid" id="conexoesFifoGrid">
+                <div class="session-box">
+                    <div style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase;">🔗 Sessão 1 (Mais Recente)</div>
+                    <div style="font-size: 9px; color: var(--muted); margin: 4px 0;">Captura atual em processamento</div>
+                    <div style="background: #fff8e6; border: 1px solid #ffeeba; border-radius: 6px; padding: 6px; font-size: 9px; color: #856404;" id="histSessao1">Aguardando fechamento do Mic...</div>
                 </div>
-                <div style="background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; padding: 10px;">
-                    <div style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase;">🔗 2. Anterior</div>
-                    <div style="font-size: 9px; color: var(--muted); margin: 4px 0;">Histórico prévio</div>
-                    <div style="background: #fff8e6; border: 1px solid #ffeeba; border-radius: 6px; padding: 6px; font-size: 9px; color: #856404;">CRS Vazio</div>
+                <div class="session-box">
+                    <div style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase;">🔗 Sessão 2 (Anterior)</div>
+                    <div style="font-size: 9px; color: var(--muted); margin: 4px 0;">Histórico prévio de simbiose</div>
+                    <div style="background: #e2f1f0; border-radius: 6px; padding: 6px; font-size: 9px; color: var(--ink);" id="histSessao2">Nenhum registro anterior</div>
                 </div>
-                <div style="background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; padding: 10px;">
-                    <div style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase;">🔗 3. Base (Estática)</div>
-                    <div style="font-size: 9px; color: var(--muted); margin: 4px 0;">Baseline inicial</div>
-                    <div style="background: #fff8e6; border: 1px solid #ffeeba; border-radius: 6px; padding: 6px; font-size: 9px; color: #856404;">CRS Vazio</div>
+                <div class="session-box">
+                    <div style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase;">🔗 Sessão 3 (Baseline Base)</div>
+                    <div style="font-size: 9px; color: var(--muted); margin: 4px 0;">Calibração primária do operador</div>
+                    <div style="background: #e2f1f0; border-radius: 6px; padding: 6px; font-size: 9px; color: var(--ink);" id="histSessao3">Baseline atrelada ao Perfil</div>
                 </div>
             </div>
         </section>
 
-        <!-- [SESSÃO 6] Camadas de Ferramentas & Ecossistema -->
-        <div style="font-size: 11px; font-weight: bold; color: var(--muted); margin: 10px 0; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center;">
-            Camadas Complementares do Ecossistema <span style="flex: 1; height: 1px; background: var(--line); margin-left: 10px;"></span>
-        </div>
+        <!-- [SESSÃO 6] Camadas de Ferramentas (Passagem de API via Backend) -->
+        <div class="section-title">⚙️ Ferramentas do Ecossistema (Desbloqueadas via API)</div>
         <section style="background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 15px;">
-                <a href="#" class="tool-btn" style="background: #f8fbfa; border: 1px solid var(--line); padding: 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 12px;"><span>🧬 Elayon Health</span> <span style="font-size:9px; background:#e2f1f1; padding:2px 6px; border-radius:4px; color:var(--muted);">Ativo</span></a>
-                <a href="#" class="tool-btn" style="background: #f8fbfa; border: 1px solid var(--line); padding: 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 12px;"><span>🧠 Elayon PsiQ</span> <span style="font-size:9px; background:#e2f1f1; padding:2px 6px; border-radius:4px; color:var(--muted);">Ativo</span></a>
-                <a href="#" class="tool-btn" style="background: #f8fbfa; border: 1px solid var(--line); padding: 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 12px;"><span>🦁 Elayon Vibes 8</span> <span style="font-size:9px; background:#e2f1f1; padding:2px 6px; border-radius:4px; color:var(--muted);">Vibração</span></a>
-                <a href="#" class="tool-btn" style="background: #f8fbfa; border: 1px solid var(--line); padding: 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 12px;"><span>💻 Elayon PC</span> <span style="font-size:9px; background:#e2f1f1; padding:2px 6px; border-radius:4px; color:var(--muted);">Dev</span></a>
-                <a href="#" class="tool-btn" style="background: #f8fbfa; border: 1px solid var(--line); padding: 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 12px;"><span>⚙️ Elayon Mechanics</span> <span style="font-size:9px; background:#e2f1f1; padding:2px 6px; border-radius:4px; color:var(--muted);">IoT</span></a>
+                <a href="#" class="tool-btn" id="toolHealth" onclick="abrirFerramentaComApi('Health')"><span>🧬 Elayon Health</span> <span>➔</span></a>
+                <a href="#" class="tool-btn" id="toolPsiq" onclick="abrirFerramentaComApi('PsiQ')"><span>🧠 Elayon PsiQ</span> <span>➔</span></a>
+                <a href="#" class="tool-btn" id="toolVibes" onclick="abrirFerramentaComApi('Vibes')"><span>🦁 Elayon Vibes 8</span> <span>➔</span></a>
+                <a href="#" class="tool-btn" id="toolPc" onclick="abrirFerramentaComApi('PC')"><span>💻 Elayon PC</span> <span>➔</span></a>
+                <a href="#" class="tool-btn" id="toolMechanics" onclick="abrirFerramentaComApi('Mechanics')"><span>⚙️ Elayon Mechanics</span> <span>➔</span></a>
             </div>
             
             <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <button class="btn-action btn-primary" style="flex: 1; margin:0;" id="btnRelatorioImparcial">📄 Iniciar Conexões Simbióticas & Relatório</button>
+                <button class="btn-action btn-primary" style="flex: 1; margin:0;" id="btnRelatorioImparcial">📄 Gerar Relatório CRS Interpretado</button>
                 <button class="btn-action" style="flex: 1; margin:0; background: #f0f7f7; border: 1px solid var(--line); color: var(--ink);" id="btnTutorial">💡 Tutorial do Cockpit</button>
             </div>
             
@@ -218,11 +299,11 @@
             <span id="logToggleIcon">▲ Expandir Logs</span>
         </div>
         <div class="logs-body" id="logsBody" style="max-height: 120px; overflow-y: auto; padding: 12px; font-family: monospace; font-size: 10px; display: flex; flex-direction: column; gap: 4px; background: #fff;">
-            <div class="log-item">[INIT] Estrutura estelar reordenada (Espectroide abaixo do perfil + CRS intuitivo).</div>
+            <div class="log-item">[INIT] Arquitetura das 8 estantes gráficas e CRS configurada com sucesso.</div>
         </div>
     </div>
 
-    <!-- Referência para o motor JS -->
+    <!-- Motor JS Modular -->
     <script src="cockpit.js"></script>
 </body>
 </html>
