@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elayon Space • Cockpit do Piloto (8 Estantes & CRS)</title>
+    <title>Elayon Space • Cockpit do Piloto (CRS + IA Ad + Tokens)</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -31,7 +31,7 @@
         }
         .container { width: 100%; max-width: 950px; display: grid; gap: 20px; }
 
-        /* [SESSÃO 1] HUD Superior & Identidade do Piloto */
+        /* HUD Superior & Identidade */
         .hud-header {
             background: var(--card); border: 1px solid var(--line); border-radius: 16px;
             padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
@@ -56,14 +56,18 @@
         .profile-info p { font-size: 11px; color: var(--muted); font-family: monospace; }
         .calibra-tag { font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
 
-        /* [SESSÃO 2] Evidência CRS */
-        .crs-evidence-card {
-            background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);
-            border-left: 4px solid var(--accent);
+        /* Camada de Chegada do Relatório CRS (Render Integration) */
+        .crs-report-layer {
+            background: #f0f7f7; border: 1px solid var(--line); border-radius: 20px; padding: 20px;
+            box-shadow: var(--shadow); border-left: 5px solid var(--accent);
         }
-        .section-title { font-size: 13px; margin-bottom: 8px; color: var(--accent); font-weight: 800; display: flex; align-items: center; gap: 6px; }
+        .section-title { font-size: 13px; margin-bottom: 8px; color: var(--accent); font-weight: 800; display: flex; align-items: center; justify-content: space-between; }
+        .crs-payload-box {
+            background: #ffffff; border: 1px solid var(--line); border-radius: 12px; padding: 14px;
+            font-family: monospace; font-size: 11px; color: var(--ink); margin-top: 10px; min-height: 80px; white-space: pre-wrap;
+        }
 
-        /* [SESSÃO 3] As 8 Estantes Gráficas Retráteis (Sanfonadas com Métricas Mockadas) */
+        /* As 8 Estantes Gráficas Retráteis */
         .graphs-wrapper { display: grid; gap: 12px; }
         details.graph-accordion {
             background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden;
@@ -75,16 +79,13 @@
             background: #f8fbfa; display: flex; justify-content: space-between; align-items: center; user-select: none;
         }
         summary.graph-summary:hover { background: #f0f7f7; color: var(--accent); }
-        
-        /* Badges de métricas que o JS atualizará depois */
         .summary-metric-badge {
             font-size: 10px; font-family: monospace; background: #e2f1f0; color: var(--accent); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line);
         }
-
         .graph-body { padding: 16px; background: #fff; border-top: 1px solid var(--line); }
-        .canvas-box { width: 100%; height: 180px; border-radius: 10px; background: #050c12; display: block; border: 1px solid var(--line); }
+        .canvas-box { width: 100%; height: 160px; border-radius: 10px; background: #050c12; display: block; border: 1px solid var(--line); }
 
-        /* [SESSÃO 4] Chat Simbiótico & Supermicrofone */
+        /* Chat Simbiótico & Calibração de 3 Perguntas */
         .chat-section {
             background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);
         }
@@ -104,16 +105,11 @@
         .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; box-shadow: 0 4px 15px var(--accent-glow); }
         .btn-primary:hover { transform: translateY(-2px); }
 
-        /* [SESSÃO 5] Buffer FIFO */
-        .session-history-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;
+        /* Rodapé com Navegação, Consumo e Ferramentas */
+        .footer-navigation {
+            background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);
+            display: grid; gap: 12px; text-align: center;
         }
-        @media(max-width: 768px) { .session-history-grid { grid-template-columns: 1fr; } }
-        .session-box {
-            background: #f8fbfa; border: 1px solid var(--line); border-radius: 14px; padding: 14px; text-align: left;
-        }
-
-        /* [SESSÃO 6] Ferramentas */
         .tool-btn {
             background: #f8fbfa; border: 1px solid var(--line); padding: 12px; border-radius: 10px;
             text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between;
@@ -130,7 +126,7 @@
         <!-- [1] HUD Superior -->
         <header class="hud-header">
             <div class="hud-info">IA AD: <span id="hudIaStatus" style="color: var(--danger);">INATIVA</span> | TOKENS: <span id="hudTokens">100</span></div>
-            <a href="perfil.html" class="btn-perfil">⚙️ Perfil & Calibração</a>
+            <a href="perfil.html" class="btn-perfil">⚙️ Voltar ao Perfil</a>
         </header>
 
         <div class="profile-card">
@@ -142,188 +138,137 @@
             <span class="calibra-tag" id="calibraStatus">⚪ Calibração 0/3</span>
         </div>
 
-        <!-- [2] Evidência CRS Principal -->
-        <section class="crs-evidence-card">
-            <div class="section-title">🌐 Evidência Principal CRS (Motor de Simbiose)</div>
-            <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px; line-height: 1.4;">
-                Indicador primário ativo. Monitora a harmonia entre o fluxo temporal da fala e as pausas reflexivas do operador.
+        <!-- [2] CAMADA DE CHEGADA DO RELATÓRIO CRS (RENDER API) -->
+        <section class="crs-report-layer">
+            <div class="section-title">
+                <span>🌐 Camada de Chegada — Relatório CRS (Render API)</span>
+                <span style="font-size: 10px; font-family: monospace; color: var(--muted);" id="crsApiStatus">Aguardando payload...</span>
+            </div>
+            <p style="font-size: 11px; color: var(--muted); line-height: 1.4;">
+                Resultado interpretado pelo motor de simbiose na nuvem. Alimenta automaticamente a árvore de calibração e as diretrizes da IA Ad.
             </p>
-            <div style="background: #f8fbfa; border: 1px solid var(--line); border-radius: 10px; padding: 12px; font-family: monospace; font-size: 11px; color: var(--accent);" id="crsEvidenciaStatus">
-                [CRS] Aguardando ativação do Supermicrofone para inicializar vetorização...
+            <div class="crs-payload-box" id="crsReportPayloadDisplay">
+[CRS_STATUS] Aguardando acionamento do Supermicrofone para enviar vetor fônico ao Render e recuperar diagnóstico interpretado...
             </div>
         </section>
 
-        <!-- [3] As 8 Estantes de Gráficos com badges de métricas prontas para o JS -->
-        <div class="section-title">📊 As 8 Dimensões Fônicas & Acústicas (Estantes Retráteis)</div>
+        <!-- [3] As 8 Estantes de Gráficos -->
+        <div class="section-title" style="color: var(--ink);">📊 As 8 Dimensões Fônicas & Acústicas</div>
         <div class="graphs-wrapper">
-            
             <details class="graph-accordion">
                 <summary class="graph-summary">
                     <span>🟦 I. Frequência / Altura / Tom (F₀ & Jitter)</span>
                     <span class="summary-metric-badge" id="badgeGraph1">F₀: -- Hz</span>
                 </summary>
-                <div class="graph-body">
-                    <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">Mede vibração das pregas vocais e desvio padrão tonal.</p>
-                    <canvas class="canvas-box" id="cvGraph1"></canvas>
-                </div>
+                <div class="graph-body"><canvas class="canvas-box" id="cvGraph1"></canvas></div>
             </details>
-
             <details class="graph-accordion">
                 <summary class="graph-summary">
                     <span>🟧 II. Intensidade / Volume / Força (SPL & Shimmer)</span>
                     <span class="summary-metric-badge" id="badgeGraph2">SPL: -- dB</span>
                 </summary>
-                <div class="graph-body">
-                    <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">Mede amplitude da onda sonora e variação ciclo a ciclo.</p>
-                    <canvas class="canvas-box" id="cvGraph2"></canvas>
-                </div>
+                <div class="graph-body"><canvas class="canvas-box" id="cvGraph2"></canvas></div>
             </details>
-
             <details class="graph-accordion">
                 <summary class="graph-summary">
-                    <span>🟩 III. Qualidade / Timbre / Ruído (HNR, Formantes & CPPS)</span>
+                    <span>🟩 III. Qualidade / Timbre / Ruído (HNR & CPPS)</span>
                     <span class="summary-metric-badge" id="badgeGraph3">HNR: -- dB</span>
                 </summary>
-                <div class="graph-body">
-                    <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">Mede relação harmônico-ruído e pico cepstral suavizado.</p>
-                    <canvas class="canvas-box" id="cvGraph3"></canvas>
-                </div>
+                <div class="graph-body"><canvas class="canvas-box" id="cvGraph3"></canvas></div>
             </details>
-
             <details class="graph-accordion">
                 <summary class="graph-summary">
                     <span>🟨 IV. Prosódia / Entonação / Dinâmica (TMF & Ritmo)</span>
                     <span class="summary-metric-badge" id="badgeGraph4">Ritmo: -- %</span>
                 </summary>
-                <div class="graph-body">
-                    <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">Mede contornos de entonação e eficiência respiratória.</p>
-                    <canvas class="canvas-box" id="cvGraph4"></canvas>
-                </div>
+                <div class="graph-body"><canvas class="canvas-box" id="cvGraph4"></canvas></div>
             </details>
-
             <details class="graph-accordion">
                 <summary class="graph-summary">
-                    <span>🟪 V. Perceptivo-Auditivo (Escalas GRBAS / CAPE-V)</span>
+                    <span>🟪 V. Perceptivo-Auditivo (Escalas GRBAS)</span>
                     <span class="summary-metric-badge" id="badgeGraph5">GRBAS: --</span>
                 </summary>
-                <div class="graph-body">
-                    <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">Mapeamento vetorial de rugosidade e tensão vocal.</p>
-                    <canvas class="canvas-box" id="cvGraph5"></canvas>
-                </div>
+                <div class="graph-body"><canvas class="canvas-box" id="cvGraph5"></canvas></div>
             </details>
-
             <details class="graph-accordion">
                 <summary class="graph-summary">
-                    <span>🟫 VI. Aerodinâmica (Fluxo de Air & Pressão Subglótica)</span>
+                    <span>🟫 VI. Aerodinâmica & Fluxo Subglótico</span>
                     <span class="summary-metric-badge" id="badgeGraph6">Fluxo: --</span>
                 </summary>
-                <div class="graph-body">
-                    <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">Mede fluxo de ar passando pela glote e pressão.</p>
-                    <canvas class="canvas-box" id="cvGraph6"></canvas>
-                </div>
+                <div class="graph-body"><canvas class="canvas-box" id="cvGraph6"></canvas></div>
             </details>
-
             <details class="graph-accordion">
                 <summary class="graph-summary">
-                    <span>🟩 VII. Eletroglotografia (EGG — Contato Glótico)</span>
+                    <span>🟩 VII. Eletroglotografia (Contato Glótico)</span>
                     <span class="summary-metric-badge" id="badgeGraph7">Contato: --</span>
                 </summary>
-                <div class="graph-body">
-                    <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">Mede quociente de contato e fechamento glótico.</p>
-                    <canvas class="canvas-box" id="cvGraph7"></canvas>
-                </div>
+                <div class="graph-body"><canvas class="canvas-box" id="cvGraph7"></canvas></div>
             </details>
-
             <details class="graph-accordion">
                 <summary class="graph-summary">
                     <span>🟦 VIII. Contexto Ambiental & Ruído</span>
                     <span class="summary-metric-badge" id="badgeGraph8">Ruído: -- dBA</span>
                 </summary>
-                <div class="graph-body">
-                    <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">Mede ruído ambiente e estabilidade do meio.</p>
-                    <canvas class="canvas-box" id="cvGraph8"></canvas>
-                </div>
+                <div class="graph-body"><canvas class="canvas-box" id="cvGraph8"></canvas></div>
             </details>
-
         </div>
 
-        <!-- [4] Chat Simbiótico -->
+        <!-- [4] Chat Simbiótico & Calibração de 3 Perguntas -->
         <section class="chat-section">
-            <div class="section-title">🎙️ Supermicrofone Elayon Space & Chat Simbiótico</div>
+            <div class="section-title"><span>🎙️ Supermicrofone & Calibração de 3 Perguntas (IA Ad)</span></div>
             
             <div class="chat-box" id="chatBox">
                 <div class="chat-message ad">
-                    <strong>Ad (Elayon Space):</strong> Olá, Paulo! Ative o Supermicrofone para movimentar os 8 gráficos e atualizar as métricas por estante.
+                    <strong>Ad (Elayon Space):</strong> Olá, Paulo! Ative o microfone para iniciar a captura. Cada ativação consome 1 token e alimenta a camada de interpretação do CRS no Render.
                 </div>
             </div>
 
             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                <input type="text" id="chatInput" placeholder="Transcrição fônica em tempo real ou texto..." disabled style="flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; background: #fafcfc; color: var(--ink);">
+                <input type="text" id="chatInput" placeholder="Responda à pergunta da calibração..." disabled style="flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; background: #fafcfc; color: var(--ink);">
                 <button class="btn-action btn-primary" id="btnSendChat" disabled style="width: 70px; margin: 0; padding: 10px;">Enviar</button>
             </div>
 
             <button class="btn-action btn-primary" id="btnMicSimple" disabled style="background: linear-gradient(135deg, var(--danger), #f06292);">
-                🎙️ Ligar Supermicrofone & Disparar Gráficos
+                🎙️ Ativar Supermicrofone (Consome 1 Token)
             </button>
         </section>
 
-        <!-- [5] Buffer FIFO -->
-        <div class="section-title">📦 Buffer FIFO & As 3 Sessões de Histórico Fônico</div>
-        <section style="background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);">
-            <div class="session-history-grid" id="conexoesFifoGrid">
-                <div class="session-box">
-                    <div style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase;">🔗 Sessão 1 (Mais Recente)</div>
-                    <div style="font-size: 9px; color: var(--muted); margin: 4px 0;">Captura atual em processamento</div>
-                    <div style="background: #fff8e6; border: 1px solid #ffeeba; border-radius: 6px; padding: 6px; font-size: 9px; color: #856404;" id="histSessao1">Aguardando fechamento do Mic...</div>
-                </div>
-                <div class="session-box">
-                    <div style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase;">🔗 Sessão 2 (Anterior)</div>
-                    <div style="font-size: 9px; color: var(--muted); margin: 4px 0;">Histórico prévio de simbiose</div>
-                    <div style="background: #e2f1f0; border-radius: 6px; padding: 6px; font-size: 9px; color: var(--ink);" id="histSessao2">Nenhum registro anterior</div>
-                </div>
-                <div class="session-box">
-                    <div style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase;">🔗 Sessão 3 (Baseline Base)</div>
-                    <div style="font-size: 9px; color: var(--muted); margin: 4px 0;">Calibração primária do operador</div>
-                    <div style="background: #e2f1f0; border-radius: 6px; padding: 6px; font-size: 9px; color: var(--ink);" id="histSessao3">Baseline atrelada ao Perfil</div>
-                </div>
+        <!-- [5] RODAPÉ: TRANSIÇÃO, RETORNO AO PERFIL E FERRAMENTAS -->
+        <section class="footer-navigation">
+            <div class="section-title" style="color: var(--ink);">⚙️ Transição & Acesso a Ferramentas</div>
+            
+            <div style="display: flex; gap: 10px;">
+                <a href="perfil.html" class="btn-action" style="background: #f0f7f7; border: 1px solid var(--line); color: var(--ink); margin: 0; flex: 1;">
+                    ⬅️ Voltar ao Perfil
+                </a>
+                <button class="btn-action btn-primary" id="btnFinalizarCalibracao" style="margin: 0; flex: 1; display: none;">
+                    🚀 Fechar Calibração & Ativar Ecossistema
+                </button>
             </div>
-        </section>
 
-        <!-- [6] Ferramentas -->
-        <div class="section-title">⚙️ Ferramentas do Ecossistema (Desbloqueadas via API)</div>
-        <section style="background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 15px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; margin-top: 10px;" id="ferramentasGrid">
                 <a href="#" class="tool-btn" id="toolHealth" onclick="abrirFerramentaComApi('Health')"><span>🧬 Elayon Health</span> <span>➔</span></a>
                 <a href="#" class="tool-btn" id="toolPsiq" onclick="abrirFerramentaComApi('PsiQ')"><span>🧠 Elayon PsiQ</span> <span>➔</span></a>
                 <a href="#" class="tool-btn" id="toolVibes" onclick="abrirFerramentaComApi('Vibes')"><span>🦁 Elayon Vibes 8</span> <span>➔</span></a>
                 <a href="#" class="tool-btn" id="toolPc" onclick="abrirFerramentaComApi('PC')"><span>💻 Elayon PC</span> <span>➔</span></a>
                 <a href="#" class="tool-btn" id="toolMechanics" onclick="abrirFerramentaComApi('Mechanics')"><span>⚙️ Elayon Mechanics</span> <span>➔</span></a>
             </div>
-            
-            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <button class="btn-action btn-primary" style="flex: 1; margin:0;" id="btnRelatorioImparcial">📄 Gerar Relatório CRS Interpretado</button>
-                <button class="btn-action" style="flex: 1; margin:0; background: #f0f7f7; border: 1px solid var(--line); color: var(--ink);" id="btnTutorial">💡 Tutorial do Cockpit</button>
-            </div>
-            
-            <div>
-                <button class="btn-action" style="background: #fff2f2; border: 1px solid #f5c6cb; color: var(--danger);" id="btnEncerrarConexao">
-                    🔚 Encerrar Conexão Simbiótica
-                </button>
-            </div>
         </section>
 
     </div>
 
-    <!-- [7] Logs -->
+    <!-- [6] Logs de Auditoria -->
     <div class="logs-drawer" id="logsDrawer" style="position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; color: var(--ink); border-top-left-radius: 16px; border-top-right-radius: 16px; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); transition: transform 0.3s ease; z-index: 1000; transform: translateY(115px); border-top: 1px solid var(--line);">
         <div class="logs-header" id="logsToggleBtn" style="padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 11px; font-weight: 700; text-transform: uppercase; background: #f8fbfa; border-top-left-radius: 16px; border-top-right-radius: 16px;">
-            <span>📋 Auditoria Fônica & Logs do Sistema (<span id="logCount">1</span>)</span>
+            <span>📋 Auditoria API Render & Tokens (<span id="logCount">1</span>)</span>
             <span id="logToggleIcon">▲ Expandir Logs</span>
         </div>
         <div class="logs-body" id="logsBody" style="max-height: 120px; overflow-y: auto; padding: 12px; font-family: monospace; font-size: 10px; display: flex; flex-direction: column; gap: 4px; background: #fff;">
-            <div class="log-item">[INIT] Layout HTML estruturado com badges de métricas por estante.</div>
+            <div class="log-item">[INIT] Camada de chegada CRS integrada e pronta para chamadas via Vercel/Render.</div>
         </div>
     </div>
 
+    <!-- Script do motor atualizado -->
+    <script src="cockpit.js"></script>
 </body>
 </html>
