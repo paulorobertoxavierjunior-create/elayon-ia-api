@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elayon Space • Cockpit Clínico & Simbiose CRS</title>
+    <title>Elayon Space • Cockpit Clínico & Simbiose CRS (Voz Exclusiva)</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -67,7 +67,7 @@
             font-family: monospace; font-size: 11px; color: var(--ink); margin-top: 10px; min-height: 70px; white-space: pre-wrap;
         }
 
-        /* [NOVO] LAYOUT EM 2 COLUNAS PARA AS 8 ESTANTES GRÁFICAS */
+        /* Layout em 2 Colunas para as 8 Estantes Gráficas */
         .graphs-grid-2col {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -119,7 +119,7 @@
             margin-top: 6px; width: 100%; background: var(--accent); color: #fff; border: none; padding: 6px; border-radius: 6px; font-size: 9px; font-weight: 800; cursor: pointer;
         }
 
-        /* Chat Simbiótico & Calibração */
+        /* Chat Simbiótico & Calibração de Voz */
         .chat-section {
             background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);
         }
@@ -169,7 +169,7 @@
                 <h2 id="userDisplayName">Carregando Piloto...</h2>
                 <p id="userDisplayEmail">ID: Sincronizando com Supabase...</p>
             </div>
-            <span class="calibra-tag" id="calibraStatus">⚪ Calibração 0/3</span>
+            <span class="calibra-tag" id="calibraStatus">🎙️ Calibração de Voz (Etapa 1/3)</span>
         </div>
 
         <!-- [2] Camada de Chegada CRS & Status Simbiótico -->
@@ -182,7 +182,7 @@
                 Espectroide de silêncios e ritmos interpretado pela nuvem. A IA Ad valida o estado simbiótico antes de cada resposta.
             </p>
             <div class="crs-payload-box" id="crsReportPayloadDisplay">
-[CRS_STATUS] Sistema simbiótico pronto. Aguardando Supermicrofone (Máx. 30s) para envio do áudio bruto ao CRS...
+[CRS_STATUS] Sistema simbiótico pronto. Aguardando Supermicrofone de Voz (Máx. 30s) para envio do áudio bruto ao CRS...
             </div>
         </section>
 
@@ -242,6 +242,7 @@
                 </div>
             </details>
 
+           
             <!-- Estante 5 -->
             <details class="graph-accordion">
                 <summary class="graph-summary">🟪 V. Perceptivo-Auditivo (GRBAS)</summary>
@@ -323,27 +324,23 @@
             </div>
         </section>
 
-        <!-- [5] Chat Simbiótico & Calibração de 3 Perguntas -->
+        <!-- [5] Chat Simbiótico & Calibração por Voz (Sem Campo de Texto) -->
         <section class="chat-section">
-            <div class="section-title"><span>🎙️ Supermicrofone (Máx. 30s) & Chat Simbiótico da IA Ad</span></div>
+            <div class="section-title"><span id="calibStepTitle">🎙️ 1ª Calibração de Voz (3 Etapas Obrigatórias)</span></div>
             
             <div class="chat-box" id="chatBox">
                 <div class="chat-message ad">
-                    <strong>Ad (Elayon Space):</strong> Sistema simbiótico ativo. CRS calibrado. Ative o microfone para gravar até 30s de fala (consome 1 token).
+                    <strong>Ad (Elayon Space):</strong> Sistema simbiótico ativo. CRS calibrado. Para iniciar, esta é a <strong>1ª Calibração</strong>: Diga em voz alta qual é o seu objetivo clínico ou estado atual.
                 </div>
             </div>
 
-            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                <input type="text" id="chatInput" placeholder="Transcrição automática da fala ou digite..." disabled style="flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; background: #fafcfc; color: var(--ink);">
-                <button class="btn-action btn-primary" id="btnSendChat" disabled style="width: 70px; margin: 0; padding: 10px;">Enviar</button>
-            </div>
-
-            <button class="btn-action btn-primary" id="btnMicSimple" disabled style="background: linear-gradient(135deg, var(--danger), #f06292);">
-                🎙️ Ligar Supermicrofone (Máx. 30s • Consome 1 Token)
+            <!-- Botão Supermicrofone de Voz (Aperta para Falar / Aperta para Parar e Transcrever) -->
+            <button class="btn-action btn-primary" id="btnMicSimple" disabled style="background: linear-gradient(135deg, var(--danger), #f06292); padding: 16px; font-size: 14px;">
+                🎙️ Pressione para Falar (Etapa 1/3 • Consome 1 Token)
             </button>
         </section>
 
-      <!-- [6] Rodapé de Transição e Ferramentas -->
+        <!-- [6] Rodapé de Transição e Ferramentas -->
         <section class="footer-navigation">
             <div class="section-title" style="color: var(--ink);">⚙️ Transição & Acesso a Ferramentas Clínicas</div>
             
@@ -374,7 +371,7 @@
             <span id="logToggleIcon">▲ Expandir Logs</span>
         </div>
         <div class="logs-body" id="logsBody" style="max-height: 120px; overflow-y: auto; padding: 12px; font-family: monospace; font-size: 10px; display: flex; flex-direction: column; gap: 4px; background: #fff;">
-            <div class="log-item">[INIT] Cockpit clínico em 2 colunas com suporte a buffer FIFO e PDF integrado configurado.</div>
+            <div class="log-item">[INIT] Cockpit clínico em 2 colunas com calibração por voz de 3 etapas configurado.</div>
         </div>
     </div>
 
