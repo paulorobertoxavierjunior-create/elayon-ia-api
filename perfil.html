@@ -3,73 +3,82 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Elayon Space • Perfil Modular</title>
+  <title>Elayon Space • Perfil Modular & Calibração da IA</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root{
-      --bg1:#f4f9f4; --bg2:#eaf4f6; --card:#ffffff;
-      --ink:#0a2a2f; --muted:#4a6b70; --line:#d8e8eb;
-      --accent:#2a9d8f; --accent2:#3ecfcf; --shadow:0 10px 30px rgba(0,0,0,0.06);
-      --danger:#d9534f; --success:#2b8a3e;
+    :root {
+      --bg1: #f4f9f4; 
+      --bg2: #eaf4f6; 
+      --card: #ffffff;
+      --ink: #0a2a2f; 
+      --muted: #4a6b70; 
+      --line: #d8e8eb;
+      --accent: #2a9d8f; 
+      --accent2: #3ecfcf; 
+      --accent-glow: rgba(42, 157, 143, 0.15);
+      --shadow: 0 10px 30px rgba(0,0,0,0.06);
+      --danger: #d9534f; 
+      --success: #2b8a3e;
+      --warning: #f59e0b;
     }
-    *{ box-sizing:border-box; margin:0; padding:0; }
-    body{
-      min-height:100vh; display:grid; place-items:center; padding:24px;
-      font-family:system-ui,-apple-system,sans-serif;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px;
+      font-family: system-ui, -apple-system, sans-serif;
       background: radial-gradient(circle at top left, var(--bg1), var(--bg2));
-      color:var(--ink);
+      color: var(--ink);
     }
-    .card{
-      position: relative; width:100%; max-width:480px; background:var(--card);
-      border:1px solid var(--line); border-radius:24px; padding:40px 30px; box-shadow:var(--shadow);
+    .card {
+      position: relative; width: 100%; max-width: 480px; background: var(--card);
+      border: 1px solid var(--line); border-radius: 24px; padding: 36px 28px; box-shadow: var(--shadow);
     }
-    /* SESSÃO 1: Identidade e Logo */
+    /* SESSÃO 1: Identidade, Logo e Avatar */
     .top-logo-container { position: absolute; top: 20px; left: 20px; }
-    .logo-img-small { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent); background: #fff; }
-    .avatar-wrapper { display: flex; flex-direction: column; align-items: center; margin-top: 10px; margin-bottom: 20px; }
-    .avatar-img { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); background: #e2f1f1; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .logo-img-small { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent); background: #fff; }
+    .avatar-wrapper { display: flex; flex-direction: column; align-items: center; margin-top: 10px; margin-bottom: 18px; }
+    .avatar-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); background: #e2f1f1; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
     .avatar-upload-btn { margin-top: 8px; font-size: 11px; font-weight: 700; color: var(--ink); background: #f0f7f7; border: 1px solid var(--line); padding: 5px 12px; border-radius: 20px; cursor: pointer; transition: .2s; }
     .avatar-upload-btn:hover { background: var(--accent); color: #fff; }
     #fileInput { display: none; }
     .header-name-container { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 4px; }
-    h1 { font-size: 24px; letter-spacing: -1px; text-align: center; }
-    .edit-name-input { padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 16px; outline: none; width: 180px; font-weight: 700; text-align: center; }
-    .btn-icon { background: transparent; border: none; cursor: pointer; font-size: 15px; color: var(--muted); padding: 4px; }
-    .btn-icon:hover { color: var(--ink); }
-    .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; line-height: 1.4; text-align: center; }
+    h1 { font-size: 22px; letter-spacing: -0.5px; text-align: center; color: var(--ink); }
+    .edit-name-input { padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 15px; outline: none; width: 180px; font-weight: 700; text-align: center; background: #fafcfc; color: var(--ink); }
+    .btn-icon { background: transparent; border: none; cursor: pointer; font-size: 14px; color: var(--muted); padding: 4px; }
+    .btn-icon:hover { color: var(--accent); }
+    .sub { color: var(--muted); font-size: 12px; margin-bottom: 20px; line-height: 1.4; text-align: center; }
 
-    /* SESSÃO 2: Dados e Tokens */
-    .box { background: #f8fbfa; border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 18px; }
-    .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 13px; margin-bottom: 12px; }
+    /* SESSÃO 2: Dados da Conta e Tokens */
+    .box { background: #f8fbfa; border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 13px; margin-bottom: 10px; }
     .row:last-child { margin-bottom: 0; }
-    .label { color: var(--muted); }
-    .value { font-weight: 700; word-break: break-word; text-align: right; }
+    .label { color: var(--muted); font-size: 12px; }
+    .value { font-weight: 700; word-break: break-word; text-align: right; color: var(--ink); }
     .tokens-group { display: flex; align-items: center; gap: 8px; }
     .tokens { color: var(--accent); font-weight: 800; }
-    .btn-plus { background: var(--accent); color: #fff; border: none; width: 24px; height: 24px; border-radius: 50%; font-weight: 800; cursor: pointer; display: grid; place-items: center; transition: .2s; }
+    .btn-plus { background: var(--accent); color: #fff; border: none; width: 22px; height: 22px; border-radius: 50%; font-weight: 800; cursor: pointer; display: grid; place-items: center; transition: .2s; }
     .btn-plus:hover { transform: scale(1.1); }
 
     /* SESSÃO 3: Calibração da IA Ad */
-    .ai-setup-box { background: #f0f7f7; border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-top: 18px; margin-bottom: 18px; text-align: left; }
-    .ai-setup-box h3 { font-size: 13px; color: var(--ink); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-    .ai-status-badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700; background: #fff3cd; color: #856404; }
-    .ai-status-badge.ativo { background: #d4edda; color: #155724; }
+    .ai-setup-box { background: #f0f7f7; border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 16px; text-align: left; }
+    .ai-setup-box h3 { font-size: 12px; color: var(--ink); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; }
+    .ai-status-badge { font-size: 9px; padding: 3px 8px; border-radius: 6px; font-weight: 800; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    .ai-status-badge.ativo { background: #d4edda; color: #155724; border-color: #c3e6cb; }
 
-    /* SESSÃO 4: Ações Principais e Modais */
-    .actions { display: grid; gap: 12px; margin-top: 18px; }
-    .btn { display: block; width: 100%; padding: 14px; border-radius: 14px; text-decoration: none; text-align: center; font-size: 14px; font-weight: 800; border: 0; cursor: pointer; transition: .2s ease; }
-    .btn:hover { transform: translateY(-2px); }
-    .primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+    /* SESSÃO 4: Botões de Ação, Modais e Mensagens */
+    .actions { display: grid; gap: 10px; margin-top: 14px; }
+    .btn { display: block; width: 100%; padding: 12px; border-radius: 12px; text-decoration: none; text-align: center; font-size: 13px; font-weight: 800; border: 0; cursor: pointer; transition: .2s ease; }
+    .btn:hover { transform: translateY(-1px); }
+    .primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; box-shadow: 0 4px 15px var(--accent-glow); }
     .secondary { background: #f0f7f7; border: 1px solid var(--line); color: var(--ink); }
     .logout { background: transparent; border: 1px solid var(--line); color: var(--muted); }
     .danger-btn { background: #fff2f2; border: 1px solid #f5c6cb; color: var(--danger); }
-    .modal-section { display: none; margin-top: 16px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
-    .input-group { margin-bottom: 12px; text-align: left; }
-    label { display: block; font-size: 11px; font-weight: 600; margin-bottom: 4px; color: var(--ink); text-transform: uppercase; }
-    input, select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 13px; outline: none; background: #fafcfc; }
-    .msg { margin-top: 14px; font-size: 12px; min-height: 18px; text-align: center; }
+    .modal-section { display: none; margin-top: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+    .input-group { margin-bottom: 10px; text-align: left; }
+    label { display: block; font-size: 10px; font-weight: 700; margin-bottom: 4px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    input, select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 12px; outline: none; background: #fafcfc; color: var(--ink); }
+    .msg { margin-top: 12px; font-size: 11px; min-height: 16px; text-align: center; font-weight: 600; }
     .msg-error { color: var(--danger); }
-    .msg-success { color: #2b8a3e; }
+    .msg-success { color: var(--success); }
   </style>
 </head>
 <body>
@@ -101,7 +110,7 @@
 
     <!-- [SESSÃO 2] Metadados da Conta & Tokens -->
     <section class="box">
-      <div class="row"><span class="label">ID</span><span class="value" id="userId" style="font-size:10px;">A carregar...</span></div>
+      <div class="row"><span class="label">ID</span><span class="value" id="userId" style="font-size:9px; font-family:monospace;">A carregar...</span></div>
       <div class="row"><span class="label">E-mail</span><span class="value" id="userEmail">A carregar...</span></div>
       <div class="row">
         <span class="label">Tokens</span>
@@ -115,7 +124,7 @@
     <!-- [SESSÃO 3] Calibração Interna da IA Ad -->
     <section class="ai-setup-box">
       <h3>
-        🧠 Cadastro & IA Ad (Global)
+        🧠 Calibração da IA Ad (Global)
         <span id="aiStatusBadge" class="ai-status-badge">NÃO CONFIGURADA</span>
       </h3>
       <div class="input-group">
@@ -127,19 +136,19 @@
         </select>
       </div>
       <div class="input-group" style="margin-bottom: 8px;">
-        <label for="inputApiKey">Chave de API Interna / Externa</label>
+        <label for="inputApiKey">Chave de API (Supabase Auth)</label>
         <input type="password" id="inputApiKey" placeholder="Cole sua chave de API..." autocomplete="off" />
       </div>
-      <button class="btn primary" id="btnSalvarAiConfig" style="padding: 10px; font-size: 12px;" type="button">
+      <button class="btn primary" id="btnSalvarAiConfig" style="padding: 10px; font-size: 11px;" type="button">
         Salvar Configuração e Calibrar IA
       </button>
     </section>
 
-    <!-- [SESSÃO 4] Navegação & Gestão de Segurança (Senha e Exclusão) -->
+    <!-- [SESSÃO 4] Navegação & Gestão de Segurança -->
     <div class="actions">
-      <a class="btn primary" id="btnStartAvaliacao" href="cockpit.html">Aceder ao Cockpit Supremo 🚀</a>
+      <a class="btn primary" id="btnStartAvaliacao" href="cockpit.html">Aceder ao Cockpit do Piloto 🚀</a>
       <button class="btn secondary" id="btnTogglePassword" type="button">Alterar Palavra-passe</button>
-      <button class="btn logout" id="btnLogout" type="button">Sair</button>
+      <button class="btn logout" id="btnLogout" type="button">Sair da Sessão</button>
     </div>
 
     <div class="modal-section" id="secPassword">
@@ -154,15 +163,15 @@
       <button class="btn primary" id="btnSavePassword" type="button">Atualizar Palavra-passe</button>
     </div>
 
-    <div style="margin-top: 18px;">
+    <div style="margin-top: 14px;">
       <button class="btn primary" id="btnSaveChanges">💾 Salvar Alterações no Supabase</button>
     </div>
 
-    <div style="margin-top: 40px; border-top: 1px solid var(--line); padding-top: 25px;">
+    <div style="margin-top: 24px; border-top: 1px solid var(--line); padding-top: 18px;">
       <button class="btn danger-btn" id="btnToggleDelete" type="button">Excluir Conta</button>
-      <div class="modal-section" id="secDelete" style="margin-top: 14px;">
-        <p style="font-size:12px; color:var(--danger); margin-bottom:10px; text-align:left; line-height: 1.4;">
-          <strong>Atenção:</strong> Esta ação é irreversível. Todos os seus tokens e dados serão apagados permanentemente.
+      <div class="modal-section" id="secDelete" style="margin-top: 10px;">
+        <p style="font-size:11px; color:var(--danger); margin-bottom:8px; text-align:left; line-height: 1.4;">
+          <strong>Atenção:</strong> Esta ação é irreversível. Todos os tokens e dados serão apagados.
         </p>
         <div class="input-group">
           <label for="deleteConfirmInput">Digite <strong>EXCLUIR</strong> para confirmar:</label>
@@ -174,9 +183,10 @@
 
     <div class="msg" id="msg"></div>
   </main>
+
   <script>
     // ==========================================
-    // CONFIGURAÇÃO INICIAL E SUPABASE
+    // CONFIGURAÇÃO SUPABASE E ESTADO DO PERFIL
     // ==========================================
     const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
@@ -193,7 +203,7 @@
     }
 
     // ==========================================
-    // SESSÃO 1 & 2: INICIALIZAÇÃO E SINCRONIZAÇÃO
+    // INICIALIZAÇÃO E SINCRONIZAÇÃO DA SESSÃO
     // ==========================================
     async function initAuth() {
       const { data: { session }, error } = await supabaseClient.auth.getSession();
@@ -257,12 +267,12 @@
     }
 
     // ==========================================
-    // SESSÃO 3: GESTÃO DA CALIBRAÇÃO DA IA AD
+    // CALIBRAÇÃO DA IA AD
     // ==========================================
     function atualizarBadgeStatusAi(ativo) {
       const badge = document.getElementById('aiStatusBadge');
       if (ativo) {
-        badge.textContent = 'CONFIGURADA E ATIVA';
+        badge.textContent = 'ATIVA (CALIBRADA)';
         badge.className = 'ai-status-badge ativo';
       } else {
         badge.textContent = 'NÃO CONFIGURADA';
@@ -279,9 +289,6 @@
         return;
       }
 
-      localStorage.setItem('elayon_ai_provider', provider);
-      localStorage.setItem('elayon_ai_key', apiKey);
-
       if (currentUser) {
         await supabaseClient
           .from('profiles')
@@ -294,7 +301,7 @@
     });
 
     // ==========================================
-    // SESSÃO 4: EDIÇÃO DE PERFIL, SENHA E TOKENS
+    // EDIÇÃO DE PERFIL, TOKENS E SEGURANÇA
     // ==========================================
     document.getElementById('btnAddToken').addEventListener('click', () => {
       currentTokens += 1;
@@ -319,7 +326,7 @@
       document.getElementById('userName').textContent = newName;
       document.getElementById('nameDisplayContainer').style.display = 'flex';
       document.getElementById('nameEditContainer').style.display = 'none';
-      showMsg('Nome alterado! Clique em "Salvar Alterações".');
+      showMsg('Nome atualizado! Clique em "Salvar Alterações".');
     });
 
     document.getElementById('fileInput').addEventListener('change', (e) => {
@@ -364,7 +371,7 @@
 
       if (!error) {
         await supabaseClient.auth.updateUser({ data: { nome: finalName } });
-        showMsg('✅ Alterações e calibração salvas no Supabase!');
+        showMsg('✅ Alterações salvas com sucesso no Supabase!');
       } else {
         showMsg('Erro ao salvar: ' + error.message, true);
       }
@@ -407,7 +414,7 @@
       try {
         await supabaseClient.from('profiles').delete().eq('id', currentUser.id);
         await supabaseClient.auth.signOut();
-        alert('Conta excluída.');
+        alert('Conta excluída com sucesso.');
         window.location.href = 'login.html';
       } catch (err) {
         showMsg('Erro: ' + err.message, true);
