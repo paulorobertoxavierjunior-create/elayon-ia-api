@@ -1,380 +1,221 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elayon Space • Cockpit Clínico & Simbiose CRS (Voz Exclusiva)</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root {
-            --bg1: #f4f9f4; 
-            --bg2: #eaf4f6; 
-            --card: #ffffff;
-            --ink: #0a2a2f; 
-            --muted: #4a6b70; 
-            --line: #d8e8eb;
-            --accent: #2a9d8f; 
-            --accent2: #3ecfcf;
-            --accent-glow: rgba(42, 157, 143, 0.15);
-            --success: #2b8a3e; 
-            --danger: #d9534f; 
-            --warning: #f59e0b;
-            --shadow: 0 10px 30px rgba(0,0,0,0.06);
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            min-height: 100vh; 
-            background: radial-gradient(circle at top left, var(--bg1), var(--bg2));
-            color: var(--ink); 
-            font-family: system-ui, -apple-system, sans-serif;
-            display: flex; flex-direction: column; align-items: center; padding: 20px; padding-bottom: 90px;
-        }
-        .container { width: 100%; max-width: 1100px; display: grid; gap: 20px; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Elayon Space • Cockpit Clínico & Calibração de Voz</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg1: #f4f9f4; --bg2: #eaf4f6; --card: #ffffff;
+      --ink: #0a2a2f; --muted: #4a6b70; --line: #d8e8eb;
+      --accent: #2a9d8f; --accent2: #3ecfcf; --accent-glow: rgba(42, 157, 143, 0.15);
+      --success: #2b8a3e; --danger: #d9534f; --warning: #f59e0b;
+      --shadow: 0 10px 30px rgba(0,0,0,0.06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh; background: radial-gradient(circle at top left, var(--bg1), var(--bg2));
+      color: var(--ink); font-family: system-ui, -apple-system, sans-serif;
+      display: flex; flex-direction: column; align-items: center; padding: 20px; padding-bottom: 90px;
+    }
+    .container { width: 100%; max-width: 1100px; display: grid; gap: 20px; }
 
-        /* HUD Superior & Identidade */
-        .hud-header {
-            background: var(--card); border: 1px solid var(--line); border-radius: 16px;
-            padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
-            box-shadow: var(--shadow);
-        }
-        .hud-info { font-size: 11px; font-weight: 700; color: var(--muted); }
-        .hud-info span { color: var(--accent); }
-        .btn-perfil {
-            background: #f0f7f7; border: 1px solid var(--line); color: var(--ink);
-            padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 700;
-            cursor: pointer; text-decoration: none; transition: 0.2s;
-        }
-        .btn-perfil:hover { background: var(--accent); color: #fff; }
+    /* HUD Superior */
+    .hud-header {
+      background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+      padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+      box-shadow: var(--shadow);
+    }
+    .hud-info { font-size: 11px; font-weight: 700; color: var(--muted); }
+    .hud-info span { color: var(--accent); }
+    .btn-perfil {
+      background: #f0f7f7; border: 1px solid var(--line); color: var(--ink);
+      padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 700;
+      cursor: pointer; text-decoration: none; transition: 0.2s;
+    }
+    .btn-perfil:hover { background: var(--accent); color: #fff; }
 
-        .profile-card {
-            background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line);
-            box-shadow: var(--shadow); display: flex; align-items: center; gap: 16px;
-        }
-        .logo-img { width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; background: #fff; }
-        .profile-info { flex: 1; text-align: left; }
-        .profile-info h2 { font-size: 18px; color: var(--ink); margin-bottom: 2px; }
-        .profile-info p { font-size: 11px; color: var(--muted); font-family: monospace; }
-        .calibra-tag { font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    /* Card do Operador */
+    .profile-card {
+      background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line);
+      box-shadow: var(--shadow); display: flex; align-items: center; gap: 16px;
+    }
+    .logo-img { width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; background: #fff; }
+    .profile-info { flex: 1; text-align: left; }
+    .profile-info h2 { font-size: 18px; color: var(--ink); margin-bottom: 2px; }
+    .profile-info p { font-size: 11px; color: var(--muted); font-family: monospace; }
+    .calibra-tag { font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
 
-        /* Camada de Chegada CRS & Status Simbiótico */
-        .crs-report-layer {
-            background: #f0f7f7; border: 1px solid var(--line); border-radius: 20px; padding: 20px;
-            box-shadow: var(--shadow); border-left: 5px solid var(--accent);
-        }
-        .section-title { font-size: 13px; margin-bottom: 8px; color: var(--accent); font-weight: 800; display: flex; align-items: center; justify-content: space-between; }
-        .crs-payload-box {
-            background: #ffffff; border: 1px solid var(--line); border-radius: 12px; padding: 14px;
-            font-family: monospace; font-size: 11px; color: var(--ink); margin-top: 10px; min-height: 70px; white-space: pre-wrap;
-        }
+    /* Camada CRS Payload */
+    .crs-report-layer {
+      background: #f0f7f7; border: 1px solid var(--line); border-radius: 20px; padding: 20px;
+      box-shadow: var(--shadow); border-left: 5px solid var(--accent);
+    }
+    .section-title { font-size: 13px; margin-bottom: 8px; color: var(--accent); font-weight: 800; display: flex; align-items: center; justify-content: space-between; }
+    .crs-payload-box {
+      background: #ffffff; border: 1px solid var(--line); border-radius: 12px; padding: 14px;
+      font-family: monospace; font-size: 11px; color: var(--ink); margin-top: 10px; min-height: 70px; white-space: pre-wrap;
+    }
 
-        /* Layout em 2 Colunas para as 8 Estantes Gráficas */
-        .graphs-grid-2col {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-        }
-        @media(max-width: 800px) { .graphs-grid-2col { grid-template-columns: 1fr; } }
+    /* Grid 2 Colunas para as 8 Estantes */
+    .graphs-grid-2col { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    @media(max-width: 800px) { .graphs-grid-2col { grid-template-columns: 1fr; } }
 
-        details.graph-accordion {
-            background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden;
-            transition: 0.2s;
-        }
-        details.graph-accordion[open] { border-color: var(--accent); }
-        summary.graph-summary {
-            padding: 12px 14px; font-size: 11px; font-weight: 800; color: var(--ink); cursor: pointer;
-            background: #f8fbfa; display: flex; justify-content: space-between; align-items: center; user-select: none;
-        }
-        summary.graph-summary:hover { background: #f0f7f7; color: var(--accent); }
-        
-        .graph-body { padding: 12px; background: #fff; border-top: 1px solid var(--line); }
-        
-        /* Visor Gráfico Fundo Branco (Estilo Eletrocardiograma / Espectroide) */
-        .canvas-box { 
-            width: 100%; height: 110px; border-radius: 8px; background: #ffffff; display: block; 
-            border: 1px solid var(--line); margin-bottom: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); 
-        }
+    details.graph-accordion {
+      background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; transition: 0.2s;
+    }
+    details.graph-accordion[open] { border-color: var(--accent); }
+    summary.graph-summary {
+      padding: 12px 14px; font-size: 11px; font-weight: 800; color: var(--ink); cursor: pointer;
+      background: #f8fbfa; display: flex; justify-content: space-between; align-items: center; user-select: none;
+    }
+    .graph-body { padding: 12px; background: #fff; border-top: 1px solid var(--line); }
+    .canvas-box { width: 100%; height: 110px; border-radius: 8px; background: #ffffff; display: block; border: 1px solid var(--line); margin-bottom: 8px; }
 
-        .metric-box-card {
-            background: #f8fbfa; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; text-align: left;
-            border-left: 3px solid var(--accent); margin-top: 4px;
-        }
-        .metric-box-card.c-blue { border-left-color: #0ea5e9; }
-        .metric-box-card.c-orange { border-left-color: #f59e0b; }
-        .metric-box-card.c-green { border-left-color: #10b981; }
-        .metric-box-card.c-purple { border-left-color: #8b5cf6; }
-        
-        .metric-title-lbl { font-size: 9px; color: var(--muted); font-weight: 800; text-transform: uppercase; }
-        .metric-val-lbl { font-size: 12px; font-family: monospace; font-weight: 800; color: var(--ink); margin: 2px 0; }
-        .metric-clinical-desc { font-size: 9px; color: var(--muted); line-height: 1.2; }
+    .metric-box-card { background: #f8fbfa; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; text-align: left; border-left: 3px solid var(--accent); margin-top: 4px; }
+    .metric-title-lbl { font-size: 9px; color: var(--muted); font-weight: 800; text-transform: uppercase; }
+    .metric-val-lbl { font-size: 12px; font-family: monospace; font-weight: 800; color: var(--ink); margin: 2px 0; }
+    .metric-clinical-desc { font-size: 9px; color: var(--muted); line-height: 1.2; }
 
-        /* Buffer FIFO de 3 Sessões */
-        .session-history-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;
-        }
-        @media(max-width: 768px) { .session-history-grid { grid-template-columns: 1fr; } }
-        .session-box {
-            background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; padding: 12px; text-align: left;
-        }
-        .btn-load-session {
-            margin-top: 6px; width: 100%; background: var(--accent); color: #fff; border: none; padding: 6px; border-radius: 6px; font-size: 9px; font-weight: 800; cursor: pointer;
-        }
+    /* Buffer FIFO */
+    .session-history-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+    @media(max-width: 768px) { .session-history-grid { grid-template-columns: 1fr; } }
+    .session-box { background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; padding: 12px; text-align: left; }
+    .btn-load-session { margin-top: 6px; width: 100%; background: var(--accent); color: #fff; border: none; padding: 6px; border-radius: 6px; font-size: 9px; font-weight: 800; cursor: pointer; }
 
-        /* Chat Simbiótico & Calibração de Voz */
-        .chat-section {
-            background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);
-        }
-        .chat-box {
-            background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; height: 180px;
-            overflow-y: auto; padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;
-        }
-        .chat-message { font-size: 12px; padding: 8px 12px; border-radius: 8px; max-width: 85%; line-height: 1.4; }
-        .chat-message.ad { background: #e2f1f0; color: var(--ink); align-self: flex-start; border-left: 3px solid var(--accent); }
-        .chat-message.user { background: var(--accent); color: #fff; align-self: flex-end; }
-        
-        .btn-action {
-            display: block; width: 100%; padding: 14px; border-radius: 12px; font-size: 13px;
-            font-weight: 800; border: none; cursor: pointer; text-align: center; transition: 0.2s;
-            text-decoration: none; margin-bottom: 10px;
-        }
-        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; box-shadow: 0 4px 15px var(--accent-glow); }
-        .btn-primary:hover { transform: translateY(-2px); }
+    /* Chat Simbiótico */
+    .chat-section { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow); }
+    .chat-box { background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; height: 180px; overflow-y: auto; padding: 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .chat-message { font-size: 12px; padding: 8px 12px; border-radius: 8px; max-width: 85%; line-height: 1.4; }
+    .chat-message.ad { background: #e2f1f0; color: var(--ink); align-self: flex-start; border-left: 3px solid var(--accent); }
+    .chat-message.user { background: var(--accent); color: #fff; align-self: flex-end; }
+    
+    .btn-action { display: block; width: 100%; padding: 14px; border-radius: 12px; font-size: 13px; font-weight: 800; border: none; cursor: pointer; text-align: center; transition: 0.2s; text-decoration: none; margin-bottom: 10px; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; box-shadow: 0 4px 15px var(--accent-glow); }
 
-        /* Rodapé de Navegação e Ferramentas */
-        .footer-navigation {
-            background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);
-            display: grid; gap: 12px; text-align: center;
-        }
-        .tool-btn {
-            background: #f8fbfa; border: 1px solid var(--line); padding: 12px; border-radius: 10px;
-            text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between;
-            align-items: center; font-size: 12px; opacity: 0.5; pointer-events: none; transition: 0.2s;
-        }
-        .tool-btn.liberado { opacity: 1; pointer-events: auto; }
-        .tool-btn.liberado:hover { background: var(--accent); color: #fff; }
-    </style>
+    /* Rodapé & Ferramentas */
+    .footer-navigation { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow); display: grid; gap: 12px; text-align: center; }
+    .tool-btn { background: #f8fbfa; border: 1px solid var(--line); padding: 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 12px; opacity: 0.5; pointer-events: none; transition: 0.2s; }
+    .tool-btn.liberado { opacity: 1; pointer-events: auto; }
+    .tool-btn.liberado:hover { background: var(--accent); color: #fff; }
+  </style>
 </head>
 <body>
 
-    <div class="container">
-        
-        <!-- [1] HUD Superior -->
-        <header class="hud-header">
-            <div class="hud-info">IA AD: <span id="hudIaStatus" style="color: var(--danger);">INATIVA</span> | TOKENS: <span id="hudTokens">100</span></div>
-            <a href="perfil.html" class="btn-perfil">⚙️ Voltar ao Perfil</a>
-        </header>
+  <div class="container">
+    
+    <!-- HUD Superior -->
+    <header class="hud-header">
+      <div class="hud-info">IA AD: <span id="hudIaStatus" style="color: var(--danger);">CARREGANDO...</span> | TOKENS: <span id="hudTokens">--</span></div>
+      <a href="perfil.html" class="btn-perfil">⚙️ Voltar ao Perfil</a>
+    </header>
 
-        <div class="profile-card">
-            <img id="userAvatarImg" src="elayon_logo.png" alt="Avatar" class="logo-img" onerror="this.src='https://via.placeholder.com/48';">
-            <div class="profile-info">
-                <h2 id="userDisplayName">Carregando Piloto...</h2>
-                <p id="userDisplayEmail">ID: Sincronizando com Supabase...</p>
-            </div>
-            <span class="calibra-tag" id="calibraStatus">🎙️ Calibração de Voz (Etapa 1/3)</span>
-        </div>
-
-        <!-- [2] Camada de Chegada CRS & Status Simbiótico -->
-        <section class="crs-report-layer">
-            <div class="section-title">
-                <span>🌐 Sistema Simbiótico Ativo & Relatório CRS (Render API)</span>
-                <span style="font-size: 10px; font-family: monospace; color: var(--muted);" id="crsApiStatus">Aguardando payload...</span>
-            </div>
-            <p style="font-size: 11px; color: var(--muted); line-height: 1.4;">
-                Espectroide de silêncios e ritmos interpretado pela nuvem. A IA Ad valida o estado simbiótico antes de cada resposta.
-            </p>
-            <div class="crs-payload-box" id="crsReportPayloadDisplay">
-[CRS_STATUS] Sistema simbiótico pronto. Aguardando Supermicrofone de Voz (Máx. 30s) para envio do áudio bruto ao CRS...
-            </div>
-        </section>
-
-        <!-- [3] As 8 Estantes em Grid de 2 Colunas com Fundo Branco (Estilo Eletrocardiograma Clínico) -->
-        <div class="section-title" style="color: var(--ink);">📊 As 8 Dimensões Fônicas & Rastreio Neurolinguístico (2 Colunas)</div>
-        <div class="graphs-grid-2col">
-            
-            <!-- Estante 1 -->
-            <details class="graph-accordion">
-                <summary class="graph-summary">🟦 I. Frequência / Tom (F₀ & Jitter)</summary>
-                <div class="graph-body">
-                    <canvas class="canvas-box" id="cvGraph1"></canvas>
-                    <div class="metric-box-card c-blue">
-                        <div class="metric-title-lbl">F₀ & Jitter</div>
-                        <div class="metric-val-lbl" id="mVal1">-- Hz | -- %</div>
-                        <div class="metric-clinical-desc">Rastreio de disartria e instabilidade laríngea.</div>
-                    </div>
-                </div>
-            </details>
-
-            <!-- Estante 2 -->
-            <details class="graph-accordion">
-                <summary class="graph-summary">🟧 II. Intensidade / Volume (SPL & Shimmer)</summary>
-                <div class="graph-body">
-                    <canvas class="canvas-box" id="cvGraph2"></canvas>
-                    <div class="metric-box-card c-orange">
-                        <div class="metric-title-lbl">SPL & Shimmer</div>
-                        <div class="metric-val-lbl" id="mVal2">-- dB | -- %</div>
-                        <div class="metric-clinical-desc">Projeção vocal e astenia pneumofônica.</div>
-                    </div>
-                </div>
-            </details>
-
-            <!-- Estante 3 -->
-            <details class="graph-accordion">
-                <summary class="graph-summary">🟩 III. Qualidade / Timbre (HNR & CPPS)</summary>
-                <div class="graph-body">
-                    <canvas class="canvas-box" id="cvGraph3"></canvas>
-                    <div class="metric-box-card c-green">
-                        <div class="metric-title-lbl">HNR & CPPS</div>
-                        <div class="metric-val-lbl" id="mVal3">-- dB | -- dB</div>
-                        <div class="metric-clinical-desc">Detecção de soprosidade e rugosidade laríngea.</div>
-                    </div>
-                </div>
-            </details>
-
-            <!-- Estante 4 -->
-            <details class="graph-accordion">
-                <summary class="graph-summary">🟨 IV. Prosódia / Ritmo & Pausas (CRS)</summary>
-                <div class="graph-body">
-                    <canvas class="canvas-box" id="cvGraph4"></canvas>
-                    <div class="metric-box-card c-orange">
-                        <div class="metric-title-lbl">Ritmo & Pausas</div>
-                        <div class="metric-val-lbl" id="mVal4">-- % | -- seg</div>
-                        <div class="metric-clinical-desc">Rastreio de afasias de expressão e planejamento motor.</div>
-                    </div>
-                </div>
-            </details>
-
-           
-            <!-- Estante 5 -->
-            <details class="graph-accordion">
-                <summary class="graph-summary">🟪 V. Perceptivo-Auditivo (GRBAS)</summary>
-                <div class="graph-body">
-                    <canvas class="canvas-box" id="cvGraph5"></canvas>
-                    <div class="metric-box-card c-purple">
-                        <div class="metric-title-lbl">GRBAS (G & S)</div>
-                        <div class="metric-val-lbl" id="mVal5">G-- | S--</div>
-                        <div class="metric-clinical-desc">Grau geral de desvio e tensão vocal excessiva.</div>
-                    </div>
-                </div>
-            </details>
-
-            <!-- Estante 6 -->
-            <details class="graph-accordion">
-                <summary class="graph-summary">🟫 VI. Aerodinâmica & Fluxo Subglótico</summary>
-                <div class="graph-body">
-                    <canvas class="canvas-box" id="cvGraph6"></canvas>
-                    <div class="metric-box-card c-orange">
-                        <div class="metric-title-lbl">Fluxo & Pressão</div>
-                        <div class="metric-val-lbl" id="mVal6">-- L/s | -- cmH₂O</div>
-                        <div class="metric-clinical-desc">Eficiência respiratória e resistência glótica.</div>
-                    </div>
-                </div>
-            </details>
-
-            <!-- Estante 7 -->
-            <details class="graph-accordion">
-                <summary class="graph-summary">🟩 VII. Eletroglotografia (Contato Glótico)</summary>
-                <div class="graph-body">
-                    <canvas class="canvas-box" id="cvGraph7"></canvas>
-                    <div class="metric-box-card c-green">
-                        <div class="metric-title-lbl">Contato & Fechamento</div>
-                        <div class="metric-val-lbl" id="mVal7">-- % | -- ms</div>
-                        <div class="metric-clinical-desc">Tonicidade e adução muscular na laringe.</div>
-                    </div>
-                </div>
-            </details>
-
-            <!-- Estante 8 -->
-            <details class="graph-accordion">
-                <summary class="graph-summary">🟦 VIII. Contexto Ambiental & Ruído</summary>
-                <div class="graph-body">
-                    <canvas class="canvas-box" id="cvGraph8"></canvas>
-                    <div class="metric-box-card c-blue">
-                        <div class="metric-title-lbl">Ruído & Estabilidade</div>
-                        <div class="metric-val-lbl" id="mVal8">-- dBA | -- %</div>
-                        <div class="metric-clinical-desc">Integridade acústica do meio para o diagnóstico.</div>
-                    </div>
-                </div>
-            </details>
-
-        </div>
-
-        <!-- [4] Buffer FIFO de 3 Sessões -->
-        <div class="section-title" style="color: var(--ink); margin-top: 10px;">📦 Buffer FIFO & Histórico das 3 Sessões Fônicas</div>
-        <section style="background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);">
-            <div class="session-history-grid" id="conexoesFifoGrid">
-                <div class="session-box">
-                    <div style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase;">🔗 Sessão 1 (Mais Recente)</div>
-                    <div style="font-size: 9px; color: var(--muted); margin: 4px 0;" id="infoSessao1">Captura atual ativa</div>
-                    <button class="btn-load-session" onclick="carregarSessaoHistorico(1)">Avaliar Sessão (1 Token)</button>
-                </div>
-                <div class="session-box">
-                    <div style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase;">🔗 Sessão 2 (Anterior)</div>
-                    <div style="font-size: 9px; color: var(--muted); margin: 4px 0;" id="infoSessao2">Histórico prévio</div>
-                    <button class="btn-load-session" onclick="carregarSessaoHistorico(2)">Avaliar Sessão (1 Token)</button>
-                </div>
-                <div class="session-box">
-                    <div style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase;">🔗 Sessão 3 (Baseline)</div>
-                    <div style="font-size: 9px; color: var(--muted); margin: 4px 0;" id="infoSessao3">Calibração base</div>
-                    <button class="btn-load-session" onclick="carregarSessaoHistorico(3)">Avaliar Sessão (1 Token)</button>
-                </div>
-            </div>
-            <div style="margin-top: 12px; text-align: center;">
-                <button class="btn-action btn-primary" id="btnGerarPdf" style="margin: 0; background: linear-gradient(135deg, var(--success), var(--accent)); opacity: 0.5; pointer-events: none;" onclick="gerarRelatorioPdfCompleto()">
-                    📄 Gerar Relatório PDF Integrado (Requer 3 Sessões Concluídas)
-                </button>
-            </div>
-        </section>
-
-        <!-- [5] Chat Simbiótico & Calibração por Voz (Sem Campo de Texto) -->
-        <section class="chat-section">
-            <div class="section-title"><span id="calibStepTitle">🎙️ 1ª Calibração de Voz (3 Etapas Obrigatórias)</span></div>
-            
-            <div class="chat-box" id="chatBox">
-                <div class="chat-message ad">
-                    <strong>Ad (Elayon Space):</strong> Sistema simbiótico ativo. CRS calibrado. Para iniciar, esta é a <strong>1ª Calibração</strong>: Diga em voz alta qual é o seu objetivo clínico ou estado atual.
-                </div>
-            </div>
-
-            <!-- Botão Supermicrofone de Voz (Aperta para Falar / Aperta para Parar e Transcrever) -->
-            <button class="btn-action btn-primary" id="btnMicSimple" disabled style="background: linear-gradient(135deg, var(--danger), #f06292); padding: 16px; font-size: 14px;">
-                🎙️ Pressione para Falar (Etapa 1/3 • Consome 1 Token)
-            </button>
-        </section>
-
-        <!-- [6] Rodapé de Transição e Ferramentas -->
-        <section class="footer-navigation">
-            <div class="section-title" style="color: var(--ink);">⚙️ Transição & Acesso a Ferramentas Clínicas</div>
-            
-            <div style="display: flex; gap: 10px;">
-                <a href="perfil.html" class="btn-action" style="background: #f0f7f7; border: 1px solid var(--line); color: var(--ink); margin: 0; flex: 1;">
-                    ⬅️ Voltar ao Perfil
-                </a>
-                <button class="btn-action btn-primary" id="btnFinalizarCalibracao" style="margin: 0; flex: 1; display: none;">
-                    🚀 Fechar Calibração & Ativar Ecossistema
-                </button>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; margin-top: 10px;" id="ferramentasGrid">
-                <a href="#" class="tool-btn" id="toolHealth" onclick="abrirFerramentaComApi('Health')"><span>🧬 Elayon Health</span> <span>➔</span></a>
-                <a href="#" class="tool-btn" id="toolPsiq" onclick="abrirFerramentaComApi('PsiQ')"><span>🧠 Elayon PsiQ</span> <span>➔</span></a>
-                <a href="#" class="tool-btn" id="toolVibes" onclick="abrirFerramentaComApi('Vibes')"><span>🦁 Elayon Vibes 8</span> <span>➔</span></a>
-                <a href="#" class="tool-btn" id="toolPc" onclick="abrirFerramentaComApi('PC')"><span>💻 Elayon PC</span> <span>➔</span></a>
-                <a href="#" class="tool-btn" id="toolMechanics" onclick="abrirFerramentaComApi('Mechanics')"><span>⚙️ Elayon Mechanics</span> <span>➔</span></a>
-            </div>
-        </section>
-
+    <div class="profile-card">
+      <img id="userAvatarImg" src="elayon_logo.png" alt="Avatar" class="logo-img" onerror="this.src='https://via.placeholder.com/48';">
+      <div class="profile-info">
+        <h2 id="userDisplayName">Carregando Operador...</h2>
+        <p id="userDisplayEmail">ID: Sincronizando com Supabase...</p>
+      </div>
+      <span class="calibra-tag" id="calibraStatus">🎙️ Calibração de Voz (Etapa 1/3)</span>
     </div>
 
-    <!-- [7] Logs -->
-    <div class="logs-drawer" id="logsDrawer" style="position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; color: var(--ink); border-top-left-radius: 16px; border-top-right-radius: 16px; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); transition: transform 0.3s ease; z-index: 1000; transform: translateY(115px); border-top: 1px solid var(--line);">
-        <div class="logs-header" id="logsToggleBtn" style="padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 11px; font-weight: 700; text-transform: uppercase; background: #f8fbfa; border-top-left-radius: 16px; border-top-right-radius: 16px;">
-            <span>📋 Auditoria de Sessões & PDF (<span id="logCount">1</span>)</span>
-            <span id="logToggleIcon">▲ Expandir Logs</span>
-        </div>
-        <div class="logs-body" id="logsBody" style="max-height: 120px; overflow-y: auto; padding: 12px; font-family: monospace; font-size: 10px; display: flex; flex-direction: column; gap: 4px; background: #fff;">
-            <div class="log-item">[INIT] Cockpit clínico em 2 colunas com calibração por voz de 3 etapas configurado.</div>
-        </div>
+    <!-- Camada CRS -->
+    <section class="crs-report-layer">
+      <div class="section-title">
+        <span>🌐 Sistema Simbiótico Ativo & Relatório CRS (Render API)</span>
+        <span style="font-size: 10px; font-family: monospace; color: var(--muted);" id="crsApiStatus">Aguardando áudio...</span>
+      </div>
+      <div class="crs-payload-box" id="crsReportPayloadDisplay">
+[CRS_STATUS] Aguardando Supermicrofone. O áudio permanecerá gravando de forma contínua por até 30s sem fechar no silêncio.
+      </div>
+    </section>
+
+    <!-- 8 Estantes em Grid 2 Colunas -->
+    <div class="section-title" style="color: var(--ink);">📊 As 8 Dimensões Fônicas & Rastreio Neurolinguístico</div>
+    <div class="graphs-grid-2col">
+      <details class="graph-accordion" open><summary class="graph-summary">🟦 I. Frequência / Tom (F₀ & Jitter)</summary><div class="graph-body"><canvas class="canvas-box" id="cvGraph1"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal1">-- Hz | -- %</div></div></div></details>
+      <details class="graph-accordion"><summary class="graph-summary">🟧 II. Intensidade / Volume (SPL & Shimmer)</summary><div class="graph-body"><canvas class="canvas-box" id="cvGraph2"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal2">-- dB | -- %</div></div></div></details>
+      <details class="graph-accordion"><summary class="graph-summary">🟩 III. Qualidade / Timbre (HNR & CPPS)</summary><div class="graph-body"><canvas class="canvas-box" id="cvGraph3"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal3">-- dB | -- dB</div></div></div></details>
+      <details class="graph-accordion"><summary class="graph-summary">🟨 IV. Prosódia / Ritmo & Pausas (CRS)</summary><div class="graph-body"><canvas class="canvas-box" id="cvGraph4"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal4">-- % | -- seg</div></div></div></details>
+      <details class="graph-accordion"><summary class="graph-summary">🟪 V. Perceptivo-Auditivo (GRBAS)</summary><div class="graph-body"><canvas class="canvas-box" id="cvGraph5"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal5">G-- | S--</div></div></div></details>
+      <details class="graph-accordion"><summary class="graph-summary">🟫 VI. Aerodinâmica & Fluxo Subglótico</summary><div class="graph-body"><canvas class="canvas-box" id="cvGraph6"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal6">-- L/s | -- cmH₂O</div></div></div></details>
+      <details class="graph-accordion"><summary class="graph-summary">🟩 VII. Eletroglotografia (Contato Glótico)</summary><div class="graph-body"><canvas class="canvas-box" id="cvGraph7"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal7">-- % | -- ms</div></div></div></details>
+      <details class="graph-accordion"><summary class="graph-summary">🟦 VIII. Contexto Ambiental & Ruído</summary><div class="graph-body"><canvas class="canvas-box" id="cvGraph8"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal8">-- dBA | -- %</div></div></div></details>
     </div>
 
-    <script src="cockpit.js"></script>
+    <!-- Buffer FIFO de 3 Sessões -->
+    <div class="section-title" style="color: var(--ink); margin-top: 10px;">📦 Buffer FIFO & Histórico no Supabase</div>
+    <section style="background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);">
+      <div class="session-history-grid">
+        <div class="session-box">
+          <div style="font-size: 10px; font-weight: 800; color: var(--accent);">🔗 Sessão 1 (Mais Recente)</div>
+          <div style="font-size: 9px; color: var(--muted); margin: 4px 0;" id="infoSessao1">Aguardando gravação...</div>
+          <button class="btn-load-session" onclick="carregarSessaoHistorico(1)">Carregar Sessão</button>
+        </div>
+        <div class="session-box">
+          <div style="font-size: 10px; font-weight: 800; color: var(--accent);">🔗 Sessão 2 (Anterior)</div>
+          <div style="font-size: 9px; color: var(--muted); margin: 4px 0;" id="infoSessao2">Histórico prévio</div>
+          <button class="btn-load-session" onclick="carregarSessaoHistorico(2)">Carregar Sessão</button>
+        </div>
+        <div class="session-box">
+          <div style="font-size: 10px; font-weight: 800; color: var(--accent);">🔗 Sessão 3 (Baseline)</div>
+          <div style="font-size: 9px; color: var(--muted); margin: 4px 0;" id="infoSessao3">Calibração base</div>
+          <button class="btn-load-session" onclick="carregarSessaoHistorico(3)">Carregar Sessão</button>
+        </div>
+      </div>
+      <button class="btn-action btn-primary" id="btnGerarPdf" style="margin-top: 12px; opacity: 0.5; pointer-events: none;" onclick="gerarRelatorioPdfCompleto()">
+        📄 Gerar Relatório PDF Integrado (Sessões Salvas)
+      </button>
+    </section>
+
+    <!-- Chat Simbiótico -->
+    <section class="chat-section">
+      <div class="section-title"><span id="calibStepTitle">🎙️ 1ª Calibração de Voz (3 Etapas)</span></div>
+      <div class="chat-box" id="chatBox">
+        <div class="chat-message ad">
+          <strong>Ad (Elayon Space):</strong> Sistema simbiótico ativo. CRS calibrado. Para iniciar, esta é a <strong>1ª Calibração</strong>: Diga em voz alta qual é o seu objetivo clínico ou estado atual.
+        </div>
+      </div>
+
+      <button class="btn-action btn-primary" id="btnMicSimple" disabled style="background: linear-gradient(135deg, var(--danger), #f06292); padding: 16px; font-size: 14px;">
+        🎙️ Pressione para Falar (Etapa 1/3 • Consome 1 Token)
+      </button>
+    </section>
+
+    <!-- Transição & Ferramentas -->
+    <section class="footer-navigation">
+      <div class="section-title" style="color: var(--ink);">⚙️ Ferramentas Clínicas do Ecossistema</div>
+      <div style="display: flex; gap: 10px;">
+        <a href="perfil.html" class="btn-action" style="background: #f0f7f7; border: 1px solid var(--line); color: var(--ink); margin: 0; flex: 1;">
+          ⬅️ Voltar ao Perfil
+        </a>
+        <button class="btn-action btn-primary" id="btnFinalizarCalibracao" style="margin: 0; flex: 1; display: none;">
+          🚀 Calibração Concluída - Ativar Módulos
+        </button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; margin-top: 10px;">
+        <a href="#" class="tool-btn" id="toolHealth" onclick="abrirFerramentaComApi('Health')"><span>🧬 Elayon Health</span> <span>➔</span></a>
+        <a href="#" class="tool-btn" id="toolPsiq" onclick="abrirFerramentaComApi('PsiQ')"><span>🧠 Elayon PsiQ</span> <span>➔</span></a>
+        <a href="#" class="tool-btn" id="toolVibes" onclick="abrirFerramentaComApi('Vibes')"><span>🦁 Elayon Vibes 8</span> <span>➔</span></a>
+        <a href="#" class="tool-btn" id="toolPc" onclick="abrirFerramentaComApi('PC')"><span>💻 Elayon PC</span> <span>➔</span></a>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Drawer de Logs -->
+  <div class="logs-drawer" id="logsDrawer" style="position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; color: var(--ink); border-top-left-radius: 16px; border-top-right-radius: 16px; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); transition: transform 0.3s ease; z-index: 1000; transform: translateY(115px); border-top: 1px solid var(--line);">
+    <div class="logs-header" id="logsToggleBtn" style="padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 11px; font-weight: 700; text-transform: uppercase; background: #f8fbfa; border-top-left-radius: 16px; border-top-right-radius: 16px;">
+      <span>📋 Auditoria de Sessões & Supabase (<span id="logCount">1</span>)</span>
+      <span id="logToggleIcon">▲ Expandir Logs</span>
+    </div>
+    <div class="logs-body" id="logsBody" style="max-height: 120px; overflow-y: auto; padding: 12px; font-family: monospace; font-size: 10px; display: flex; flex-direction: column; gap: 4px; background: #fff;">
+      <div class="log-item">[INIT] Cockpit pronto para capturas contínuas de 30s e sincronia de tokens.</div>
+    </div>
+  </div>
+
+  <script src="cockpit.js"></script>
 </body>
 </html>
