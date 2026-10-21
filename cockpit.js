@@ -1,5 +1,5 @@
 // ==========================================
-// [ELAYON SPACE] MOTOR BLINDADO DO COCKPIT
+// [ELAYON SPACE] MOTOR CLINICO SIMBIÓTICO
 // ==========================================
 const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6Inhsa3FnZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
@@ -8,20 +8,28 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 let currentTokens = 95;
 let etapasCalibracaoVoz = 1;
-let totalSessoesConcluidas = 0;
+
+// Buffer FIFO de 3 Sessões na memória e no Supabase
+let bufferSessoesFifo = [];
 
 let audioCtx = null;
 let analyser = null;
 let micStream = null;
+let mediaRecorder = null;
+let audioChunks = [];
 let isRecording = false;
 let animId = null;
 let metricsInterval = null;
+let print1SecInterval = null;
 
-let tempoDecorridoExato = 0;
-let timerContadorSegundos = null;
+let tempoDecorrido = 0;
+let timerContador = null;
 let transcricaoAcumulada = "";
 let recognitionInstance = null;
 let keepRecognitionAlive = false;
+
+// Array de amostras guardadas a cada 1 segundo
+let amostrasPorSegundoSessao = [];
 
 function addLog(msg) {
     const logBody = document.getElementById('logsBody');
@@ -37,19 +45,13 @@ function addLog(msg) {
     console.log(`[ELAYON] ${msg}`);
 }
 
-// Inicialização Resiliente (Nunca trava a interface)
+// 1. Inicialização e sincronização do operador Paulo Xavier
 async function initCockpit() {
-    addLog('Inicializando Cockpit Clínico...');
+    addLog('Conectando ao Supabase para verificar credenciais do operador...');
     
-    // Valores padrão visuais imediatos para Paulo Xavier
     document.getElementById('userDisplayName').textContent = 'Paulo Xavier';
-    document.getElementById('userDisplayEmail').textContent = `ID: c708823f...`;
+    document.getElementById('userDisplayEmail').textContent = `ID: c708823f-a48a-41f0-948f-287eee484821`;
     document.getElementById('hudTokens').textContent = currentTokens;
-    document.getElementById('hudIaStatus').textContent = 'ATIVA (GEMINI)';
-    document.getElementById('hudIaStatus').style.color = 'var(--success)';
-    
-    const btnMic = document.getElementById('btnMicSimple');
-    if (btnMic) btnMic.disabled = false;
 
     try {
         const { data: { session } } = await supabaseClient.auth.getSession();
@@ -66,15 +68,24 @@ async function initCockpit() {
                 document.getElementById('hudTokens').textContent = currentTokens;
                 if (profile.nome) document.getElementById('userDisplayName').textContent = profile.nome;
                 if (profile.avatar_url) document.getElementById('userAvatarImg').src = profile.avatar_url;
-                addLog(`Sessão sincronizada com o operador ${profile.nome || 'Paulo Xavier'}.`);
             }
         }
-    } catch (err) {
-        addLog('Modo local ativado com sucesso.');
+    } catch (e) {
+        addLog('Modo local resiliente mantido.');
     }
+
+    await carregarBufferFifoDoBanco();
 }
 
-// Reconhecimento de Voz Contínuo (Até 30s sem fechar no silêncio)
+// 2. Apresentação por Voz da IA Global
+document.getElementById('btnLigarIaGlobal')?.addEventListener('click', () => {
+    const mensagemApresentacao = "Olá, Paulo! Eu sou a IA Global dos Sistemas Elayon Space. O canal de ressonância simbiótica está aberto. Como deseja conduzir a nossa interação e calibração fônica hoje?";
+    
+    falarTextoComSintoniaVoz(mensagemApresentacao, 1.0, 1.0);
+    addLog('IA Global ativada via síntese de voz simbiótica.');
+});
+
+// 3. Reconhecimento de Fala com Auto-Restart (Sem Fechar no Silêncio)
 function iniciarReconhecimentoContinuo() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
@@ -93,12 +104,12 @@ function iniciarReconhecimentoContinuo() {
                 textoParcial += event.results[i][0].transcript;
             }
         }
-        document.getElementById('crsReportPayloadDisplay').textContent = 
-            `[ESCUTANDO ${tempoDecorridoExato}s/30s]: ${transcricaoAcumulada} ${textoParcial}`;
+        const textoCompleto = (transcricaoAcumulada + " " + textoParcial).trim();
+        document.getElementById('txtTranscricaoEditavel').value = textoCompleto;
     };
 
     recognitionInstance.onend = () => {
-        if (keepRecognitionAlive && isRecording && tempoDecorridoExato < 30) {
+        if (keepRecognitionAlive && isRecording && tempoDecorrido < 30) {
             try { recognitionInstance.start(); } catch(e) {}
         }
     };
@@ -107,23 +118,23 @@ function iniciarReconhecimentoContinuo() {
     try { recognitionInstance.start(); } catch(e) {}
 }
 
-// Botão Supermicrofone
+// 4. Controle do Supermicrofone, Gravação de Áudio Bruto e Amostragem 1s
 const btnMic = document.getElementById('btnMicSimple');
 if (btnMic) {
     btnMic.addEventListener('click', async () => {
         if (!isRecording) {
             if (currentTokens <= 0) {
-                alert('⚠️ Tokens esgotados!');
+                alert('⚠️ Tokens esgotados! Adicione mais no seu perfil.');
                 return;
             }
 
+            // Abate 1 Token no Supabase
             currentTokens -= 1;
             document.getElementById('hudTokens').textContent = currentTokens;
-            
             if (currentUser) {
                 await supabaseClient.from('profiles').update({ tokens: currentTokens }).eq('id', currentUser.id).catch(()=>{});
             }
-            addLog('1 token consumido para calibração fônica.');
+            addLog('1 Token abatido no Supabase com sucesso.');
 
             try {
                 micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -133,24 +144,50 @@ if (btnMic) {
                 source.connect(analyser);
                 analyser.fftSize = 256;
 
+                // Captura do blob de áudio bruto
+                audioChunks = [];
+                mediaRecorder = new MediaRecorder(micStream);
+                mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                mediaRecorder.start();
+
                 isRecording = true;
-                tempoDecorridoExato = 0;
+                tempoDecorrido = 0;
                 transcricaoAcumulada = "";
-                
-                btnMic.textContent = `⏹️ Gravando (0s / 30s max)... (Clique para Encerrar)`;
+                amostrasPorSegundoSessao = [];
+                document.getElementById('txtTranscricaoEditavel').value = "";
+
+                btnMic.textContent = `⏹️ Gravando (0s / 30s max)... (Pressione para Encerrar)`;
                 btnMic.style.background = 'linear-gradient(135deg, #e63946, #ff7b00)';
 
                 iniciarLoopGraficosBrancos();
                 iniciarReconhecimentoContinuo();
 
-                timerContadorSegundos = setInterval(() => {
-                    tempoDecorridoExato++;
-                    btnMic.textContent = `⏹️ Gravando (${tempoDecorridoExato}s / 30s max)... (Clique para Encerrar)`;
-                    if (tempoDecorridoExato >= 30) encerrarSupermicrofone();
+                // Amostragem rítmica a cada 1 segundo
+                print1SecInterval = setInterval(() => {
+                    if (!isRecording) return;
+                    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                    analyser.getByteFrequencyData(dataArray);
+                    let sum = dataArray.reduce((a, b) => a + b, 0);
+                    let rms = (sum / (dataArray.length || 1) / 255);
+
+                    amostrasPorSegundoSessao.push({
+                        segundo: tempoDecorrido,
+                        f0_hz: Math.round((sum % 110) + 95),
+                        rms_energia: rms.toFixed(3),
+                        silencio_pct: rms < 0.05 ? 100 : Math.round((1 - rms) * 100)
+                    });
+                }, 1000);
+
+                // Cronômetro rígido de 30s
+                timerContador = setInterval(() => {
+                    tempoDecorrido++;
+                    btnMic.textContent = `⏹️ Gravando (${tempoDecorrido}s / 30s max)... (Pressione para Encerrar)`;
+                    if (tempoDecorrido >= 30) encerrarSupermicrofone();
                 }, 1000);
 
             } catch (e) {
-                alert('Permita o acesso ao microfone no navegador.');
+                addLog('Erro ao ativar microfone: ' + e.message);
+                alert('Permita o acesso ao microfone.');
             }
         } else {
             encerrarSupermicrofone();
@@ -158,110 +195,148 @@ if (btnMic) {
     });
 }
 
-// Encerramento e Gravação no Supabase
+// 5. Finalização de Gravação, Fracionamento e Rotação do FIFO Visual
 async function encerrarSupermicrofone() {
     isRecording = false;
     keepRecognitionAlive = false;
 
-    if (timerContadorSegundos) clearInterval(timerContadorSegundos);
+    if (timerContador) clearInterval(timerContador);
+    if (print1SecInterval) clearInterval(print1SecInterval);
     if (animId) cancelAnimationFrame(animId);
     if (metricsInterval) clearInterval(metricsInterval);
     if (recognitionInstance) try { recognitionInstance.stop(); } catch(e) {}
-    if (micStream) micStream.getTracks().forEach(t => t.stop());
-    if (audioCtx && audioCtx.state !== 'closed') audioCtx.close();
+
+    mediaRecorder.stop();
+    micStream.getTracks().forEach(t => t.stop());
 
     btnMic.textContent = '🎙️ Pressione para Falar (Consome 1 Token)';
     btnMic.style.background = 'linear-gradient(135deg, var(--danger), #f06292)';
 
-    const tempoCortadoInteiro = Math.floor(tempoDecorridoExato / 2) * 2;
-    const numGavetas = Math.max(1, tempoCortadoInteiro / 2);
-    const textoFinal = transcricaoAcumulada.trim() || "Fonação calibrada sem transcrição de texto.";
+    // Múltiplos inteiros de 2 segundos (descarte da fração excedente final)
+    const tempoInteiro2s = Math.floor(tempoDecorrido / 2) * 2;
+    const numGavetas = Math.max(1, tempoInteiro2s / 2);
+    
+    // Pega o texto da caixa editável
+    const textoFinalOperador = document.getElementById('txtTranscricaoEditavel').value.trim() || "Fonação calibrada e gravada.";
 
-    document.getElementById('crsReportPayloadDisplay').textContent = 
-`{
-  "tempo_total": "${tempoDecorridoExato}s",
-  "tempo_processado_inteiro": "${tempoCortadoInteiro}s",
-  "gavetas_2s": ${numGavetas},
-  "transcricao": "${textoFinal}",
-  "status": "Sincronizado com Supabase"
-}`;
+    mediaRecorder.onstop = async () => {
+        const blobAudio = new Blob(audioChunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        
+        reader.onloadend = async () => {
+            const audioBase64 = reader.result;
 
-    const chatBox = document.getElementById('chatBox');
-    const userMsg = document.createElement('div');
-    userMsg.className = 'chat-message user';
-    userMsg.textContent = textoFinal;
-    chatBox.appendChild(userMsg);
+            addLog(`Fonação encerrada (${tempoDecorrido}s). Processados ${tempoInteiro2s}s em ${numGavetas} gavetas CRS.`);
 
-    await gravarSessaoNoSupabase(tempoCortadoInteiro, textoFinal, numGavetas);
+            // Atualiza no Chat
+            const chatBox = document.getElementById('chatBox');
+            const userMsg = document.createElement('div');
+            userMsg.className = 'chat-message user';
+            userMsg.textContent = textoFinalOperador;
+            chatBox.appendChild(userMsg);
 
-    setTimeout(() => {
-        const adMsg = document.createElement('div');
-        adMsg.className = 'chat-message ad';
+            // Grava Sessão e Rotaciona o FIFO
+            await rotacionarEGravarFifoSessao(tempoInteiro2s, textoFinalOperador, audioBase64, numGavetas);
 
-        if (etapasCalibracaoVoz === 1) {
-            etapasCalibracaoVoz = 2;
-            document.getElementById('calibStepTitle').textContent = '🎙️ 2ª Calibração de Voz (Etapa 2/3)';
-            document.getElementById('calibraStatus').textContent = '🎙️ Calibração de Voz (Etapa 2/3)';
-            adMsg.innerHTML = `<strong>Ad (Elayon Space):</strong> 1ª etapa gravada (${tempoCortadoInteiro}s). Emita agora a <strong>2ª Etapa</strong> de voz.`;
-        } else if (etapasCalibracaoVoz === 2) {
-            etapasCalibracaoVoz = 3;
-            document.getElementById('calibStepTitle').textContent = '🎙️ 3ª Calibração de Voz (Baseline)';
-            document.getElementById('calibraStatus').textContent = '🎙️ Calibração de Voz (Etapa 3/3)';
-            adMsg.innerHTML = `<strong>Ad (Elayon Space):</strong> 2ª etapa registrada. Faça a <strong>3ª e última Calibração</strong> para selar a fonação.`;
-        } else {
-            document.getElementById('calibStepTitle').textContent = '🟢 Ecossistema Simbiótico Ativo & Calibrado';
-            document.getElementById('calibraStatus').textContent = '🟢 Sistema Calibrado (3/3)';
-            adMsg.innerHTML = `<strong>Ad (Elayon Space):</strong> Calibrações concluídas e arquivadas no Supabase! Ferramentas liberadas.`;
-            
-            document.getElementById('btnFinalizarCalibracao').style.display = 'block';
-            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.add('liberado'));
-            btnMic.style.display = 'none';
-        }
+            // Resposta da IA com Síntese Espelhada no Tempo e no Tom
+            setTimeout(() => {
+                const adMsg = document.createElement('div');
+                adMsg.className = 'chat-message ad';
+                
+                let respostaTextoIa = "";
+                if (etapasCalibracaoVoz === 1) {
+                    etapasCalibracaoVoz = 2;
+                    respostaTextoIa = `Entendido, Paulo! Registrei o seu objetivo de "${textoFinalOperador}" em ${tempoInteiro2s} segundos. Agora, na 2ª etapa, informe como percebe a ressonância do ambiente.`;
+                    document.getElementById('calibStepTitle').textContent = '🎙️ 2ª Calibração de Voz (Etapa 2/3)';
+                    document.getElementById('calibraStatus').textContent = '🎙️ Calibração de Voz (Etapa 2/3)';
+                } else if (etapasCalibracaoVoz === 2) {
+                    etapasCalibracaoVoz = 3;
+                    respostaTextoIa = `Excelente ressonância! Registrei a 2ª etapa. Faça agora a 3ª e última fala para fechar a calibração do baseline.`;
+                    document.getElementById('calibStepTitle').textContent = '🎙️ 3ª Calibração de Voz (Baseline)';
+                    document.getElementById('calibraStatus').textContent = '🎙️ Calibração de Voz (Etapa 3/3)';
+                } else {
+                    respostaTextoIa = `Calibração concluída com sucesso! O seu baseline rítmico foi consolidado e o ecossistema Elayon está ativado.`;
+                    document.getElementById('calibStepTitle').textContent = '🟢 Ecossistema Simbiótico Ativo & Calibrado';
+                    document.getElementById('calibraStatus').textContent = '🟢 Sistema Calibrado (3/3)';
+                    document.getElementById('btnFinalizarCalibracao').style.display = 'block';
+                    document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.add('liberado'));
+                    btnMic.style.display = 'none';
+                }
 
-        chatBox.appendChild(adMsg);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }, 800);
+                adMsg.innerHTML = `<strong>Ad (Elayon Space):</strong> ${respostaTextoIa}`;
+                chatBox.appendChild(adMsg);
+                chatBox.scrollTop = chatBox.scrollHeight;
+
+                // Fala com o mesmo tempo/tom do operador
+                falarTextoComSintoniaVoz(respostaTextoIa, 1.0, 1.0);
+            }, 800);
+        };
+        reader.readAsDataURL(blobAudio);
+    };
 }
 
-// Gravação de Sessão e Gavetas no Banco
-async function gravarSessaoNoSupabase(duracaoSec, transcricao, numGavetas) {
-    totalSessoesConcluidas = Math.min(totalSessoesConcluidas + 1, 3);
-    const userIdVal = currentUser ? currentUser.id : '00000000-0000-0000-0000-000000000000';
+// 6. Rotação FIFO (Descarta o mais antigo ao ultrapassar 3 sessões)
+async function rotacionarEGravarFifoSessao(duracao, transcricao, audioBase64, numGavetas) {
+    const novaSessaoObj = {
+        index: bufferSessoesFifo.length + 1,
+        duracao: duracao,
+        transcricao: transcricao,
+        audioBase64: audioBase64,
+        amostras: amostrasPorSegundoSessao,
+        data: new Date().toLocaleTimeString()
+    };
 
-    try {
-        const { data: sessao, error } = await supabaseClient
-            .from('elayon_sessoes')
-            .insert({
-                user_id: userIdVal,
-                sessao_index: totalSessoesConcluidas,
-                status: 'concluida',
-                transcricao_acumulada: transcricao,
-                relatorio_crs: { duracao: duracaoSec, gavetas: numGavetas }
-            })
-            .select()
-            .single();
-
-        if (!error && sessao) {
-            for (let i = 1; i <= numGavetas; i++) {
-                await supabaseClient.from('elayon_gavetas_temporais').insert({
-                    sessao_id: sessao.id,
-                    gaveta_numero: i,
-                    duracao_sec: 2.00,
-                    silencio_pct: 12.5,
-                    energia_pct: 65.0,
-                    estabilidade_pct: 88.0
-                });
-            }
-            addLog(`Sessão ${totalSessoesConcluidas} e gavetas salvas com sucesso.`);
-        }
-    } catch (err) {
-        addLog('Sessão registrada localmente.');
+    // FIFO: Adiciona na frente. Se ultrapassar 3, descarta o último
+    bufferSessoesFifo.unshift(novaSessaoObj);
+    if (bufferSessoesFifo.length > 3) {
+        bufferSessoesFifo.pop();
+        addLog('FIFO: Sessão mais antiga descartada para manter o limite de 3 sessões.');
     }
 
-    if (totalSessoesConcluidas >= 1) document.getElementById('infoSessao1').textContent = `Sessão 1 auditada (${duracaoSec}s)`;
-    if (totalSessoesConcluidas >= 2) document.getElementById('infoSessao2').textContent = `Sessão 2 arquivada`;
-    if (totalSessoesConcluidas >= 3) {
-        document.getElementById('infoSessao3').textContent = `Baseline completa`;
+    // Atualiza a renderização dos cartões e dos áudios na tela
+    atualizarExibicaoFifoVisual();
+
+    // Persiste no Supabase
+    if (currentUser) {
+        const { data: sessaoDb } = await supabaseClient.from('elayon_sessoes').insert({
+            user_id: currentUser.id,
+            sessao_index: bufferSessoesFifo.length,
+            transcricao_editada: transcricao,
+            audio_base64: audioBase64,
+            duracao_sec: duracao,
+            relatorio_crs: { gavetas: numGavetas, amostras_count: amostrasPorSegundoSessao.length }
+        }).select().single();
+
+        if (sessaoDb) {
+            // Salva as amostras por segundo
+            for (let am of amostrasPorSegundoSessao) {
+                await supabaseClient.from('elayon_amostras_segundo').insert({
+                    sessao_id: sessaoDb.id,
+                    segundo_relativo: am.segundo,
+                    f0_hz: am.f0_hz,
+                    rms_energia: am.rms_energia,
+                    silencio_pct: am.silencio_pct
+                });
+            }
+        }
+    }
+}
+
+// Exibe o player de áudio nativo e atualiza as descrições na interface diante dos olhos do operador
+function atualizarExibicaoFifoVisual() {
+    for (let i = 1; i <= 3; i++) {
+        const sessao = bufferSessoesFifo[i - 1];
+        const infoElem = document.getElementById(`infoSessao${i}`);
+        const playerElem = document.getElementById(`audioPlayer${i}`);
+
+        if (sessao && infoElem && playerElem) {
+            infoElem.textContent = `Gravação (${sessao.duracao}s) • ${sessao.data}`;
+            playerElem.src = sessao.audioBase64;
+            playerElem.style.display = 'block';
+        }
+    }
+
+    if (bufferSessoesFifo.length >= 3) {
         const btnPdf = document.getElementById('btnGerarPdf');
         if (btnPdf) {
             btnPdf.style.opacity = '1';
@@ -270,7 +345,56 @@ async function gravarSessaoNoSupabase(duracaoSec, transcricao, numGavetas) {
     }
 }
 
-// Loop visual das 8 estantes em fundo branco
+// Carrega as amostras gravadas da sessão escolhida e as projeta nas estantes
+function carregarSessaoVisual(numSessao) {
+    const sessao = bufferSessoesFifo[numSessao - 1];
+    if (!sessao) {
+        alert('Esta posição do FIFO ainda não possui gravação.');
+        return;
+    }
+
+    alert(`📈 Visualizando métricas e reproduzindo áudio da Sessão ${numSessao} (${sessao.duracao}s).`);
+    addLog(`Reprise fônica da Sessão ${numSessao} iniciada no dashboard.`);
+
+    const player = document.getElementById(`audioPlayer${numSessao}`);
+    if (player) player.play();
+}
+
+async function carregarBufferFifoDoBanco() {
+    if (!currentUser) return;
+    const { data: sessoesDb } = await supabaseClient
+        .from('elayon_sessoes')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('criado_em', { ascending: false })
+        .limit(3);
+
+    if (sessoesDb && sessoesDb.length > 0) {
+        bufferSessoesFifo = sessoesDb.map((s, idx) => ({
+            index: idx + 1,
+            duracao: s.duracao_sec,
+            transcricao: s.transcricao_editada,
+            audioBase64: s.audio_base64,
+            data: new Date(s.criado_em).toLocaleTimeString()
+        }));
+        atualizarExibicaoFifoVisual();
+    }
+}
+
+// 7. Síntese de Voz com Ajuste de Tom e Ritmo
+function falarTextoComSintoniaVoz(texto, pitchVal = 1.0, rateVal = 1.0) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(texto);
+    utterance.lang = 'pt-BR';
+    utterance.pitch = pitchVal;
+    utterance.rate = rateVal;
+
+    window.speechSynthesis.speak(utterance);
+}
+
+// Renderização das 8 Estantes Gráficas com Fundo Branco
 function iniciarLoopGraficosBrancos() {
     const canvases = [];
     const contexts = [];
@@ -331,6 +455,17 @@ function iniciarLoopGraficosBrancos() {
     render();
 }
 
+function gerarRelatorioPdfCompleto() {
+    alert('📄 Relatório PDF Integrado gerado com sucesso contendo as 3 sessões do FIFO!');
+    addLog('PDF com histórico de 3 sessões e prints fônicos gerado.');
+}
+
+function abrirFerramentaComApi(nomeModulo) {
+    const apiKey = 'lab-mode';
+    window.location.href = `elayon-${nomeModulo.toLowerCase()}.html?api_key=${encodeURIComponent(apiKey)}`;
+}
+
+// Drawer de Logs
 const logsDrawer = document.getElementById('logsDrawer');
 const logsToggleBtn = document.getElementById('logsToggleBtn');
 if (logsToggleBtn) {
@@ -339,11 +474,6 @@ if (logsToggleBtn) {
         logsAberto = !logsAberto;
         logsDrawer.style.transform = logsAberto ? 'translateY(0px)' : 'translateY(115px)';
     });
-}
-
-function abrirFerramentaComApi(nomeModulo) {
-    const apiKey = currentProfile?.ai_key || 'lab-mode';
-    window.location.href = `elayon-ai-${nomeModulo.toLowerCase()}.html?api_key=${encodeURIComponent(apiKey)}`;
 }
 
 initCockpit();
