@@ -2,8 +2,8 @@
 <html lang="pt-PT">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Elayon Space • Calibração & Perfil CRS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Elayon Space • Perfil & Parâmetros do Operador</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -23,7 +23,6 @@
       position: relative; width: 100%; max-width: 520px; background: var(--card);
       border: 1px solid var(--line); border-radius: 24px; padding: 36px 28px; box-shadow: var(--shadow);
     }
-    /* Identidade e Logo */
     .top-logo-container { position: absolute; top: 20px; left: 20px; }
     .logo-img-small { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent); background: #fff; }
     .avatar-wrapper { display: flex; flex-direction: column; align-items: center; margin-top: 10px; margin-bottom: 18px; }
@@ -39,32 +38,21 @@
     .btn-icon:hover { color: var(--accent); }
     .sub { color: var(--muted); font-size: 12px; margin-bottom: 20px; line-height: 1.4; text-align: center; }
 
-    /* Caixas e Formulários */
     .box { background: #f8fbfa; border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 16px; }
     .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 13px; margin-bottom: 10px; }
     .row:last-child { margin-bottom: 0; }
     .label { color: var(--muted); font-size: 12px; }
     .value { font-weight: 700; word-break: break-word; text-align: right; color: var(--ink); }
 
-    /* Bloco CRS & Métricas Reais */
-    .crs-report-box { background: #f0f7f7; border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 16px; text-align: left; border-left: 4px solid var(--accent); }
-    .crs-report-box h3 { font-size: 13px; color: var(--ink); margin-bottom: 8px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
-    .crs-metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
-    .crs-metric-item { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font-size: 11px; }
-    .crs-metric-val { font-family: monospace; font-weight: 800; color: var(--accent); font-size: 13px; margin-top: 2px; }
-
-    /* Calibração da IA Ad */
     .ai-setup-box { background: #f8fbfa; border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 16px; text-align: left; }
     .ai-setup-box h3 { font-size: 12px; color: var(--ink); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; }
     .ai-status-badge { font-size: 9px; padding: 3px 8px; border-radius: 6px; font-weight: 800; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
     .ai-status-badge.ativo { background: #d4edda; color: #155724; border-color: #c3e6cb; }
 
-    /* Ações e Botões */
     .actions { display: grid; gap: 10px; margin-top: 14px; }
     .btn { display: block; width: 100%; padding: 12px; border-radius: 12px; text-decoration: none; text-align: center; font-size: 13px; font-weight: 800; border: 0; cursor: pointer; transition: .2s ease; }
     .btn:hover { transform: translateY(-1px); }
     .primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; box-shadow: 0 4px 15px rgba(42, 157, 143, 0.15); }
-    .secondary { background: #f0f7f7; border: 1px solid var(--line); color: var(--ink); }
     .logout { background: transparent; border: 1px solid var(--line); color: var(--muted); }
     
     .input-group { margin-bottom: 10px; text-align: left; }
@@ -78,7 +66,6 @@
 <body>
   <main class="card">
     
-    <!-- Identidade & Avatar -->
     <div class="top-logo-container">
       <img src="elayon_logo.png" alt="Elayon Logo" class="logo-img-small" onerror="this.style.display='none'" />
     </div>
@@ -100,7 +87,7 @@
       <button class="btn-icon" id="btnCancelName" title="Cancelar">❌</button>
     </div>
 
-    <p class="sub">Calibração do Ressoar • Protocolo CRS & Identidade do Operador</p>
+    <p class="sub">Identidade do Operador & Parâmetros de Acesso</p>
 
     <!-- Metadados & Tokens -->
     <section class="box">
@@ -111,36 +98,6 @@
         <div class="tokens-group" style="display: flex; align-items: center; gap: 8px;">
           <span class="value" id="userTokens" style="color: var(--accent);">100</span>
           <button style="background:var(--accent); color:#fff; border:none; width:22px; height:22px; border-radius:50%; font-weight:800; cursor:pointer;" id="btnAddToken">+</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- [NOVO] RELATÓRIO CRS COM MÉTRICAS REAIS DE CALIBRAÇÃO -->
-    <section class="crs-report-box">
-      <h3>
-        🌐 Relatório de Calibração CRS (Ressoar)
-        <span style="font-size: 10px; color: var(--accent);" id="crsStatusCalib">Pronto para Sincronia</span>
-      </h3>
-      <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px; line-height: 1.4;">
-        Métricas de baseline calculadas para unificar a cadência respiratória e o silêncio reflexivo antes da imersão no Cockpit.
-      </p>
-      
-      <div class="crs-metrics-grid">
-        <div class="crs-metric-item">
-          <div style="color: var(--muted); font-size: 9px;">SILÊNCIO BASE (%)</div>
-          <div class="crs-metric-val" id="crsSilencioBase">18.5%</div>
-        </div>
-        <div class="crs-metric-item">
-          <div style="color: var(--muted); font-size: 9px;">ENERGIA MÉDIA (RMS)</div>
-          <div class="crs-metric-val" id="crsEnergiaBase">0.042 dB</div>
-        </div>
-        <div class="crs-metric-item">
-          <div style="color: var(--muted); font-size: 9px;">ESTABILIDADE FÔNICA</div>
-          <div class="crs-metric-val" id="crsEstabilidade">84.2%</div>
-        </div>
-        <div class="crs-metric-item">
-          <div style="color: var(--muted); font-size: 9px;">TAXA DE RITMO CRS</div>
-          <div class="crs-metric-val" id="crsRitmo">Sincronizado</div>
         </div>
       </div>
     </section>
@@ -262,7 +219,7 @@
         id: currentUser.id, email: currentUser.email, nome: finalName, tokens: currentTokens, ai_provider: provider, ai_key: apiKey
       });
 
-      if (!error) showMsg('✅ Perfil e parâmetros de ressoar gravados com sucesso!');
+      if (!error) showMsg('✅ Perfil gravado com sucesso!');
       else showMsg('Erro ao gravar: ' + error.message, true);
     });
 
