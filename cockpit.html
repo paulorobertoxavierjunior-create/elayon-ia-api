@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elayon Space • Cockpit do Piloto (Métricas & Transparência CRS)</title>
+    <title>Elayon Space • Cockpit do Piloto (Clínico & CRS)</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -67,7 +67,7 @@
             font-family: monospace; font-size: 11px; color: var(--ink); margin-top: 10px; min-height: 70px; white-space: pre-wrap;
         }
 
-        /* As 8 Estantes de Gráficos Retráteis com Caixas de Métricas Abaixo */
+        /* As 8 Estantes de Gráficos Retráteis com Caixas Clínicas Detalhadas */
         .graphs-wrapper { display: grid; gap: 12px; }
         details.graph-accordion {
             background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden;
@@ -83,21 +83,22 @@
         .graph-body { padding: 16px; background: #fff; border-top: 1px solid var(--line); }
         .canvas-box { width: 100%; height: 150px; border-radius: 10px; background: #050c12; display: block; border: 1px solid var(--line); margin-bottom: 12px; }
 
-        /* CAIXAS DE MÉTRICAS INDIVIDUAIS ABAIXO DO GRÁFICO (CADA COR CORRESPONDE AO VALOR) */
+        /* CAIXAS DE MÉTRICAS CLÍNICAS ABAIXO DO GRÁFICO */
         .metrics-bar-container {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px;
         }
         .metric-box-card {
-            background: #f8fbfa; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; text-align: left;
-            border-left: 3px solid var(--accent);
+            background: #f8fbfa; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; text-align: left;
+            border-left: 4px solid var(--accent);
         }
         .metric-box-card.c-blue { border-left-color: #0ea5e9; }
         .metric-box-card.c-orange { border-left-color: #f59e0b; }
         .metric-box-card.c-green { border-left-color: #10b981; }
         .metric-box-card.c-purple { border-left-color: #8b5cf6; }
         
-        .metric-title-lbl { font-size: 9px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
-        .metric-val-lbl { font-size: 13px; font-family: monospace; font-weight: 800; color: var(--ink); margin-top: 2px; }
+        .metric-title-lbl { font-size: 10px; color: var(--muted); font-weight: 800; text-transform: uppercase; display: flex; justify-content: space-between; }
+        .metric-val-lbl { font-size: 14px; font-family: monospace; font-weight: 800; color: var(--ink); margin: 3px 0; }
+        .metric-clinical-desc { font-size: 10px; color: var(--muted); line-height: 1.3; }
 
         /* Chat Simbiótico & Calibração de 3 Perguntas */
         .chat-section {
@@ -159,15 +160,15 @@
                 <span style="font-size: 10px; font-family: monospace; color: var(--muted);" id="crsApiStatus">Aguardando payload...</span>
             </div>
             <p style="font-size: 11px; color: var(--muted); line-height: 1.4;">
-                Diagnóstico interpretado pela nuvem a cada ciclo de interação para calibrar as diretrizes dinâmicas da IA Ad.
+                Diagnóstico fônico interpretado pela nuvem a cada ciclo para calibrar as diretrizes da IA Ad e rastreio de afasias.
             </p>
             <div class="crs-payload-box" id="crsReportPayloadDisplay">
 [CRS_STATUS] Aguardando acionamento do Supermicrofone para processamento fônico remoto...
             </div>
         </section>
 
-        <!-- [3] As 8 Estantes de Gráficos com Métricas Correspondentes Abaixo (Atualização a cada 2s) -->
-        <div class="section-title" style="color: var(--ink);">📊 As 8 Dimensões Fônicas & Acústicas (Transparência Total)</div>
+       <!-- [3] As 8 Estantes com Detalhamento Clínico e Neurolinguístico (Atualização a cada 2s) -->
+        <div class="section-title" style="color: var(--ink);">📊 As 8 Dimensões Fônicas & Rastreio Neurolinguístico</div>
         <div class="graphs-wrapper">
             
             <!-- Estante 1 -->
@@ -177,12 +178,14 @@
                     <canvas class="canvas-box" id="cvGraph1"></canvas>
                     <div class="metrics-bar-container">
                         <div class="metric-box-card c-blue">
-                            <div class="metric-title-lbl">Frequência F₀</div>
+                            <div class="metric-title-lbl"><span>Frequência Fundamental (F₀)</span></div>
                             <div class="metric-val-lbl" id="mVal1_a">-- Hz</div>
+                            <div class="metric-clinical-desc">Identifica o tom vocal base. Variações atípicas apontam controle motor laríngeo alterado ou disartria.</div>
                         </div>
                         <div class="metric-box-card c-blue">
-                            <div class="metric-title-lbl">Jitter (Instabilidade)</div>
+                            <div class="metric-title-lbl"><span>Jitter (Instabilidade Tonal)</span></div>
                             <div class="metric-val-lbl" id="mVal1_b">-- %</div>
+                        <div class="metric-clinical-desc">Mede a irregularidade ciclo a ciclo das pregas vocais. Valores altos sugerem fadiga ou lesão neurológica central.</div>
                         </div>
                     </div>
                 </div>
@@ -195,12 +198,14 @@
                     <canvas class="canvas-box" id="cvGraph2"></canvas>
                     <div class="metrics-bar-container">
                         <div class="metric-box-card c-orange">
-                            <div class="metric-title-lbl">SPL (Volume)</div>
+                            <div class="metric-title-lbl"><span>SPL (Pressão Sonora / Volume)</span></div>
                             <div class="metric-val-lbl" id="mVal2_a">-- dB</div>
+                            <div class="metric-clinical-desc">Mede a projeção da fala. Quedas repentinas indicam astenia ou perda de projeção em quadros parkinsonianos.</div>
                         </div>
                         <div class="metric-box-card c-orange">
-                            <div class="metric-title-lbl">Shimmer (Amplitude)</div>
+                            <div class="metric-title-lbl"><span>Shimmer (Instabilidade de Amplitude)</span></div>
                             <div class="metric-val-lbl" id="mVal2_b">-- %</div>
+                            <div class="metric-clinical-desc">Mede a variação de volume entre ciclos. Elevações correlacionam-se com fonação soprosa e perda de vedamento glótico.</div>
                         </div>
                     </div>
                 </div>
@@ -213,12 +218,14 @@
                     <canvas class="canvas-box" id="cvGraph3"></canvas>
                     <div class="metrics-bar-container">
                         <div class="metric-box-card c-green">
-                            <div class="metric-title-lbl">HNR (Harmônico/Ruído)</div>
+                            <div class="metric-title-lbl"><span>HNR (Relação Harmônico-Ruído)</span></div>
                             <div class="metric-val-lbl" id="mVal3_a">-- dB</div>
+                            <div class="metric-clinical-desc">Avalia a proporção de som limpo versus ruído turbulento. Reduções indicam fonação com escape de ar e soprosidade.</div>
                         </div>
                         <div class="metric-box-card c-green">
-                            <div class="metric-title-lbl">CPPS (Clareza Cepstral)</div>
+                            <div class="metric-title-lbl"><span>CPPS (Clareza Cepstral)</span></div>
                             <div class="metric-val-lbl" id="mVal3_b">-- dB</div>
+                            <div class="metric-clinical-desc">Mede a robustez acústica do sinal. Utilizado por fonoaudiólogos para detecção precoce de rugosidade laríngea.</div>
                         </div>
                     </div>
                 </div>
@@ -226,17 +233,19 @@
 
             <!-- Estante 4 -->
             <details class="graph-accordion">
-                <summary class="graph-summary">🟨 IV. Prosódia / Entonação / Dinâmica (TMF & Ritmo)</summary>
+                <summary class="graph-summary">🟨 IV. Prosódia / Entonação / Dinâmica (Ritmo & Pausas)</summary>
                 <div class="graph-body">
                     <canvas class="canvas-box" id="cvGraph4"></canvas>
                     <div class="metrics-bar-container">
                         <div class="metric-box-card c-orange">
-                            <div class="metric-title-lbl">Ritmo Temporal</div>
+                            <div class="metric-title-lbl"><span>Ritmo Temporal da Fala</span></div>
                             <div class="metric-val-lbl" id="mVal4_a">-- %</div>
+                            <div class="metric-clinical-desc">Essencial para rastreio de afasias de expressão (ex: Afasia de Broca), mapeando disfluências e hesitações rítmicas.</div>
                         </div>
                         <div class="metric-box-card c-orange">
-                            <div class="metric-title-lbl">Pausas Refletidas</div>
+                            <div class="metric-title-lbl"><span>Pausas Silenciosas (CRS)</span></div>
                             <div class="metric-val-lbl" id="mVal4_b">-- seg</div>
+                            <div class="metric-clinical-desc">Mede o tempo de silêncio reflexivo. Anomalias indicam sobrecarga cognitiva ou bloqueios no planejamento motor da fala.</div>
                         </div>
                     </div>
                 </div>
@@ -244,17 +253,19 @@
 
             <!-- Estante 5 -->
             <details class="graph-accordion">
-                <summary class="graph-summary">🟪 V. Perceptivo-Auditivo (Escalas GRBAS)</summary>
+                <summary class="graph-summary">🟪 V. Perceptivo-Auditivo (Escalas GRBAS / Tensão)</summary>
                 <div class="graph-body">
                     <canvas class="canvas-box" id="cvGraph5"></canvas>
                     <div class="metrics-bar-container">
                         <div class="metric-box-card c-purple">
-                            <div class="metric-title-lbl">Grau Geral (G)</div>
+                            <div class="metric-title-lbl"><span>Grau Geral de Alteração (G)</span></div>
                             <div class="metric-val-lbl" id="mVal5_a">--</div>
+                            <div class="metric-clinical-desc">Escala clínica sumarizada (0 a 3) do grau de desvio vocal percebido na emissão contínua do operador.</div>
                         </div>
                         <div class="metric-box-card c-purple">
-                            <div class="metric-title-lbl">Tensão Laríngea (S)</div>
+                            <div class="metric-title-lbl"><span>Tensão Laríngea (S)</span></div>
                             <div class="metric-val-lbl" id="mVal5_b">--</div>
+                            <div class="metric-clinical-desc">Mapeia o esforço excessivo da musculatura extralaríngea, comum em quadros de fadiga cognitiva ou disfonia tensional.</div>
                         </div>
                     </div>
                 </div>
@@ -267,12 +278,14 @@
                     <canvas class="canvas-box" id="cvGraph6"></canvas>
                     <div class="metrics-bar-container">
                         <div class="metric-box-card c-orange">
-                            <div class="metric-title-lbl">Fluxo de Ar</div>
+                            <div class="metric-title-lbl"><span>Fluxo de Ar Transglótico</span></div>
                             <div class="metric-val-lbl" id="mVal6_a">-- L/s</div>
+                            <div class="metric-clinical-desc">Mede o gasto de ar durante a fonação. Valores elevados indicam fenda glótica ou ineficiência respiratória.</div>
                         </div>
                         <div class="metric-box-card c-orange">
-                            <div class="metric-title-lbl">Pressão Glótica</div>
+                            <div class="metric-title-lbl"><span>Pressão Subglótica Estimada</span></div>
                             <div class="metric-val-lbl" id="mVal6_b">-- cmH₂O</div>
+                            <div class="metric-clinical-desc">Avalia a força pneumofônica gerada pelos pulmões para vencer a resistência das pregas vocais.</div>
                         </div>
                     </div>
                 </div>
@@ -280,17 +293,19 @@
 
             <!-- Estante 7 -->
             <details class="graph-accordion">
-                <summary class="graph-summary">🟩 VII. Eletroglotografia (Contato Glótico)</summary>
+                <summary class="graph-summary">🟩 VII. Eletroglotografia (Contato das Pregas Vocais)</summary>
                 <div class="graph-body">
                     <canvas class="canvas-box" id="cvGraph7"></canvas>
                     <div class="metrics-bar-container">
                         <div class="metric-box-card c-green">
-                            <div class="metric-title-lbl">Quociente de Contato</div>
+                            <div class="metric-title-lbl"><span>Quociente de Contato Glótico</span></div>
                             <div class="metric-val-lbl" id="mVal7_a">-- %</div>
+                            <div class="metric-clinical-desc">Mapeia o tempo em que as pregas vocais permanecem unidas durante o ciclo vibratório na fonte sonora.</div>
                         </div>
                         <div class="metric-box-card c-green">
-                            <div class="metric-title-lbl">Velocidade Fechamento</div>
+                            <div class="metric-title-lbl"><span>Velocidade de Fechamento</span></div>
                             <div class="metric-val-lbl" id="mVal7_b">-- ms</div>
+                            <div class="metric-clinical-desc">Indica a tonicidade e agilidade da adução muscular na laringe, auxiliando no diagnóstico de paralisias.</div>
                         </div>
                     </div>
                 </div>
@@ -303,12 +318,14 @@
                     <canvas class="canvas-box" id="cvGraph8"></canvas>
                     <div class="metrics-bar-container">
                         <div class="metric-box-card c-blue">
-                            <div class="metric-title-lbl">Ruído Ambiente</div>
+                            <div class="metric-title-lbl"><span>Ruído de Fundo (dBA)</span></div>
                             <div class="metric-val-lbl" id="mVal8_a">-- dBA</div>
+                            <div class="metric-clinical-desc">Garante a integridade acústica do ambiente para que artefatos externos não interfiram no diagnóstico neurolinguístico.</div>
                         </div>
                         <div class="metric-box-card c-blue">
-                            <div class="metric-title-lbl">Estabilidade do Meio</div>
+                            <div class="metric-title-lbl"><span>Estabilidade do Meio</span></div>
                             <div class="metric-val-lbl" id="mVal8_b">-- %</div>
+                            <div class="metric-clinical-desc">Coeficiente de confiabilidade da amostra coletada pelo supermicrofone para envio seguro ao Render.</div>
                         </div>
                     </div>
                 </div>
@@ -367,7 +384,7 @@
             <span id="logToggleIcon">▲ Expandir Logs</span>
         </div>
         <div class="logs-body" id="logsBody" style="max-height: 120px; overflow-y: auto; padding: 12px; font-family: monospace; font-size: 10px; display: flex; flex-direction: column; gap: 4px; background: #fff;">
-            <div class="log-item">[INIT] Caixas de métricas dedicadas a cada 2 segundos atreladas aos visores gráficos.</div>
+            <div class="log-item">[INIT] Caixas de métricas clínicas e neurolinguísticas integradas com sucesso.</div>
         </div>
     </div>
 
