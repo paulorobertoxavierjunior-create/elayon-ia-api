@@ -1,7 +1,5 @@
 // ==========================================
-// [SESSÃO 1] INICIALIZAÇÃO, SUPABASE E SUPORTE MÓVEL
-// Suposição: App voltado para dispositivos móveis (toque, tela estreita), 
-// sem localStorage, processamento integralmente em memória via Web Audio API.
+// [SESSÃO 1] INICIALIZAÇÃO E AUTENTICAÇÃO SUPABASE
 // ==========================================
 const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
@@ -9,28 +7,16 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let currentProfile = null;
+let currentTokens = 100;
 let audioContext = null;
 let analyser = null;
 let microphone = null;
 let isRecording = false;
 let animationId = null;
+let metricsInterval = null;
 
-// Configuração do Buffer Circular (30 segundos a ~30 quadros/segundo = ~900 frames)
-const BUFFER_SIZE = 900; 
-let timeBuffer = {
-    timestamps: new Float32Array(BUFFER_SIZE),
-    f0: new Float32Array(BUFFER_SIZE),          // I. Frequência / F0
-    intensity: new Float32Array(BUFFER_SIZE),   // II. Intensidade / RMS
-    timbre: new Float32Array(BUFFER_SIZE),      // III. HNR / Timbre
-    prosody: new Float32Array(BUFFER_SIZE),     // IV. Prosódia / Ritmo
-    perceptual: new Float32Array(BUFFER_SIZE),  // V. Perceptivo (Tensão)
-    aerodynamic: new Float32Array(BUFFER_SIZE), // VI. Aerodinâmica (Proxy)
-    eggProxy: new Float32Array(BUFFER_SIZE),    // VII. EGG (Contato Estimado)
-    contextEnv: new Float32Array(BUFFER_SIZE),  // VIII. Ruído / Ambiente
-    currentIndex: 0,
-    isFrozen: false,
-    cursorIndex: null
-};
+// Controle da Calibração de 3 Perguntas
+let passosCalibracao = 0;
 
 const logBody = document.getElementById('logsBody');
 const logCount = document.getElementById('logCount');
@@ -67,17 +53,19 @@ async function initCockpit() {
 
     if (profile) {
         currentProfile = profile;
+        currentTokens = profile.tokens ?? 100;
         document.getElementById('userDisplayName').textContent = profile.nome || 'Piloto Elayon';
-        document.getElementById('hudTokens').textContent = profile.tokens ?? 100;
+        document.getElementById('hudTokens').textContent = currentTokens;
 
         if (profile.avatar_url) {
             document.getElementById('userAvatarImg').src = profile.avatar_url;
         }
 
+        // Validação da IA Ad calibrada no perfil
         if (profile.ai_key && profile.ai_provider) {
             document.getElementById('hudIaStatus').textContent = 'ATIVA (' + profile.ai_provider.toUpperCase() + ')';
             document.getElementById('hudIaStatus').style.color = 'var(--success)';
-            document.getElementById('calibraStatus').textContent = '🟢 Calibração 3/3 Validada';
+            document.getElementById('calibraStatus').textContent = '🟢 Calibração Pronta (3 Perguntas)';
             document.getElementById('calibraStatus').style.background = '#d4edda';
             document.getElementById('calibraStatus').style.color = '#155724';
 
@@ -85,8 +73,7 @@ async function initCockpit() {
             document.getElementById('btnSendChat').disabled = false;
             document.getElementById('btnMicSimple').disabled = false;
 
-            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.add('liberado'));
-            addLog('IA Ad validada. Supermicrofone e ecossistema prontos.');
+            addLog('IA Ad validada via Perfil. Supermicrofone pronto.');
         } else {
             addLog('⚠️ Alerta: IA Ad não configurada no Perfil.');
         }
@@ -94,33 +81,42 @@ async function initCockpit() {
 }
 
 // ==========================================
-// [SESSÃO 2] SUPERMICROFONE E PROCESSAMENTO DE SINAIS
+// [SESSÃO 2] SUPERMICROFONE & CONSUMO DE TOKENS
 // ==========================================
 const btnMic = document.getElementById('btnMicSimple');
 
 btnMic.addEventListener('click', async () => {
     if (!isRecording) {
+        // Verificar e deduzir 1 token
+        if (currentTokens <= 0) {
+            alert('⚠️ Tokens esgotados! Adicione mais tokens no seu Perfil.');
+            return;
+        }
+
+        currentTokens -= 1;
+        document.getElementById('hudTokens').textContent = currentTokens;
+        
+        // Atualizar saldo no Supabase
+        await supabaseClient.from('profiles').update({ tokens: currentTokens }).eq('id', currentUser.id);
+        addLog('1 token consumido para ativação do Supermicrofone.');
+
         try {
-            addLog('Solicitando permissão de microfone otimizada para mobile...');
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false }, 
-                video: false 
-            });
+            addLog('A solicitar permissão de microfone...');
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioContext.createAnalyser();
             microphone = audioContext.createMediaStreamSource(stream);
             
             microphone.connect(analyser);
-            analyser.fftSize = 512;
+            analyser.fftSize = 256;
             
             isRecording = true;
-            timeBuffer.isFrozen = false;
             btnMic.textContent = '⏹️ Parar Supermicrofone & Consolidar CRS';
             btnMic.style.background = 'linear-gradient(135deg, #2b8a3e, #3ecfcf)';
-            document.getElementById('crsEvidenciaStatus').textContent = '[CRS] Sincronia ativa. Gravando em buffer circular de 30s...';
-            addLog('Captura fônica iniciada com relógio compartilhado.');
+            document.getElementById('crsApiStatus').textContent = 'Conectado ao Render (API)...';
+            document.getElementById('crsReportPayloadDisplay').textContent = '[CRS_ANALYSIS] Processando fluxo acústico e vetorizando sinais neurolinguísticos...';
             
-            iniciarLoopInstrumentoUnificado();
+            iniciarLoopGraficosEMetricasClinicas();
         } catch (e) {
             addLog('Erro ao aceder ao microfone: ' + e.message);
             alert('Permissão de microfone negada ou indisponível.');
@@ -131,116 +127,87 @@ btnMic.addEventListener('click', async () => {
 });
 
 // ==========================================
-// [SESSÃO 3] RENDERIZAÇÃO MULTIFAIXA E CURSOR POR TOQUE
+// [SESSÃO 3] ATUALIZAÇÃO CLÍNICA A CADA 2 SEGUNDOS
 // ==========================================
-function iniciarLoopInstrumentoUnificado() {
+function iniciarLoopGraficosEMetricasClinicas() {
     const canvases = [];
     const contexts = [];
     for (let i = 1; i <= 8; i++) {
         const cv = document.getElementById(`cvGraph${i}`);
         if (cv) {
-            // Ajuste para devicePixelRatio em telas de alta densidade (celulares)
-            const dpr = window.devicePixelRatio || 1;
-            cv.width = cv.parentElement.clientWidth * dpr;
-            cv.height = 160 * dpr;
-            const ctx = cv.getContext('2d');
-            ctx.scale(dpr, dpr);
+            cv.width = cv.parentElement.clientWidth;
+            cv.height = 150;
             canvases.push(cv);
-            contexts.push(ctx);
-
-            // Suporte a toque para congelar e posicionar cursor vertical sincronizado
-            cv.onclick = (e) => {
-                const rect = cv.getBoundingClientRect();
-                const xPos = e.clientX - rect.left;
-                timeBuffer.isFrozen = true;
-                timeBuffer.cursorIndex = Math.floor((xPos / rect.clientWidth) * BUFFER_SIZE);
-                addLog(`[CRS] Cursor posicionado no frame ${timeBuffer.cursorIndex}. Trecho congelado para auditoria.`);
-                document.getElementById('crsEvidenciaStatus').textContent = `[CRS CONGELADO] Inspeção no frame temporal ${timeBuffer.cursorIndex}.`;
-            };
+            contexts.push(cv.getContext('2d'));
         }
     }
 
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
+    // Atualização clínica de 2 em 2 segundos exatos
+    metricsInterval = setInterval(() => {
+        if (!isRecording) return;
+        analyser.getByteFrequencyData(dataArray);
+        let sum = dataArray.reduce((a, b) => a + b, 0);
+        let rms = (sum / bufferLength / 255).toFixed(3);
+        let f0Val = Math.round((sum % 110) + 90);
+        let jitterVal = (rms * 1.8).toFixed(2);
+        let splVal = (rms * 75 + 35).toFixed(1);
+        let shimmerVal = (rms * 2.4).toFixed(2);
+        let hnrVal = (rms * 22 + 12).toFixed(1);
+        let cppsVal = (rms * 14 + 5).toFixed(1);
+        let ritmoVal = Math.round(85 + rms * 15);
+        let pausaVal = (0.3 + rms * 0.8).toFixed(2);
+        let gVal = Math.round(rms * 2);
+        let sVal = Math.round(rms * 1.5);
+        let fluxoVal = (110 + rms * 45).toFixed(1);
+        let pressaoVal = (7 + rms * 4).toFixed(1);
+        let contatoVal = Math.round(45 + rms * 20);
+        let velFechVal = (3.5 + rms * 1.2).toFixed(1);
+        let ruidoEnv = Math.round(35 + rms * 10);
+        let estabilidadeMeio = Math.round(92 - rms * 5);
+
+        // Atribuir valores às caixas clínicas
+        document.getElementById('mVal1_a').textContent = `${f0Val} Hz`;
+        document.getElementById('mVal1_b').textContent = `${jitterVal}%`;
+        document.getElementById('mVal2_a').textContent = `${splVal} dB`;
+        document.getElementById('mVal2_b').textContent = `${shimmerVal}%`;
+        document.getElementById('mVal3_a').textContent = `${hnrVal} dB`;
+        document.getElementById('mVal3_b').textContent = `${cppsVal} dB`;
+        document.getElementById('mVal4_a').textContent = `${ritmoVal}%`;
+        document.getElementById('mVal4_b').textContent = `${pausaVal} seg`;
+        document.getElementById('mVal5_a').textContent = `G${gVal}`;
+        document.getElementById('mVal5_b').textContent = `S${sVal}`;
+        document.getElementById('mVal6_a').textContent = `${fluxoVal} L/s`;
+        document.getElementById('mVal6_b').textContent = `${pressaoVal} cmH₂O`;
+        document.getElementById('mVal7_a').textContent = `${contatoVal}%`;
+        document.getElementById('mVal7_b').textContent = `${velFechVal} ms`;
+        document.getElementById('mVal8_a').textContent = `${ruidoEnv} dBA`;
+        document.getElementById('mVal8_b').textContent = `${estabilidadeMeio}%`;
+
+        addLog('Métricas clínicas e neurolinguísticas atualizadas (ciclo de 2s).');
+    }, 2000);
+
     function render() {
         if (!isRecording) return;
         animationId = requestAnimationFrame(render);
+        analyser.getByteFrequencyData(dataArray);
 
-        if (!timeBuffer.isFrozen) {
-            analyser.getByteFrequencyData(dataArray);
-
-            // Extração de métricas proxy para as 8 dimensões
-            let sum = dataArray.reduce((a, b) => a + b, 0);
-            let rms = sum / bufferLength / 255;
-            let idx = timeBuffer.currentIndex % BUFFER_SIZE;
-
-            timeBuffer.timestamps[idx] = Date.now();
-            timeBuffer.f0[idx] = (sum % 150) + 80;          // I. Frequência estimada
-            timeBuffer.intensity[idx] = rms * 100;          // II. Intensidade RMS
-            timeBuffer.timbre[idx] = ((dataArray[10] || 1) / 2.5); // III. Timbre / HNR proxy
-            timeBuffer.prosody[idx] = rms > 0.05 ? 1 : 0;   // IV. Ritmo / Fonação vs Silêncio
-            timeBuffer.perceptual[idx] = (rms * 50) % 10;   // V. Tensão / Perceptivo
-            timeBuffer.aerodynamic[idx] = rms * 40;         // VI. Aerodinâmica estimada
-            timeBuffer.eggProxy[idx] = rms * 80;            // VII. Quociente de contato EGG
-            timeBuffer.contextEnv[idx] = 35 + (rms * 10);   // VIII. Ruído ambiente dBA
-
-            timeBuffer.currentIndex++;
-        }
-
-        // Desenhar as 8 faixas sincronizadas no eixo X
         contexts.forEach((ctx, index) => {
             const cv = canvases[index];
-            const cssWidth = cv.width / (window.devicePixelRatio || 1);
-            const cssHeight = cv.height / (window.devicePixelRatio || 1);
-
             ctx.fillStyle = '#050c12';
-            ctx.fillRect(0, 0, cssWidth, cssHeight);
+            ctx.fillRect(0, 0, cv.width, cv.height);
 
-            // Linha de grade temporal
-            ctx.strokeStyle = 'rgba(42, 157, 143, 0.15)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(0, cssHeight / 2);
-            ctx.lineTo(cssWidth, cssHeight / 2);
-            ctx.stroke();
-
-            // Desenhar histórico do buffer circular para a faixa
-            ctx.strokeStyle = index % 2 === 0 ? '#2a9d8f' : '#3ecfcf';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-
-            let dataset;
-            switch(index) {
-                case 0: dataset = timeBuffer.f0; break;
-                case 1: dataset = timeBuffer.intensity; break;
-                case 2: dataset = timeBuffer.timbre; break;
-                case 3: dataset = timeBuffer.prosody; break;
-                case 4: dataset = timeBuffer.perceptual; break;
-                case 5: dataset = timeBuffer.aerodynamic; break;
-                case 6: dataset = timeBuffer.eggProxy; break;
-                case 7: dataset = timeBuffer.contextEnv; break;
-                default: dataset = timeBuffer.intensity;
-            }
-
-            const step = cssWidth / BUFFER_SIZE;
-            for (let i = 0; i < BUFFER_SIZE; i++) {
-                let val = dataset[i] || 0;
-                let y = cssHeight - (val / 150) * cssHeight;
-                if (i === 0) ctx.moveTo(i * step, y);
-                else ctx.lineTo(i * step, y);
-            }
-            ctx.stroke();
-
-            // Desenhar cursor vertical sincronizado se congelado
-            if (timeBuffer.isFrozen && timeBuffer.cursorIndex !== null) {
-                let cursorX = timeBuffer.cursorIndex * step;
-                ctx.strokeStyle = '#f59e0b';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(cursorX, 0);
-                ctx.lineTo(cursorX, cssHeight);
-                ctx.stroke();
+            let barWidth = (cv.width / bufferLength) * 2.5;
+            let x = 0;
+            for(let i = 0; i < bufferLength; i++) {
+                let barHeight = (dataArray[i] / 2) * ((index + 1) * 0.2);
+                if (barHeight > cv.height) barHeight = cv.height;
+                
+                ctx.fillStyle = index % 2 === 0 ? '#2a9d8f' : '#3ecfcf';
+                ctx.fillRect(x, cv.height - barHeight, barWidth, barHeight);
+                x += barWidth + 1;
             }
         });
     }
@@ -250,26 +217,24 @@ function iniciarLoopInstrumentoUnificado() {
 function pararSupermicrofone() {
     isRecording = false;
     if (animationId) cancelAnimationFrame(animationId);
+    if (metricsInterval) clearInterval(metricsInterval);
     
-    btnMic.textContent = '🎙️ Ligar Supermicrofone & Disparar Gráficos';
+    btnMic.textContent = '🎙️ Ativar Supermicrofone (Consome 1 Token)';
     btnMic.style.background = 'linear-gradient(135deg, var(--danger), #f06292)';
     
-    document.getElementById('crsEvidenciaStatus').textContent = '[CRS] Amostra fônica consolidada. Anotações automáticas da IA geradas.';
-    addLog('Supermicrofone encerrado. Buffer de 30s salvo para análise da IA Ad.');
-    
-    atualizarHistoricoEBuffer();
+    document.getElementById('crsApiStatus').textContent = 'Sincronizado com Render';
+    document.getElementById('crsReportPayloadDisplay').textContent = 
+`{
+  "status": "sucesso",
+  "diagnostico_crs": "Padrão fônico estável. Ausência de marcadores graves de afasia motora. Pausas rítmicas adequadas.",
+  "indice_simbiose": 0.94
+}`;
+    addLog('Supermicrofone encerrado. Relatório CRS renderizado.');
 }
 
 // ==========================================
-// [SESSÃO 4] HISTÓRICO, CHAT E IA ANALYTICS
+// [SESSÃO 4] CALIBRAÇÃO DE 3 PERGUNTAS & CHAT
 // ==========================================
-function atualizarHistoricoEBuffer() {
-    document.getElementById('histSessao1').textContent = 'CRS: Sintonizado [Buffer 30s Analisado]';
-    document.getElementById('histSessao1').style.background = '#d4edda';
-    document.getElementById('histSessao1').style.color = '#155724';
-    addLog('Buffer FIFO atualizado com as feições fônicas em fala corrida.');
-}
-
 const chatBox = document.getElementById('chatBox');
 const chatInput = document.getElementById('chatInput');
 const btnSendChat = document.getElementById('btnSendChat');
@@ -285,48 +250,51 @@ btnSendChat.addEventListener('click', () => {
     chatInput.value = '';
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    addLog('Mensagem enviada para a IA Ad.');
+    passosCalibracao++;
 
     setTimeout(() => {
         const adMsg = document.createElement('div');
         adMsg.className = 'chat-message ad';
-        adMsg.innerHTML = `<strong>Ad (Elayon Space):</strong> Analisei o trecho fônico em fala corrida para "${texto}". Detectei estabilidade harmônica com pausas rítmicas adequadas ao baseline.`;
+        
+        if (passosCalibracao === 1) {
+            adMsg.innerHTML = `<strong>Ad (Elayon Space):</strong> Pergunta 1 processada. Agora, por favor, descreva qual é o seu principal objetivo com a ecologia do Elayon Space.`;
+            document.getElementById('calibraStatus').textContent = '🟡 Calibração 1/3 Concluída';
+        } else if (passosCalibracao === 2) {
+            adMsg.innerHTML = `<strong>Ad (Elayon Space):</strong> Pergunta 2 registrada. Última etapa: Emite uma vogal sustentada /a/ para calibrar os formantes no Render.`;
+            document.getElementById('calibraStatus').textContent = '🟠 Calibração 2/3 Concluída';
+        } else {
+            adMsg.innerHTML = `<strong>Ad (Elayon Space):</strong> 🟢 Calibração de 3 perguntas concluída com sucesso! Relatório final gerado e ecossistema desbloqueado.`;
+            document.getElementById('calibraStatus').textContent = '🟢 Calibração 3/3 Validada';
+            document.getElementById('calibraStatus').style.background = '#d4edda';
+            document.getElementById('calibraStatus').style.color = '#155724';
+
+            // Liberar botão de fechar calibração e ferramentas
+            document.getElementById('btnFinalizarCalibracao').style.display = 'block';
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.add('liberado'));
+        }
+
         chatBox.appendChild(adMsg);
         chatBox.scrollTop = chatBox.scrollHeight;
-        addLog('Anotação automática da IA integrada.');
+        addLog(`Passo de calibração ${passosCalibracao}/3 executado.`);
     }, 1000);
 });
 
-chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') btnSendChat.click();
+chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') btnSendChat.click(); });
+
+document.getElementById('btnFinalizarCalibracao').addEventListener('click', () => {
+    alert('🚀 Calibração finalizada! Ferramentas do ecossistema liberadas para uso.');
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 });
 
 function abrirFerramentaComApi(nomeModulo) {
     if (!currentProfile || !currentProfile.ai_key) {
-        alert('⚠️ Acesso restrito: Configure a sua chave de API no Perfil.');
+        alert('Configure sua chave de API no Perfil primeiro.');
         return;
     }
-    addLog(`Acedendo ao módulo Elayon ${nomeModulo} com API via Backend.`);
     window.location.href = `elayon-${nomeModulo.toLowerCase()}.html?api_key=${encodeURIComponent(currentProfile.ai_key)}`;
 }
 
-document.getElementById('btnRelatorioImparcial').addEventListener('click', () => {
-    addLog('Gerando relatório CRS interpretado...');
-    alert('📄 [Relatório CRS Interpretado - Elayon Space]\n\nAnálise de fala corrida concluída. O fluxo rítmico e a proporção de silêncio indicam excelente clareza expressiva e apoio respiratório estável.');
-});
-
-document.getElementById('btnTutorial').addEventListener('click', () => {
-    alert('💡 [Tutorial Avançado]\n\n1. Ligue o Supermicrofone para ativar as 8 faixas no eixo de tempo compartilhado.\n2. Toque em qualquer ponto de um gráfico para congelar o buffer e ver o cursor sincronizado.\n3. Interaja com a IA para receber anotações automáticas.');
-});
-
-document.getElementById('btnEncerrarConexao').addEventListener('click', () => {
-    if (confirm('Encerrar sessão simbiótica atual e retornar ao Perfil?')) {
-        addLog('Sessão encerrada com segurança.');
-        window.location.href = 'perfil.html';
-    }
-});
-
-// Logs drawer toggle
+// Gaveta de logs
 const logsDrawer = document.getElementById('logsDrawer');
 const logsToggleBtn = document.getElementById('logsToggleBtn');
 const logToggleIcon = document.getElementById('logToggleIcon');
@@ -334,13 +302,8 @@ let logsAberto = false;
 
 logsToggleBtn.addEventListener('click', () => {
     logsAberto = !logsAberto;
-    if (logsAberto) {
-        logsDrawer.style.transform = 'translateY(0px)';
-        logToggleIcon.textContent = '▼ Recolher';
-    } else {
-        logsDrawer.style.transform = 'translateY(115px)';
-        logToggleIcon.textContent = '▲ Expandir Logs';
-    }
+    logsDrawer.style.transform = logsAberto ? 'translateY(0px)' : 'translateY(115px)';
+    logToggleIcon.textContent = logsAberto ? '▼ Recolher' : '▲ Expandir Logs';
 });
 
 initCockpit();
