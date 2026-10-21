@@ -15,15 +15,12 @@ let isRecording = false;
 let animationId = null;
 let metricsInterval = null;
 let recordTimeout = null;
-let passosCalibracao = 0;
+
+// Controle das 3 Etapas de Calibração por Voz
+let etapasCalibracaoVoz = 1; 
 
 // Controle do Buffer FIFO das 3 Sessões
 let totalSessoesConcluidas = 0;
-let sessoesHistorico = [
-    { id: 'Sessão Atual', status: 'Pendente', dados: null },
-    { id: 'Sessão Anterior', status: 'Vazia', dados: null },
-    { id: 'Baseline Base', status: 'Atrelada ao Perfil', dados: null }
-];
 
 const logBody = document.getElementById('logsBody');
 const logCount = document.getElementById('logCount');
@@ -71,15 +68,10 @@ async function initCockpit() {
         if (profile.ai_key && profile.ai_provider) {
             document.getElementById('hudIaStatus').textContent = 'ATIVA (' + profile.ai_provider.toUpperCase() + ')';
             document.getElementById('hudIaStatus').style.color = 'var(--success)';
-            document.getElementById('calibraStatus').textContent = '🟢 Sistema Simbiótico Ativo';
-            document.getElementById('calibraStatus').style.background = '#d4edda';
-            document.getElementById('calibraStatus').style.color = '#155724';
+            document.getElementById('calibraStatus').textContent = '🎙️ Calibração de Voz (Etapa 1/3)';
 
-            document.getElementById('chatInput').disabled = false;
-            document.getElementById('btnSendChat').disabled = false;
             document.getElementById('btnMicSimple').disabled = false;
-
-            addLog('IA Ad validada. Supermicrofone clínico liberado.');
+            addLog('IA Ad validada. Supermicrofone de voz calibrado.');
         } else {
             addLog('⚠️ Alerta: IA Ad não configurada no Perfil.');
         }
@@ -87,9 +79,27 @@ async function initCockpit() {
 }
 
 // ==========================================
-// [SESSÃO 2] SUPERMICROFONE (TRAVA DE 30s & TOKEN)
+// [SESSÃO 2] SUPERMICROFONE EXCLUSIVO DE VOZ (3 ETAPAS DE CALIBRAÇÃO)
 // ==========================================
 const btnMic = document.getElementById('btnMicSimple');
+let recognitionInstance = null;
+
+function setupSpeechRecognition(onTranscriptResult) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert('Seu navegador não suporta reconhecimento de voz direto.');
+        return null;
+    }
+    const rec = new SpeechRecognition();
+    rec.lang = 'pt-BR';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = (event) => {
+        const textoFalado = event.results[0][0].transcript;
+        onTranscriptResult(textoFalado);
+    };
+    return rec;
+}
 
 btnMic.addEventListener('click', async () => {
     if (!isRecording) {
@@ -101,10 +111,9 @@ btnMic.addEventListener('click', async () => {
         currentTokens -= 1;
         document.getElementById('hudTokens').textContent = currentTokens;
         await supabaseClient.from('profiles').update({ tokens: currentTokens }).eq('id', currentUser.id);
-        addLog('1 token consumido para abertura do Supermicrofone.');
+        addLog('1 token consumido para calibração por voz.');
 
         try {
-            addLog('A solicitar permissão de microfone (Sessão de até 30s)...');
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioContext.createAnalyser();
@@ -114,16 +123,25 @@ btnMic.addEventListener('click', async () => {
             analyser.fftSize = 256;
             
             isRecording = true;
-            btnMic.textContent = '⏹️ Gravando... (Parar em 30s max)';
+            btnMic.textContent = `⏹️ Gravando Etapa ${etapasCalibracaoVoz}/3... (Pressione para Parar)`;
             btnMic.style.background = 'linear-gradient(135deg, #e63946, #ff7b00)';
             document.getElementById('crsApiStatus').textContent = 'Enviando áudio bruto ao Render...';
-            document.getElementById('crsReportPayloadDisplay').textContent = '[CRS_PROCESSING] Analisando espectroide de silêncios, ritmos e formantes...';
+            document.getElementById('crsReportPayloadDisplay').textContent = `[CRS_PROCESSING] Etapa ${etapasCalibracaoVoz}/3: Analisando espectroide de silêncios e ritmos...`;
             
             iniciarLoopGraficosBrancos();
 
-            // Trava exata de 30 segundos
+            // Ativa transcrição por voz nativa
+            recognitionInstance = setupSpeechRecognition((textoTranscrito) => {
+                pararSupermicrofoneComTexto(textoTranscrito);
+            });
+            if (recognitionInstance) recognitionInstance.start();
+
+            // Trava máxima de 30 segundos
             recordTimeout = setTimeout(() => {
-                if (isRecording) pararSupermicrofone();
+                if (isRecording) {
+                    if (recognitionInstance) recognitionInstance.stop();
+                    pararSupermicrofoneComTexto("Áudio capturado no limite de 30 segundos.");
+                }
             }, 30000);
 
         } catch (e) {
@@ -131,7 +149,8 @@ btnMic.addEventListener('click', async () => {
             alert('Permissão de microfone negada ou indisponível.');
         }
     } else {
-        pararSupermicrofone();
+        if (recognitionInstance) recognitionInstance.stop();
+        pararSupermicrofoneComTexto("Voz encerrada pelo operador.");
     }
 });
 
@@ -154,7 +173,6 @@ function iniciarLoopGraficosBrancos() {
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
-    // Atualização clínica de 2 em 2 segundos
     metricsInterval = setInterval(() => {
         if (!isRecording) return;
         analyser.getByteFrequencyData(dataArray);
@@ -177,7 +195,6 @@ function iniciarLoopGraficosBrancos() {
         let ruidoEnv = Math.round(32 + rms * 12);
         let estabilidadeMeio = Math.round(94 - rms * 4);
 
-        // Atribuição de valores compactos nas estantes em 2 colunas
         document.getElementById('mVal1').textContent = `${f0Val} Hz | ${jitterVal}%`;
         document.getElementById('mVal2').textContent = `${splVal} dB | ${shimmerVal}%`;
         document.getElementById('mVal3').textContent = `${hnrVal} dB | ${cppsVal} dB`;
@@ -186,8 +203,6 @@ function iniciarLoopGraficosBrancos() {
         document.getElementById('mVal6').textContent = `${fluxoVal} L/s | ${pressaoVal} cmH₂O`;
         document.getElementById('mVal7').textContent = `${contatoVal}% | ${velFechVal} ms`;
         document.getElementById('mVal8').textContent = `${ruidoEnv} dBA | ${estabilidadeMeio}%`;
-
-        addLog('Métricas clínicas atualizadas (ciclo dinâmico de 2s).');
     }, 2000);
 
     let phase = 0;
@@ -199,7 +214,6 @@ function iniciarLoopGraficosBrancos() {
         phase += 0.04;
         contexts.forEach((ctx, index) => {
             const cv = canvases[index];
-            // FUNDO BRANCO PURO (Estilo Eletrocardiograma / Espectroide)
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, cv.width, cv.height);
 
@@ -219,41 +233,72 @@ function iniciarLoopGraficosBrancos() {
     render();
 }
 
-function pararSupermicrofone() {
+function pararSupermicrofoneComTexto(textoTranscrito) {
     isRecording = false;
     if (animationId) cancelAnimationFrame(animationId);
     if (metricsInterval) clearInterval(metricsInterval);
     if (recordTimeout) clearTimeout(recordTimeout);
-    if (audioCtx) audioCtx.close();
+    if (audioContext && audioContext.state !== 'closed') audioContext.close();
     
-    btnMic.textContent = '🎙️ Ligar Supermicrofone (Máx. 30s • Consome 1 Token)';
+    btnMic.textContent = '🎙️ Pressione para Falar (Consome 1 Token)';
     btnMic.style.background = 'linear-gradient(135deg, var(--danger), #f06292)';
     
     document.getElementById('crsApiStatus').textContent = 'Sincronizado com Render';
     document.getElementById('crsReportPayloadDisplay').textContent = 
 `{
-  "sessao_duracao": "30s",
+  "etapa_calibracao": "${etapasCalibracaoVoz}/3",
   "status_crs": "Espectroide de silêncios e ritmos processado. Overlay com IA Ad autorizado.",
-  "confiabilidade": 0.97
+  "transcricao_voz": "${textoTranscrito}"
 }`;
+
+    // Adiciona a fala do usuário no chat
+    const chatBox = document.getElementById('chatBox');
+    const userMsg = document.createElement('div');
+    userMsg.className = 'chat-message user';
+    userMsg.textContent = textoTranscrito;
+    chatBox.appendChild(userMsg);
+
+    // Resposta sequencial da IA para as 3 Etapas de Calibração
+    setTimeout(() => {
+        const adMsg = document.createElement('div');
+        adMsg.className = 'chat-message ad';
+
+        if (etapasCalibracaoVoz === 1) {
+            etapasCalibracaoVoz = 2;
+            document.getElementById('calibStepTitle').textContent = '🎙️ 2ª Calibração de Voz (Anterior)';
+            document.getElementById('calibraStatus').textContent = '🎙️ Calibração de Voz (Etapa 2/3)';
+            adMsg.innerHTML = `<strong>Ad (Elayon Space):</strong> Sistema simbiótico ativo. CRS calibrado. Registrei na 1ª etapa: "${textoTranscrito}". Agora diga qual o nível de ruído ou o estado do ambiente para a <strong>2ª Etapa</strong>.`;
+        } else if (etapasCalibracaoVoz === 2) {
+            etapasCalibracaoVoz = 3;
+            document.getElementById('calibStepTitle').textContent = '🎙️ 3ª Calibração de Voz (Baseline)';
+            document.getElementById('calibraStatus').textContent = '🎙️ Calibração de Voz (Etapa 3/3)';
+            adMsg.innerHTML = `<strong>Ad (Elayon Space):</strong> Sistema simbiótico ativo. CRS calibrado. 2ª etapa registrada: "${textoTranscrito}". Por fim, emita a <strong>3ª e última Calibração</strong> para consolidar o baseline.`;
+        } else {
+            document.getElementById('calibStepTitle').textContent = '🟢 Ecossistema Simbiótico Ativo & Calibrado';
+            document.getElementById('calibraStatus').textContent = '🟢 Sistema Calibrado (3/3)';
+            adMsg.innerHTML = `<strong>Ad (Elayon Space):</strong> Sistema simbiótico ativo. CRS calibrado. 3ª etapa concluída! Baseline fônica consolidada com base em "${textoTranscrito}".`;
+            
+            // Libera ferramentas e esconde microfone de calibração
+            document.getElementById('btnFinalizarCalibracao').style.display = 'block';
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.add('liberado'));
+            btnMic.style.display = 'none';
+        }
+
+        chatBox.appendChild(adMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }, 800);
 
     // Atualização do Buffer FIFO de Sessões
     totalSessoesConcluidas = Math.min(totalSessoesConcluidas + 1, 3);
     atualizarBufferFifoVisual();
-
-    addLog('Sessão de 30s finalizada. Áudio processado pelo CRS.');
+    addLog(`Calibração de voz da etapa ${etapasCalibracaoVoz} concluída.`);
 }
 
 function atualizarBufferFifoVisual() {
-    if (totalSessoesConcluidas >= 1) {
-        document.getElementById('infoSessao1').textContent = 'Sessão concluída (Auditada)';
-    }
-    if (totalSessoesConcluidas >= 2) {
-        document.getElementById('infoSessao2').textContent = 'Sessão anterior arquivada';
-    }
+    if (totalSessoesConcluidas >= 1) document.getElementById('infoSessao1').textContent = 'Sessão concluída (Auditada)';
+    if (totalSessoesConcluidas >= 2) document.getElementById('infoSessao2').textContent = 'Sessão anterior arquivada';
     if (totalSessoesConcluidas >= 3) {
         document.getElementById('infoSessao3').textContent = 'Baseline completa';
-        // Libera botão de PDF
         const btnPdf = document.getElementById('btnGerarPdf');
         btnPdf.style.opacity = '1';
         btnPdf.style.pointerEvents = 'auto';
@@ -279,48 +324,8 @@ function gerarRelatorioPdfCompleto() {
     addLog('Relatório PDF consolidado gerado.');
 }
 
-// ==========================================
-// [SESSÃO 4] CHAT SIMBIÓTICO & TRANSCRIÇÃO
-// ==========================================
-const chatBox = document.getElementById('chatBox');
-const chatInput = document.getElementById('chatInput');
-const btnSendChat = document.getElementById('btnSendChat');
-
-btnSendChat.addEventListener('click', () => {
-    const texto = chatInput.value.trim();
-    if (!texto) return;
-
-    const userMsg = document.createElement('div');
-    userMsg.className = 'chat-message user';
-    userMsg.textContent = texto;
-    chatBox.appendChild(userMsg);
-    chatInput.value = '';
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    passosCalibracao++;
-
-    setTimeout(() => {
-        const adMsg = document.createElement('div');
-        adMsg.className = 'chat-message ad';
-        
-        if (passosCalibracao === 1) {
-            adMsg.innerHTML = `<strong>Ad (Elayon Space):</strong> Sistema simbiótico ativo. CRS calibrado. Registrei: "${texto}". Qual o quadro principal do paciente?`;
-        } else {
-            adMsg.innerHTML = `<strong>Ad (Elayon Space):</strong> Sistema simbiótico ativo. CRS calibrado. Análise integrada confirmada para "${texto}". Ecossistema pronto.`;
-            document.getElementById('btnFinalizarCalibracao').style.display = 'block';
-            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.add('liberado'));
-        }
-
-        chatBox.appendChild(adMsg);
-        chatBox.scrollTop = chatBox.scrollHeight;
-        addLog('Resposta da IA Ad gerada com gatilho simbiótico.');
-    }, 1000);
-});
-
-chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') btnSendChat.click(); });
-
 document.getElementById('btnFinalizarCalibracao').addEventListener('click', () => {
-    alert('🚀 Calibração finalizada! Ferramentas clínicas ativadas.');
+    alert('🚀 Calibração de voz finalizada! Ferramentas clínicas ativadas.');
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 });
 
