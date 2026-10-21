@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elayon Space • Cockpit Clínico & Rastreio Neurolinguístico</title>
+    <title>Elayon Space • Cockpit Clínico & Simbiose CRS</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -29,7 +29,7 @@
             font-family: system-ui, -apple-system, sans-serif;
             display: flex; flex-direction: column; align-items: center; padding: 20px; padding-bottom: 90px;
         }
-        .container { width: 100%; max-width: 950px; display: grid; gap: 20px; }
+        .container { width: 100%; max-width: 1100px; display: grid; gap: 20px; }
 
         /* HUD Superior & Identidade */
         .hud-header {
@@ -56,7 +56,7 @@
         .profile-info p { font-size: 11px; color: var(--muted); font-family: monospace; }
         .calibra-tag { font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
 
-        /* Camada de Chegada CRS (Render) */
+        /* Camada de Chegada CRS & Status Simbiótico */
         .crs-report-layer {
             background: #f0f7f7; border: 1px solid var(--line); border-radius: 20px; padding: 20px;
             box-shadow: var(--shadow); border-left: 5px solid var(--accent);
@@ -67,43 +67,57 @@
             font-family: monospace; font-size: 11px; color: var(--ink); margin-top: 10px; min-height: 70px; white-space: pre-wrap;
         }
 
-        /* As 8 Estantes de Gráficos Retráteis com Fundo Branco */
-        .graphs-wrapper { display: grid; gap: 12px; }
+        /* [NOVO] LAYOUT EM 2 COLUNAS PARA AS 8 ESTANTES GRÁFICAS */
+        .graphs-grid-2col {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        @media(max-width: 800px) { .graphs-grid-2col { grid-template-columns: 1fr; } }
+
         details.graph-accordion {
             background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden;
             transition: 0.2s;
         }
         details.graph-accordion[open] { border-color: var(--accent); }
         summary.graph-summary {
-            padding: 14px 18px; font-size: 12px; font-weight: 800; color: var(--ink); cursor: pointer;
+            padding: 12px 14px; font-size: 11px; font-weight: 800; color: var(--ink); cursor: pointer;
             background: #f8fbfa; display: flex; justify-content: space-between; align-items: center; user-select: none;
         }
         summary.graph-summary:hover { background: #f0f7f7; color: var(--accent); }
         
-        .graph-body { padding: 16px; background: #fff; border-top: 1px solid var(--line); }
+        .graph-body { padding: 12px; background: #fff; border-top: 1px solid var(--line); }
         
-        /* VISOR GRÁFICO COM FUNDO BRANCO (Estilo Eletrocardiograma / Espectroide) */
+        /* Visor Gráfico Fundo Branco (Estilo Eletrocardiograma / Espectroide) */
         .canvas-box { 
-            width: 100%; height: 150px; border-radius: 10px; background: #ffffff; display: block; 
-            border: 1px solid var(--line); margin-bottom: 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); 
+            width: 100%; height: 110px; border-radius: 8px; background: #ffffff; display: block; 
+            border: 1px solid var(--line); margin-bottom: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); 
         }
 
-        /* Caixas Clínicas Detalhadas Abaixo de Cada Gráfico */
-        .metrics-bar-container {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px;
-        }
         .metric-box-card {
-            background: #f8fbfa; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; text-align: left;
-            border-left: 4px solid var(--accent);
+            background: #f8fbfa; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; text-align: left;
+            border-left: 3px solid var(--accent); margin-top: 4px;
         }
         .metric-box-card.c-blue { border-left-color: #0ea5e9; }
         .metric-box-card.c-orange { border-left-color: #f59e0b; }
         .metric-box-card.c-green { border-left-color: #10b981; }
         .metric-box-card.c-purple { border-left-color: #8b5cf6; }
         
-        .metric-title-lbl { font-size: 10px; color: var(--muted); font-weight: 800; text-transform: uppercase; }
-        .metric-val-lbl { font-size: 14px; font-family: monospace; font-weight: 800; color: var(--ink); margin: 3px 0; }
-        .metric-clinical-desc { font-size: 10px; color: var(--muted); line-height: 1.3; }
+        .metric-title-lbl { font-size: 9px; color: var(--muted); font-weight: 800; text-transform: uppercase; }
+        .metric-val-lbl { font-size: 12px; font-family: monospace; font-weight: 800; color: var(--ink); margin: 2px 0; }
+        .metric-clinical-desc { font-size: 9px; color: var(--muted); line-height: 1.2; }
+
+        /* Buffer FIFO de 3 Sessões */
+        .session-history-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;
+        }
+        @media(max-width: 768px) { .session-history-grid { grid-template-columns: 1fr; } }
+        .session-box {
+            background: #f8fbfa; border: 1px solid var(--line); border-radius: 12px; padding: 12px; text-align: left;
+        }
+        .btn-load-session {
+            margin-top: 6px; width: 100%; background: var(--accent); color: #fff; border: none; padding: 6px; border-radius: 6px; font-size: 9px; font-weight: 800; cursor: pointer;
+        }
 
         /* Chat Simbiótico & Calibração */
         .chat-section {
@@ -158,120 +172,85 @@
             <span class="calibra-tag" id="calibraStatus">⚪ Calibração 0/3</span>
         </div>
 
-        <!-- [2] Camada de Chegada CRS (Render API) -->
+        <!-- [2] Camada de Chegada CRS & Status Simbiótico -->
         <section class="crs-report-layer">
             <div class="section-title">
-                <span>🌐 Camada de Chegada — Relatório CRS (Render API)</span>
+                <span>🌐 Sistema Simbiótico Ativo & Relatório CRS (Render API)</span>
                 <span style="font-size: 10px; font-family: monospace; color: var(--muted);" id="crsApiStatus">Aguardando payload...</span>
             </div>
             <p style="font-size: 11px; color: var(--muted); line-height: 1.4;">
-                Diagnóstico fônico interpretado pela nuvem para rastreio de afasias e afinar as diretrizes da IA Ad.
+                Espectroide de silêncios e ritmos interpretado pela nuvem. A IA Ad valida o estado simbiótico antes de cada resposta.
             </p>
             <div class="crs-payload-box" id="crsReportPayloadDisplay">
-[CRS_STATUS] Aguardando acionamento do Supermicrofone (Sessão de até 30s) para processamento fônico remoto...
+[CRS_STATUS] Sistema simbiótico pronto. Aguardando Supermicrofone (Máx. 30s) para envio do áudio bruto ao CRS...
             </div>
         </section>
 
-        <!-- [3] As 8 Estantes com Fundo Branco (Estilo Espectroide & Eletrocardiograma Clínico) -->
-        <div class="section-title" style="color: var(--ink);">📊 As 8 Dimensões Fônicas & Rastreio Neurolinguístico (Visor Fundo Branco)</div>
-        <div class="graphs-wrapper">
+        <!-- [3] As 8 Estantes em Grid de 2 Colunas com Fundo Branco (Estilo Eletrocardiograma Clínico) -->
+        <div class="section-title" style="color: var(--ink);">📊 As 8 Dimensões Fônicas & Rastreio Neurolinguístico (2 Colunas)</div>
+        <div class="graphs-grid-2col">
             
             <!-- Estante 1 -->
             <details class="graph-accordion">
-                <summary class="graph-summary">🟦 I. Frequência / Altura / Tom (F₀ & Jitter)</summary>
+                <summary class="graph-summary">🟦 I. Frequência / Tom (F₀ & Jitter)</summary>
                 <div class="graph-body">
                     <canvas class="canvas-box" id="cvGraph1"></canvas>
-                    <div class="metrics-bar-container">
-                        <div class="metric-box-card c-blue">
-                            <div class="metric-title-lbl">Frequência Fundamental (F₀)</div>
-                            <div class="metric-val-lbl" id="mVal1_a">-- Hz</div>
-                            <div class="metric-clinical-desc">Identifica o tom vocal base. Variações atípicas apontam controle motor laríngeo alterado ou disartria.</div>
-                        </div>
-                        <div class="metric-box-card c-blue">
-                            <div class="metric-title-lbl">Jitter (Instabilidade Tonal)</div>
-                            <div class="metric-val-lbl" id="mVal1_b">-- %</div>
-                            <div class="metric-clinical-desc">Mede a irregularidade ciclo a ciclo das pregas vocais. Valores altos sugerem fadiga ou lesão neurológica central.</div>
-                        </div>
+                    <div class="metric-box-card c-blue">
+                        <div class="metric-title-lbl">F₀ & Jitter</div>
+                        <div class="metric-val-lbl" id="mVal1">-- Hz | -- %</div>
+                        <div class="metric-clinical-desc">Rastreio de disartria e instabilidade laríngea.</div>
                     </div>
                 </div>
             </details>
 
             <!-- Estante 2 -->
             <details class="graph-accordion">
-                <summary class="graph-summary">🟧 II. Intensidade / Volume / Força (SPL & Shimmer)</summary>
+                <summary class="graph-summary">🟧 II. Intensidade / Volume (SPL & Shimmer)</summary>
                 <div class="graph-body">
                     <canvas class="canvas-box" id="cvGraph2"></canvas>
-                    <div class="metrics-bar-container">
-                        <div class="metric-box-card c-orange">
-                            <div class="metric-title-lbl">SPL (Pressão Sonora / Volume)</div>
-                            <div class="metric-val-lbl" id="mVal2_a">-- dB</div>
-                            <div class="metric-clinical-desc">Mede a projeção da fala. Quedas repentinas indicam astenia ou perda de projeção em quadros parkinsonianos.</div>
-                        </div>
-                        <div class="metric-box-card c-orange">
-                            <div class="metric-title-lbl">Shimmer (Instabilidade de Amplitude)</div>
-                            <div class="metric-val-lbl" id="mVal2_b">-- %</div>
-                            <div class="metric-clinical-desc">Mede a variação de volume entre ciclos. Elevações correlacionam-se com fonação soprosa e perda de vedamento glótico.</div>
-                        </div>
+                    <div class="metric-box-card c-orange">
+                        <div class="metric-title-lbl">SPL & Shimmer</div>
+                        <div class="metric-val-lbl" id="mVal2">-- dB | -- %</div>
+                        <div class="metric-clinical-desc">Projeção vocal e astenia pneumofônica.</div>
                     </div>
                 </div>
             </details>
 
             <!-- Estante 3 -->
             <details class="graph-accordion">
-                <summary class="graph-summary">🟩 III. Qualidade / Timbre / Ruído (HNR & CPPS)</summary>
+                <summary class="graph-summary">🟩 III. Qualidade / Timbre (HNR & CPPS)</summary>
                 <div class="graph-body">
                     <canvas class="canvas-box" id="cvGraph3"></canvas>
-                    <div class="metrics-bar-container">
-                        <div class="metric-box-card c-green">
-                            <div class="metric-title-lbl">HNR (Relação Harmônico-Ruído)</div>
-                            <div class="metric-val-lbl" id="mVal3_a">-- dB</div>
-                            <div class="metric-clinical-desc">Avalia a proporção de som limpo versus ruído turbulento. Reduções indicam fonação com escape de ar e soprosidade.</div>
-                        </div>
-                        <div class="metric-box-card c-green">
-                            <div class="metric-title-lbl">CPPS (Clareza Cepstral)</div>
-                            <div class="metric-val-lbl" id="mVal3_b">-- dB</div>
-                            <div class="metric-clinical-desc">Mede a robustez acústica do sinal. Utilizado por fonoaudiólogos para detecção precoce de rugosidade laríngea.</div>
-                        </div>
+                    <div class="metric-box-card c-green">
+                        <div class="metric-title-lbl">HNR & CPPS</div>
+                        <div class="metric-val-lbl" id="mVal3">-- dB | -- dB</div>
+                        <div class="metric-clinical-desc">Detecção de soprosidade e rugosidade laríngea.</div>
                     </div>
                 </div>
             </details>
 
             <!-- Estante 4 -->
             <details class="graph-accordion">
-                <summary class="graph-summary">🟨 IV. Prosódia / Entonação / Dinâmica (Ritmo & Pausas)</summary>
+                <summary class="graph-summary">🟨 IV. Prosódia / Ritmo & Pausas (CRS)</summary>
                 <div class="graph-body">
                     <canvas class="canvas-box" id="cvGraph4"></canvas>
-                    <div class="metrics-bar-container">
-                        <div class="metric-box-card c-orange">
-                            <div class="metric-title-lbl">Ritmo Temporal da Fala</div>
-                            <div class="metric-val-lbl" id="mVal4_a">-- %</div>
-                            <div class="metric-clinical-desc">Essencial para rastreio de afasias de expressão (ex: Afasia de Broca), mapeando disfluências e hesitações rítmicas.</div>
-                        </div>
-                        <div class="metric-box-card c-orange">
-                            <div class="metric-title-lbl">Pausas Silenciosas (CRS)</div>
-                            <div class="metric-val-lbl" id="mVal4_b">-- seg</div>
-                            <div class="metric-clinical-desc">Mede o tempo de silêncio reflexivo. Anomalias indicam sobrecarga cognitiva ou bloqueios no planejamento motor da fala.</div>
-                        </div>
+                    <div class="metric-box-card c-orange">
+                        <div class="metric-title-lbl">Ritmo & Pausas</div>
+                        <div class="metric-val-lbl" id="mVal4">-- % | -- seg</div>
+                        <div class="metric-clinical-desc">Rastreio de afasias de expressão e planejamento motor.</div>
                     </div>
                 </div>
             </details>
 
             <!-- Estante 5 -->
             <details class="graph-accordion">
-                <summary class="graph-summary">🟪 V. Perceptivo-Auditivo (Escalas GRBAS / Tensão)</summary>
+                <summary class="graph-summary">🟪 V. Perceptivo-Auditivo (GRBAS)</summary>
                 <div class="graph-body">
                     <canvas class="canvas-box" id="cvGraph5"></canvas>
-                    <div class="metrics-bar-container">
-                        <div class="metric-box-card c-purple">
-                            <div class="metric-title-lbl">Grau Geral de Alteração (G)</div>
-                            <div class="metric-val-lbl" id="mVal5_a">--</div>
-                            <div class="metric-clinical-desc">Escala clínica sumarizada (0 a 3) do grau de desvio vocal percebido na emissão contínua do operador.</div>
-                        </div>
-                        <div class="metric-box-card c-purple">
-                            <div class="metric-title-lbl">Tensão Laríngea (S)</div>
-                            <div class="metric-val-lbl" id="mVal5_b">--</div>
-                            <div class="metric-clinical-desc">Mapeia o esforço excessivo da musculatura extralaríngea, comum em quadros de fadiga cognitiva ou disfonia tensional.</div>
-                        </div>
+                    <div class="metric-box-card c-purple">
+                        <div class="metric-title-lbl">GRBAS (G & S)</div>
+                        <div class="metric-val-lbl" id="mVal5">G-- | S--</div>
+                        <div class="metric-clinical-desc">Grau geral de desvio e tensão vocal excessiva.</div>
                     </div>
                 </div>
             </details>
@@ -281,85 +260,90 @@
                 <summary class="graph-summary">🟫 VI. Aerodinâmica & Fluxo Subglótico</summary>
                 <div class="graph-body">
                     <canvas class="canvas-box" id="cvGraph6"></canvas>
-                    <div class="metrics-bar-container">
-                        <div class="metric-box-card c-orange">
-                            <div class="metric-title-lbl">Fluxo de Ar Transglótico</div>
-                            <div class="metric-val-lbl" id="mVal6_a">-- L/s</div>
-                            <div class="metric-clinical-desc">Mede o gasto de ar durante a fonação. Valores elevados indicam fenda glótica ou ineficiência respiratória.</div>
-                        </div>
-                        <div class="metric-box-card c-orange">
-                            <div class="metric-title-lbl">Pressão Subglótica Estimada</div>
-                            <div class="metric-val-lbl" id="mVal6_b">-- cmH₂O</div>
-                            <div class="metric-clinical-desc">Avalia a força pneumofônica gerada pelos pulmões para vencer a resistência das pregas vocais.</div>
-                        </div>
+                    <div class="metric-box-card c-orange">
+                        <div class="metric-title-lbl">Fluxo & Pressão</div>
+                        <div class="metric-val-lbl" id="mVal6">-- L/s | -- cmH₂O</div>
+                        <div class="metric-clinical-desc">Eficiência respiratória e resistência glótica.</div>
                     </div>
                 </div>
             </details>
 
             <!-- Estante 7 -->
             <details class="graph-accordion">
-                <summary class="graph-summary">🟩 VII. Eletroglotografia (Contato das Pregas Vocais)</summary>
+                <summary class="graph-summary">🟩 VII. Eletroglotografia (Contato Glótico)</summary>
                 <div class="graph-body">
                     <canvas class="canvas-box" id="cvGraph7"></canvas>
-                    <div class="metrics-bar-container">
-                        <div class="metric-box-card c-green">
-                            <div class="metric-title-lbl">Quociente de Contato Glótico</div>
-                            <div class="metric-val-lbl" id="mVal7_a">-- %</div>
-                            <div class="metric-clinical-desc">Mapeia o tempo em que as pregas vocais permanecem unidas durante o ciclo vibratório na fonte sonora.</div>
-                        </div>
-                        <div class="metric-box-card c-green">
-                            <div class="metric-title-lbl">Velocidade de Fechamento</div>
-                            <div class="metric-val-lbl" id="mVal7_b">-- ms</div>
-                            <div class="metric-clinical-desc">Indica a tonicidade e agilidade da adução muscular na laringe, auxiliando no diagnóstico de paralisias.</div>
-                        </div>
+                    <div class="metric-box-card c-green">
+                        <div class="metric-title-lbl">Contato & Fechamento</div>
+                        <div class="metric-val-lbl" id="mVal7">-- % | -- ms</div>
+                        <div class="metric-clinical-desc">Tonicidade e adução muscular na laringe.</div>
                     </div>
                 </div>
             </details>
 
-            
             <!-- Estante 8 -->
             <details class="graph-accordion">
                 <summary class="graph-summary">🟦 VIII. Contexto Ambiental & Ruído</summary>
                 <div class="graph-body">
                     <canvas class="canvas-box" id="cvGraph8"></canvas>
-                    <div class="metrics-bar-container">
-                        <div class="metric-box-card c-blue">
-                            <div class="metric-title-lbl">Ruído de Fundo (dBA)</div>
-                            <div class="metric-val-lbl" id="mVal8_a">-- dBA</div>
-                            <div class="metric-clinical-desc">Garante a integridade acústica do ambiente para que artefatos externos não interfiram no diagnóstico neurolinguístico.</div>
-                        </div>
-                        <div class="metric-box-card c-blue">
-                            <div class="metric-title-lbl">Estabilidade do Meio</div>
-                            <div class="metric-val-lbl" id="mVal8_b">-- %</div>
-                            <div class="metric-clinical-desc">Coeficiente de confiabilidade da amostra coletada pelo supermicrofone para envio seguro ao Render.</div>
-                        </div>
+                    <div class="metric-box-card c-blue">
+                        <div class="metric-title-lbl">Ruído & Estabilidade</div>
+                        <div class="metric-val-lbl" id="mVal8">-- dBA | -- %</div>
+                        <div class="metric-clinical-desc">Integridade acústica do meio para o diagnóstico.</div>
                     </div>
                 </div>
             </details>
 
         </div>
 
-        <!-- [4] Chat Simbiótico & Calibração de 3 Perguntas (Sessão Máx. 30s) -->
+        <!-- [4] Buffer FIFO de 3 Sessões -->
+        <div class="section-title" style="color: var(--ink); margin-top: 10px;">📦 Buffer FIFO & Histórico das 3 Sessões Fônicas</div>
+        <section style="background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);">
+            <div class="session-history-grid" id="conexoesFifoGrid">
+                <div class="session-box">
+                    <div style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase;">🔗 Sessão 1 (Mais Recente)</div>
+                    <div style="font-size: 9px; color: var(--muted); margin: 4px 0;" id="infoSessao1">Captura atual ativa</div>
+                    <button class="btn-load-session" onclick="carregarSessaoHistorico(1)">Avaliar Sessão (1 Token)</button>
+                </div>
+                <div class="session-box">
+                    <div style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase;">🔗 Sessão 2 (Anterior)</div>
+                    <div style="font-size: 9px; color: var(--muted); margin: 4px 0;" id="infoSessao2">Histórico prévio</div>
+                    <button class="btn-load-session" onclick="carregarSessaoHistorico(2)">Avaliar Sessão (1 Token)</button>
+                </div>
+                <div class="session-box">
+                    <div style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase;">🔗 Sessão 3 (Baseline)</div>
+                    <div style="font-size: 9px; color: var(--muted); margin: 4px 0;" id="infoSessao3">Calibração base</div>
+                    <button class="btn-load-session" onclick="carregarSessaoHistorico(3)">Avaliar Sessão (1 Token)</button>
+                </div>
+            </div>
+            <div style="margin-top: 12px; text-align: center;">
+                <button class="btn-action btn-primary" id="btnGerarPdf" style="margin: 0; background: linear-gradient(135deg, var(--success), var(--accent)); opacity: 0.5; pointer-events: none;" onclick="gerarRelatorioPdfCompleto()">
+                    📄 Gerar Relatório PDF Integrado (Requer 3 Sessões Concluídas)
+                </button>
+            </div>
+        </section>
+
+        <!-- [5] Chat Simbiótico & Calibração de 3 Perguntas -->
         <section class="chat-section">
-            <div class="section-title"><span>🎙️ Supermicrofone Clínico (Sessão Máx. 30s) & Calibração IA Ad</span></div>
+            <div class="section-title"><span>🎙️ Supermicrofone (Máx. 30s) & Chat Simbiótico da IA Ad</span></div>
             
             <div class="chat-box" id="chatBox">
                 <div class="chat-message ad">
-                    <strong>Ad (Elayon Space):</strong> Olá, Clínico! Ative o microfone para iniciar a captura de até 30 segundos. Cada ativação consome 1 token e alimenta o relatório CRS no Render.
+                    <strong>Ad (Elayon Space):</strong> Sistema simbiótico ativo. CRS calibrado. Ative o microfone para gravar até 30s de fala (consome 1 token).
                 </div>
             </div>
 
             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                <input type="text" id="chatInput" placeholder="Responda à calibração ou dialogue com a IA Ad..." disabled style="flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; background: #fafcfc; color: var(--ink);">
+                <input type="text" id="chatInput" placeholder="Transcrição automática da fala ou digite..." disabled style="flex: 1; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; background: #fafcfc; color: var(--ink);">
                 <button class="btn-action btn-primary" id="btnSendChat" disabled style="width: 70px; margin: 0; padding: 10px;">Enviar</button>
             </div>
 
             <button class="btn-action btn-primary" id="btnMicSimple" disabled style="background: linear-gradient(135deg, var(--danger), #f06292);">
-                🎙️ Ativar Supermicrofone (Máx. 30s • Consome 1 Token)
+                🎙️ Ligar Supermicrofone (Máx. 30s • Consome 1 Token)
             </button>
         </section>
 
-        <!-- [5] Rodapé: Transição, Retorno e Ferramentas -->
+      <!-- [6] Rodapé de Transição e Ferramentas -->
         <section class="footer-navigation">
             <div class="section-title" style="color: var(--ink);">⚙️ Transição & Acesso a Ferramentas Clínicas</div>
             
@@ -383,14 +367,14 @@
 
     </div>
 
-    <!-- [6] Logs de Auditoria -->
+    <!-- [7] Logs -->
     <div class="logs-drawer" id="logsDrawer" style="position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; color: var(--ink); border-top-left-radius: 16px; border-top-right-radius: 16px; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); transition: transform 0.3s ease; z-index: 1000; transform: translateY(115px); border-top: 1px solid var(--line);">
         <div class="logs-header" id="logsToggleBtn" style="padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 11px; font-weight: 700; text-transform: uppercase; background: #f8fbfa; border-top-left-radius: 16px; border-top-right-radius: 16px;">
-            <span>📋 Auditoria API Render & Tokens (<span id="logCount">1</span>)</span>
+            <span>📋 Auditoria de Sessões & PDF (<span id="logCount">1</span>)</span>
             <span id="logToggleIcon">▲ Expandir Logs</span>
         </div>
         <div class="logs-body" id="logsBody" style="max-height: 120px; overflow-y: auto; padding: 12px; font-family: monospace; font-size: 10px; display: flex; flex-direction: column; gap: 4px; background: #fff;">
-            <div class="log-item">[INIT] Cockpit clínico estruturado com visores de fundo branco e descrições neurolinguísticas.</div>
+            <div class="log-item">[INIT] Cockpit clínico em 2 colunas com suporte a buffer FIFO e PDF integrado configurado.</div>
         </div>
     </div>
 
