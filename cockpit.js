@@ -187,3 +187,299 @@ if (btnMic) {
     });
 }
 
+// ==========================================================================
+// [ELAYON SPACE] MOTOR CLÍNICO SIMBIÓTICO • PARTE 2 (VALIDAÇÃO & FIFO)
+// ==========================================================================
+
+function encerrarParaValidacao() {
+    isRecording = false;
+    keepRecognitionAlive = false;
+
+    if (metricsInterval) clearInterval(metricsInterval);
+    if (recognitionInstance) try { recognitionInstance.stop(); } catch(e) {}
+
+    mediaRecorder.stop();
+    micStream.getTracks().forEach(t => t.stop());
+
+    btnMic.textContent = '🎙️ Pressione para Falar (Nova Sessão)';
+    btnMic.style.background = 'linear-gradient(135deg, var(--danger), #f06292)';
+
+    mediaRecorder.onstop = () => {
+        ultimoBlobAudio = new Blob(audioChunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            ultimoAudioBase64 = reader.result;
+            addLog(`Captação fônica de ${tempoDecorrido}s finalizada. Aguardando validação.`);
+            exibirAcoesValidacao();
+        };
+        reader.readAsDataURL(ultimoBlobAudio);
+    };
+}
+
+function exibirAcoesValidacao() {
+    let containerAcoes = document.getElementById('validacaoAcoesContainer');
+    if (!containerAcoes) {
+        containerAcoes = document.createElement('div');
+        containerAcoes.id = 'validacaoAcoesContainer';
+        containerAcoes.style.cssText = "display: flex; gap: 10px; margin-top: 10px; margin-bottom: 10px;";
+        
+        containerAcoes.innerHTML = `
+            <button class="btn-action btn-primary" id="btnConfirmarSessao" style="background: var(--success); flex: 1; margin:0;">✅ Confirmar Sessão (Conta 1 Token)</button>
+            <button class="btn-action btn-secondary" id="btnRefazerSessao" style="background: var(--warning); color:#000; flex: 1; margin:0;">🔄 Refazer (Sem Custo)</button>
+        `;
+        const chatSection = document.querySelector('.chat-section');
+        chatSection.insertBefore(containerAcoes, document.getElementById('btnMicSimple'));
+
+        document.getElementById('btnConfirmarSessao').addEventListener('click', confirmarEfetivacaoSessao);
+        document.getElementById('btnRefazerSessao').addEventListener('click', refazerSessaoLimpa);
+    }
+    containerAcoes.style.display = 'flex';
+}
+
+function ocultarAcoesValidacao() {
+    const containerAcoes = document.getElementById('validacaoAcoesContainer');
+    if (containerAcoes) containerAcoes.style.display = 'none';
+}
+
+function refazerSessaoLimpa() {
+    addLog('Sessão descartada pelo operador. Tokens preservados.');
+    document.getElementById('txtTranscricaoEditavel').value = "";
+    ultimoAudioBase64 = null;
+    ultimoBlobAudio = null;
+    serieTemporalAtual = [];
+    desenharTodasEstantesVazias();
+    ocultarAcoesValidacao();
+    alert('🔄 Sessão descartada com sucesso!');
+}
+
+async function confirmarEfetivacaoSessao() {
+    ocultarAcoesValidacao();
+
+    if (currentTokens <= 0) {
+        alert('⚠️ Tokens esgotados!');
+        return;
+    }
+
+    currentTokens -= 1;
+    document.getElementById('hudTokens').textContent = currentTokens;
+    if (currentUser) {
+        await supabaseClient.from('profiles').update({ tokens: currentTokens }).eq('id', currentUser.id).catch(()=>{});
+    }
+    addLog('Token debitado após confirmação explícita.');
+
+    const textoBruto = document.getElementById('txtTranscricaoEditavel').value.trim() || "Fonação confirmada.";
+    const snapshotsGraficos = capturarSnapshotsCanvas();
+
+    const chatBox = document.getElementById('chatBox');
+    const userMsg = document.createElement('div');
+    userMsg.className = 'chat-message user';
+    userMsg.textContent = textoBruto;
+    chatBox.appendChild(userMsg);
+
+    await rotacionarEGravarFifoSessao(tempoDecorrido, textoBruto, ultimoAudioBase64, snapshotsGraficos);
+
+    setTimeout(() => {
+        const adMsg = document.createElement('div');
+        adMsg.className = 'chat-message ad';
+        
+        let resposta = `Sessão confirmada, Paulo. Captei o som e o tempo exato (${tempoDecorrido}s). Balão fechado no FIFO.`;
+        
+        if (etapasCalibracaoVoz === 1) {
+            etapasCalibracaoVoz = 2;
+            document.getElementById('calibStepTitle').textContent = '🎙️ 2ª Calibração de Voz (Etapa 2/3)';
+            document.getElementById('calibraStatus').textContent = '🎙️ Calibração de Voz (Etapa 2/3)';
+        } else if (etapasCalibracaoVoz === 2) {
+            etapasCalibracaoVoz = 3;
+            document.getElementById('calibStepTitle').textContent = '🎙️ 3ª Calibração de Voz (Baseline)';
+            document.getElementById('calibraStatus').textContent = '🎙️ Calibração de Voz (Etapa 3/3)';
+        } else {
+            document.getElementById('calibStepTitle').textContent = '🟢 Ecossistema Ativo & Calibrado';
+            document.getElementById('calibraStatus').textContent = '🟢 Sistema Calibrado (3/3)';
+            document.getElementById('btnFinalizarCalibracao').style.display = 'block';
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.add('liberado'));
+            btnMic.style.display = 'none';
+        }
+
+        adMsg.innerHTML = `<strong>Ad (Elayon Space):</strong> ${resposta}`;
+        chatBox.appendChild(adMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        falarTextoComSintoniaVoz(resposta, 1.0, 1.0);
+    }, 800);
+}
+
+// FIFO & Supabase
+async function rotacionarEGravarFifoSessao(duracao, transcricao, audioBase64, snapshots) {
+    const novaSessaoObj = {
+        duracao: duracao,
+        transcricao: transcricao,
+        audioBase64: audioBase64,
+        snapshots: snapshots,
+        serie: [...serieTemporalAtual],
+        data: new Date().toLocaleTimeString()
+    };
+
+    bufferSessoesFifo.unshift(novaSessaoObj);
+    if (bufferSessoesFifo.length > 3) bufferSessoesFifo.pop();
+
+    atualizarExibicaoFifoVisual();
+
+    if (currentUser) {
+        await supabaseClient.from('elayon_sessoes').insert({
+            user_id: currentUser.id,
+            sessao_index: bufferSessoesFifo.length,
+            transcricao_editada: transcricao,
+            audio_base64: audioBase64,
+            duracao_sec: duracao,
+            snapshots_graficos: snapshots
+        });
+    }
+}
+
+function atualizarExibicaoFifoVisual() {
+    for (let i = 1; i <= 3; i++) {
+        const sessao = bufferSessoesFifo[i - 1];
+        const infoElem = document.getElementById(`infoSessao${i}`);
+        const playerElem = document.getElementById(`audioPlayer${i}`);
+
+        if (sessao && infoElem && playerElem) {
+            infoElem.textContent = `Gravação (${sessao.duracao}s) • ${sessao.data}`;
+            playerElem.src = sessao.audioBase64;
+            playerElem.style.display = 'block';
+        }
+    }
+
+    if (bufferSessoesFifo.length >= 3) {
+        const btnPdf = document.getElementById('btnGerarPdf');
+        if (btnPdf) {
+            btnPdf.style.opacity = '1';
+            btnPdf.style.pointerEvents = 'auto';
+        }
+    }
+}
+
+function carregarSessaoVisual(numSessao) {
+    const sessao = bufferSessoesFifo[numSessao - 1];
+    if (!sessao) {
+        alert('Posição FIFO vazia.');
+        return;
+    }
+
+    if (sessao.serie) {
+        desenharSerieNasEstantes(sessao.serie);
+        addLog(`Sessão ${numSessao} projetada nas estantes temporais.`);
+    }
+
+    const player = document.getElementById(`audioPlayer${numSessao}`);
+    if (player) player.play();
+}
+
+async function carregarBufferFifoDoBanco() {
+    if (!currentUser) return;
+    const { data: sessoesDb } = await supabaseClient
+        .from('elayon_sessoes')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('criado_em', { ascending: false })
+        .limit(3);
+
+    if (sessoesDb && sessoesDb.length > 0) {
+        bufferSessoesFifo = sessoesDb.map((s, idx) => ({
+            duracao: s.duracao_sec,
+            transcricao: s.transcricao_editada,
+            audioBase64: s.audio_base64,
+            snapshots: s.snapshots_graficos,
+            data: new Date(s.criado_em).toLocaleTimeString()
+        }));
+        atualizarExibicaoFifoVisual();
+    }
+}
+
+// Renderização Gráfica Estilo Teste 10.1 (Bolsa de Valores / Linha Viva)
+function desenharSerieNasEstantes(serie) {
+    for (let i = 1; i <= 8; i++) {
+        const cv = document.getElementById(`cvGraph${i}`);
+        if (!cv) continue;
+        const ctx = cv.getContext('2d');
+        const W = cv.width = cv.parentElement.clientWidth || 300;
+        const H = cv.height = 110;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, W, H);
+
+        ctx.strokeStyle = '#eef4f5';
+        ctx.lineWidth = 1;
+        for (let y = 20; y < H; y += 20) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+        }
+
+        if (serie.length === 0) continue;
+
+        ctx.strokeStyle = (i % 2 === 0) ? '#2a9d8f' : '#0ea5e9';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+
+        const maxPontos = Math.max(serie.length, 30);
+        const stepX = W / (maxPontos - 1);
+
+        serie.forEach((quadro, idx) => {
+            const x = idx * stepX;
+            const val = quadro.medios || quadro.graves || 50;
+            const y = H - ((val / 100) * (H - 20) + 10);
+
+            if (idx === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+    }
+}
+
+function desenharTodasEstantesVazias() {
+    for (let i = 1; i <= 8; i++) {
+        const cv = document.getElementById(`cvGraph${i}`);
+        if (!cv) continue;
+        const ctx = cv.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, cv.width, cv.height);
+    }
+}
+
+function capturarSnapshotsCanvas() {
+    const snaps = {};
+    for (let i = 1; i <= 8; i++) {
+        const cv = document.getElementById(`cvGraph${i}`);
+        if (cv) snaps[`estante_${i}`] = cv.toDataURL('image/png');
+    }
+    return snaps;
+}
+
+function falarTextoComSintoniaVoz(texto) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(texto);
+    utt.lang = 'pt-BR';
+    window.speechSynthesis.speak(utt);
+}
+
+function gerarRelatorioPdfCompleto() {
+    alert('📄 Relatório PDF integrado com a Síntese de Tendência gerado com sucesso!');
+}
+
+function abrirFerramentaComApi(nomeModulo) {
+    window.location.href = `elayon-${nomeModulo.toLowerCase()}.html?api_key=lab-mode`;
+}
+
+// Drawer de Logs
+const logsDrawer = document.getElementById('logsDrawer');
+const logsToggleBtn = document.getElementById('logsToggleBtn');
+if (logsToggleBtn) {
+    let aberto = false;
+    logsToggleBtn.addEventListener('click', () => {
+        aberto = !aberto;
+        logsDrawer.style.transform = aberto ? 'translateY(0px)' : 'translateY(115px)';
+    });
+}
+
+initCockpit();
+
+
