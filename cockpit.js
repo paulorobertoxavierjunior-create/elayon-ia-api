@@ -43,7 +43,10 @@ function addLog(msg) {
 }
 
 async function initCockpit() {
-    addLog('Inicializando Cockpit e sincronizando tokens do perfil...');
+    addLog('Inicializando Cockpit e sincronizando tokens do perfil na tabela profiles...');
+
+    // Mostra estado de carregamento inicial
+    document.getElementById('hudTokens').textContent = '...';
 
     try {
         const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
@@ -56,7 +59,7 @@ async function initCockpit() {
         currentUser = session.user;
         document.getElementById('userDisplayEmail').textContent = `ID: ${currentUser.id}`;
 
-        // Busca exata e prioritária do saldo de tokens na tabela profiles
+        // Consulta exata na tabela profiles onde o perfil é salvo
         const { data: profile, error: profileError } = await supabaseClient
             .from('profiles')
             .select('tokens, nome, avatar_url')
@@ -68,14 +71,25 @@ async function initCockpit() {
             document.getElementById('hudTokens').textContent = currentTokens;
             if (profile.nome) document.getElementById('userDisplayName').textContent = profile.nome;
             if (profile.avatar_url) document.getElementById('userAvatarImg').src = profile.avatar_url;
-            addLog(`Tokens sincronizados com sucesso: ${currentTokens}`);
+            addLog(`Tokens carregados com sucesso do Supabase: ${currentTokens}`);
         } else {
+            // Caso o perfil não exista ainda, cria com 100 tokens padrão
+            currentTokens = 100;
             document.getElementById('hudTokens').textContent = currentTokens;
-            document.getElementById('userDisplayName').textContent = currentUser.user_metadata?.nome || 'Operador Elayon';
+            document.getElementById('userDisplayName').textContent = currentUser.user_metadata?.nome || currentUser.email.split('@')[0];
+            
+            await supabaseClient.from('profiles').upsert({
+                id: currentUser.id,
+                email: currentUser.email,
+                tokens: 100,
+                nome: currentUser.email.split('@')[0]
+            });
+            addLog('Perfil inicial criado automaticamente no Supabase.');
         }
 
     } catch (e) {
         addLog('Erro ao buscar tokens do perfil: ' + e.message);
+        currentTokens = 100;
         document.getElementById('hudTokens').textContent = currentTokens;
     }
 
@@ -267,8 +281,12 @@ async function confirmarEfetivacaoSessao() {
 
     currentTokens -= 1;
     document.getElementById('hudTokens').textContent = currentTokens;
+    
+    // Atualiza diretamente na tabela profiles do Supabase
     if (currentUser) {
-        await supabaseClient.from('profiles').update({ tokens: currentTokens }).eq('id', currentUser.id).catch(()=>{});
+        await supabaseClient.from('profiles').update({ tokens: currentTokens }).eq('id', currentUser.id).catch((err)=>{
+            addLog('Erro ao atualizar token no Supabase: ' + err.message);
+        });
     }
     addLog(`Token debitado. Calibração ${etapasCalibracaoVoz} confirmada.`);
 
@@ -302,7 +320,7 @@ async function confirmarEfetivacaoSessao() {
             document.getElementById('calibStepTitle').textContent = '🟢 Calibração Concluída com Sucesso';
             document.getElementById('calibraStatus').textContent = '🟢 Sistema Calibrado (3/3)';
             document.getElementById('btnLiberarHealth').style.display = 'block';
-            btnMic.style.display = 'none';
+            if(btnMic) btnMic.style.display = 'none';
             resposta = "Baseline estabelecida com sucesso! O acesso ao Elayon Health está totalmente liberado.";
         }
 
@@ -455,7 +473,7 @@ function falarTextoComSintoniaVoz(texto) {
     window.speechSynthesis.speak(utt);
 }
 
-// Transição para o Elayon Health (Index do elayon-crs-triagem)
+// Transição para o Elayon Health
 function irParaElayonHealth() {
     window.location.href = 'https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/index.html';
 }
