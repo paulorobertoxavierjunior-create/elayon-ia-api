@@ -1,8 +1,8 @@
 // ==========================================================================
-// [ELAYON SPACE] COCKPIT CLÍNICO SIMBIÓTICO • SINCRONIA EXATA DE TOKENS
+// [ELAYON SPACE] COCKPIT CLÍNICO SIMBIÓTICO • v2.1.0 (SINCRONIA EXATA)
 // ==========================================================================
 const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6Inhsa3FnZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
@@ -24,7 +24,6 @@ let recognitionInstance = null;
 let keepRecognitionAlive = false;
 
 let serieTemporalAtual = [];
-let amostrasPorSegundoSessao = [];
 let ultimoAudioBase64 = null;
 let ultimoBlobAudio = null;
 
@@ -39,19 +38,20 @@ function addLog(msg) {
         logBody.scrollTop = logBody.scrollHeight;
         if (logCount) logCount.textContent = logBody.children.length;
     }
-    console.log(`[ELAYON 10.2] ${msg}`);
+    console.log(`[ELAYON 2.1.0] ${msg}`);
 }
 
 async function initCockpit() {
-    addLog('Inicializando Cockpit e sincronizando tokens do perfil na tabela profiles...');
-
-    // Mostra estado de carregamento inicial
-    document.getElementById('hudTokens').textContent = '...';
+    addLog('Inicializando Cockpit v2.1.0 • Sincronizando tokens do Supabase...');
+    
+    // Feedback imediato no HUD
+    const hudTokensEl = document.getElementById('hudTokens');
+    if (hudTokensEl) hudTokensEl.textContent = '...';
 
     try {
         const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
         if (authError || !session || !session.user) {
-            addLog('Sessão não encontrada. Redirecionando para login...');
+            addLog('Sessão não encontrada ou expirada. Redirecionando para login...');
             window.location.href = 'login.html';
             return;
         }
@@ -59,7 +59,7 @@ async function initCockpit() {
         currentUser = session.user;
         document.getElementById('userDisplayEmail').textContent = `ID: ${currentUser.id}`;
 
-        // Consulta exata na tabela profiles onde o perfil é salvo
+        // Consulta exata e prioritária na tabela profiles
         const { data: profile, error: profileError } = await supabaseClient
             .from('profiles')
             .select('tokens, nome, avatar_url')
@@ -68,29 +68,31 @@ async function initCockpit() {
 
         if (profile) {
             currentTokens = profile.tokens ?? 100;
-            document.getElementById('hudTokens').textContent = currentTokens;
+            if (hudTokensEl) hudTokensEl.textContent = currentTokens;
             if (profile.nome) document.getElementById('userDisplayName').textContent = profile.nome;
             if (profile.avatar_url) document.getElementById('userAvatarImg').src = profile.avatar_url;
-            addLog(`Tokens carregados com sucesso do Supabase: ${currentTokens}`);
+            addLog(`✅ Tokens sincronizados com sucesso da tabela profiles: ${currentTokens}`);
         } else {
-            // Caso o perfil não exista ainda, cria com 100 tokens padrão
+            // Se o perfil ainda não existir, cria com 100 tokens padrão
             currentTokens = 100;
-            document.getElementById('hudTokens').textContent = currentTokens;
-            document.getElementById('userDisplayName').textContent = currentUser.user_metadata?.nome || currentUser.email.split('@')[0];
+            if (hudTokensEl) hudTokensEl.textContent = currentTokens;
+            const nomeFallback = currentUser.email.split('@')[0];
+            document.getElementById('userDisplayName').textContent = nomeFallback;
             
             await supabaseClient.from('profiles').upsert({
                 id: currentUser.id,
                 email: currentUser.email,
                 tokens: 100,
-                nome: currentUser.email.split('@')[0]
+                nome: nomeFallback,
+                papel: 'usuario'
             });
-            addLog('Perfil inicial criado automaticamente no Supabase.');
+            addLog('⚡ Perfil inicial gerado automaticamente no Supabase.');
         }
 
     } catch (e) {
-        addLog('Erro ao buscar tokens do perfil: ' + e.message);
+        addLog('❌ Erro crítico ao buscar tokens: ' + e.message);
         currentTokens = 100;
-        document.getElementById('hudTokens').textContent = currentTokens;
+        if (hudTokensEl) hudTokensEl.textContent = currentTokens;
     }
 
     await carregarBufferFifoDoBanco();
@@ -101,7 +103,7 @@ async function initCockpit() {
 document.getElementById('btnLigarIaGlobal')?.addEventListener('click', () => {
     const msgApresentacao = "Olá! Aqui é a IA Global dos Sistemas Elayon Space. Vamos iniciar as etapas de calibração fônica para liberação do Elayon Health.";
     falarTextoComSintoniaVoz(msgApresentacao);
-    addLog('IA Global acionada.');
+    addLog('IA Global acionada por voz.');
 });
 
 // ==========================================
@@ -163,7 +165,6 @@ if (btnMic) {
                 tempoDecorrido = 0;
                 transcricaoBrutaIpsisLiteris = "";
                 serieTemporalAtual = [];
-                amostrasPorSegundoSessao = [];
                 
                 const campoTexto = document.getElementById('txtTranscricaoEditavel');
                 if (campoTexto) campoTexto.value = "";
@@ -194,7 +195,6 @@ if (btnMic) {
                     };
 
                     serieTemporalAtual.push(quadro);
-                    amostrasPorSegundoSessao.push(quadro);
                     desenharSerieNasEstantes(serieTemporalAtual);
 
                     btnMic.textContent = `⏹️ Gravando Etapa ${etapasCalibracaoVoz} (${tempoDecorrido}s / 30s)... (Clique para Encerrar)`;
@@ -282,7 +282,7 @@ async function confirmarEfetivacaoSessao() {
     currentTokens -= 1;
     document.getElementById('hudTokens').textContent = currentTokens;
     
-    // Atualiza diretamente na tabela profiles do Supabase
+    // Atualiza imediatamente o saldo na tabela profiles do Supabase
     if (currentUser) {
         await supabaseClient.from('profiles').update({ tokens: currentTokens }).eq('id', currentUser.id).catch((err)=>{
             addLog('Erro ao atualizar token no Supabase: ' + err.message);
@@ -473,7 +473,7 @@ function falarTextoComSintoniaVoz(texto) {
     window.speechSynthesis.speak(utt);
 }
 
-// Transição para o Elayon Health
+// Transição exata para o Elayon Health (Index do elayon-crs-triagem)
 function irParaElayonHealth() {
     window.location.href = 'https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/index.html';
 }
