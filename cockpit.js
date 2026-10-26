@@ -1,5 +1,5 @@
 // ==========================================================================
-// [ELAYON SPACE] COCKPIT CLÍNICO SIMBIÓTICO • TOKENS REAIS & CALIBRAÇÃO 3 ETAPAS
+// [ELAYON SPACE] COCKPIT CLÍNICO SIMBIÓTICO • SINCRONIA EXATA DE TOKENS
 // ==========================================================================
 const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6Inhsa3FnZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
@@ -43,12 +43,12 @@ function addLog(msg) {
 }
 
 async function initCockpit() {
-    addLog('Inicializando ecossistema e buscando tokens reais do perfil...');
+    addLog('Inicializando Cockpit e sincronizando tokens do perfil...');
 
     try {
         const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
         if (authError || !session || !session.user) {
-            addLog('Nenhuma sessão ativa encontrada. Redirecionando para login...');
+            addLog('Sessão não encontrada. Redirecionando para login...');
             window.location.href = 'login.html';
             return;
         }
@@ -56,10 +56,10 @@ async function initCockpit() {
         currentUser = session.user;
         document.getElementById('userDisplayEmail').textContent = `ID: ${currentUser.id}`;
 
-        // Busca exata do perfil e tokens reais no Supabase
+        // Busca exata e prioritária do saldo de tokens na tabela profiles
         const { data: profile, error: profileError } = await supabaseClient
             .from('profiles')
-            .select('*')
+            .select('tokens, nome, avatar_url')
             .eq('id', currentUser.id)
             .maybeSingle();
 
@@ -68,15 +68,15 @@ async function initCockpit() {
             document.getElementById('hudTokens').textContent = currentTokens;
             if (profile.nome) document.getElementById('userDisplayName').textContent = profile.nome;
             if (profile.avatar_url) document.getElementById('userAvatarImg').src = profile.avatar_url;
-            addLog(`Perfil carregado: ${profile.nome} | Tokens: ${currentTokens}`);
+            addLog(`Tokens sincronizados com sucesso: ${currentTokens}`);
         } else {
-            // Fallback caso o perfil ainda não exista na tabela
-            document.getElementById('userDisplayName').textContent = currentUser.user_metadata?.nome || 'Operador Elayon';
             document.getElementById('hudTokens').textContent = currentTokens;
+            document.getElementById('userDisplayName').textContent = currentUser.user_metadata?.nome || 'Operador Elayon';
         }
 
     } catch (e) {
-        addLog('Erro ao carregar perfil do Supabase: ' + e.message);
+        addLog('Erro ao buscar tokens do perfil: ' + e.message);
+        document.getElementById('hudTokens').textContent = currentTokens;
     }
 
     await carregarBufferFifoDoBanco();
@@ -385,7 +385,6 @@ async function carregarBufferFifoDoBanco() {
         }));
         atualizarExibicaoFifoVisual();
         
-        // Se já tiver 3 etapas no banco, libera o Health direto
         if (bufferSessoesFifo.length >= 3) {
             etapasCalibracaoVoz = 3;
             document.getElementById('calibraStatus').textContent = '🟢 Sistema Calibrado (3/3)';
