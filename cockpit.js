@@ -1,13 +1,13 @@
 // ==========================================================================
-// [ELAYON SPACE] MOTOR CLÍNICO SIMBIÓTICO • TRANSCRIÇÃO + GRÁFICOS + FIFO
+// [ELAYON SPACE] COCKPIT CLÍNICO SIMBIÓTICO • TOKENS REAIS & CALIBRAÇÃO 3 ETAPAS
 // ==========================================================================
 const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6Inhsa3FnZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
-let currentTokens = 95;
-let etapasCalibracaoVoz = 1;
+let currentTokens = 100;
+let etapasCalibracaoVoz = 1; // 1, 2 e 3 (Baseline)
 let bufferSessoesFifo = [];
 
 let audioCtx = null;
@@ -19,9 +19,6 @@ let isRecording = false;
 let metricsInterval = null;
 
 let tempoDecorrido = 0;
-let timerContador = null;
-
-// Controle da Transcrição Ipsis Literis (Com Auto-Restart contra corte de 1s)
 let transcricaoBrutaIpsisLiteris = "";
 let recognitionInstance = null;
 let keepRecognitionAlive = false;
@@ -46,30 +43,40 @@ function addLog(msg) {
 }
 
 async function initCockpit() {
-    addLog('Inicializando ecossistema com transcrição e linha temporal viva...');
-    document.getElementById('userDisplayName').textContent = 'Paulo Xavier';
-    document.getElementById('userDisplayEmail').textContent = `ID: c708823f-a48a-41f0-948f-287eee484821`;
-    document.getElementById('hudTokens').textContent = currentTokens;
+    addLog('Inicializando ecossistema e buscando tokens reais do perfil...');
 
     try {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session && session.user) {
-            currentUser = session.user;
-            const { data: profile } = await supabaseClient
-                .from('profiles')
-                .select('*')
-                .eq('id', currentUser.id)
-                .maybeSingle();
-
-            if (profile) {
-                currentTokens = profile.tokens ?? 95;
-                document.getElementById('hudTokens').textContent = currentTokens;
-                if (profile.nome) document.getElementById('userDisplayName').textContent = profile.nome;
-                if (profile.avatar_url) document.getElementById('userAvatarImg').src = profile.avatar_url;
-            }
+        const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
+        if (authError || !session || !session.user) {
+            addLog('Nenhuma sessão ativa encontrada. Redirecionando para login...');
+            window.location.href = 'login.html';
+            return;
         }
+
+        currentUser = session.user;
+        document.getElementById('userDisplayEmail').textContent = `ID: ${currentUser.id}`;
+
+        // Busca exata do perfil e tokens reais no Supabase
+        const { data: profile, error: profileError } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('id', currentUser.id)
+            .maybeSingle();
+
+        if (profile) {
+            currentTokens = profile.tokens ?? 100;
+            document.getElementById('hudTokens').textContent = currentTokens;
+            if (profile.nome) document.getElementById('userDisplayName').textContent = profile.nome;
+            if (profile.avatar_url) document.getElementById('userAvatarImg').src = profile.avatar_url;
+            addLog(`Perfil carregado: ${profile.nome} | Tokens: ${currentTokens}`);
+        } else {
+            // Fallback caso o perfil ainda não exista na tabela
+            document.getElementById('userDisplayName').textContent = currentUser.user_metadata?.nome || 'Operador Elayon';
+            document.getElementById('hudTokens').textContent = currentTokens;
+        }
+
     } catch (e) {
-        addLog('Modo local resiliente ativo.');
+        addLog('Erro ao carregar perfil do Supabase: ' + e.message);
     }
 
     await carregarBufferFifoDoBanco();
@@ -78,83 +85,52 @@ async function initCockpit() {
 
 // Apresentação por Voz da IA Global
 document.getElementById('btnLigarIaGlobal')?.addEventListener('click', () => {
-    const msgApresentacao = "Olá, Paulo! Aqui é a IA Global dos Sistemas Elayon Space. Transcrição e linha temporal ativadas. Vamos iniciar.";
+    const msgApresentacao = "Olá! Aqui é a IA Global dos Sistemas Elayon Space. Vamos iniciar as etapas de calibração fônica para liberação do Elayon Health.";
     falarTextoComSintoniaVoz(msgApresentacao);
     addLog('IA Global acionada.');
 });
 
 // ==========================================
-// [BIZU DA TRANSCRIÇÃO] SPEECH RECOGNITION BLINDADO
+// TRANSCRIÇÃO IPIS LITERIS BLINDADA
 // ==========================================
 function iniciarTranscricaoIpsisLiteris() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-        addLog('SpeechRecognition não suportado neste navegador.');
-        return;
-    }
+    if (!SpeechRecognition) return;
 
     recognitionInstance = new SpeechRecognition();
     recognitionInstance.lang = 'pt-BR';
     recognitionInstance.interimResults = true;
     recognitionInstance.continuous = true;
 
-    recognitionInstance.onstart = () => {
-        addLog('Canal de transcrição Ipsis Literis iniciado.');
-    };
-
     recognitionInstance.onresult = (event) => {
         let textoFinal = "";
         let textoParcial = "";
-
         for (let i = event.resultIndex; i < event.results.length; i++) {
             const trecho = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-                textoFinal += trecho + " ";
-            } else {
-                textoParcial += trecho + " ";
-            }
+            if (event.results[i].isFinal) textoFinal += trecho + " ";
+            else textoParcial += trecho + " ";
         }
-
-        if (textoFinal) {
-            transcricaoBrutaIpsisLiteris += textoFinal;
-        }
-
-        const textoCompleto = (transcricaoBrutaIpsisLiteris + " " + textoParcial).trim();
+        if (textoFinal) transcricaoBrutaIpsisLiteris += textoFinal;
         const campoTexto = document.getElementById('txtTranscricaoEditavel');
-        if (campoTexto) {
-            campoTexto.value = textoCompleto;
-        }
+        if (campoTexto) campoTexto.value = (transcricaoBrutaIpsisLiteris + " " + textoParcial).trim();
     };
 
-    // Auto-Restart obrigatório para evitar o fechamento por silêncio de 1s
     recognitionInstance.onend = () => {
         if (keepRecognitionAlive && isRecording && tempoDecorrido < 30) {
-            try {
-                recognitionInstance.start();
-            } catch (e) {
-                // Evita conflito se já estiver reiniciando
-            }
+            try { recognitionInstance.start(); } catch (e) {}
         }
-    };
-
-    recognitionInstance.onerror = (event) => {
-        addLog(`Aviso de Transcrição: ${event.error}`);
     };
 
     keepRecognitionAlive = true;
-    try {
-        recognitionInstance.start();
-    } catch (e) {
-        addLog('Erro ao iniciar reconhecimento de voz.');
-    }
+    try { recognitionInstance.start(); } catch (e) {}
 }
 
-// Botão do Supermicrofone (Grava Áudio, Gráficos e Transcreve em Paralelo)
+// Supermicrofone de Calibração (30s)
 const btnMic = document.getElementById('btnMicSimple');
 if (btnMic) {
     btnMic.addEventListener('click', async () => {
         if (!isRecording) {
-            addLog('Iniciando captação de 30s (Tokens intactos até confirmação).');
+            addLog(`Iniciando captação para Calibração (Etapa ${etapasCalibracaoVoz}/3).`);
 
             try {
                 micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -180,13 +156,11 @@ if (btnMic) {
                 
                 ocultarAcoesValidacao();
 
-                btnMic.textContent = `⏹️ Gravando (0s / 30s max)... (Clique para Encerrar)`;
+                btnMic.textContent = `⏹️ Gravando Etapa ${etapasCalibracaoVoz} (${tempoDecorrido}s / 30s)... (Clique para Encerrar)`;
                 btnMic.style.background = 'linear-gradient(135deg, #e63946, #ff7b00)';
 
-                // Dispara o motor de transcrição simultâneo
                 iniciarTranscricaoIpsisLiteris();
 
-                // Amostragem rítmica a cada 1 segundo (Estilo Teste 10.1)
                 metricsInterval = setInterval(() => {
                     if (!isRecording) return;
                     tempoDecorrido++;
@@ -207,10 +181,9 @@ if (btnMic) {
 
                     serieTemporalAtual.push(quadro);
                     amostrasPorSegundoSessao.push(quadro);
-
                     desenharSerieNasEstantes(serieTemporalAtual);
 
-                    btnMic.textContent = `⏹️ Gravando (${tempoDecorrido}s / 30s max)... (Clique para Encerrar)`;
+                    btnMic.textContent = `⏹️ Gravando Etapa ${etapasCalibracaoVoz} (${tempoDecorrido}s / 30s)... (Clique para Encerrar)`;
                     if (tempoDecorrido >= 30) encerrarParaValidacao();
                 }, 1000);
 
@@ -224,26 +197,16 @@ if (btnMic) {
     });
 }
 
-// ==========================================================================
-// VALIDAÇÃO, FIFO E SUPABASE
-// ==========================================================================
 function encerrarParaValidacao() {
     isRecording = false;
     keepRecognitionAlive = false;
 
     if (metricsInterval) clearInterval(metricsInterval);
-    if (recognitionInstance) {
-        try { recognitionInstance.stop(); } catch(e) {}
-    }
+    if (recognitionInstance) try { recognitionInstance.stop(); } catch(e) {}
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    if (micStream) micStream.getTracks().forEach(t => t.stop());
 
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-    }
-    if (micStream) {
-        micStream.getTracks().forEach(t => t.stop());
-    }
-
-    btnMic.textContent = '🎙️ Pressione para Falar (Nova Sessão)';
+    btnMic.textContent = '🎙️ Pressione para Falar (Nova Tentativa)';
     btnMic.style.background = 'linear-gradient(135deg, var(--danger), #f06292)';
 
     mediaRecorder.onstop = () => {
@@ -251,7 +214,7 @@ function encerrarParaValidacao() {
         const reader = new FileReader();
         reader.onloadend = () => {
             ultimoAudioBase64 = reader.result;
-            addLog(`Captação fônica de ${tempoDecorrido}s finalizada. Aguardando validação.`);
+            addLog(`Calibração ${etapasCalibracaoVoz} finalizada. Aguardando confirmação.`);
             exibirAcoesValidacao();
         };
         reader.readAsDataURL(ultimoBlobAudio);
@@ -266,7 +229,7 @@ function exibirAcoesValidacao() {
         containerAcoes.style.cssText = "display: flex; gap: 10px; margin-top: 10px; margin-bottom: 10px;";
         
         containerAcoes.innerHTML = `
-            <button class="btn-action btn-primary" id="btnConfirmarSessao" style="background: var(--success); flex: 1; margin:0;">✅ Confirmar Sessão (Conta 1 Token)</button>
+            <button class="btn-action btn-primary" id="btnConfirmarSessao" style="background: var(--success); flex: 1; margin:0;">✅ Confirmar Calibração ${etapasCalibracaoVoz} (Conta 1 Token)</button>
             <button class="btn-action btn-secondary" id="btnRefazerSessao" style="background: var(--warning); color:#000; flex: 1; margin:0;">🔄 Refazer (Sem Custo)</button>
         `;
         const chatSection = document.querySelector('.chat-section');
@@ -284,14 +247,14 @@ function ocultarAcoesValidacao() {
 }
 
 function refazerSessaoLimpa() {
-    addLog('Sessão descartada pelo operador. Tokens preservados.');
+    addLog('Calibração descartada. Tokens preservados.');
     document.getElementById('txtTranscricaoEditavel').value = "";
     ultimoAudioBase64 = null;
     ultimoBlobAudio = null;
     serieTemporalAtual = [];
     desenharTodasEstantesVazias();
     ocultarAcoesValidacao();
-    alert('🔄 Sessão descartada com sucesso!');
+    alert('🔄 Sessão descartada.');
 }
 
 async function confirmarEfetivacaoSessao() {
@@ -307,9 +270,9 @@ async function confirmarEfetivacaoSessao() {
     if (currentUser) {
         await supabaseClient.from('profiles').update({ tokens: currentTokens }).eq('id', currentUser.id).catch(()=>{});
     }
-    addLog('Token debitado após confirmação explícita.');
+    addLog(`Token debitado. Calibração ${etapasCalibracaoVoz} confirmada.`);
 
-    const textoBruto = document.getElementById('txtTranscricaoEditavel').value.trim() || "Fonação confirmada.";
+    const textoBruto = document.getElementById('txtTranscricaoEditavel').value.trim() || "Calibração confirmada.";
     const snapshotsGraficos = capturarSnapshotsCanvas();
 
     const chatBox = document.getElementById('chatBox');
@@ -318,47 +281,48 @@ async function confirmarEfetivacaoSessao() {
     userMsg.textContent = textoBruto;
     chatBox.appendChild(userMsg);
 
-    await rotacionarEGravarFifoSessao(tempoDecorrido, textoBruto, ultimoAudioBase64, snapshotsGraficos);
+    await rotacionarEGravarFifoSessao(tempoDecorrido, textoBruto, ultimoAudioBase64, snapshotsGraficos, etapasCalibracaoVoz);
 
     setTimeout(() => {
         const adMsg = document.createElement('div');
         adMsg.className = 'chat-message ad';
         
-        let resposta = `Sessão confirmada, Paulo. Captei o som e o tempo exato (${tempoDecorrido}s). Balão fechado no FIFO.`;
-        
+        let resposta = "";
         if (etapasCalibracaoVoz === 1) {
             etapasCalibracaoVoz = 2;
             document.getElementById('calibStepTitle').textContent = '🎙️ 2ª Calibração de Voz (Etapa 2/3)';
-            document.getElementById('calibraStatus').textContent = '🎙️ Calibração de Voz (Etapa 2/3)';
+            document.getElementById('calibraStatus').textContent = '🎙️ Calibração 2/3';
+            resposta = "Excelente, 1ª calibração concluída! Vamos para a segunda etapa.";
         } else if (etapasCalibracaoVoz === 2) {
             etapasCalibracaoVoz = 3;
-            document.getElementById('calibStepTitle').textContent = '🎙️ 3ª Calibração de Voz (Baseline)';
-            document.getElementById('calibraStatus').textContent = '🎙️ Calibração de Voz (Etapa 3/3)';
+            document.getElementById('calibStepTitle').textContent = '🎙️ 3ª Calibração de Voz (Baseline Final)';
+            document.getElementById('calibraStatus').textContent = '🎙️ Baseline (Etapa 3/3)';
+            resposta = "Perfeito, 2ª calibração confirmada. Realize agora a 3ª etapa (Baseline).";
         } else {
-            document.getElementById('calibStepTitle').textContent = '🟢 Ecossistema Ativo & Calibrado';
+            document.getElementById('calibStepTitle').textContent = '🟢 Calibração Concluída com Sucesso';
             document.getElementById('calibraStatus').textContent = '🟢 Sistema Calibrado (3/3)';
-            document.getElementById('btnFinalizarCalibracao').style.display = 'block';
-            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.add('liberado'));
+            document.getElementById('btnLiberarHealth').style.display = 'block';
             btnMic.style.display = 'none';
+            resposta = "Baseline estabelecida com sucesso! O acesso ao Elayon Health está totalmente liberado.";
         }
 
         adMsg.innerHTML = `<strong>Ad (Elayon Space):</strong> ${resposta}`;
         chatBox.appendChild(adMsg);
         chatBox.scrollTop = chatBox.scrollHeight;
-
         falarTextoComSintoniaVoz(resposta);
     }, 800);
 }
 
 // FIFO & Supabase
-async function rotacionarEGravarFifoSessao(duracao, transcricao, audioBase64, snapshots) {
+async function rotacionarEGravarFifoSessao(duracao, transcricao, audioBase64, snapshots, etapa) {
     const novaSessaoObj = {
         duracao: duracao,
         transcricao: transcricao,
         audioBase64: audioBase64,
         snapshots: snapshots,
         serie: [...serieTemporalAtual],
-        data: new Date().toLocaleTimeString()
+        data: new Date().toLocaleTimeString(),
+        etapa: etapa
     };
 
     bufferSessoesFifo.unshift(novaSessaoObj);
@@ -370,6 +334,7 @@ async function rotacionarEGravarFifoSessao(duracao, transcricao, audioBase64, sn
         await supabaseClient.from('elayon_sessoes').insert({
             user_id: currentUser.id,
             sessao_index: bufferSessoesFifo.length,
+            etapa_calibracao: etapa,
             transcricao_editada: transcricao,
             audio_base64: audioBase64,
             duracao_sec: duracao,
@@ -385,33 +350,17 @@ function atualizarExibicaoFifoVisual() {
         const playerElem = document.getElementById(`audioPlayer${i}`);
 
         if (sessao && infoElem && playerElem) {
-            infoElem.textContent = `Gravação (${sessao.duracao}s) • ${sessao.data}`;
+            infoElem.textContent = `Etapa ${sessao.etapa || i} (${sessao.duracao}s) • ${sessao.data}`;
             playerElem.src = sessao.audioBase64;
             playerElem.style.display = 'block';
-        }
-    }
-
-    if (bufferSessoesFifo.length >= 3) {
-        const btnPdf = document.getElementById('btnGerarPdf');
-        if (btnPdf) {
-            btnPdf.style.opacity = '1';
-            btnPdf.style.pointerEvents = 'auto';
         }
     }
 }
 
 function carregarSessaoVisual(numSessao) {
     const sessao = bufferSessoesFifo[numSessao - 1];
-    if (!sessao) {
-        alert('Posição FIFO vazia.');
-        return;
-    }
-
-    if (sessao.serie) {
-        desenharSerieNasEstantes(sessao.serie);
-        addLog(`Sessão ${numSessao} projetada nas estantes temporais.`);
-    }
-
+    if (!sessao) { alert('Posição FIFO vazia.'); return; }
+    if (sessao.serie) desenharSerieNasEstantes(sessao.serie);
     const player = document.getElementById(`audioPlayer${numSessao}`);
     if (player) player.play();
 }
@@ -431,13 +380,21 @@ async function carregarBufferFifoDoBanco() {
             transcricao: s.transcricao_editada,
             audioBase64: s.audio_base64,
             snapshots: s.snapshots_graficos,
-            data: new Date(s.criado_em).toLocaleTimeString()
+            data: new Date(s.criado_em).toLocaleTimeString(),
+            etapa: s.etapa_calibracao || 1
         }));
         atualizarExibicaoFifoVisual();
+        
+        // Se já tiver 3 etapas no banco, libera o Health direto
+        if (bufferSessoesFifo.length >= 3) {
+            etapasCalibracaoVoz = 3;
+            document.getElementById('calibraStatus').textContent = '🟢 Sistema Calibrado (3/3)';
+            document.getElementById('btnLiberarHealth').style.display = 'block';
+            if(btnMic) btnMic.style.display = 'none';
+        }
     }
 }
 
-// Renderização Gráfica Estilo Teste 10.1 (Bolsa de Valores / Linha Viva)
 function desenharSerieNasEstantes(serie) {
     for (let i = 1; i <= 8; i++) {
         const cv = document.getElementById(`cvGraph${i}`);
@@ -448,19 +405,16 @@ function desenharSerieNasEstantes(serie) {
 
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, W, H);
-
         ctx.strokeStyle = '#eef4f5';
         ctx.lineWidth = 1;
         for (let y = 20; y < H; y += 20) {
             ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
         }
-
         if (serie.length === 0) continue;
 
         ctx.strokeStyle = (i % 2 === 0) ? '#2a9d8f' : '#0ea5e9';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
-
         const maxPontos = Math.max(serie.length, 30);
         const stepX = W / (maxPontos - 1);
 
@@ -468,7 +422,6 @@ function desenharSerieNasEstantes(serie) {
             const x = idx * stepX;
             const val = quadro.medios || quadro.graves || 50;
             const y = H - ((val / 100) * (H - 20) + 10);
-
             if (idx === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
         });
@@ -503,20 +456,11 @@ function falarTextoComSintoniaVoz(texto) {
     window.speechSynthesis.speak(utt);
 }
 
-function gerarRelatorioPdfCompleto() {
-    alert('📄 Relatório PDF integrado com a Síntese de Tendência gerado com sucesso!');
+// Transição para o Elayon Health (Index do elayon-crs-triagem)
+function irParaElayonHealth() {
+    window.location.href = 'https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/index.html';
 }
 
-// Redirecionamento correto para o Elayon Health
-function abrirFerramentaComApi(nomeModulo) {
-    if (nomeModulo === 'Health') {
-        window.location.href = 'https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/index.html';
-    } else {
-        window.location.href = `elayon-${nomeModulo.toLowerCase()}.html?api_key=lab-mode`;
-    }
-}
-
-// Drawer de Logs
 const logsDrawer = document.getElementById('logsDrawer');
 const logsToggleBtn = document.getElementById('logsToggleBtn');
 if (logsToggleBtn) {
