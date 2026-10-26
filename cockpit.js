@@ -1,5 +1,5 @@
 // ==========================================================================
-// [ELAYON SPACE] COCKPIT CLÍNICO SIMBIÓTICO • v2.1.0 (SINCRONIA EXATA)
+// [ELAYON SPACE] COCKPIT CLÍNICO SIMBIÓTICO • v2.1.1 (PARTE 1 DE 2)
 // ==========================================================================
 const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
@@ -38,13 +38,12 @@ function addLog(msg) {
         logBody.scrollTop = logBody.scrollHeight;
         if (logCount) logCount.textContent = logBody.children.length;
     }
-    console.log(`[ELAYON 2.1.0] ${msg}`);
+    console.log(`[ELAYON 2.1.1] ${msg}`);
 }
 
 async function initCockpit() {
-    addLog('Inicializando Cockpit v2.1.0 • Sincronizando tokens do Supabase...');
+    addLog('Inicializando Cockpit v2.1.1 • Sincronizando tokens do Supabase...');
     
-    // Feedback imediato no HUD
     const hudTokensEl = document.getElementById('hudTokens');
     if (hudTokensEl) hudTokensEl.textContent = '...';
 
@@ -59,7 +58,7 @@ async function initCockpit() {
         currentUser = session.user;
         document.getElementById('userDisplayEmail').textContent = `ID: ${currentUser.id}`;
 
-        // Consulta exata e prioritária na tabela profiles
+        // Consulta exata na mesma fonte da tabela profiles
         const { data: profile, error: profileError } = await supabaseClient
             .from('profiles')
             .select('tokens, nome, avatar_url')
@@ -71,9 +70,8 @@ async function initCockpit() {
             if (hudTokensEl) hudTokensEl.textContent = currentTokens;
             if (profile.nome) document.getElementById('userDisplayName').textContent = profile.nome;
             if (profile.avatar_url) document.getElementById('userAvatarImg').src = profile.avatar_url;
-            addLog(`✅ Tokens sincronizados com sucesso da tabela profiles: ${currentTokens}`);
+            addLog(`✅ Tokens sincronizados com sucesso: ${currentTokens}`);
         } else {
-            // Se o perfil ainda não existir, cria com 100 tokens padrão
             currentTokens = 100;
             if (hudTokensEl) hudTokensEl.textContent = currentTokens;
             const nomeFallback = currentUser.email.split('@')[0];
@@ -141,25 +139,38 @@ function iniciarTranscricaoIpsisLiteris() {
     try { recognitionInstance.start(); } catch (e) {}
 }
 
-// Supermicrofone de Calibração (30s)
+// Supermicrofone Blindado contra Conflito de Hardware
 const btnMic = document.getElementById('btnMicSimple');
 if (btnMic) {
-    btnMic.addEventListener('click', async () => {
+    btnMic.onclick = async () => {
         if (!isRecording) {
-            addLog(`Iniciando captação para Calibração (Etapa ${etapasCalibracaoVoz}/3).`);
+            addLog(`Iniciando captação blindada para Calibração (Etapa ${etapasCalibracaoVoz}/3).`);
 
             try {
-                micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                if (micStream) {
+                    micStream.getTracks().forEach(track => track.stop());
+                }
+
+                micStream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
+                });
+
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') await audioCtx.resume();
+
                 analyser = audioCtx.createAnalyser();
                 const source = audioCtx.createMediaStreamSource(micStream);
                 source.connect(analyser);
                 analyser.fftSize = 256;
 
                 audioChunks = [];
-                mediaRecorder = new MediaRecorder(micStream);
-                mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-                mediaRecorder.start();
+                const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
+                mediaRecorder = new MediaRecorder(micStream, { mimeType });
+
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data && e.data.size > 0) audioChunks.push(e.data);
+                };
+                mediaRecorder.start(250);
 
                 isRecording = true;
                 tempoDecorrido = 0;
@@ -171,7 +182,7 @@ if (btnMic) {
                 
                 ocultarAcoesValidacao();
 
-                btnMic.textContent = `⏹️ Gravando Etapa ${etapasCalibracaoVoz} (${tempoDecorrido}s / 30s)... (Clique para Encerrar)`;
+                btnMic.textContent = `⏹️ Gravando Etapa ${etapasCalibracaoVoz} (0s / 30s)... (Toque para Encerrar)`;
                 btnMic.style.background = 'linear-gradient(135deg, #e63946, #ff7b00)';
 
                 iniciarTranscricaoIpsisLiteris();
@@ -197,18 +208,21 @@ if (btnMic) {
                     serieTemporalAtual.push(quadro);
                     desenharSerieNasEstantes(serieTemporalAtual);
 
-                    btnMic.textContent = `⏹️ Gravando Etapa ${etapasCalibracaoVoz} (${tempoDecorrido}s / 30s)... (Clique para Encerrar)`;
+                    btnMic.textContent = `⏹️ Gravando Etapa ${etapasCalibracaoVoz} (${tempoDecorrido}s / 30s)... (Toque para Encerrar)`;
                     if (tempoDecorrido >= 30) encerrarParaValidacao();
                 }, 1000);
 
             } catch (e) {
-                addLog('Erro no microfone: ' + e.message);
-                alert('Permita o uso do microfone.');
+                addLog('❌ Conflito ou bloqueio no microfone: ' + e.message);
+                alert('⚠️ O microfone está ocupado por outra aba ou a permissão foi negada. Feche abas paralelas e tente novamente.');
+                isRecording = false;
+                btnMic.textContent = '🎙️ Pressione para Falar (Tentar Novamente)';
+                btnMic.style.background = 'linear-gradient(135deg, var(--danger), #f06292)';
             }
         } else {
             encerrarParaValidacao();
         }
-    });
+    };
 }
 
 function encerrarParaValidacao() {
@@ -275,20 +289,20 @@ async function confirmarEfetivacaoSessao() {
     ocultarAcoesValidacao();
 
     if (currentTokens <= 0) {
-        alert('⚠️ Tokens esgotados!');
+        alert('⚠️ Tokens esgotados no perfil!');
         return;
     }
 
     currentTokens -= 1;
     document.getElementById('hudTokens').textContent = currentTokens;
     
-    // Atualiza imediatamente o saldo na tabela profiles do Supabase
+    // Atualiza o saldo diretamente na tabela profiles do Supabase
     if (currentUser) {
         await supabaseClient.from('profiles').update({ tokens: currentTokens }).eq('id', currentUser.id).catch((err)=>{
             addLog('Erro ao atualizar token no Supabase: ' + err.message);
         });
     }
-    addLog(`Token debitado. Calibração ${etapasCalibracaoVoz} confirmada.`);
+    addLog(`Token debitado com sucesso. Calibração ${etapasCalibracaoVoz} confirmada.`);
 
     const textoBruto = document.getElementById('txtTranscricaoEditavel').value.trim() || "Calibração confirmada.";
     const snapshotsGraficos = capturarSnapshotsCanvas();
@@ -473,9 +487,20 @@ function falarTextoComSintoniaVoz(texto) {
     window.speechSynthesis.speak(utt);
 }
 
-// Transição exata para o Elayon Health (Index do elayon-crs-triagem)
+// Transição blindada para o Elayon Health levando o ID e os Tokens na URL
 function irParaElayonHealth() {
-    window.location.href = 'https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/index.html';
+    if (!currentUser) {
+        alert('⚠️ Sessão de operador não identificada.');
+        return;
+    }
+
+    const targetUrl = new URL('https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/index.html');
+    targetUrl.searchParams.set('user_id', currentUser.id);
+    targetUrl.searchParams.set('tokens', currentTokens);
+    targetUrl.searchParams.set('calibracao', 'concluida_3_fases');
+
+    addLog('🚀 Migrando para o Elayon Health com ID e Tokens preservados.');
+    window.location.href = targetUrl.toString();
 }
 
 const logsDrawer = document.getElementById('logsDrawer');
