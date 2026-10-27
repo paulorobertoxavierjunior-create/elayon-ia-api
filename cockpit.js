@@ -1,8 +1,8 @@
 // ==========================================================================
-// [ELAYON SPACE] COCKPIT CLÍNICO SIMBIÓTICO • v2.2.0 (PARTE 1 DE 2)
+// [ELAYON SPACE] COCKPIT CLÍNICO SIMBIÓTICO • v2.3.0 (PARTE 1 DE 2)
 // ==========================================================================
 const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6Inhsa3FnZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
@@ -27,9 +27,28 @@ let serieTemporalAtual = [];
 let ultimoAudioBase64 = null;
 let ultimoBlobAudio = null;
 
+// Injetar painel de logs de erro e diagnóstico no HTML dinamicamente se não existir
+function injetarPainelLogsSeNecessario() {
+    if (document.getElementById('logsDrawer')) return;
+    const drawer = document.createElement('div');
+    drawer.id = 'logsDrawer';
+    drawer.style.cssText = "position:fixed; bottom:0; left:0; right:0; background:#0a2a2f; color:#3ecfcf; font-family:monospace; font-size:10px; padding:10px; z-index:9999; border-top:2px solid #2a9d8f; max-height:120px; overflow-y:auto; transition:0.3s; transform:translateY(95px);";
+    drawer.innerHTML = `
+        <div id="logsToggleBtn" style="cursor:pointer; font-weight:bold; padding-bottom:4px; border-bottom:1px solid #1a4a50; display:flex; justify-content:space-between;">
+            <span>📋 Gaveta de Logs & Diagnóstico de Erros (Elayon IA API)</span>
+            <span>▲ Abrir/Fechar</span>
+        </div>
+        <div id="logsBody" style="margin-top:6px; max-height:80px; overflow-y:auto;"></div>
+    `;
+    document.body.appendChild(drawer);
+    document.getElementById('logsToggleBtn').onclick = () => {
+        drawer.style.transform = drawer.style.transform === 'translateY(0px)' ? 'translateY(95px)' : 'translateY(0px)';
+    };
+}
+
 function addLog(msg) {
+    injetarPainelLogsSeNecessario();
     const logBody = document.getElementById('logsBody');
-    const logCount = document.getElementById('logCount');
     const timeStr = new Date().toLocaleTimeString();
     if (logBody) {
         const item = document.createElement('div');
@@ -37,13 +56,12 @@ function addLog(msg) {
         item.textContent = `[${timeStr}] ${msg}`;
         logBody.appendChild(item);
         logBody.scrollTop = logBody.scrollHeight;
-        if (logCount) logCount.textContent = logBody.children.length;
     }
-    console.log(`[ELAYON 2.2.0] ${msg}`);
+    console.log(`[ELAYON 2.3.0] ${msg}`);
 }
 
 async function initCockpit() {
-    addLog('Inicializando Cockpit v2.2.0 • Sincronizando tokens do Supabase...');
+    addLog('Inicializando Cockpit v2.3.0 • Sincronizando tokens do Supabase...');
     
     const hudTokensEl = document.getElementById('hudTokens');
     if (hudTokensEl) hudTokensEl.textContent = '...';
@@ -98,9 +116,9 @@ async function initCockpit() {
     desenharTodasEstantesVazias();
 }
 
-// Interação Inicial da IA Global por Etapas
+// Interação Inteligente da IA Global por Etapas
 document.getElementById('btnLigarIaGlobal')?.addEventListener('click', () => {
-    let msgIA = "Olá! Aqui é a IA Global dos Sistemas Elayon Space. Como posso ajudar você hoje?";
+    let msgIA = "Olá! Aqui é a IA Global dos Sistemas Elayon Space. Como posso ajudar?";
     if (etapasCalibracaoVoz === 2) msgIA = "Excelente. O que vamos fazer agora na nossa segunda calibração?";
     if (etapasCalibracaoVoz === 3) msgIA = "Estamos na reta final. Como você está se sentindo para consolidar nossa Baseline?";
     
@@ -120,11 +138,14 @@ function adicionarMensagemChatAd(texto) {
 }
 
 // ==========================================
-// TRANSCRIÇÃO IPIS LITERIS BLINDADA
+// TRANSCRIÇÃO IPIS LITERIS & INPUT DE CHAT
 // ==========================================
 function iniciarTranscricaoIpsisLiteris() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
+    if (!SpeechRecognition) {
+        addLog('⚠️ SpeechRecognition não suportado neste navegador.');
+        return;
+    }
 
     recognitionInstance = new SpeechRecognition();
     recognitionInstance.lang = 'pt-BR';
@@ -144,6 +165,10 @@ function iniciarTranscricaoIpsisLiteris() {
         if (campoTexto) campoTexto.value = (transcricaoBrutaIpsisLiteris + " " + textoParcial).trim();
     };
 
+    recognitionInstance.onerror = (e) => {
+        addLog('⚠️ Erro na transcrição de voz: ' + e.error);
+    };
+
     recognitionInstance.onend = () => {
         if (keepRecognitionAlive && isRecording && tempoDecorrido < 30) {
             try { recognitionInstance.start(); } catch (e) {}
@@ -151,10 +176,10 @@ function iniciarTranscricaoIpsisLiteris() {
     };
 
     keepRecognitionAlive = true;
-    try { recognitionInstance.start(); } catch (e) {}
+    try { recognitionInstance.start(); } catch (e) { addLog('Erro ao iniciar reconhecimento: ' + e.message); }
 }
 
-// Supermicrofone Blindado com Gravação Real de Sessão
+// Supermicrofone Blindado com Gravação Real
 const btnMic = document.getElementById('btnMicSimple');
 if (btnMic) {
     btnMic.onclick = async () => {
@@ -306,6 +331,7 @@ async function confirmarEfetivacaoSessao() {
 
     if (currentTokens <= 0) {
         alert('⚠️ Tokens esgotados no perfil!');
+        addLog('❌ Tentativa de calibração sem tokens disponíveis.');
         return;
     }
 
@@ -314,11 +340,13 @@ async function confirmarEfetivacaoSessao() {
     
     // Atualiza imediatamente o saldo na tabela profiles do Supabase
     if (currentUser) {
-        await supabaseClient.from('profiles').update({ tokens: currentTokens }).eq('id', currentUser.id).catch((err)=>{
-            addLog('Erro ao atualizar token no Supabase: ' + err.message);
-        });
+        const { error: updateErr } = await supabaseClient.from('profiles').update({ tokens: currentTokens }).eq('id', currentUser.id);
+        if (updateErr) {
+            addLog('❌ Erro ao atualizar token no Supabase: ' + updateErr.message);
+        } else {
+            addLog(`✅ Token debitado e persistido na base. Saldo atual: ${currentTokens}`);
+        }
     }
-    addLog(`Token debitado. Calibração ${etapasCalibracaoVoz} confirmada e salva na base.`);
 
     const textoBruto = document.getElementById('txtTranscricaoEditavel').value.trim() || "Calibração confirmada.";
     const snapshotsGraficos = capturarSnapshotsCanvas();
@@ -383,6 +411,7 @@ async function rotacionarEGravarFifoSessao(duracao, transcricao, audioBase64, sn
             duracao_sec: duracao,
             snapshots_graficos: snapshots
         });
+        addLog(`📦 Sessão FIFO ${etapa} salva com sucesso no Supabase.`);
     }
 }
 
@@ -518,7 +547,7 @@ function falarTextoComSintoniaVoz(texto) {
     window.speechSynthesis.speak(utt);
 }
 
-// Transição exata para o Elayon Health via API com ID, Tokens e Calibração
+// Transição exata por API para o Elayon Health com parâmetros completos
 function irParaElayonHealth() {
     if (!currentUser) {
         alert('⚠️ Sessão de operador não identificada.');
@@ -530,7 +559,7 @@ function irParaElayonHealth() {
     targetUrl.searchParams.set('tokens', currentTokens);
     targetUrl.searchParams.set('calibracao', 'concluida_3_fases');
 
-    addLog('🚀 Migrando para o Elayon Health com ID, Tokens e Baseline preservados.');
+    addLog('🚀 Gerando API e migrando para o Elayon Health...');
     window.location.href = targetUrl.toString();
 }
 
