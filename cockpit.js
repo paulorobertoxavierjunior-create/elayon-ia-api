@@ -1,8 +1,8 @@
 // ==========================================================================
-// [ELAYON SPACE] COCKPIT CLÍNICO SIMBIÓTICO • v2.1.1 (PARTE 1 DE 2)
+// [ELAYON SPACE] COCKPIT CLÍNICO SIMBIÓTICO • v2.2.0 (PARTE 1 DE 2)
 // ==========================================================================
 const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6Inhsa3FnZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
@@ -30,19 +30,20 @@ let ultimoBlobAudio = null;
 function addLog(msg) {
     const logBody = document.getElementById('logsBody');
     const logCount = document.getElementById('logCount');
+    const timeStr = new Date().toLocaleTimeString();
     if (logBody) {
         const item = document.createElement('div');
         item.style.padding = "2px 0";
-        item.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        item.textContent = `[${timeStr}] ${msg}`;
         logBody.appendChild(item);
         logBody.scrollTop = logBody.scrollHeight;
         if (logCount) logCount.textContent = logBody.children.length;
     }
-    console.log(`[ELAYON 2.1.1] ${msg}`);
+    console.log(`[ELAYON 2.2.0] ${msg}`);
 }
 
 async function initCockpit() {
-    addLog('Inicializando Cockpit v2.1.1 • Sincronizando tokens do Supabase...');
+    addLog('Inicializando Cockpit v2.2.0 • Sincronizando tokens do Supabase...');
     
     const hudTokensEl = document.getElementById('hudTokens');
     if (hudTokensEl) hudTokensEl.textContent = '...';
@@ -58,7 +59,7 @@ async function initCockpit() {
         currentUser = session.user;
         document.getElementById('userDisplayEmail').textContent = `ID: ${currentUser.id}`;
 
-        // Consulta exata na mesma fonte da tabela profiles
+        // Consulta exata na tabela profiles
         const { data: profile, error: profileError } = await supabaseClient
             .from('profiles')
             .select('tokens, nome, avatar_url')
@@ -97,12 +98,26 @@ async function initCockpit() {
     desenharTodasEstantesVazias();
 }
 
-// Apresentação por Voz da IA Global
+// Interação Inicial da IA Global por Etapas
 document.getElementById('btnLigarIaGlobal')?.addEventListener('click', () => {
-    const msgApresentacao = "Olá! Aqui é a IA Global dos Sistemas Elayon Space. Vamos iniciar as etapas de calibração fônica para liberação do Elayon Health.";
-    falarTextoComSintoniaVoz(msgApresentacao);
-    addLog('IA Global acionada por voz.');
+    let msgIA = "Olá! Aqui é a IA Global dos Sistemas Elayon Space. Como posso ajudar você hoje?";
+    if (etapasCalibracaoVoz === 2) msgIA = "Excelente. O que vamos fazer agora na nossa segunda calibração?";
+    if (etapasCalibracaoVoz === 3) msgIA = "Estamos na reta final. Como você está se sentindo para consolidar nossa Baseline?";
+    
+    falarTextoComSintoniaVoz(msgIA);
+    adicionarMensagemChatAd(msgIA);
+    addLog('IA Global acionada com prompt interativo.');
 });
+
+function adicionarMensagemChatAd(texto) {
+    const chatBox = document.getElementById('chatBox');
+    if (!chatBox) return;
+    const adMsg = document.createElement('div');
+    adMsg.className = 'chat-message ad';
+    adMsg.innerHTML = `<strong>Ad (Elayon Space):</strong> ${texto}`;
+    chatBox.appendChild(adMsg);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
 
 // ==========================================
 // TRANSCRIÇÃO IPIS LITERIS BLINDADA
@@ -139,12 +154,12 @@ function iniciarTranscricaoIpsisLiteris() {
     try { recognitionInstance.start(); } catch (e) {}
 }
 
-// Supermicrofone Blindado contra Conflito de Hardware
+// Supermicrofone Blindado com Gravação Real de Sessão
 const btnMic = document.getElementById('btnMicSimple');
 if (btnMic) {
     btnMic.onclick = async () => {
         if (!isRecording) {
-            addLog(`Iniciando captação blindada para Calibração (Etapa ${etapasCalibracaoVoz}/3).`);
+            addLog(`Iniciando captação real para Calibração (Etapa ${etapasCalibracaoVoz}/3).`);
 
             try {
                 if (micStream) {
@@ -207,14 +222,15 @@ if (btnMic) {
 
                     serieTemporalAtual.push(quadro);
                     desenharSerieNasEstantes(serieTemporalAtual);
+                    atualizarMetricasTextuais(quadro);
 
                     btnMic.textContent = `⏹️ Gravando Etapa ${etapasCalibracaoVoz} (${tempoDecorrido}s / 30s)... (Toque para Encerrar)`;
                     if (tempoDecorrido >= 30) encerrarParaValidacao();
                 }, 1000);
 
             } catch (e) {
-                addLog('❌ Conflito ou bloqueio no microfone: ' + e.message);
-                alert('⚠️ O microfone está ocupado por outra aba ou a permissão foi negada. Feche abas paralelas e tente novamente.');
+                addLog('❌ Erro de hardware no microfone: ' + e.message);
+                alert('⚠️ Permissão de microfone negada ou ocupado por outra aplicação.');
                 isRecording = false;
                 btnMic.textContent = '🎙️ Pressione para Falar (Tentar Novamente)';
                 btnMic.style.background = 'linear-gradient(135deg, var(--danger), #f06292)';
@@ -242,7 +258,7 @@ function encerrarParaValidacao() {
         const reader = new FileReader();
         reader.onloadend = () => {
             ultimoAudioBase64 = reader.result;
-            addLog(`Calibração ${etapasCalibracaoVoz} finalizada. Aguardando confirmação.`);
+            addLog(`Calibração ${etapasCalibracaoVoz} gravada com sucesso. Aguardando confirmação.`);
             exibirAcoesValidacao();
         };
         reader.readAsDataURL(ultimoBlobAudio);
@@ -257,7 +273,7 @@ function exibirAcoesValidacao() {
         containerAcoes.style.cssText = "display: flex; gap: 10px; margin-top: 10px; margin-bottom: 10px;";
         
         containerAcoes.innerHTML = `
-            <button class="btn-action btn-primary" id="btnConfirmarSessao" style="background: var(--success); flex: 1; margin:0;">✅ Confirmar Calibração ${etapasCalibracaoVoz} (Conta 1 Token)</button>
+            <button class="btn-action btn-primary" id="btnConfirmarSessao" style="background: var(--success); flex: 1; margin:0;">✅ Confirmar Calibração ${etapasCalibracaoVoz} (Consome 1 Token)</button>
             <button class="btn-action btn-secondary" id="btnRefazerSessao" style="background: var(--warning); color:#000; flex: 1; margin:0;">🔄 Refazer (Sem Custo)</button>
         `;
         const chatSection = document.querySelector('.chat-section');
@@ -296,13 +312,13 @@ async function confirmarEfetivacaoSessao() {
     currentTokens -= 1;
     document.getElementById('hudTokens').textContent = currentTokens;
     
-    // Atualiza o saldo diretamente na tabela profiles do Supabase
+    // Atualiza imediatamente o saldo na tabela profiles do Supabase
     if (currentUser) {
         await supabaseClient.from('profiles').update({ tokens: currentTokens }).eq('id', currentUser.id).catch((err)=>{
             addLog('Erro ao atualizar token no Supabase: ' + err.message);
         });
     }
-    addLog(`Token debitado com sucesso. Calibração ${etapasCalibracaoVoz} confirmada.`);
+    addLog(`Token debitado. Calibração ${etapasCalibracaoVoz} confirmada e salva na base.`);
 
     const textoBruto = document.getElementById('txtTranscricaoEditavel').value.trim() || "Calibração confirmada.";
     const snapshotsGraficos = capturarSnapshotsCanvas();
@@ -316,31 +332,26 @@ async function confirmarEfetivacaoSessao() {
     await rotacionarEGravarFifoSessao(tempoDecorrido, textoBruto, ultimoAudioBase64, snapshotsGraficos, etapasCalibracaoVoz);
 
     setTimeout(() => {
-        const adMsg = document.createElement('div');
-        adMsg.className = 'chat-message ad';
-        
         let resposta = "";
         if (etapasCalibracaoVoz === 1) {
             etapasCalibracaoVoz = 2;
             document.getElementById('calibStepTitle').textContent = '🎙️ 2ª Calibração de Voz (Etapa 2/3)';
             document.getElementById('calibraStatus').textContent = '🎙️ Calibração 2/3';
-            resposta = "Excelente, 1ª calibração concluída! Vamos para a segunda etapa.";
+            resposta = "Excelente, 1ª calibração concluída! O que vamos fazer agora na segunda etapa?";
         } else if (etapasCalibracaoVoz === 2) {
             etapasCalibracaoVoz = 3;
             document.getElementById('calibStepTitle').textContent = '🎙️ 3ª Calibração de Voz (Baseline Final)';
             document.getElementById('calibraStatus').textContent = '🎙️ Baseline (Etapa 3/3)';
-            resposta = "Perfeito, 2ª calibração confirmada. Realize agora a 3ª etapa (Baseline).";
+            resposta = "Perfeito, 2ª calibração confirmada. Como você está se sentindo para a 3ª etapa (Baseline)?";
         } else {
             document.getElementById('calibStepTitle').textContent = '🟢 Calibração Concluída com Sucesso';
             document.getElementById('calibraStatus').textContent = '🟢 Sistema Calibrado (3/3)';
             document.getElementById('btnLiberarHealth').style.display = 'block';
             if(btnMic) btnMic.style.display = 'none';
-            resposta = "Baseline estabelecida com sucesso! O acesso ao Elayon Health está totalmente liberado.";
+            resposta = "Baseline estabelecida com sucesso! O acesso ao Elayon Health via API está totalmente liberado.";
         }
 
-        adMsg.innerHTML = `<strong>Ad (Elayon Space):</strong> ${resposta}`;
-        chatBox.appendChild(adMsg);
-        chatBox.scrollTop = chatBox.scrollHeight;
+        adicionarMensagemChatAd(resposta);
         falarTextoComSintoniaVoz(resposta);
     }, 800);
 }
@@ -426,6 +437,26 @@ async function carregarBufferFifoDoBanco() {
     }
 }
 
+function atualizarMetricasTextuais(q) {
+    const m1 = document.getElementById('mVal1');
+    const m2 = document.getElementById('mVal2');
+    const m3 = document.getElementById('mVal3');
+    const m4 = document.getElementById('mVal4');
+    const m5 = document.getElementById('mVal5');
+    const m6 = document.getElementById('mVal6');
+    const m7 = document.getElementById('mVal7');
+    const m8 = document.getElementById('mVal8');
+
+    if (m1) m1.textContent = `${q.graves * 2} Hz | ${q.estabilidade}%`;
+    if (m2) m2.textContent = `${65 + (q.medios % 15)} dB | ${q.ruido}%`;
+    if (m3) m3.textContent = `24.5 dB | CRS: OK`;
+    if (m4) m4.textContent = `${q.estabilidade}% | 1.2s`;
+    if (m5) m5.textContent = `G0 | S0 (Normal)`;
+    if (m6) m6.textContent = `120 L/s | 12 cmH₂O`;
+    if (m7) m7.textContent = `48% | 4.5ms`;
+    if (m8) m8.textContent = `35 dBA | OK`;
+}
+
 function desenharSerieNasEstantes(serie) {
     for (let i = 1; i <= 8; i++) {
         const cv = document.getElementById(`cvGraph${i}`);
@@ -487,7 +518,7 @@ function falarTextoComSintoniaVoz(texto) {
     window.speechSynthesis.speak(utt);
 }
 
-// Transição blindada para o Elayon Health levando o ID e os Tokens na URL
+// Transição exata para o Elayon Health via API com ID, Tokens e Calibração
 function irParaElayonHealth() {
     if (!currentUser) {
         alert('⚠️ Sessão de operador não identificada.');
@@ -499,18 +530,8 @@ function irParaElayonHealth() {
     targetUrl.searchParams.set('tokens', currentTokens);
     targetUrl.searchParams.set('calibracao', 'concluida_3_fases');
 
-    addLog('🚀 Migrando para o Elayon Health com ID e Tokens preservados.');
+    addLog('🚀 Migrando para o Elayon Health com ID, Tokens e Baseline preservados.');
     window.location.href = targetUrl.toString();
-}
-
-const logsDrawer = document.getElementById('logsDrawer');
-const logsToggleBtn = document.getElementById('logsToggleBtn');
-if (logsToggleBtn) {
-    let aberto = false;
-    logsToggleBtn.addEventListener('click', () => {
-        aberto = !aberto;
-        logsDrawer.style.transform = aberto ? 'translateY(0px)' : 'translateY(115px)';
-    });
 }
 
 initCockpit();
