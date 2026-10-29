@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>ELAYON · Analisador Universal de Repositório</title>
+    <style>
+        body { font-family: monospace; background: #0f172a; color: #e2e8f0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: #1e293b; padding: 30px; border-radius: 8px; }
+        h1 { color: #38bdf8; font-size: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        button { background: #0284c7; color: white; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 4px; margin-bottom: 20px; }
+        button:hover { background: #0369a1; }
+        .file-block { background: #0f172a; border: 1px solid #334155; margin: 15px 0; padding: 15px; border-radius: 6px; }
+        .file-path { color: #f43f5e; font-weight: bold; margin-bottom: 8px; }
+        pre { white-space: pre-wrap; word-break: break-all; color: #a5b4fc; font-size: 12px; }
+
+        @media print {
+            body { background: #ffffff; color: #000000; padding: 0; }
+            .container { background: #ffffff; color: #000000; max-width: 100%; padding: 0; border: none; box-shadow: none; }
+            button { display: none; }
+            .file-block { background: #f8fafc; border: 1px solid #cbd5e1; page-break-inside: avoid; }
+            .file-path { color: #0284c7; }
+            pre { color: #1e293b; font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="relatorio-container">
+    <h1 id="titulo-repo">ELAYON · Auditoria: Carregando...</h1>
+    <p>Mapeamento unificado de arquitetura para consumo analítico.</p>
+    <button onclick="window.print()">🖨️ Salvar como PDF / Imprimir</button>
+    
+    <div id="conteudo-arquivos">
+        <p style="color: #fbbf24;">A ler estrutura do repositório...</p>
+    </div>
+</div>
+
+<script>
+    // Identifica o repositório dinamicamente via parâmetro ?repo=nome-do-repo ou assume o atual
+    const urlParams = new URLSearchParams(window.location.search);
+    const nomeRepo = urlParams.get('repo') || 'crs-full'; // Altere o padrão conforme o repositório onde colocar o ficheiro
+
+    document.getElementById('titulo-repo').innerText = `ELAYON · Auditoria do Repositório: ${nomeRepo}`;
+
+    // Lista padrão de ficheiros cruciais comuns aos micro-serviços Elayon
+    const arquivosRepositorio = [
+        "main.py",
+        "app.py",
+        "models.py",
+        "requirements.txt",
+        "Dockerfile",
+        "README.md",
+        "backend/main.py",
+        "backend/models.py",
+        "backend/requirements.txt",
+        "frontend/index.html"
+    ];
+
+    async function carregarRepositorio() {
+        const container = document.getElementById("conteudo-arquivos");
+        container.innerHTML = "";
+
+        const baseUrl = `https://raw.githubusercontent.com/paulorobertoxavierjunior-create/${nomeRepo}/main/`;
+
+        for (const caminho of arquivosRepositorio) {
+            try {
+                const resposta = await fetch(baseUrl + caminho);
+                if (resposta.ok) {
+                    const texto = await resposta.text();
+                    
+                    const bloco = document.createElement("div");
+                    bloco.className = "file-block";
+                    
+                    const titulo = document.createElement("div");
+                    titulo.className = "file-path";
+                    titulo.innerText = `📂 /${caminho}`;
+                    bloco.appendChild(titulo);
+
+                    const pre = document.createElement("pre");
+                    pre.innerText = texto;
+                    bloco.appendChild(pre);
+                    container.appendChild(bloco);
+                }
+            } catch (err) {
+                // Ignora ficheiros que não existam naquele repositório específico
+            }
+        }
+        
+        if (container.children.length === 0) {
+            container.innerHTML = "<p style='color: #ef4444;'>Nenhum ficheiro padrão encontrado ou repositório privado/inexistente.</p>";
+        }
+    }
+
+    carregarRepositorio();
+</script>
+
+</body>
+</html>
