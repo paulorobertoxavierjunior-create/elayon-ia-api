@@ -3,13 +3,13 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Elayon Space • Cockpit Avançado de 8 Modulações CRS v4</title>
+    <title>Elayon Space • Cockpit de Calibração & Espectro Real CRS v4</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg1: #0f172a; --bg2: #1e293b; --card: rgba(30, 41, 59, 0.75);
+            --bg1: #0f172a; --bg2: #1e293b; --card: rgba(30, 41, 59, 0.85);
             --ink: #f8fafc; --muted: #94a3b8; --line: rgba(255, 255, 255, 0.1);
-            --accent: #0ea5e9; --accent2: #14b8a6; --accent-glow: rgba(14, 165, 233, 0.25);
+            --accent: #0ea5e9; --accent2: #14b8a6; --accent-glow: rgba(14, 165, 233, 0.3);
             --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
             --shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
@@ -58,8 +58,8 @@
             padding: 16px; font-size: 12px; font-weight: 800; color: var(--ink); cursor: pointer;
             background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center; user-select: none;
         }
-        .graph-body { padding: 16px; background: rgba(15, 23, 42, 0.4); border-top: 1px solid var(--line); position: relative; }
-        .canvas-box { width: 100%; height: 130px; border-radius: 10px; background: rgba(10, 15, 30, 0.7); display: block; border: 1px solid var(--line); margin-bottom: 12px; }
+        .graph-body { padding: 16px; background: rgba(15, 23, 42, 0.5); border-top: 1px solid var(--line); position: relative; }
+        .canvas-box { width: 100%; height: 130px; border-radius: 10px; background: rgba(10, 15, 30, 0.8); display: block; border: 1px solid var(--line); margin-bottom: 12px; }
         
         .scale-axis {
             position: absolute; right: 20px; top: 20px; font-family: monospace; font-size: 10px; color: var(--muted); background: rgba(15, 23, 42, 0.85); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); pointer-events: none;
@@ -76,7 +76,7 @@
         
         <!-- HUD Superior -->
         <header class="hud-header">
-            <div class="hud-info">CRS CORE v4: <span id="hudIaStatus" style="color: var(--success);">TELEMETRIA MULTIMODAL ATIVA</span> | TOKENS: <span id="hudTokens">100</span></div>
+            <div class="hud-info">CRS CORE v4: <span id="hudIaStatus" style="color: var(--success);">MIC & ESPECTRO PRONTOS</span> | TOKENS: <span id="hudTokens">100</span></div>
             <a href="perfil.html" class="btn-perfil">⚙️ Voltar ao Perfil</a>
         </header>
 
@@ -89,112 +89,100 @@
             <span class="calibra-tag" id="calibraStatus">🎙️ Calibração 1/3 (Fase Inicial)</span>
         </div>
 
-        <!-- As 8 Modulações de Gráficos Distintos -->
+        <!-- As 8 Modulações de Gráficos Distintos (Destaque para o Espectro de Intensidade em Tempo Real) -->
         <div class="section-title">
-            <span>📊 As 8 Modulações de Interação & Escuta Simbólica</span>
-            <span style="font-size: 10px; color: var(--muted); font-family: monospace;">MULTIVIEW TELEMETRY</span>
+            <span>📊 As 8 Modulações de Interação & Espectro de Intensidade</span>
+            <span style="font-size: 10px; color: var(--muted); font-family: monospace;">REAL-TIME SPECTRUM STREAM</span>
         </div>
         
         <div class="graphs-grid-2col">
-            <!-- 1. Onda Contínua (FFT) -->
             <details class="graph-accordion" open>
-                <summary class="graph-summary">🟦 I. Frequência / Tom (F₀ & Jitter - Onda Contínua)</summary>
-                <div class="graph-body"><span class="scale-axis">0 Hz — 300 Hz</span><canvas class="canvas-box" id="cvMod1"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal1">-- Hz | -- %</div><span class="metric-status" id="mStat1">Aguardando</span></div></div>
+                <summary class="graph-summary">🟦 I. Espectro de Intensidade em Tempo Real (Brilho Dinâmico)</summary>
+                <div class="graph-body"><span class="scale-axis">Tempo (Direita ➔ Esquerda)</span><canvas class="canvas-box" id="cvMod1"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal1">-- dB | -- Hz</div><span class="metric-status" id="mStat1">Aguardando</span></div></div>
             </details>
-
-            <!-- 2. Gráfico de Rosca / Pizza (Distribuição Energética) -->
             <details class="graph-accordion">
-                <summary class="graph-summary">🟧 II. Intensidade / Volume (SPL & Shimmer - Rosca Proporcional)</summary>
-                <div class="graph-body"><span class="scale-axis">Distribuição %</span><canvas class="canvas-box" id="cvMod2"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal2">-- dB | -- %</div><span class="metric-status" id="mStat2">Aguardando</span></div></div>
+                <summary class="graph-summary">🟧 II. Distribuição Proporcional de Energia (Rosca)</summary>
+                <div class="graph-body"><span class="scale-axis">Distribuição %</span><canvas class="canvas-box" id="cvMod2"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal2">-- %</div><span class="metric-status" id="mStat2">Aguardando</span></div></div>
             </details>
-
-            <!-- 3. Barras Verticais Dinâmicas (Timbre) -->
             <details class="graph-accordion">
-                <summary class="graph-summary">🟩 III. Qualidade / Timbre (HNR & CPPS - Espectrograma em Barras)</summary>
-                <div class="graph-body"><span class="scale-axis">0 dB — 30 dB</span><canvas class="canvas-box" id="cvMod3"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal3">-- dB | -- dB</div><span class="metric-status" id="mStat3">Aguardando</span></div></div>
+                <summary class="graph-summary">🟩 III. Qualidade / Timbre (Espectrograma em Barras)</summary>
+                <div class="graph-body"><span class="scale-axis">0 dB — 30 dB</span><canvas class="canvas-box" id="cvMod3"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal3">-- dB</div><span class="metric-status" id="mStat3">Aguardando</span></div></div>
             </details>
-
-            <!-- 4. Área com Gradiente (Prosódia / Ritmo) -->
             <details class="graph-accordion">
-                <summary class="graph-summary">🟨 IV. Prosódia / Ritmo & Pausas (CRS - Área com Gradiente)</summary>
-                <div class="graph-body"><span class="scale-axis">0% — 100%</span><canvas class="canvas-box" id="cvMod4"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal4">-- % | -- seg</div><span class="metric-status" id="mStat4">Aguardando</span></div></div>
+                <summary class="graph-summary">🟨 IV. Prosódia / Ritmo & Pausas (Área com Gradiente)</summary>
+                <div class="graph-body"><span class="scale-axis">0% — 100%</span><canvas class="canvas-box" id="cvMod4"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal4">-- %</div><span class="metric-status" id="mStat4">Aguardando</span></div></div>
             </details>
-
-            <!-- 5. Gráfico de Dispersão / Pontos (Perceptivo GRBAS) -->
             <details class="graph-accordion">
-                <summary class="graph-summary">🟪 V. Perceptivo-Auditivo (GRBAS - Dispersão Vetorial)</summary>
-                <div class="graph-body"><span class="scale-axis">G0 — G3</span><canvas class="canvas-box" id="cvMod5"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal5">G-- | S--</div><span class="metric-status" id="mStat5">Aguardando</span></div></div>
+                <summary class="graph-summary">🟪 V. Perceptivo-Auditivo (Dispersão Vetorial GRBAS)</summary>
+                <div class="graph-body"><span class="scale-axis">G0 — G3</span><canvas class="canvas-box" id="cvMod5"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal5">G--</div><span class="metric-status" id="mStat5">Aguardando</span></div></div>
             </details>
-
-            <!-- 6. Linha Dupla Oscilatória (Aerodinâmica) -->
             <details class="graph-accordion">
                 <summary class="graph-summary">🟫 VI. Aerodinâmica & Fluxo Subglótico (Linhas Duplas)</summary>
-                <div class="graph-body"><span class="scale-axis">0 L/s — 200 L/s</span><canvas class="canvas-box" id="cvMod6"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal6">-- L/s | -- cmH₂O</div><span class="metric-status" id="mStat6">Aguardando</span></div></div>
+                <div class="graph-body"><span class="scale-axis">0 L/s — 200 L/s</span><canvas class="canvas-box" id="cvMod6"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal6">-- L/s</div><span class="metric-status" id="mStat6">Aguardando</span></div></div>
             </details>
-
-            <!-- 7. Histograma em Degrau (Eletroglotografia) -->
             <details class="graph-accordion">
-                <summary class="graph-summary">🟩 VII. Eletroglotografia (Contato Glótico - Histograma em Degrau)</summary>
-                <div class="graph-body"><span class="scale-axis">0% — 100%</span><canvas class="canvas-box" id="cvMod7"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal7">-- % | -- ms</div><span class="metric-status" id="mStat7">Aguardando</span></div></div>
+                <summary class="graph-summary">🟩 VII. Contato Glótico (Eletroglotografia em Degrau)</summary>
+                <div class="graph-body"><span class="scale-axis">0% — 100%</span><canvas class="canvas-box" id="cvMod7"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal7">-- %</div><span class="metric-status" id="mStat7">Aguardando</span></div></div>
             </details>
-
-            <!-- 8. Medidor Radial / Indicador de Nível Progressivo (Ruído) -->
             <details class="graph-accordion">
-                <summary class="graph-summary">🟦 VIII. Contexto Ambiental & Ruído (Indicador Progressivo Radial)</summary>
-                <div class="graph-body"><span class="scale-axis">0 dBA — 80 dBA</span><canvas class="canvas-box" id="cvMod8"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal8">-- dBA | -- %</div><span class="metric-status" id="mStat8">Aguardando</span></div></div>
+                <summary class="graph-summary">🟦 VIII. Contexto Ambiental & Ruído (Indicador Radial)</summary>
+                <div class="graph-body"><span class="scale-axis">0 dBA — 80 dBA</span><canvas class="canvas-box" id="cvMod8"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal8">-- dBA</div><span class="metric-status" id="mStat8">Aguardando</span></div></div>
             </details>
         </div>
 
-        <!-- Buffer FIFO & Reprise -->
+        <!-- Buffer FIFO & Reprise do Áudio Bruto -->
         <div class="section-title" style="margin-top: 10px;">
-            <span>📦 Buffer FIFO & Reprise do Áudio Bruto</span>
+            <span>📦 Buffer FIFO & Reprise do Áudio Bruto das Sessões</span>
         </div>
         <section style="background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);">
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
                 <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 14px; padding: 14px;">
                     <div style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Calibração 1 (Atual)</div>
                     <div style="font-size: 10px; color: var(--muted); margin: 6px 0;" id="infoSessao1">Aguardando captação...</div>
+                    <audio id="audioPlayer1" controls style="width:100%; height:28px; margin-top:6px; display:none;"></audio>
                     <button style="margin-top:8px; width:100%; background:rgba(14,165,233,0.15); color:var(--accent); border:1px solid var(--accent); padding:8px; border-radius:8px; font-size:10px; font-weight:800; cursor:pointer;" onclick="carregarSessaoVisual(1)">📈 Visualizar Gráficos</button>
                 </div>
                 <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 14px; padding: 14px;">
                     <div style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Calibração 2</div>
                     <div style="font-size: 10px; color: var(--muted); margin: 6px 0;" id="infoSessao2">Pendente</div>
+                    <audio id="audioPlayer2" controls style="width:100%; height:28px; margin-top:6px; display:none;"></audio>
                     <button style="margin-top:8px; width:100%; background:rgba(14,165,233,0.15); color:var(--accent); border:1px solid var(--accent); padding:8px; border-radius:8px; font-size:10px; font-weight:800; cursor:pointer;" onclick="carregarSessaoVisual(2)">📈 Visualizar Gráficos</button>
                 </div>
                 <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 14px; padding: 14px;">
                     <div style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Baseline (3/3)</div>
                     <div style="font-size: 10px; color: var(--muted); margin: 6px 0;" id="infoSessao3">Referência final</div>
+                    <audio id="audioPlayer3" controls style="width:100%; height:28px; margin-top:6px; display:none;"></audio>
                     <button style="margin-top:8px; width:100%; background:rgba(14,165,233,0.15); color:var(--accent); border:1px solid var(--accent); padding:8px; border-radius:8px; font-size:10px; font-weight:800; cursor:pointer;" onclick="carregarSessaoVisual(3)">📈 Visualizar Gráficos</button>
                 </div>
             </div>
         </section>
 
-        <!-- Microfone & Transcrição -->
+        <!-- Microfone Real & Transcrição / Diálogo -->
         <section style="background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 24px; border: 1px solid var(--line); box-shadow: var(--shadow);">
             <div class="section-title"><span id="calibStepTitle">🎙️ 1ª Calibração de Voz (Etapa 1/3)</span></div>
             <div id="chatBox" style="background: rgba(10, 15, 30, 0.6); border: 1px solid var(--line); border-radius: 14px; height: 180px; overflow-y: auto; padding: 14px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px;">
                 <div style="font-size: 12px; padding: 10px 14px; border-radius: 10px; max-width: 85%; background: rgba(14, 165, 233, 0.1); border-left: 3px solid var(--accent);">
-                    <strong>Elayon Core:</strong> Sistema pronto para alimentar as 8 modulações distintas. Pressione para falar.
+                    <strong>Elayon Core:</strong> Olá! Seja bem-vindo ao ecossistema Elayon Space. Iniciaremos agora o processo de calibração fonoaudiológica em 3 etapas. Pressione para falar e conte até dez devagar.
                 </div>
             </div>
-            <textarea id="txtTranscricaoEditavel" style="width: 100%; background: rgba(10, 15, 30, 0.6); border: 1.5px solid var(--accent); border-radius: 14px; padding: 14px; font-size: 13px; font-family: monospace; color: var(--ink); margin-bottom: 14px; outline: none; min-height: 70px; resize: vertical;" placeholder="Relatório multicontextual do CRS v4..."></textarea>
-            <button id="btnMicSimple" onclick="executarCalibracaoVoz()" style="display: block; width: 100%; padding: 16px; border-radius: 14px; font-size: 14px; font-weight: 800; border: none; cursor: pointer; text-align: center; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000; box-shadow: 0 4px 20px var(--accent-glow);">
-                🎙️ Pressione para Falar (Calibrar Etapa Atual • Consome 1 Token)
+            <textarea id="txtTranscricaoEditavel" style="width: 100%; background: rgba(10, 15, 30, 0.6); border: 1.5px solid var(--accent); border-radius: 14px; padding: 14px; font-size: 13px; font-family: monospace; color: var(--ink); margin-bottom: 14px; outline: none; min-height: 70px; resize: vertical;" placeholder="Transcrição ao vivo e relatório do CRS v4 aparecerão aqui..."></textarea>
+            <button id="btnMicToggle" onclick="toggleGravacaoMicrofone()" style="display: block; width: 100%; padding: 16px; border-radius: 14px; font-size: 14px; font-weight: 800; border: none; cursor: pointer; text-align: center; background: linear-gradient(135deg, var(--danger), #f43f5e); color: #fff; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);">
+                🎙️ Abrir Microfone (Gravar Etapa • Até 30s)
             </button>
         </section>
 
-        <!-- Transição Health -->
+        <!-- Transição para Triagem -->
         <section style="background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow); text-align: center;">
             <div style="display: flex; gap: 12px;">
                 <a href="perfil.html" style="display:block; flex:1; padding:14px; border-radius:14px; font-weight:800; background:rgba(255,255,255,0.05); border:1px solid var(--line); color:var(--ink); text-decoration:none;">⚙️ Voltar ao Perfil</a>
-                <button id="btnLiberarHealth" style="display:none; flex:1; padding:14px; border-radius:14px; font-weight:800; border:none; cursor:pointer; background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#000;" onclick="irParaElayonHealth()">
-                    🧬 Entrar no Elayon Health ➔
+                <button id="btnLiberarHealth" style="display:none; flex:1; padding:14px; border-radius:14px; font-weight:800; border:none; cursor:pointer; background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#000;" onclick="irParaElayonTriagem()">
+                    🧬 Entrar no Elayon CRS Triagem ➔
                 </button>
             </div>
         </section>
     </div>
 
-    <!-- Script de ligação -->
+    <!-- Script modular externo -->
     <script src="cockpit.js"></script>
 </body>
 </html>
