@@ -87,10 +87,6 @@
         .btn-action { display: block; width: 100%; padding: 14px; border-radius: 12px; font-size: 13px; font-weight: 800; border: none; cursor: pointer; text-align: center; transition: 0.2s; text-decoration: none; margin-bottom: 10px; }
         .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; box-shadow: 0 4px 15px var(--accent-glow); }
         .btn-secondary { background: #f0f7f7; border: 1px solid var(--line); color: var(--ink); }
-
-        .tool-btn { background: #f8fbfa; border: 1px solid var(--line); padding: 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: bold; display: flex; justify-content: space-between; align-items: center; font-size: 12px; opacity: 0.5; pointer-events: none; transition: 0.2s; }
-        .tool-btn.liberado { opacity: 1; pointer-events: auto; }
-        .tool-btn.liberado:hover { background: var(--accent); color: #fff; }
     </style>
 </head>
 <body>
@@ -99,7 +95,7 @@
         
         <!-- HUD Superior -->
         <header class="hud-header">
-            <div class="hud-info">IA AD: <span id="hudIaStatus" style="color: var(--success);">SISTEMA IA GLOBAL ATIVO</span> | TOKENS: <span id="hudTokens">100</span></div>
+            <div class="hud-info">CRS CORE: <span id="hudIaStatus" style="color: var(--success);">ONLINE</span> | TOKENS: <span id="hudTokens">100</span></div>
             <a href="perfil.html" class="btn-perfil">⚙️ Voltar ao Perfil</a>
         </header>
 
@@ -111,10 +107,6 @@
             </div>
             <span class="calibra-tag" id="calibraStatus">🎙️ Calibração 1/3 (Fase Inicial)</span>
         </div>
-
-        <button class="btn-action btn-secondary" id="btnLigarIaGlobal" style="border: 2px solid var(--accent); color: var(--accent); font-size: 14px; background: #ffffff;">
-            🤖 Ligar Chat Simbiótico da IA Global Elayon Space
-        </button>
 
         <!-- 8 Dimensões Fônicas -->
         <div class="section-title" style="color: var(--ink);">📊 As 8 Dimensões Fônicas & Escuta Simbólica no Tempo</div>
@@ -183,13 +175,13 @@
             <div class="section-title"><span id="calibStepTitle">🎙️ 1ª Calibração de Voz (Etapa 1/3)</span></div>
             <div class="chat-box" id="chatBox">
                 <div class="chat-message ad">
-                    <strong>Ad (Elayon Space):</strong> Olá! Vamos iniciar as 3 calibrações necessárias para habilitar o seu acesso seguro ao Elayon Health. Pressione para falar.
+                    <strong>Elayon Core:</strong> Olá! Vamos iniciar as 3 calibrações necessárias para habilitar o seu acesso seguro ao Elayon Health. Pressione para falar.
                 </div>
             </div>
-            <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Transcrição ao Vivo:</label>
-            <textarea class="transcription-edit-box" id="txtTranscricaoEditavel" placeholder="Sua fala aparecerá aqui..."></textarea>
-            <button class="btn-action btn-primary" id="btnMicSimple" style="background: linear-gradient(135deg, var(--danger), #f06292); font-size: 14px; padding: 16px;">
-                🎙️ Pressione para Falar (Etapa de Calibração • Consome 1 Token)
+            <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Relatório CRS / Diagnóstico:</label>
+            <textarea class="transcription-edit-box" id="txtTranscricaoEditavel" placeholder="O relatório do CRS aparecerá aqui..."></textarea>
+            <button class="btn-action btn-primary" id="btnMicSimple" style="background: linear-gradient(135deg, var(--danger), #f06292); font-size: 14px; padding: 16px;" onclick="executarCalibracaoVoz()">
+                🎙️ Pressione para Falar (Calibrar Etapa Atual • Consome 1 Token)
             </button>
         </section>
 
@@ -205,6 +197,105 @@
 
     </div>
 
-    <script src="cockpit.js"></script>
+    <script>
+        let etapaCalibracao = 1;
+        const historicoSessoes = {};
+
+        function desenharGraficoSimulado(canvasId, valorPct) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = '#2a9d8f';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+            for (let x = 0; x < canvas.width; x += 5) {
+                let y = (canvas.height / 2) + Math.sin(x * 0.05 + valorPct) * (canvas.height * 0.4 * (valorPct / 100));
+                ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+
+        async function executarCalibracaoVoz() {
+            const btn = document.getElementById('btnMicSimple');
+            btn.innerText = "🔄 Processando Áudio Bruto no CRS...";
+            btn.disabled = true;
+
+            setTimeout(async () => {
+                const dadosSimulados = {
+                    duration_sec: 15.0,
+                    silence_pct: 20.5,
+                    continuity_pct: 81.0,
+                    oscillation_pct: 29.4,
+                    energy_pct: 68.2,
+                    stability_pct: 90.1,
+                    noise_pct: 3.5,
+                    pause_count: 5,
+                    mean_pause_ms: 420,
+                    relatorio_texto: `[CRS v4 CLINICAL - ETAPA ${etapaCalibracao}/3]\n- Estado Detectado: Fluxo contínuo e estável\n- Confiança: 0.91\n- Silêncio: 20.5%\n- Continuidade: 81.0%\n- Token debitado com sucesso.`
+                };
+
+                document.getElementById('txtTranscricaoEditavel').value = dadosSimulados.relatorio_texto;
+
+                historicoSessoes[etapaCalibracao] = dadosSimulados;
+                document.getElementById(`infoSessao${etapaCalibracao}`).innerText = `Concluído (${dadosSimulados.duration_sec}s)`;
+
+                desenharGraficoSimulado('cvGraph1', dadosSimulados.energy_pct);
+                desenharGraficoSimulado('cvGraph2', dadosSimulados.continuity_pct);
+                desenharGraficoSimulado('cvGraph3', dadosSimulados.stability_pct);
+                desenharGraficoSimulado('cvGraph4', dadosSimulados.silence_pct);
+                desenharGraficoSimulado('cvGraph5', dadosSimulados.oscillation_pct);
+                desenharGraficoSimulado('cvGraph6', dadosSimulados.energy_pct);
+                desenharGraficoSimulado('cvGraph7', dadosSimulados.continuity_pct);
+                desenharGraficoSimulado('cvGraph8', dadosSimulados.noise_pct);
+
+                document.getElementById('mVal1').innerText = `135 Hz | ${dadosSimulados.energy_pct}%`;
+                document.getElementById('mVal2').innerText = `76 dB | ${dadosSimulados.continuity_pct}%`;
+                document.getElementById('mVal3').innerText = `27.4 dB | 1.5 dB`;
+                document.getElementById('mVal4').innerText = `${dadosSimulados.silence_pct}% | ${dadosSimulados.duration_sec}s`;
+                document.getElementById('mVal5').innerText = `G0 | 90`;
+                document.getElementById('mVal6').innerText = `140 L/s | 13 cmH₂O`;
+                document.getElementById('mVal7').innerText = `68% | 3.0ms`;
+                document.getElementById('mVal8').innerText = `25 dBA | 3.5%`;
+
+                const chatBox = document.getElementById('chatBox');
+                chatBox.innerHTML += `<div class="chat-message user">Calibração ${etapaCalibracao} efetuada.</div>`;
+                chatBox.innerHTML += `<div class="chat-message ad"><strong>Elayon Core:</strong> Relatório CRS gerado para a etapa ${etapaCalibracao}.</div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+
+                if (etapaCalibracao < 3) {
+                    etapaCalibracao++;
+                    document.getElementById('calibraStatus').innerText = `🎙️ Calibração ${etapaCalibracao}/3`;
+                    document.getElementById('calibStepTitle').innerText = `🎙️ ${etapaCalibracao}ª Calibração de Voz (Etapa ${etapaCalibracao}/3)`;
+                    btn.innerText = `🎙️ Pressione para Falar (Calibrar Etapa ${etapaCalibracao} • Consome 1 Token)`;
+                    btn.disabled = false;
+                } else {
+                    document.getElementById('calibraStatus').innerText = `✅ Calibração Concluída (Baseline Ativo)`;
+                    document.getElementById('calibStepTitle').innerText = `✅ Baseline Estabelecido com Sucesso`;
+                    btn.innerText = `✨ Calibração Finalizada`;
+                    btn.style.background = "var(--success)";
+                    btn.disabled = true;
+
+                    // Libera o acesso direto para a decisão do Elayon Health
+                    document.getElementById('btnLiberarHealth').style.display = "block";
+                }
+            }, 1000);
+        }
+
+        function carregarSessaoVisual(num) {
+            const sessao = historicoSessoes[num];
+            if (!sessao) {
+                alert(`A sessão de calibração ${num} ainda não foi realizada.`);
+                return;
+            }
+            document.getElementById('txtTranscricaoEditavel').value = sessao.relatorio_texto;
+        }
+
+        function irParaElayonHealth() {
+            window.location.href = "health-decision.html";
+        }
+    </script>
 </body>
 </html>
