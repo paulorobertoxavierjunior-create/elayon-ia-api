@@ -1,366 +1,271 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elayon Space • Cockpit de Calibração & Telemetria CRS v4</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root {
-            --bg1: #0f172a; --bg2: #1e293b; --card: rgba(30, 41, 59, 0.7);
-            --ink: #f8fafc; --muted: #94a3b8; --line: rgba(255, 255, 255, 0.1);
-            --accent: #14b8a6; --accent2: #06b6d4; --accent-glow: rgba(20, 184, 166, 0.25);
-            --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
-            --shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            min-height: 100vh; background: linear-gradient(135deg, var(--bg1), var(--bg2));
-            color: var(--ink); font-family: system-ui, -apple-system, sans-serif;
-            display: flex; flex-direction: column; align-items: center; padding: 24px; padding-bottom: 100px;
-        }
-        .container { width: 100%; max-width: 1200px; display: grid; gap: 24px; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Elayon Space • Perfil & Parâmetros do Operador</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg1: #f4f9f4; --bg2: #eaf4f6; --card: #ffffff;
+      --ink: #0a2a2f; --muted: #4a6b70; --line: #d8e8eb;
+      --accent: #2a9d8f; --accent2: #3ecfcf; --shadow: 0 10px 30px rgba(0,0,0,0.06);
+      --danger: #d9534f; --success: #2b8a3e; --warning: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at top left, var(--bg1), var(--bg2));
+      color: var(--ink);
+    }
+    .card {
+      position: relative; width: 100%; max-width: 520px; background: var(--card);
+      border: 1px solid var(--line); border-radius: 24px; padding: 36px 28px; box-shadow: var(--shadow);
+    }
+    .top-logo-container { position: absolute; top: 20px; left: 20px; }
+    .logo-img-small { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent); background: #fff; }
+    .avatar-wrapper { display: flex; flex-direction: column; align-items: center; margin-top: 10px; margin-bottom: 18px; }
+    .avatar-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); background: #e2f1f1; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .avatar-upload-btn { margin-top: 8px; font-size: 11px; font-weight: 700; color: var(--ink); background: #f0f7f7; border: 1px solid var(--line); padding: 5px 12px; border-radius: 20px; cursor: pointer; transition: .2s; }
+    .avatar-upload-btn:hover { background: var(--accent); color: #fff; }
+    #fileInput { display: none; }
+    
+    .header-name-container { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 4px; }
+    h1 { font-size: 22px; letter-spacing: -0.5px; text-align: center; color: var(--ink); }
+    .edit-name-input { padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 15px; outline: none; width: 180px; font-weight: 700; text-align: center; background: #fafcfc; color: var(--ink); }
+    .btn-icon { background: transparent; border: none; cursor: pointer; font-size: 14px; color: var(--muted); padding: 4px; }
+    .btn-icon:hover { color: var(--accent); }
+    .sub { color: var(--muted); font-size: 12px; margin-bottom: 20px; line-height: 1.4; text-align: center; }
 
-        .hud-header {
-            background: var(--card); backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 16px;
-            padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;
-            box-shadow: var(--shadow);
-        }
-        .hud-info { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; }
-        .hud-info span { color: var(--accent); }
-        .btn-perfil {
-            background: rgba(255,255,255,0.05); border: 1px solid var(--line); color: var(--ink);
-            padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700;
-            cursor: pointer; text-decoration: none; transition: 0.3s;
-        }
-        .btn-perfil:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+    .box { background: #f8fbfa; border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 13px; margin-bottom: 10px; }
+    .row:last-child { margin-bottom: 0; }
+    .label { color: var(--muted); font-size: 12px; }
+    .value { font-weight: 700; word-break: break-word; text-align: right; color: var(--ink); }
 
-        .profile-card {
-            background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 24px; border: 1px solid var(--line);
-            box-shadow: var(--shadow); display: flex; align-items: center; gap: 20px;
-        }
-        .logo-img { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; background: #fff; box-shadow: 0 0 15px var(--accent-glow); }
-        .profile-info { flex: 1; text-align: left; }
-        .profile-info h2 { font-size: 20px; color: var(--ink); margin-bottom: 4px; font-weight: 800; }
-        .profile-info p { font-size: 12px; color: var(--muted); font-family: monospace; }
-        .calibra-tag { font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 8px; background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .ai-setup-box { background: #f8fbfa; border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 16px; text-align: left; }
+    .ai-setup-box h3 { font-size: 12px; color: var(--ink); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; }
+    .ai-status-badge { font-size: 9px; padding: 3px 8px; border-radius: 6px; font-weight: 800; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    .ai-status-badge.ativo { background: #d4edda; color: #155724; border-color: #c3e6cb; }
 
-        .section-title { font-size: 14px; margin-bottom: 4px; color: var(--accent); font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: space-between; text-transform: uppercase; }
-        
-        .graphs-grid-2col { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-        @media(max-width: 900px) { .graphs-grid-2col { grid-template-columns: 1fr; } }
-
-        details.graph-accordion {
-            background: var(--card); backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; transition: 0.3s;
-        }
-        details.graph-accordion[open] { border-color: var(--accent); box-shadow: 0 10px 30px var(--accent-glow); }
-        summary.graph-summary {
-            padding: 16px; font-size: 12px; font-weight: 800; color: var(--ink); cursor: pointer;
-            background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center; user-select: none;
-        }
-        .graph-body { padding: 16px; background: rgba(15, 23, 42, 0.4); border-top: 1px solid var(--line); position: relative; }
-        .canvas-box { width: 100%; height: 120px; border-radius: 10px; background: rgba(10, 15, 30, 0.6); display: block; border: 1px solid var(--line); margin-bottom: 12px; }
-        
-        .scale-axis {
-            position: absolute; right: 20px; top: 20px; font-family: monospace; font-size: 10px; color: var(--muted); background: rgba(15, 23, 42, 0.8); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); pointer-events: none;
-        }
-
-        .metric-box-card { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; text-align: left; border-left: 3px solid var(--accent); display: flex; justify-content: space-between; align-items: center; }
-        .metric-val-lbl { font-size: 13px; font-family: monospace; font-weight: 800; color: var(--ink); }
-        .metric-status { font-size: 10px; font-weight: 700; color: var(--success); background: rgba(16, 185, 129, 0.1); padding: 2px 6px; border-radius: 4px; }
-
-        .session-history-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 10px; }
-        @media(max-width: 768px) { .session-history-grid { grid-template-columns: 1fr; } }
-        .session-box { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 14px; padding: 14px; text-align: left; }
-        .btn-load-session { margin-top: 8px; width: 100%; background: rgba(20, 184, 166, 0.15); color: var(--accent); border: 1px solid var(--accent); padding: 8px; border-radius: 8px; font-size: 10px; font-weight: 800; cursor: pointer; transition: 0.2s; }
-        .btn-load-session:hover { background: var(--accent); color: #000; }
-        .audio-player-custom { width: 100%; height: 32px; margin-top: 8px; border-radius: 6px; }
-
-        .chat-section { background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 24px; border: 1px solid var(--line); box-shadow: var(--shadow); }
-        .chat-box { background: rgba(10, 15, 30, 0.6); border: 1px solid var(--line); border-radius: 14px; height: 200px; overflow-y: auto; padding: 14px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
-        .chat-message { font-size: 12px; padding: 10px 14px; border-radius: 10px; max-width: 85%; line-height: 1.5; }
-        .chat-message.ad { background: rgba(20, 184, 166, 0.1); color: var(--ink); align-self: flex-start; border-left: 3px solid var(--accent); }
-        .chat-message.user { background: var(--accent); color: #000; font-weight: 600; align-self: flex-end; }
-        
-        .transcription-edit-box {
-            width: 100%; background: rgba(10, 15, 30, 0.6); border: 1.5px solid var(--accent); border-radius: 14px; padding: 14px; font-size: 13px; font-family: monospace; color: var(--ink); margin-bottom: 14px; outline: none; min-height: 70px; resize: vertical;
-        }
-
-        .btn-action { display: block; width: 100%; padding: 16px; border-radius: 14px; font-size: 14px; font-weight: 800; border: none; cursor: pointer; text-align: center; transition: 0.3s; text-decoration: none; margin-bottom: 12px; letter-spacing: 0.5px; }
-        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000; box-shadow: 0 4px 20px var(--accent-glow); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 25px var(--accent-glow); }
-        .btn-secondary { background: rgba(255,255,255,0.05); border: 1px solid var(--line); color: var(--ink); }
-        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
-    </style>
+    .actions { display: grid; gap: 10px; margin-top: 14px; }
+    .btn { display: block; width: 100%; padding: 12px; border-radius: 12px; text-decoration: none; text-align: center; font-size: 13px; font-weight: 800; border: 0; cursor: pointer; transition: .2s ease; }
+    .btn:hover { transform: translateY(-1px); }
+    .primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; box-shadow: 0 4px 15px rgba(42, 157, 143, 0.15); }
+    .logout { background: transparent; border: 1px solid var(--line); color: var(--muted); }
+    
+    .input-group { margin-bottom: 10px; text-align: left; }
+    label { display: block; font-size: 10px; font-weight: 700; margin-bottom: 4px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    input, select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 12px; outline: none; background: #fafcfc; color: var(--ink); }
+    .msg { margin-top: 12px; font-size: 11px; min-height: 16px; text-align: center; font-weight: 600; }
+    .msg-error { color: var(--danger); }
+    .msg-success { color: var(--success); }
+  </style>
 </head>
 <body>
-
-    <div class="container">
-        
-        <!-- HUD Superior -->
-        <header class="hud-header">
-            <div class="hud-info">CRS CORE v4: <span id="hudIaStatus" style="color: var(--success);">TELEMETRIA ATIVA</span> | TOKENS: <span id="hudTokens">100</span></div>
-            <a href="perfil.html" class="btn-perfil">⚙️ Voltar ao Perfil</a>
-        </header>
-
-        <div class="profile-card">
-            <img id="userAvatarImg" src="elayon_logo.png" alt="Avatar" class="logo-img" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=elayon';">
-            <div class="profile-info">
-                <h2 id="userDisplayName">Carregando Operador...</h2>
-                <p id="userDisplayEmail">ID: --</p>
-            </div>
-            <span class="calibra-tag" id="calibraStatus">🎙️ Calibração 1/3 (Fase Inicial)</span>
-        </div>
-
-        <!-- 8 Dimensões Fônicas -->
-        <div class="section-title">
-            <span>📊 As 8 Dimensões Fônicas & Escuta Simbólica no Tempo</span>
-            <span style="font-size: 10px; color: var(--muted); font-family: monospace;">REAL-TIME FFT & PROSODY</span>
-        </div>
-        
-        <div class="graphs-grid-2col">
-            <details class="graph-accordion" open>
-                <summary class="graph-summary">🟦 I. Frequência / Tom (F₀ & Jitter)</summary>
-                <div class="graph-body"><span class="scale-axis">0 Hz — 300 Hz</span><canvas class="canvas-box" id="cvGraph1"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal1">-- Hz | -- %</div><span class="metric-status" id="mStat1">Aguardando</span></div></div>
-            </details>
-            <details class="graph-accordion">
-                <summary class="graph-summary">🟧 II. Intensidade / Volume (SPL & Shimmer)</summary>
-                <div class="graph-body"><span class="scale-axis">0 dB — 100 dB</span><canvas class="canvas-box" id="cvGraph2"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal2">-- dB | -- %</div><span class="metric-status" id="mStat2">Aguardando</span></div></div>
-            </details>
-            <details class="graph-accordion">
-                <summary class="graph-summary">🟩 III. Qualidade / Timbre (HNR & CPPS)</summary>
-                <div class="graph-body"><span class="scale-axis">0 dB — 30 dB</span><canvas class="canvas-box" id="cvGraph3"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal3">-- dB | -- dB</div><span class="metric-status" id="mStat3">Aguardando</span></div></div>
-            </details>
-            <details class="graph-accordion">
-                <summary class="graph-summary">🟨 IV. Prosódia / Ritmo & Pausas (CRS)</summary>
-                <div class="graph-body"><span class="scale-axis">0% — 100%</span><canvas class="canvas-box" id="cvGraph4"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal4">-- % | -- seg</div><span class="metric-status" id="mStat4">Aguardando</span></div></div>
-            </details>
-            <details class="graph-accordion">
-                <summary class="graph-summary">🟪 V. Perceptivo-Auditivo (GRBAS)</summary>
-                <div class="graph-body"><span class="scale-axis">G0 — G3</span><canvas class="canvas-box" id="cvGraph5"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal5">G-- | S--</div><span class="metric-status" id="mStat5">Aguardando</span></div></div>
-            </details>
-            <details class="graph-accordion">
-                <summary class="graph-summary">🟫 VI. Aerodinâmica & Fluxo Subglótico</summary>
-                <div class="graph-body"><span class="scale-axis">0 L/s — 200 L/s</span><canvas class="canvas-box" id="cvGraph6"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal6">-- L/s | -- cmH₂O</div><span class="metric-status" id="mStat6">Aguardando</span></div></div>
-            </details>
-            <details class="graph-accordion">
-                <summary class="graph-summary">🟩 VII. Eletroglotografia (Contato Glótico)</summary>
-                <div class="graph-body"><span class="scale-axis">0% — 100%</span><canvas class="canvas-box" id="cvGraph7"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal7">-- % | -- ms</div><span class="metric-status" id="mStat7">Aguardando</span></div></div>
-            </details>
-            <details class="graph-accordion">
-                <summary class="graph-summary">🟦 VIII. Contexto Ambiental & Ruído</summary>
-                <div class="graph-body"><span class="scale-axis">0 dBA — 80 dBA</span><canvas class="canvas-box" id="cvGraph8"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal8">-- dBA | -- %</div><span class="metric-status" id="mStat8">Aguardando</span></div></div>
-            </details>
-        </div>
-
-        <!-- Buffer FIFO -->
-        <div class="section-title" style="margin-top: 10px;">
-            <span>📦 Buffer FIFO & Reprise do Áudio Bruto</span>
-        </div>
-        <section style="background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);">
-            <div class="session-history-grid">
-                <div class="session-box">
-                    <div style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Calibração 1 (Atual)</div>
-                    <div style="font-size: 10px; color: var(--muted); margin: 6px 0;" id="infoSessao1">Aguardando captação...</div>
-                    <audio id="audioPlayer1" controls class="audio-player-custom" style="display:none;"></audio>
-                    <button class="btn-load-session" onclick="carregarSessaoVisual(1)">📈 Visualizar Gráficos</button>
-                </div>
-                <div class="session-box">
-                    <div style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Calibração 2</div>
-                    <div style="font-size: 10px; color: var(--muted); margin: 6px 0;" id="infoSessao2">Pendente</div>
-                    <audio id="audioPlayer2" controls class="audio-player-custom" style="display:none;"></audio>
-                    <button class="btn-load-session" onclick="carregarSessaoVisual(2)">📈 Visualizar Gráficos</button>
-                </div>
-                <div class="session-box">
-                    <div style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Baseline (3/3)</div>
-                    <div style="font-size: 10px; color: var(--muted); margin: 6px 0;" id="infoSessao3">Referência final</div>
-                    <audio id="audioPlayer3" controls class="audio-player-custom" style="display:none;"></audio>
-                    <button class="btn-load-session" onclick="carregarSessaoVisual(3)">📈 Visualizar Gráficos</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Microfone & Transcrição -->
-        <section class="chat-section">
-            <div class="section-title"><span id="calibStepTitle">🎙️ 1ª Calibração de Voz (Etapa 1/3)</span></div>
-            <div class="chat-box" id="chatBox">
-                <div class="chat-message ad">
-                    <strong>Elayon Core:</strong> Olá! Sistema pronto para calibração fonoaudiológica e rítmica. Pressione para falar e iniciar o processamento no CRS v4.
-                </div>
-            </div>
-            <label style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">Relatório CRS & Diagnóstico Clínico:</label>
-            <textarea class="transcription-edit-box" id="txtTranscricaoEditavel" placeholder="O relatório detalhado gerado pelo CRS v4 aparecerá aqui..."></textarea>
-            <button class="btn-action btn-primary" id="btnMicSimple" onclick="executarCalibracaoVoz()">
-                🎙️ Pressione para Falar (Calibrar Etapa Atual • Consome 1 Token)
-            </button>
-        </section>
-
-        <!-- Transição para o Health -->
-        <section style="background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow); text-align: center;">
-            <div style="display: flex; gap: 12px;">
-                <a href="perfil.html" class="btn-action btn-secondary" style="margin:0; flex:1; display:flex; align-items:center; justify-content:center;">⚙️ Voltar ao Perfil</a>
-                <button class="btn-action btn-primary" id="btnLiberarHealth" style="margin:0; flex:1; display:none;" onclick="irParaElayonHealth()">
-                    🧬 Entrar no Elayon Health ➔
-                </button>
-            </div>
-        </section>
-
+  <main class="card">
+    
+    <div class="top-logo-container">
+      <img src="elayon_logo.png" alt="Elayon Logo" class="logo-img-small" onerror="this.style.display='none'" />
     </div>
 
-    <script>
-        const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    <div class="avatar-wrapper">
+      <img id="avatarImage" class="avatar-img" src="" alt="Foto de Perfil" />
+      <label for="fileInput" class="avatar-upload-btn">Alterar Foto 📷</label>
+      <input type="file" id="fileInput" accept="image/*" />
+    </div>
 
-        let etapaCalibracao = 1;
-        let currentTokens = 100;
-        let currentUser = null;
-        const historicoSessoes = {};
+    <div class="header-name-container" id="nameDisplayContainer">
+      <h1 id="userName">A carregar...</h1>
+      <button class="btn-icon" id="btnEditName" title="Editar nome">✏️</button>
+    </div>
+    
+    <div class="header-name-container" id="nameEditContainer" style="display:none; margin-bottom: 8px;">
+      <input type="text" id="inputName" class="edit-name-input" />
+      <button class="btn-icon" id="btnSaveNameInline" title="Confirmar Nome">💾</button>
+      <button class="btn-icon" id="btnCancelName" title="Cancelar">❌</button>
+    </div>
 
-        async function initCockpit() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) {
-                window.location.href = 'login.html';
-                return;
-            }
-            currentUser = session.user;
-            document.getElementById('userDisplayEmail').textContent = currentUser.email;
-            
-            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).single();
-            if (profile) {
-                document.getElementById('userDisplayName').textContent = profile.nome || currentUser.email.split('@')[0];
-                currentTokens = profile.tokens ?? 100;
-                document.getElementById('hudTokens').textContent = currentTokens;
-                if (profile.avatar_url) document.getElementById('userAvatarImg').src = profile.avatar_url;
-            } else {
-                document.getElementById('userDisplayName').textContent = currentUser.email.split('@')[0];
-            }
-            
-            for (let i = 1; i <= 8; i++) {
-                desenharGraficoAnimado(`cvGraph${i}`, 15);
-            }
+    <p class="sub">Identidade do Operador & Parâmetros de Acesso</p>
+
+    <!-- Metadados & Tokens -->
+    <section class="box">
+      <div class="row"><span class="label">ID</span><span class="value" id="userId" style="font-size:9px; font-family:monospace;">A carregar...</span></div>
+      <div class="row"><span class="label">E-mail</span><span class="value" id="userEmail">A carregar...</span></div>
+      <div class="row">
+        <span class="label">Tokens</span>
+        <div class="tokens-group" style="display: flex; align-items: center; gap: 8px;">
+          <span class="value" id="userTokens" style="color: var(--accent);">100</span>
+          <button style="background:var(--accent); color:#fff; border:none; width:22px; height:22px; border-radius:50%; font-weight:800; cursor:pointer;" id="btnAddToken">+</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Configuração da IA Ad -->
+    <section class="ai-setup-box">
+      <h3>
+        🧠 Calibração da IA Ad
+        <span id="aiStatusBadge" class="ai-status-badge">NÃO CONFIGURADA</span>
+      </h3>
+      <div class="input-group">
+        <label for="selectAiProvider">Provedor</label>
+        <select id="selectAiProvider">
+          <option value="gemini" selected>Google Gemini (1.5 Pro)</option>
+          <option value="openai">OpenAI (GPT-4o)</option>
+        </select>
+      </div>
+      <div class="input-group" style="margin-bottom: 8px;">
+        <label for="inputApiKey">Chave de API</label>
+        <input type="password" id="inputApiKey" placeholder="Cole sua chave de API..." autocomplete="off" />
+      </div>
+      <button class="btn primary" id="btnSalvarAiConfig" style="padding: 10px; font-size: 11px;" type="button">
+        Salvar Calibração da IA
+      </button>
+    </section>
+
+    <!-- Ações e Transição ao Cockpit -->
+    <div class="actions">
+      <button class="btn primary" id="btnSaveChanges" style="background: #f0f7f7; color: var(--accent); border: 1px solid var(--accent);">💾 Salvar Alterações</button>
+      <a class="btn primary" id="btnStartAvaliacao" href="cockpit.html" style="font-size: 14px; padding: 14px;">Continuar para o Cockpit 🚀</a>
+      <button class="btn logout" id="btnLogout" type="button">Sair da Sessão</button>
+    </div>
+
+    <div class="msg" id="msg"></div>
+  </main>
+
+  <script>
+    const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const msgDiv = document.getElementById('msg');
+    let currentUser = null;
+    let currentTokens = 100;
+
+    function showMsg(text, isError = false) {
+      msgDiv.textContent = text;
+      msgDiv.className = 'msg ' + (isError ? 'msg-error' : 'msg-success');
+    }
+
+    async function initAuth() {
+      const { data: { session }, error } = await supabaseClient.auth.getSession();
+      if (error || !session) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      currentUser = session.user;
+      document.getElementById('userId').textContent = currentUser.id;
+      document.getElementById('userEmail').textContent = currentUser.email || '-';
+
+      const defaultName = currentUser.user_metadata?.nome || currentUser.email.split('@')[0];
+      document.getElementById('userName').textContent = defaultName;
+
+      await syncUserProfile(currentUser, defaultName);
+    }
+
+    async function syncUserProfile(user, defaultName) {
+      try {
+        let { data: profile } = await supabaseClient
+          .from('profiles').select('*').eq('id', user.id).single();
+
+        if (profile) {
+          currentTokens = profile.tokens ?? 100;
+          document.getElementById('userTokens').textContent = currentTokens;
+          if (profile.nome) document.getElementById('userName').textContent = profile.nome;
+          if (profile.avatar_url) document.getElementById('avatarImage').src = profile.avatar_url;
+          else document.getElementById('avatarImage').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id}`;
+
+          if (profile.ai_provider) document.getElementById('selectAiProvider').value = profile.ai_provider;
+          if (profile.ai_key) {
+            document.getElementById('inputApiKey').value = profile.ai_key;
+            document.getElementById('aiStatusBadge').textContent = 'CONFIGURADA';
+            document.getElementById('aiStatusBadge').className = 'ai-status-badge ativo';
+          }
         }
+      } catch (e) {
+        document.getElementById('userTokens').textContent = currentTokens;
+        document.getElementById('avatarImage').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id}`;
+      }
+    }
 
-        function desenharGraficoAnimado(canvasId, intensidade) {
-            const canvas = document.getElementById(canvasId);
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            canvas.width = canvas.parentElement.clientWidth - 32;
-            canvas.height = 120;
-            
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.strokeStyle = 'rgba(255,255,255,0.03)';
-            ctx.lineWidth = 1;
-            for(let x=0; x<canvas.width; x+=30) {
-                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-            }
-            for(let y=0; y<canvas.height; y+=25) {
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-            }
+    // Edição Inline de Nome
+    document.getElementById('btnEditName').addEventListener('click', () => {
+      document.getElementById('nameDisplayContainer').style.display = 'none';
+      document.getElementById('nameEditContainer').style.display = 'flex';
+      document.getElementById('inputName').value = document.getElementById('userName').textContent;
+    });
 
-            ctx.strokeStyle = '#14b8a6';
-            ctx.lineWidth = 2.5;
-            ctx.beginPath();
-            ctx.moveTo(0, canvas.height / 2);
-            for (let x = 0; x < canvas.width; x += 4) {
-                let y = (canvas.height / 2) + Math.sin(x * 0.04 + (intensidade * 0.1)) * (canvas.height * 0.35 * (intensidade / 100)) + (Math.random() * 6 - 3);
-                ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-        }
+    document.getElementById('btnCancelName').addEventListener('click', () => {
+      document.getElementById('nameEditContainer').style.display = 'none';
+      document.getElementById('nameDisplayContainer').style.display = 'flex';
+    });
 
-        async function executarCalibracaoVoz() {
-            if (currentTokens <= 0) {
-                alert('Tokens insuficientes para calibração.');
-                return;
-            }
+    document.getElementById('btnSaveNameInline').addEventListener('click', () => {
+      const newName = document.getElementById('inputName').value.trim();
+      if (newName) {
+        document.getElementById('userName').textContent = newName;
+      }
+      document.getElementById('nameEditContainer').style.display = 'none';
+      document.getElementById('nameDisplayContainer').style.display = 'flex';
+    });
 
-            const btn = document.getElementById('btnMicSimple');
-            btn.innerText = "🔄 Capturando Áudio Bruto & Processando CRS v4...";
-            btn.disabled = true;
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file || !currentUser) return;
+      showMsg('A carregar nova foto...');
+      const filePath = `avatars/${currentUser.id}_${Date.now()}`;
+      const { error: uploadError } = await supabaseClient.storage.from('avatars').upload(filePath, file);
+      if (uploadError) {
+        showMsg('Erro ao enviar foto: ' + uploadError.message, true);
+        return;
+      }
+      const { data: { publicUrl } } = supabaseClient.storage.from('avatars').getPublicUrl(filePath);
+      document.getElementById('avatarImage').src = publicUrl;
+      await supabaseClient.from('profiles').upsert({ id: currentUser.id, avatar_url: publicUrl });
+      showMsg('✅ Foto atualizada com sucesso!');
+    });
 
-            setTimeout(async () => {
-                currentTokens -= 1;
-                document.getElementById('hudTokens').textContent = currentTokens;
+    document.getElementById('btnSalvarAiConfig').addEventListener('click', async () => {
+      const provider = document.getElementById('selectAiProvider').value;
+      const apiKey = document.getElementById('inputApiKey').value.trim();
+      if (!apiKey) { showMsg('Insira uma chave de API válida.', true); return; }
 
-                const dadosCRS = {
-                    duration_sec: (12 + Math.random() * 6).toFixed(1),
-                    silence_pct: (18 + Math.random() * 10).toFixed(1),
-                    continuity_pct: (75 + Math.random() * 20).toFixed(1),
-                    oscillation_pct: (25 + Math.random() * 15).toFixed(1),
-                    energy_pct: (60 + Math.random() * 30).toFixed(1),
-                    stability_pct: (82 + Math.random() * 15).toFixed(1),
-                    noise_pct: (2 + Math.random() * 5).toFixed(1),
-                    pause_count: Math.floor(4 + Math.random() * 5),
-                    relatorio_texto: `[CRS v4 CLINICAL REPORT - ETAPA ${etapaCalibracao}/3]\n- Estado Anímico: Ritmo contínuo com alta estabilidade\n- Índice de Confiança: 0.94\n- Taxa de Silêncio: 21.4% | Pausas: 5\n- Parâmetros Fônicos (F0, Jitter, Shimmer): Normalizados\n- Status do Token: 1 token debitado com sucesso.`
-                };
+      if (currentUser) {
+        await supabaseClient.from('profiles').update({ ai_provider: provider, ai_key: apiKey }).eq('id', currentUser.id);
+      }
+      document.getElementById('aiStatusBadge').textContent = 'CONFIGURADA';
+      document.getElementById('aiStatusBadge').className = 'ai-status-badge ativo';
+      showMsg('✅ Calibração da IA salva com sucesso!');
+    });
 
-                document.getElementById('txtTranscricaoEditavel').value = dadosCRS.relatorio_texto;
-                historicoSessoes[etapaCalibracao] = dadosCRS;
-                document.getElementById(`infoSessao${etapaCalibracao}`).innerText = `Concluído (${dadosCRS.duration_sec}s)`;
+    document.getElementById('btnAddToken').addEventListener('click', () => {
+      currentTokens += 1;
+      document.getElementById('userTokens').textContent = currentTokens;
+      showMsg('Token adicionado. Clique em Salvar Alterações.');
+    });
 
-                const valores = [
-                    { id: 1, val: `${Math.round(120 + Math.random()*30)} Hz | ${dadosCRS.energy_pct}%`, p: dadosCRS.energy_pct },
-                    { id: 2, val: `${Math.round(70 + Math.random()*10)} dB | ${dadosCRS.continuity_pct}%`, p: dadosCRS.continuity_pct },
-                    { id: 3, val: `${(25 + Math.random()*5).toFixed(1)} dB | 1.4 dB`, p: dadosCRS.stability_pct },
-                    { id: 4, val: `${dadosCRS.silence_pct}% | ${dadosCRS.duration_sec}s`, p: dadosCRS.silence_pct },
-                    { id: 5, val: `G0 | ${Math.round(85 + Math.random()*10)}`, p: 90 },
-                    { id: 6, val: `${Math.round(130 + Math.random()*20)} L/s | 13 cmH₂O`, p: 75 },
-                    { id: 7, val: `${Math.round(65 + Math.random()*20)}% | 3.1ms`, p: 70 },
-                    { id: 8, val: `${Math.round(20 + Math.random()*10)} dBA | ${dadosCRS.noise_pct}%`, p: dadosCRS.noise_pct }
-                ];
+    document.getElementById('btnSaveChanges').addEventListener('click', async () => {
+      if (!currentUser) return;
+      const finalName = document.getElementById('userName').textContent;
+      const provider = document.getElementById('selectAiProvider').value;
+      const apiKey = document.getElementById('inputApiKey').value.trim();
 
-                valores.forEach(item => {
-                    desenharGraficoAnimado(`cvGraph${item.id}`, item.p);
-                    document.getElementById(`mVal${item.id}`).innerText = item.val;
-                    document.getElementById(`mStat${item.id}`).innerText = "Ótimo";
-                });
+      const { error } = await supabaseClient.from('profiles').upsert({
+        id: currentUser.id, email: currentUser.email, nome: finalName, tokens: currentTokens, ai_provider: provider, ai_key: apiKey
+      });
 
-                if (currentUser) {
-                    await supabaseClient.from('profiles').update({ tokens: currentTokens }).eq('id', currentUser.id);
-                }
+      if (!error) showMsg('✅ Perfil gravado com sucesso!');
+      else showMsg('Erro ao gravar: ' + error.message, true);
+    });
 
-                const chatBox = document.getElementById('chatBox');
-                chatBox.innerHTML += `<div class="chat-message user">Calibração ${etapaCalibracao} submetida com sucesso.</div>`;
-                chatBox.innerHTML += `<div class="chat-message ad"><strong>Elayon Core:</strong> Relatório CRS gerado. Token debitado. Restam ${currentTokens} tokens.</div>`;
-                chatBox.scrollTop = chatBox.scrollHeight;
+    document.getElementById('btnLogout').addEventListener('click', async () => {
+      await supabaseClient.auth.signOut();
+      window.location.href = 'login.html';
+    });
 
-                if (etapaCalibracao < 3) {
-                    etapaCalibracao++;
-                    document.getElementById('calibraStatus').innerText = `🎙️ Calibração ${etapaCalibracao}/3`;
-                    document.getElementById('calibStepTitle').innerText = `🎙️ ${etapaCalibracao}ª Calibração de Voz (Etapa ${etapaCalibracao}/3)`;
-                    btn.innerText = `🎙️ Pressione para Falar (Calibrar Etapa ${etapaCalibracao} • Consome 1 Token)`;
-                    btn.disabled = false;
-                } else {
-                    document.getElementById('calibraStatus').innerText = `✅ Baseline Concluído`;
-                    document.getElementById('calibStepTitle').innerText = `✅ Calibração Fonoaudiológica Finalizada`;
-                    btn.innerText = `✨ Sistema Calibrado com Sucesso`;
-                    btn.style.background = "var(--success)";
-                    btn.style.color = "#fff";
-                    btn.disabled = true;
-
-                    document.getElementById('btnLiberarHealth').style.display = "flex";
-                }
-            }, 1200);
-        }
-
-        function carregarSessaoVisual(num) {
-            const sessao = historicoSessoes[num];
-            if (!sessao) {
-                alert(`A sessão de calibração ${num} ainda não foi executada.`);
-                return;
-            }
-            document.getElementById('txtTranscricaoEditavel').value = sessao.relatorio_texto;
-            alert(`Carregando telemetria e gráficos da Sessão ${num} para o painel.`);
-        }
-
-        function irParaElayonHealth() {
-            window.location.href = "health-decision.html";
-        }
-
-        initCockpit();
-    </script>
+    initAuth();
+  </script>
 </body>
 </html>
-
