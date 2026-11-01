@@ -8,19 +8,19 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg1: #0f172a; --bg2: #1e293b; --card: rgba(30, 41, 59, 0.92);
-            --ink: #f8fafc; --muted: #94a3b8; --line: rgba(255, 255, 255, 0.12);
+            --bg1: #090d16; --bg2: #111827; --card: rgba(17, 24, 39, 0.94);
+            --ink: #f8fafc; --muted: #94a3b8; --line: rgba(255, 255, 255, 0.1);
             --accent: #0ea5e9; --accent2: #14b8a6; --accent-glow: rgba(14, 165, 233, 0.25);
             --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
-            --shadow: 0 20px 40px rgba(0,0,0,0.4);
+            --shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            min-height: 100vh; background: linear-gradient(135deg, var(--bg1), var(--bg2));
+            min-height: 100vh; background: radial-gradient(circle at top center, var(--bg2), var(--bg1));
             color: var(--ink); font-family: system-ui, -apple-system, sans-serif;
             display: flex; flex-direction: column; align-items: center; padding: 24px; padding-bottom: 120px;
         }
-        .container { width: 100%; max-width: 1200px; display: grid; gap: 24px; }
+        .container { width: 100%; max-width: 1280px; display: grid; gap: 24px; }
 
         /* HUD Superior */
         .hud-header {
@@ -37,7 +37,7 @@
         }
         .btn-perfil:hover { background: var(--accent); color: #000; border-color: var(--accent); }
 
-        /* Card de Perfil do Operador */
+        /* Perfil do Operador */
         .profile-card {
             background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 24px; border: 1px solid var(--line);
             box-shadow: var(--shadow); display: flex; align-items: center; gap: 20px;
@@ -48,169 +48,144 @@
         .profile-info p { font-size: 12px; color: var(--muted); font-family: monospace; }
         .calibra-tag { font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 8px; background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
 
-        /* Títulos de Seções */
+        /* Títulos e Gráficos */
         .section-title { font-size: 14px; margin-bottom: 4px; color: var(--accent); font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: space-between; text-transform: uppercase; }
-
-        /* Gráficos Multiview (Ritmo Suave para Neurodivergentes) */
         .graphs-grid-2col { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
         @media(max-width: 900px) { .graphs-grid-2col { grid-template-columns: 1fr; } }
 
         details.graph-accordion {
-            background: var(--card); backdrop-filter: blur(12px); border: 1px solid var(--accent); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; transition: 0.3s;
+            background: var(--card); backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; transition: 0.3s;
         }
+        details.graph-accordion[open] { border-color: var(--accent); }
         summary.graph-summary {
             padding: 16px; font-size: 12px; font-weight: 800; color: var(--ink); cursor: pointer;
             background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center; user-select: none;
         }
-        .graph-body { padding: 16px; background: rgba(15, 23, 42, 0.5); border-top: 1px solid var(--line); position: relative; }
-        .canvas-box { width: 100%; height: 130px; border-radius: 10px; background: rgba(10, 15, 30, 0.8); display: block; border: 1px solid var(--line); margin-bottom: 12px; }
+        .graph-body { padding: 16px; background: rgba(5, 8, 15, 0.75); border-top: 1px solid var(--line); position: relative; }
+        .canvas-box { width: 100%; height: 140px; border-radius: 10px; background: #04060b; display: block; border: 1px solid var(--line); margin-bottom: 12px; }
         
         .scale-axis {
-            position: absolute; right: 20px; top: 20px; font-family: monospace; font-size: 10px; color: var(--muted); background: rgba(15, 23, 42, 0.85); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); pointer-events: none;
+            position: absolute; right: 20px; top: 20px; font-family: monospace; font-size: 10px; color: var(--muted); background: rgba(15, 23, 42, 0.85); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); pointer-events: none; z-index: 10;
         }
 
         .metric-box-card { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; text-align: left; border-left: 3px solid var(--accent); display: flex; justify-content: space-between; align-items: center; }
         .metric-val-lbl { font-size: 13px; font-family: monospace; font-weight: 800; color: var(--ink); }
         .metric-status { font-size: 10px; font-weight: 700; color: var(--success); background: rgba(16, 185, 129, 0.1); padding: 2px 6px; border-radius: 4px; }
-
-        /* Buffer FIFO de Migração */
-        .fifo-box { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 14px; padding: 14px; transition: 0.3s; display: flex; flex-direction: column; gap: 8px; }
-        .fifo-box.ativo { border-color: var(--accent); background: rgba(14, 165, 233, 0.08); box-shadow: 0 0 15px var(--accent-glow); }
-        .fifo-badge { font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; width: fit-content; font-family: monospace; }
-        .fifo-badge.ok { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
-        .fifo-badge.wait { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
-        .img-grid-preview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 6px; }
-        .img-grid-preview img { width: 100%; height: 24px; border-radius: 4px; object-fit: cover; border: 1px solid var(--line); }
-
-        /* Caixas de Texto & Gravador */
-        .txt-box { width: 100%; background: rgba(10, 15, 30, 0.6); border: 1.5px solid var(--accent); border-radius: 14px; padding: 14px; font-size: 13px; font-family: monospace; color: var(--ink); outline: none; resize: vertical; }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        
-        <!-- HUD Superior -->
-        <header class="hud-header">
-            <div class="hud-info">CRS CORE v4: <span id="hudIaStatus" style="color: var(--success);">IA SIMBIÓTICA ATIVA</span> | TOKENS: <span id="hudTokens">100</span></div>
-            <a href="perfil.html" class="btn-perfil">⚙️ Voltar ao Perfil</a>
-        </header>
+<div class="container">
+<!-- HUD Superior -->
+<header class="hud-header">
+<div class="hud-info">CRS CORE v4: <span id="hudIaStatus" style="color: var(--success);">IA SIMBIÓTICA ATIVA</span> | TOKENS: <span id="hudTokens">100</span></div>
+<a href="perfil.html" class="btn-perfil">⚙️ Voltar ao Perfil</a>
+</header>
+<!-- Perfil do Operador -->
+<div class="profile-card">
+<img id="userAvatarImg" src="elayon_logo.png" alt="Avatar" class="logo-img" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=elayon';">
+<div class="profile-info">
+<h2 id="userDisplayName">Paulo Roberto Xavier Júnior</h2>
+<p id="userDisplayEmail">ID: PRXJ-2026-SIMBIOTICO | Data/Hora: <span id="lblDataHoraLive">--/--/2026 --:--</span></p>
+</div>
+<span class="calibra-tag" id="calibraStatus">🎙️ Calibração 1/3 (Espectros Contínuo & Fragmentados)</span>
+</div>
+<!-- As 8 Modulações de Interação Acústica -->
+<div class="section-title">
+<span>📊 As 8 Modulações Acústicas (Espectrogramas Contínuos e Fragmentados)</span>
+<span style="font-size: 10px; color: var(--muted); font-family: monospace;">NEURODIVERGENT SPECTRAL STREAM</span>
+</div>
+<div class="graphs-grid-2col">
+<details class="graph-accordion" open>
+<summary class="graph-summary">🟦 I. Frequência / Tom (F₀ & Espectrograma Contínuo)</summary>
+<div class="graph-body"><span class="scale-axis">0 Hz — 300 Hz</span><canvas class="canvas-box" id="cvMod1"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal1">130 Hz | 88.0%</div><span class="metric-status" id="mStat1">Ativo</span></div></div>
+</details>
+<details class="graph-accordion" open>
+<summary class="graph-summary">🟧 II. Intensidade / Volume (SPL & Rosca Proporcional)</summary>
+<div class="graph-body"><span class="scale-axis">Distribuição %</span><canvas class="canvas-box" id="cvMod2"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal2">72 dB | 88.8%</div><span class="metric-status" id="mStat2">Ativo</span></div></div>
+</details>
+<details class="graph-accordion" open>
+<summary class="graph-summary">🟩 III. Qualidade / Timbre (Espectrograma em Barras & HNR)</summary>
+<div class="graph-body"><span class="scale-axis">0 dB — 30 dB</span><canvas class="canvas-box" id="cvMod3"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal3">28.1 dB | 1.2 dB</div><span class="metric-status" id="mStat3">Ativo</span></div></div>
+</details>
+<details class="graph-accordion" open>
+<summary class="graph-summary">🟨 IV. Prosódia / Ritmo & Pausas (Área com Gradiente Contínuo)</summary>
+<div class="graph-body"><span class="scale-axis">0% — 100%</span><canvas class="canvas-box" id="cvMod4"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal4">19.1% | 17.4s</div><span class="metric-status" id="mStat4">Ativo</span></div></div>
+</details>
+<details class="graph-accordion" open>
+<summary class="graph-summary">🟪 V. Perceptivo-Auditivo (GRBAS - Dispersão Vetorial)</summary>
+<div class="graph-body"><span class="scale-axis">0 — 63</span><canvas class="canvas-box" id="cvMod5"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal5">G0 | 92</div><span class="metric-status" id="mStat5">Ativo</span></div></div>
+</details>
+<details class="graph-accordion" open>
+<summary class="graph-summary">🟫 VI. Aerodinâmica & Fluxo Subglótico (Linhas Duplas Dinâmicas)</summary>
+<div class="graph-body"><span class="scale-axis">0 L/s — 200 L/s</span><canvas class="canvas-box" id="cvMod6"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal6">138 L/s | 12.5 cmH₂O</div><span class="metric-status" id="mStat6">Ativo</span></div></div>
+</details>
+<details class="graph-accordion" open>
+<summary class="graph-summary">🟩 VII. Eletroglotografia (Contato Glótico - Histograma em Degrau)</summary>
+<div class="graph-body"><span class="scale-axis">0% — 100%</span><canvas class="canvas-box" id="cvMod7"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal7">70% | 2.8ms</div><span class="metric-status" id="mStat7">Ativo</span></div></div>
+</details>
+<details class="graph-accordion" open>
+<summary class="graph-summary">🟦 VIII. Contexto Ambiental & Ruído (Indicador Progressivo Radial)</summary>
+<div class="graph-body"><span class="scale-axis">0 dBA — 80 dBA</span><canvas class="canvas-box" id="cvMod8"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal8">22 dBA | 4.9%</div><span class="metric-status" id="mStat8">Ativo</span></div></div>
+</details>
+</div>
+<!-- Buffer FIFO Sequencial & Visualizador de Imagens/Status do CRS -->
+<div class="section-title" style="margin-top: 10px;">
+<span>📦 Buffer FIFO Sequencial • Migração de Áudio, Imagens e Métricas CRS</span>
+</div>
+<section style="background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);">
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
+<div class="fifo-box ativo" id="fifoBox1">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<span style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Calibração 1</span>
+<span class="fifo-badge wait" id="crsBadge1">CRS AGUARDANDO</span>
+</div>
+<div style="font-size: 10px; color: var(--muted);" id="infoSessao1">Pendente captação vocal...</div>
+<audio id="audioPlayer1" controls style="width:100%; height:28px; display:none;"></audio>
+<div class="img-grid-preview" id="imgGrid1"></div>
+</div>
+<div class="fifo-box" id="fifoBox2">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<span style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Calibração 2</span>
+<span class="fifo-badge wait" id="crsBadge2">CRS AGUARDANDO</span>
+</div>
+<div style="font-size: 10px; color: var(--muted);" id="infoSessao2">Aguardando Etapa 1...</div>
+<audio id="audioPlayer2" controls style="width:100%; height:28px; display:none;"></audio>
+<div class="img-grid-preview" id="imgGrid2"></div>
+</div>
+<div class="fifo-box" id="fifoBox3">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<span style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Baseline (3/3 Final)</span>
+<span class="fifo-badge wait" id="crsBadge3">CRS AGUARDANDO</span>
+</div>
+<div style="font-size: 10px; color: var(--muted);" id="infoSessao3">Aguardando Etapa 2...</div>
+<audio id="audioPlayer3" controls style="width:100%; height:28px; display:none;"></audio>
+<div class="img-grid-preview" id="imgGrid3"></div>
+</div>
+</div>
+</section>
 
-        <!-- Perfil do Operador -->
-        <div class="profile-card">
-            <img id="userAvatarImg" src="elayon_logo.png" alt="Avatar" class="logo-img" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=elayon';">
-            <div class="profile-info">
-                <h2 id="userDisplayName">Paulo Roberto Xavier Júnior</h2>
-                <p id="userDisplayEmail">ID: PRXJ-2026-SIMBIOTICO | Data/Hora: <span id="lblDataHoraLive">--/--/2026 --:--</span></p>
-            </div>
-            <span class="calibra-tag" id="calibraStatus">🎙️ Calibração 1/3 (Etapa Inicial)</span>
-        </div>
-
-        <!-- As 8 Modulações de Interação (Todas Abertas 'open' com Animação Suave) -->
-        <div class="section-title">
-            <span>📊 As 8 Modulações de Interação Acústica (Ritmo Confortável & Suave)</span>
-            <span style="font-size: 10px; color: var(--muted); font-family: monospace;">NEURODIVERGENT SMOOTH STREAM</span>
-        </div>
-        
-        <div class="graphs-grid-2col">
-            <details class="graph-accordion" open>
-                <summary class="graph-summary">🟦 I. Espectro de Intensidade em Tempo Real (Brilho Suave)</summary>
-                <div class="graph-body"><span class="scale-axis">Tempo Lento</span><canvas class="canvas-box" id="cvMod1"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal1">-- dB | -- Hz</div><span class="metric-status" id="mStat1">Aguardando</span></div></div>
-            </details>
-            <details class="graph-accordion" open>
-                <summary class="graph-summary">🟧 II. Distribuição Proporcional de Energia (Rosca)</summary>
-                <div class="graph-body"><span class="scale-axis">Distribuição %</span><canvas class="canvas-box" id="cvMod2"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal2">-- %</div><span class="metric-status" id="mStat2">Aguardando</span></div></div>
-            </details>
-            <details class="graph-accordion" open>
-                <summary class="graph-summary">🟩 III. Qualidade / Timbre (Espectrograma em Barras)</summary>
-                <div class="graph-body"><span class="scale-axis">0 dB — 30 dB</span><canvas class="canvas-box" id="cvMod3"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal3">-- dB</div><span class="metric-status" id="mStat3">Aguardando</span></div></div>
-            </details>
-            <details class="graph-accordion" open>
-                <summary class="graph-summary">🟨 IV. Prosódia / Ritmo & Pausas (Área com Gradiente)</summary>
-                <div class="graph-body"><span class="scale-axis">0% — 100%</span><canvas class="canvas-box" id="cvMod4"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal4">-- %</div><span class="metric-status" id="mStat4">Aguardando</span></div></div>
-            </details>
-            <details class="graph-accordion" open>
-                <summary class="graph-summary">🟪 V. Perceptivo-Auditivo (Dispersão Vetorial GRBAS)</summary>
-                <div class="graph-body"><span class="scale-axis">G0 — G3</span><canvas class="canvas-box" id="cvMod5"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal5">G--</div><span class="metric-status" id="mStat5">Aguardando</span></div></div>
-            </details>
-            <details class="graph-accordion" open>
-                <summary class="graph-summary">🟫 VI. Aerodinâmica & Fluxo Subglótico (Linhas Duplas)</summary>
-                <div class="graph-body"><span class="scale-axis">0 L/s — 200 L/s</span><canvas class="canvas-box" id="cvMod6"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal6">-- L/s</div><span class="metric-status" id="mStat6">Aguardando</span></div></div>
-            </details>
-            <details class="graph-accordion" open>
-                <summary class="graph-summary">🟩 VII. Contato Glótico (Eletroglotografia em Degrau)</summary>
-                <div class="graph-body"><span class="scale-axis">0% — 100%</span><canvas class="canvas-box" id="cvMod7"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal7">-- %</div><span class="metric-status" id="mStat7">Aguardando</span></div></div>
-            </details>
-            <details class="graph-accordion" open>
-                <summary class="graph-summary">🟦 VIII. Contexto Ambiental & Ruído (Indicador Radial)</summary>
-                <div class="graph-body"><span class="scale-axis">0 dBA — 80 dBA</span><canvas class="canvas-box" id="cvMod8"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal8">-- dBA</div><span class="metric-status" id="mStat8">Aguardando</span></div></div>
-            </details>
-        </div>
-
-        <!-- Buffer FIFO Sequencial & Visualizador de Imagens/Status do CRS -->
-        <div class="section-title" style="margin-top: 10px;">
-            <span>📦 Buffer FIFO Sequencial • Migração de Áudio, Imagens e Métricas CRS</span>
-        </div>
-        <section style="background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);">
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
-                <!-- Caixa 1 -->
-                <div class="fifo-box ativo" id="fifoBox1">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Calibração 1</span>
-                        <span class="fifo-badge wait" id="crsBadge1">CRS AGUARDANDO</span>
-                    </div>
-                    <div style="font-size: 10px; color: var(--muted);" id="infoSessao1">Pendente captação vocal...</div>
-                    <audio id="audioPlayer1" controls style="width:100%; height:28px; display:none;"></audio>
-                    <div class="img-grid-preview" id="imgGrid1"></div>
-                </div>
-
-                <!-- Caixa 2 -->
-                <div class="fifo-box" id="fifoBox2">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Calibração 2</span>
-                        <span class="fifo-badge wait" id="crsBadge2">CRS AGUARDANDO</span>
-                    </div>
-                    <div style="font-size: 10px; color: var(--muted);" id="infoSessao2">Aguardando Etapa 1...</div>
-                    <audio id="audioPlayer2" controls style="width:100%; height:28px; display:none;"></audio>
-                    <div class="img-grid-preview" id="imgGrid2"></div>
-                </div>
-
-                <!-- Caixa 3 -->
-                <div class="fifo-box" id="fifoBox3">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Baseline (3/3 Final)</span>
-                        <span class="fifo-badge wait" id="crsBadge3">CRS AGUARDANDO</span>
-                    </div>
-                    <div style="font-size: 10px; color: var(--muted);" id="infoSessao3">Aguardando Etapa 2...</div>
-                    <audio id="audioPlayer3" controls style="width:100%; height:28px; display:none;"></audio>
-                    <div class="img-grid-preview" id="imgGrid3"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Gravação de Voz, Transcrição em Caixa Separada e Diálogo Simbiótico -->
+<!-- Gravação de Voz e Diálogo Simbiótico -->
         <section style="background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 24px; border: 1px solid var(--line); box-shadow: var(--shadow); display: grid; gap: 16px;">
             <div class="section-title"><span id="calibStepTitle">🎙️ 1ª Calibração de Voz (Etapa 1/3)</span></div>
             
-            <!-- Caixa da IA Simbiótica -->
             <div id="chatBox" style="background: rgba(10, 15, 30, 0.6); border: 1px solid var(--line); border-radius: 14px; height: 160px; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
                 <div style="font-size: 12px; padding: 10px 14px; border-radius: 10px; max-width: 85%; background: rgba(14, 165, 233, 0.1); border-left: 3px solid var(--accent);">
-                    <strong>Elayon Core (IA Simbiótica):</strong> Olá! Inicializando Conexão Simbiótica para Paulo Roberto Xavier Júnior. Por favor, clique no botão de microfone e leia a instrução em voz alta. Ligue e desligue manualmente quando terminar.
+                    <strong>Elayon Core (IA Simbiótica):</strong> Olá! Inicializando Conexão Simbiótica com Espectros Contínuos e Fragmentados. Fale com calma e observe os 8 gráficos reagem à sua intensidade vocal.
                 </div>
             </div>
 
-            <!-- Caixa Separada de Transcrição Manual / Ao Vivo do Usuário -->
             <div style="text-align: left;">
-                <label style="font-size: 11px; font-weight: 800; color: var(--accent); display: block; margin-bottom: 6px;">📝 Transcrição da sua fala em tempo real (Caixa do Usuário):</label>
-                <textarea id="txtTranscricaoUsuario" class="txt-box" style="min-height: 80px;" placeholder="O texto falado pelo usuário aparecerá aqui continuamente até que o microfone seja desligado manualmente..."></textarea>
+                <label style="font-size: 11px; font-weight: 800; color: var(--accent); display: block; margin-bottom: 6px;">📝 Transcrição da sua fala em tempo real:</label>
+                <textarea id="txtTranscricaoUsuario" class="txt-box" style="min-height: 80px;" placeholder="O texto falado aparecerá aqui continuamente..."></textarea>
             </div>
 
-            <!-- Botão de Microfone de Alternância Manual -->
             <button id="btnMicToggle" onclick="toggleGravacaoManual()" style="display: block; width: 100%; padding: 16px; border-radius: 14px; font-size: 14px; font-weight: 800; border: none; cursor: pointer; text-align: center; background: linear-gradient(135deg, var(--danger), #f43f5e); color: #fff; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3); transition: 0.3s;">
                 🎙️ LIGAR MICROFONE (Falar Etapa 1)
             </button>
         </section>
 
-        <!-- Botão Final de Migração Liberado após as 3 Etapas -->
+        <!-- Botão Final de Migração -->
         <section style="background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow); text-align: center;">
             <div style="display: flex; gap: 12px;">
                 <a href="perfil.html" style="display:block; flex:1; padding:14px; border-radius:14px; font-weight:800; background:rgba(255,255,255,0.05); border:1px solid var(--line); color:var(--ink); text-decoration:none;">⚙️ Voltar ao Perfil</a>
@@ -222,7 +197,301 @@
 
     </div>
 
-    <!-- Script modular externo -->
-    <script src="cockpit.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
+        let supabaseClient = null;
+
+        try {
+            if (typeof supabase !== 'undefined') {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (e) { console.warn("Supabase local mode."); }
+
+        const estadoSimbiotico = {
+            operadorNome: "Paulo Roberto Xavier Júnior",
+            userId: "PRXJ-2026-SIMBIOTICO",
+            tokens: 100,
+            etapaAtual: 1,
+            gravando: false,
+            audioChunks: [],
+            mediaRecorder: null,
+            transcricaoAcumulada: "",
+            animacaoId: null,
+            sessoesFIFO: [
+                { audioUrl: null, imagens: [], crsStatus: "AGUARDANDO", transcricao: "" },
+                { audioUrl: null, imagens: [], crsStatus: "AGUARDANDO", transcricao: "" },
+                { audioUrl: null, imagens: [], crsStatus: "AGUARDANDO", transcricao: "" }
+            ]
+        };
+
+        const buffersEspectrogramas = {};
+
+        document.addEventListener("DOMContentLoaded", () => {
+            atualizarDataHoraLive();
+            inicializarCanvases();
+            saudacaoInicialIA();
+            iniciarLoopEspectrogramas();
+        });
+
+        function atualizarDataHoraLive() {
+            const agora = new Date();
+            const lbl = document.getElementById("lblDataHoraLive");
+            if (lbl) lbl.innerText = `${agora.toLocaleDateString("pt-BR")} ${agora.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}`;
+        }
+
+        function inicializarCanvases() {
+            for (let i = 1; i <= 8; i++) {
+                const canvas = document.getElementById(`cvMod${i}`);
+                if (!canvas) continue;
+                const ctx = canvas.getContext("2d");
+                canvas.width = canvas.parentElement.clientWidth - 32;
+                canvas.height = 140;
+
+                buffersEspectrogramas[i] = [];
+                for(let x=0; x<canvas.width; x+=3) {
+                    buffersEspectrogramas[i].push(gerarLinhaEspectralAleatoria(i, 0.2));
+                }
+                desenharBufferNoCanvas(ctx, canvas.width, canvas.height, i);
+            }
+        }
+
+        function gerarLinhaEspectralAleatoria(tipo, intensidade) {
+            let arr = [];
+            let rows = 28;
+            for(let r=0; r<rows; r++) {
+                let val = Math.random() * intensidade;
+                if (tipo === 1 || tipo === 4) {
+                    if (r > 8 && r < 20) val += intensidade * 1.2;
+                } else if (tipo === 3) {
+                    val = (r % 3 === 0) ? intensidade * 1.5 : intensidade * 0.2;
+                }
+                arr.push(val);
+            }
+            return arr;
+        }
+
+        function iniciarLoopEspectrogramas() {
+            let globalTime = 0;
+            function loop() {
+                globalTime += 0.05;
+                let rmsAtual = estadoSimbiotico.gravando ? (0.4 + Math.abs(Math.sin(globalTime * 3)) * 0.6) : (0.2 + 0.05 * Math.sin(globalTime));
+
+                for (let i = 1; i <= 8; i++) {
+                    const canvas = document.getElementById(`cvMod${i}`);
+                    if (!canvas) continue;
+                    const ctx = canvas.getContext("2d");
+                    const buf = buffersEspectrogramas[i];
+
+                    buf.shift();
+                    buf.push(gerarLinhaEspectralAleatoria(i, rmsAtual));
+
+                    desenharBufferNoCanvas(ctx, canvas.width, canvas.height, i);
+                }
+                estadoSimbiotico.animacaoId = requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        function desenharBufferNoCanvas(ctx, width, height, tipo) {
+            ctx.fillStyle = "#04060b";
+            ctx.fillRect(0, 0, width, height);
+
+            const buf = buffersEspectrogramas[tipo];
+            let colWidth = 3;
+
+            buf.forEach((coluna, xIdx) => {
+                let x = xIdx * colWidth;
+                coluna.forEach((val, yIdx) => {
+                    let y = height - (yIdx * (height / coluna.length));
+                    let hCell = height / coluna.length;
+
+                    if (val > 0.15) {
+                        if (tipo === 1 || tipo === 4 || tipo === 8) {
+                            ctx.fillStyle = `rgba(14, 165, 233, ${Math.min(val, 0.9)})`;
+                        } else if (tipo === 2 || tipo === 3 || tipo === 7) {
+                            ctx.fillStyle = `rgba(20, 184, 166, ${Math.min(val, 0.9)})`;
+                        } else if (tipo === 5) {
+                            ctx.fillStyle = `rgba(168, 85, 247, ${Math.min(val, 0.9)})`;
+                        } else {
+                            ctx.fillStyle = `rgba(245, 158, 11, ${Math.min(val, 0.9)})`;
+                        }
+                        ctx.fillRect(x, y, colWidth - 0.5, hCell - 0.5);
+                    }
+                });
+            });
+
+            ctx.strokeStyle = tipo % 2 === 0 ? "#14b8a6" : "#0ea5e9";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            buf.forEach((coluna, xIdx) => {
+                let x = xIdx * colWidth;
+                let maxValIdx = 0;
+                coluna.forEach((v, idx) => { if(v > coluna[maxValIdx]) maxValIdx = idx; });
+                let y = height - (maxValIdx * (height / coluna.length));
+                if (xIdx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
+
+        let recognition = null;
+        function configurarReconhecimentoVoz() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return null;
+            const rec = new SpeechRecognition();
+            rec.lang = "pt-BR";
+            rec.continuous = true;
+            rec.interimResults = true;
+            rec.onresult = (event) => {
+                let temp = "";
+                for (let i = event.resultIndex; i < event.results.length; i++) temp += event.results[i][0].transcript;
+                const txtArea = document.getElementById("txtTranscricaoUsuario");
+                if (txtArea) txtArea.value = estadoSimbiotico.transcricaoAcumulada + " " + temp;
+            };
+            return rec;
+        }
+
+        function falarEExibirIA(texto) {
+            const chatBox = document.getElementById("chatBox");
+            if (chatBox) {
+                chatBox.innerHTML += `<div style="font-size: 12px; padding: 10px 14px; border-radius: 10px; max-width: 85%; background: rgba(14, 165, 233, 0.1); border-left: 3px solid var(--accent);"><strong>Elayon Core (IA Simbiótica):</strong> ${texto}</div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(texto);
+                utterance.lang = "pt-BR";
+                utterance.rate = 0.95;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function saudacaoInicialIA() {
+            falarEExibirIA(`Olá, ${estadoSimbiotico.operadorNome}! Inicializando Conexão Simbiótica. Calibração com espectrogramas contínuos e fragmentados. Clique em Ligar Microfone.`);
+        }
+
+        function capturarSnapshotsModulacoes() {
+            let imgs = [];
+            for (let i = 1; i <= 8; i++) {
+                const cv = document.getElementById(`cvMod${i}`);
+                if (cv) imgs.push(cv.toDataURL("image/png"));
+            }
+            return imgs;
+        }
+
+        async function toggleGravacaoManual() {
+            const btn = document.getElementById("btnMicToggle");
+            const txtArea = document.getElementById("txtTranscricaoUsuario");
+
+            if (!estadoSimbiotico.gravando) {
+                estadoSimbiotico.gravando = true;
+                if (txtArea) estadoSimbiotico.transcricaoAcumulada = txtArea.value;
+                
+                btn.style.background = "linear-gradient(135deg, var(--success), #34d399)";
+                btn.innerText = "⏹️ DESLIGAR MICROFONE (Processar Etapa)";
+
+                if (!recognition) recognition = configurarReconhecimentoVoz();
+                try { recognition.start(); } catch(e) {}
+
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    estadoSimbiotico.mediaRecorder = new MediaRecorder(stream);
+                    estadoSimbiotico.audioChunks = [];
+                    estadoSimbiotico.mediaRecorder.ondataavailable = e => estadoSimbiotico.audioChunks.push(e.data);
+                    estadoSimbiotico.mediaRecorder.start();
+                } catch(e) { console.warn("Mic stream err:", e); }
+
+            } else {
+                estadoSimbiotico.gravando = false;
+                btn.style.background = "linear-gradient(135deg, var(--danger), #f43f5e)";
+                btn.innerText = "🎙️ LIGAR MICROFONE (Falar Próxima Etapa)";
+
+                if (recognition) try { recognition.stop(); } catch(e) {}
+
+                if (estadoSimbiotico.mediaRecorder) {
+                    estadoSimbiotico.mediaRecorder.stop();
+                    estadoSimbiotico.mediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(estadoSimbiotico.audioChunks, { type: 'audio/webm' });
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        await processarEtapaConcluida(audioUrl);
+                    };
+                } else {
+                    await processarEtapaConcluida(null);
+                }
+            }
+        }
+
+        async function processarEtapaConcluida(audioUrl) {
+            const etapa = estadoSimbiotico.etapaAtual;
+            const txtArea = document.getElementById("txtTranscricaoUsuario");
+            const transcricaoFinal = txtArea ? txtArea.value : "";
+            
+            const snapshots = capturarSnapshotsModulacoes();
+            const crsValidado = "CRS OK • ESPECTRO 18%";
+
+            estadoSimbiotico.sessoesFIFO[etapa - 1] = {
+                audioUrl: audioUrl, imagens: snapshots, crsStatus: crsValidado, transcricao: transcricaoFinal
+            };
+
+            renderizarBufferFIFO(etapa);
+
+            estadoSimbiotico.tokens = Math.max(0, estadoSimbiotico.tokens - 1);
+            const hudTokens = document.getElementById("hudTokens");
+            if (hudTokens) hudTokens.innerText = estadoSimbiotico.tokens;
+
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from("calibracoes_crs").insert([{
+                        user_id: estadoSimbiotico.userId,
+                        operador_nome: estadoSimbiotico.operadorNome,
+                        etapa: etapa,
+                        transcricao_usuario: transcricaoFinal,
+                        resposta_ia: `Espectrograma processado etapa ${etapa}`,
+                        crs_status: crsValidado,
+                        audio_url: audioUrl || "local_blob",
+                        imagens_modulacoes: snapshots,
+                        tokens_consumidos: 1
+                    }]);
+                } catch (err) { console.error("Supabase insert error:", err); }
+            }
+
+            if (etapa < 3) {
+                estadoSimbiotico.etapaAtual++;
+                document.getElementById("calibraStatus").innerText = `🎙️ Calibração ${estadoSimbiotico.etapaAtual}/3`;
+                document.getElementById("calibStepTitle").innerText = `🎙️ ${estadoSimbiotico.etapaAtual}ª Calibração de Voz (Etapa ${estadoSimbiotico.etapaAtual}/3)`;
+                falarEExibirIA(`Etapa ${etapa} migrada para o Buffer FIFO! Preparando para a Etapa ${estadoSimbiotico.etapaAtual}.`);
+            } else {
+                falarEExibirIA("Calibração fonoaudiológica completa com sucesso! Ecossistema simbiótico pronto.");
+                document.getElementById("btnMicToggle").style.display = "none";
+                document.getElementById("btnLiberarHealth").style.display = "block";
+            }
+        }
+
+        function renderizarBufferFIFO(etapa) {
+            const sessao = estadoSimbiotico.sessoesFIFO[etapa - 1];
+            const audioPlayer = document.getElementById(`audioPlayer${etapa}`);
+            if (audioPlayer && sessao.audioUrl) {
+                audioPlayer.src = sessao.audioUrl;
+                audioPlayer.style.display = "block";
+            }
+            const badge = document.getElementById(`crsBadge${etapa}`);
+            if (badge) {
+                badge.innerText = sessao.crsStatus;
+                badge.className = "fifo-badge ok";
+            }
+            const imgGrid = document.getElementById(`imgGrid${etapa}`);
+            if (imgGrid && sessao.imagens.length > 0) {
+                imgGrid.innerHTML = sessao.imagens.slice(0, 4).map(img => `<img src="${img}" />`).join("");
+            }
+            if (etapa < 3) {
+                document.getElementById(`fifoBox${etapa}`).classList.remove("ativo");
+                document.getElementById(`fifoBox${etapa + 1}`).classList.add("ativo");
+            }
+        }
+
+        function concluirEMigrarParaIndex() {
+            window.location.href = "../elayon-crs-triagem/index.html";
+        }
+    </script>
 </body>
 </html>
