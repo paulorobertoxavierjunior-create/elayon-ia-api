@@ -3,11 +3,12 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Elayon Space • Cockpit Multiview CRS v4 (Calibração Simbiótica)</title>
+    <title>Elayon Space • Cockpit Simbiótico Multiview CRS v4</title>
+    <!-- Supabase JS v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg1: #0f172a; --bg2: #1e293b; --card: rgba(30, 41, 59, 0.9);
+            --bg1: #0f172a; --bg2: #1e293b; --card: rgba(30, 41, 59, 0.92);
             --ink: #f8fafc; --muted: #94a3b8; --line: rgba(255, 255, 255, 0.12);
             --accent: #0ea5e9; --accent2: #14b8a6; --accent-glow: rgba(14, 165, 233, 0.25);
             --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
@@ -17,10 +18,11 @@
         body {
             min-height: 100vh; background: linear-gradient(135deg, var(--bg1), var(--bg2));
             color: var(--ink); font-family: system-ui, -apple-system, sans-serif;
-            display: flex; flex-direction: column; align-items: center; padding: 24px; padding-bottom: 100px;
+            display: flex; flex-direction: column; align-items: center; padding: 24px; padding-bottom: 120px;
         }
         .container { width: 100%; max-width: 1200px; display: grid; gap: 24px; }
 
+        /* HUD Superior */
         .hud-header {
             background: var(--card); backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 16px;
             padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;
@@ -35,23 +37,26 @@
         }
         .btn-perfil:hover { background: var(--accent); color: #000; border-color: var(--accent); }
 
+        /* Card de Perfil do Operador */
         .profile-card {
             background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 24px; border: 1px solid var(--line);
             box-shadow: var(--shadow); display: flex; align-items: center; gap: 20px;
         }
-        .logo-img { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; background: #fff; box-shadow: 0 0 15px var(--accent-glow); }
+        .logo-img { width: 64px; height: 64px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; background: #fff; box-shadow: 0 0 15px var(--accent-glow); }
         .profile-info { flex: 1; text-align: left; }
         .profile-info h2 { font-size: 20px; color: var(--ink); margin-bottom: 4px; font-weight: 800; }
         .profile-info p { font-size: 12px; color: var(--muted); font-family: monospace; }
         .calibra-tag { font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 8px; background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
 
+        /* Títulos de Seções */
         .section-title { font-size: 14px; margin-bottom: 4px; color: var(--accent); font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: space-between; text-transform: uppercase; }
-        
+
+        /* Gráficos Multiview (Ritmo Suave para Neurodivergentes) */
         .graphs-grid-2col { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
         @media(max-width: 900px) { .graphs-grid-2col { grid-template-columns: 1fr; } }
 
         details.graph-accordion {
-            background: var(--card); backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; transition: 0.3s; border-color: var(--accent);
+            background: var(--card); backdrop-filter: blur(12px); border: 1px solid var(--accent); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; transition: 0.3s;
         }
         summary.graph-summary {
             padding: 16px; font-size: 12px; font-weight: 800; color: var(--ink); cursor: pointer;
@@ -68,11 +73,19 @@
         .metric-val-lbl { font-size: 13px; font-family: monospace; font-weight: 800; color: var(--ink); }
         .metric-status { font-size: 10px; font-weight: 700; color: var(--success); background: rgba(16, 185, 129, 0.1); padding: 2px 6px; border-radius: 4px; }
 
-        .fifo-box { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 14px; padding: 14px; transition: 0.3s; }
+        /* Buffer FIFO de Migração */
+        .fifo-box { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 14px; padding: 14px; transition: 0.3s; display: flex; flex-direction: column; gap: 8px; }
         .fifo-box.ativo { border-color: var(--accent); background: rgba(14, 165, 233, 0.08); box-shadow: 0 0 15px var(--accent-glow); }
+        .fifo-badge { font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; width: fit-content; font-family: monospace; }
+        .fifo-badge.ok { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
+        .fifo-badge.wait { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
+        .img-grid-preview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 6px; }
+        .img-grid-preview img { width: 100%; height: 24px; border-radius: 4px; object-fit: cover; border: 1px solid var(--line); }
+
+        /* Caixas de Texto & Gravador */
+        .txt-box { width: 100%; background: rgba(10, 15, 30, 0.6); border: 1.5px solid var(--accent); border-radius: 14px; padding: 14px; font-size: 13px; font-family: monospace; color: var(--ink); outline: none; resize: vertical; }
     </style>
 </head>
-
 <body>
     <div class="container">
         
@@ -82,24 +95,25 @@
             <a href="perfil.html" class="btn-perfil">⚙️ Voltar ao Perfil</a>
         </header>
 
+        <!-- Perfil do Operador -->
         <div class="profile-card">
             <img id="userAvatarImg" src="elayon_logo.png" alt="Avatar" class="logo-img" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=elayon';">
             <div class="profile-info">
-                <h2 id="userDisplayName">Carregando Operador...</h2>
-                <p id="userDisplayEmail">ID: --</p>
+                <h2 id="userDisplayName">Paulo Roberto Xavier Júnior</h2>
+                <p id="userDisplayEmail">ID: PRXJ-2026-SIMBIOTICO | Data/Hora: <span id="lblDataHoraLive">--/--/2026 --:--</span></p>
             </div>
-            <span class="calibra-tag" id="calibraStatus">🎙️ Calibração 1/3 (Fase Inicial)</span>
+            <span class="calibra-tag" id="calibraStatus">🎙️ Calibração 1/3 (Etapa Inicial)</span>
         </div>
 
-        <!-- 8 Modulações Gráficas com Abertura Simultânea (open) e Ritmo Longe/Suave -->
+        <!-- As 8 Modulações de Interação (Todas Abertas 'open' com Animação Suave) -->
         <div class="section-title">
-            <span>📊 As 8 Modulações de Interação & Espectro de Intensidade (Ritmo Lento & Suave)</span>
-            <span style="font-size: 10px; color: var(--muted); font-family: monospace;">NEURODIVERGENT COMFORT VIEW</span>
+            <span>📊 As 8 Modulações de Interação Acústica (Ritmo Confortável & Suave)</span>
+            <span style="font-size: 10px; color: var(--muted); font-family: monospace;">NEURODIVERGENT SMOOTH STREAM</span>
         </div>
         
         <div class="graphs-grid-2col">
             <details class="graph-accordion" open>
-                <summary class="graph-summary">🟦 I. Espectro de Intensidade em Tempo Real (Suave)</summary>
+                <summary class="graph-summary">🟦 I. Espectro de Intensidade em Tempo Real (Brilho Suave)</summary>
                 <div class="graph-body"><span class="scale-axis">Tempo Lento</span><canvas class="canvas-box" id="cvMod1"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal1">-- dB | -- Hz</div><span class="metric-status" id="mStat1">Aguardando</span></div></div>
             </details>
             <details class="graph-accordion" open>
@@ -132,53 +146,80 @@
             </details>
         </div>
 
-        <!-- Buffer FIFO Sequencial Real (Migração Visual de Caixa) -->
+        <!-- Buffer FIFO Sequencial & Visualizador de Imagens/Status do CRS -->
         <div class="section-title" style="margin-top: 10px;">
-            <span>📦 Buffer FIFO Sequencial & Migração de Sessões</span>
+            <span>📦 Buffer FIFO Sequencial • Migração de Áudio, Imagens e Métricas CRS</span>
         </div>
         <section style="background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);">
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
+                <!-- Caixa 1 -->
                 <div class="fifo-box ativo" id="fifoBox1">
-                    <div style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Calibração 1 (Ativa)</div>
-                    <div style="font-size: 10px; color: var(--muted); margin: 6px 0;" id="infoSessao1">Pendente captação...</div>
-                    <audio id="audioPlayer1" controls style="width:100%; height:28px; margin-top:6px; display:none;"></audio>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Calibração 1</span>
+                        <span class="fifo-badge wait" id="crsBadge1">CRS AGUARDANDO</span>
+                    </div>
+                    <div style="font-size: 10px; color: var(--muted);" id="infoSessao1">Pendente captação vocal...</div>
+                    <audio id="audioPlayer1" controls style="width:100%; height:28px; display:none;"></audio>
+                    <div class="img-grid-preview" id="imgGrid1"></div>
                 </div>
+
+                <!-- Caixa 2 -->
                 <div class="fifo-box" id="fifoBox2">
-                    <div style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Calibração 2</div>
-                    <div style="font-size: 10px; color: var(--muted); margin: 6px 0;" id="infoSessao2">Aguardando Etapa 1</div>
-                    <audio id="audioPlayer2" controls style="width:100%; height:28px; margin-top:6px; display:none;"></audio>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Calibração 2</span>
+                        <span class="fifo-badge wait" id="crsBadge2">CRS AGUARDANDO</span>
+                    </div>
+                    <div style="font-size: 10px; color: var(--muted);" id="infoSessao2">Aguardando Etapa 1...</div>
+                    <audio id="audioPlayer2" controls style="width:100%; height:28px; display:none;"></audio>
+                    <div class="img-grid-preview" id="imgGrid2"></div>
                 </div>
+
+                <!-- Caixa 3 -->
                 <div class="fifo-box" id="fifoBox3">
-                    <div style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Baseline (3/3 Final)</div>
-                    <div style="font-size: 10px; color: var(--muted); margin: 6px 0;" id="infoSessao3">Aguardando Etapa 2</div>
-                    <audio id="audioPlayer3" controls style="width:100%; height:28px; margin-top:6px; display:none;"></audio>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Baseline (3/3 Final)</span>
+                        <span class="fifo-badge wait" id="crsBadge3">CRS AGUARDANDO</span>
+                    </div>
+                    <div style="font-size: 10px; color: var(--muted);" id="infoSessao3">Aguardando Etapa 2...</div>
+                    <audio id="audioPlayer3" controls style="width:100%; height:28px; display:none;"></audio>
+                    <div class="img-grid-preview" id="imgGrid3"></div>
                 </div>
             </div>
         </section>
 
-        <!-- Microfone Simbiótico & Diálogo da IA do Usuário -->
-        <section style="background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 24px; border: 1px solid var(--line); box-shadow: var(--shadow);">
+        <!-- Gravação de Voz, Transcrição em Caixa Separada e Diálogo Simbiótico -->
+        <section style="background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 24px; border: 1px solid var(--line); box-shadow: var(--shadow); display: grid; gap: 16px;">
             <div class="section-title"><span id="calibStepTitle">🎙️ 1ª Calibração de Voz (Etapa 1/3)</span></div>
-            <div id="chatBox" style="background: rgba(10, 15, 30, 0.6); border: 1px solid var(--line); border-radius: 14px; height: 180px; overflow-y: auto; padding: 14px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px;">
+            
+            <!-- Caixa da IA Simbiótica -->
+            <div id="chatBox" style="background: rgba(10, 15, 30, 0.6); border: 1px solid var(--line); border-radius: 14px; height: 160px; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
                 <div style="font-size: 12px; padding: 10px 14px; border-radius: 10px; max-width: 85%; background: rgba(14, 165, 233, 0.1); border-left: 3px solid var(--accent);">
-                    <strong>Elayon Core (IA do Operador):</strong> Olá! Sou sua assistente simbiótica. Iniciando protocolo de calibração fonoaudiológica (Etapa 1 de 3). Pressione para falar e conte até dez com calma e suavidade.
+                    <strong>Elayon Core (IA Simbiótica):</strong> Olá! Inicializando Conexão Simbiótica para Paulo Roberto Xavier Júnior. Por favor, clique no botão de microfone e leia a instrução em voz alta. Ligue e desligue manualmente quando terminar.
                 </div>
             </div>
-            <textarea id="txtTranscricaoEditavel" style="width: 100%; background: rgba(10, 15, 30, 0.6); border: 1.5px solid var(--accent); border-radius: 14px; padding: 14px; font-size: 13px; font-family: monospace; color: var(--ink); margin-bottom: 14px; outline: none; min-height: 70px; resize: vertical;" placeholder="Transcrição por voz em tempo real aparecerá aqui..."></textarea>
-            <button id="btnMicToggle" onclick="toggleGravacaoMicrofone()" style="display: block; width: 100%; padding: 16px; border-radius: 14px; font-size: 14px; font-weight: 800; border: none; cursor: pointer; text-align: center; background: linear-gradient(135deg, var(--danger), #f43f5e); color: #fff; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);">
-                🎙️ Abrir Microfone (Gravar Etapa Simbiótica • Até 30s)
+
+            <!-- Caixa Separada de Transcrição Manual / Ao Vivo do Usuário -->
+            <div style="text-align: left;">
+                <label style="font-size: 11px; font-weight: 800; color: var(--accent); display: block; margin-bottom: 6px;">📝 Transcrição da sua fala em tempo real (Caixa do Usuário):</label>
+                <textarea id="txtTranscricaoUsuario" class="txt-box" style="min-height: 80px;" placeholder="O texto falado pelo usuário aparecerá aqui continuamente até que o microfone seja desligado manualmente..."></textarea>
+            </div>
+
+            <!-- Botão de Microfone de Alternância Manual -->
+            <button id="btnMicToggle" onclick="toggleGravacaoManual()" style="display: block; width: 100%; padding: 16px; border-radius: 14px; font-size: 14px; font-weight: 800; border: none; cursor: pointer; text-align: center; background: linear-gradient(135deg, var(--danger), #f43f5e); color: #fff; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3); transition: 0.3s;">
+                🎙️ LIGAR MICROFONE (Falar Etapa 1)
             </button>
         </section>
 
-        <!-- Transição Automática para Elayon CRS Triagem -->
+        <!-- Botão Final de Migração Liberado após as 3 Etapas -->
         <section style="background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow); text-align: center;">
             <div style="display: flex; gap: 12px;">
                 <a href="perfil.html" style="display:block; flex:1; padding:14px; border-radius:14px; font-weight:800; background:rgba(255,255,255,0.05); border:1px solid var(--line); color:var(--ink); text-decoration:none;">⚙️ Voltar ao Perfil</a>
-                <button id="btnLiberarHealth" style="display:none; flex:1; padding:14px; border-radius:14px; font-weight:800; border:none; cursor:pointer; background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#000;" onclick="irParaElayonTriagem()">
-                    🧬 Concluir & Entrar no Elayon CRS Triagem (Index) ➔
+                <button id="btnLiberarHealth" style="display:none; flex:1; padding:14px; border-radius:14px; font-weight:800; border:none; cursor:pointer; background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#000; box-shadow: 0 4px 20px var(--accent-glow);" onclick="concluirEMigrarParaIndex()">
+                    🧬 Concluir Conexão Simbiótica & Entrar no Index (elayon-crs-triagem) ➔
                 </button>
             </div>
         </section>
+
     </div>
 
     <!-- Script modular externo -->
