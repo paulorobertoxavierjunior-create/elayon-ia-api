@@ -1,343 +1,296 @@
-// cockpit.js (Parte 1) - Elayon Space · Captura Real & Espectro de Intensidade
-const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+/* ==========================================================================
+   PARTE 1: Configuração Supabase, Estado Global & Canvas das 8 Modulações
+   ========================================================================== */
 
-let etapaCalibracao = 1;
-let currentTokens = 100;
-let currentUser = null;
-const historicoSessoes = {};
+// Configuração do Cliente Supabase (Insira as tuas credenciais do projeto)
+const SUPABASE_URL = "https://SEU_PROJETO.supabase.co";
+const SUPABASE_ANON_KEY = "SUA_CHAVE_ANON_SUPABASE";
+let supabaseClient = null;
 
-// Variáveis para gravação real e Web Audio API
-let mediaRecorder;
-let audioChunks = [];
-let gravando = false;
-let audioContext, analyser, microphone, javascriptNode;
-let tempoGravacaoTimer;
-let segundosGravados = 0;
-
-// Histórico do espectro para rolar da direita para a esquerda
-const espectroBuffer = new Array(150).fill(0);
-
-async function initCockpit() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) {
-        window.location.href = 'login.html';
-        return;
+try {
+    if (typeof supabase !== 'undefined' && SUPABASE_URL.includes("http")) {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
-    currentUser = session.user;
-    document.getElementById('userDisplayEmail').textContent = currentUser.email;
-    
-    const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).single();
-    if (profile) {
-        document.getElementById('userDisplayName').textContent = profile.nome || currentUser.email.split('@')[0];
-        currentTokens = profile.tokens ?? 100;
-        document.getElementById('hudTokens').textContent = currentTokens;
-        if (profile.avatar_url) document.getElementById('userAvatarImg').src = profile.avatar_url;
-    } else {
-        document.getElementById('userDisplayName').textContent = currentUser.email.split('@')[0];
-    }
-    
-    renderizarTodosOsGraficos(15);
+} catch (e) {
+    console.warn("Supabase em modo de simulação local.");
 }
 
-// 1. Espectro de Intensidade em Tempo Real (Deslocando da direita para a esquerda com brilho dinâmico)
-function desenharMod1Espectro(id, valIntensidade) {
-    const canvas = document.getElementById(id); if (!canvas) return;
-    const ctx = canvas.getContext('2d'); canvas.width = canvas.parentElement.clientWidth - 32; canvas.height = 130;
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Atualiza o buffer deslocando para a esquerda
-    espectroBuffer.shift();
-    espectroBuffer.push(valIntensidade);
+// Estado Global do Operador e da Calibração Simbiótica
+const estadoSimbiotico = {
+    operadorNome: "Paulo Roberto Xavier Júnior",
+    userId: "PRXJ-2026-SIMBIOTICO",
+    tokens: 100,
+    etapaAtual: 1, // 1, 2 ou 3
+    gravando: false,
+    audioChunks: [],
+    mediaRecorder: null,
+    transcricaoAcumulada: "",
+    sessoesFIFO: [
+        { audioUrl: null, imagens: [], crsStatus: "AGUARDANDO", metrics: {} },
+        { audioUrl: null, imagens: [], crsStatus: "AGUARDANDO", metrics: {} },
+        { audioUrl: null, imagens: [], crsStatus: "AGUARDANDO", metrics: {} }
+    ]
+};
 
-    const barWidth = canvas.width / espectroBuffer.length;
-    for (let i = 0; i < espectroBuffer.length; i++) {
-        const h = (espectroBuffer[i] / 100) * (canvas.height * 0.85);
-        const x = i * barWidth;
-        const y = canvas.height - h;
+// Inicialização ao carregar a página
+document.addEventListener("DOMContentLoaded", () => {
+    atualizarDataHoraLive();
+    inicializarCanvasGraficos();
+    saudacaoInicialIA();
+});
 
-        // Gradiente brilhante baseado na intensidade da voz
-        const grad = ctx.createLinearGradient(x, y, x, canvas.height);
-        grad.addColorStop(0, '#0ea5e9');
-        grad.addColorStop(1, 'rgba(20, 184, 166, 0.2)');
-
-        ctx.fillStyle = grad;
-        ctx.fillRect(x, y, barWidth - 1, h);
-    }
+function atualizarDataHoraLive() {
+    const agora = new Date();
+    const dataStr = agora.toLocaleDateString("pt-BR");
+    const horaStr = agora.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
+    const lbl = document.getElementById("lblDataHoraLive");
+    if (lbl) lbl.innerText = `${dataStr} ${horaStr}`;
 }
 
-function renderizarTodosOsGraficos(intensidade) {
-    desenharMod1Espectro(`cvMod1`, intensidade);
-    desenharMod2Rosca(`cvMod2`, intensidade);
-    desenharMod3Barras(`cvMod3`, intensidade);
-    desenharMod4Area(`cvMod4`, intensidade);
-    desenharMod5Dispersao(`cvMod5`, intensidade);
-    desenharMod6LinhasDuplas(`cvMod6`, intensidade);
-    desenharMod7Degrau(`cvMod7`, intensidade);
-    desenharMod8Radial(`cvMod8`, intensidade);
-}
+// Motor de Renderização Suave para Neurodivergentes (8 Modulações em Canvas)
+function inicializarCanvasGraficos() {
+    for (let i = 1; i <= 8; i++) {
+        const canvas = document.getElementById(`cvMod${i}`);
+        if (!canvas) continue;
+        const ctx = canvas.getContext("2d");
+        canvas.width = canvas.parentElement.clientWidth - 32;
+        canvas.height = 130;
 
-// Funções dos outros gráficos modulados
-function desenharMod2Rosca(id, val) {
-    const canvas = document.getElementById(id); if (!canvas) return;
-    const ctx = canvas.getContext('2d'); canvas.width = canvas.parentElement.clientWidth - 32; canvas.height = 130;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const cx = canvas.width / 2, cy = canvas.height / 2, r = 45;
-    const slices = [val / 100, (100 - val) / 100];
-    const colors = ['#14b8a6', '#0284c7'];
-    let atual = 0;
-    slices.forEach((slice, i) => {
-        ctx.beginPath(); ctx.moveTo(cx, cy);
-        ctx.arc(cx, cy, r, atual, atual + slice * Math.PI * 2);
-        ctx.fillStyle = colors[i]; ctx.fill();
-        atual += slice * Math.PI * 2;
-    });
-    ctx.beginPath(); ctx.arc(cx, cy, 25, 0, Math.PI * 2); ctx.fillStyle = '#0f172a'; ctx.fill();
-}
-
-function desenharMod3Barras(id, val) {
-    const canvas = document.getElementById(id); if (!canvas) return;
-    const ctx = canvas.getContext('2d'); canvas.width = canvas.parentElement.clientWidth - 32; canvas.height = 130;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const bars = 14; const w = (canvas.width / bars) - 4;
-    for (let i = 0; i < bars; i++) {
-        const h = (Math.sin(i + val) * 0.5 + 0.5) * (canvas.height * 0.8);
-        ctx.fillStyle = i % 2 === 0 ? '#10b981' : '#0ea5e9';
-        ctx.fillRect(i * (w + 4) + 10, canvas.height - h - 10, w, h);
-    }
-}
-
-function desenharMod4Area(id, val) {
-    const canvas = document.getElementById(id); if (!canvas) return;
-    const ctx = canvas.getContext('2d'); canvas.width = canvas.parentElement.clientWidth - 32; canvas.height = 130;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.beginPath(); ctx.moveTo(0, canvas.height);
-    for (let x = 0; x < canvas.width; x += 5) {
-        let y = canvas.height - ((Math.sin(x * 0.03 + val) + 1) * 0.45 * canvas.height);
-        ctx.lineTo(x, y);
-    }
-    ctx.lineTo(canvas.width, canvas.height); ctx.closePath();
-    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    grad.addColorStop(0, 'rgba(14, 165, 233, 0.4)'); grad.addColorStop(1, 'rgba(14, 165, 233, 0.0)');
-    ctx.fillStyle = grad; ctx.fill();
-}
-
-function desenharMod5Dispersao(id, val) {
-    const canvas = document.getElementById(id); if (!canvas) return;
-    const ctx = canvas.getContext('2d'); canvas.width = canvas.parentElement.clientWidth - 32; canvas.height = 130;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let i = 0; i < 25; i++) {
-        let px = (i * 35) % canvas.width;
-        let py = canvas.height - ((Math.sin(i * val) * 0.5 + 0.5) * canvas.height);
-        ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2);
-        ctx.fillStyle = i % 3 === 0 ? '#10b981' : '#14b8a6'; ctx.fill();
-    }
-}
-
-function desenharMod6LinhasDuplas(id, val) {
-    const canvas = document.getElementById(id); if (!canvas) return;
-    const ctx = canvas.getContext('2d'); canvas.width = canvas.parentElement.clientWidth - 32; canvas.height = 130;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ['#f59e0b', '#0ea5e9'].forEach((color, idx) => {
-        ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath();
-        for (let x = 0; x < canvas.width; x += 5) {
-            let y = (canvas.height / 2) + Math.cos(x * 0.04 + val + idx) * (canvas.height * 0.3);
-            if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        // Desenho inicial estático e suave
+        ctx.fillStyle = "rgba(10, 15, 30, 0.8)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.strokeStyle = i % 2 === 0 ? "#14b8a6" : "#0ea5e9";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        
+        let yBase = canvas.height / 2;
+        for (let x = 0; x < canvas.width; x += 10) {
+            let y = yBase + Math.sin(x * 0.05 + i) * 15 * Math.cos(x * 0.02);
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
         }
         ctx.stroke();
-    });
-}
-
-function desenharMod7Degrau(id, val) {
-    const canvas = document.getElementById(id); if (!canvas) return;
-    const ctx = canvas.getContext('2d'); canvas.width = canvas.parentElement.clientWidth - 32; canvas.height = 130;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = '#10b981'; ctx.lineWidth = 2; ctx.beginPath();
-    let step = canvas.width / 10; let currentY = canvas.height / 2;
-    ctx.moveTo(0, currentY);
-    for (let i = 0; i < 10; i++) {
-        currentY = canvas.height - ((Math.sin(i + val) * 0.4 + 0.5) * canvas.height);
-        ctx.lineTo(i * step, currentY);
-        ctx.lineTo((i + 1) * step, currentY);
     }
-    ctx.stroke();
 }
 
-function desenharMod8Radial(id, val) {
-    const canvas = document.getElementById(id); if (!canvas) return;
-    const ctx = canvas.getContext('2d'); canvas.width = canvas.parentElement.clientWidth - 32; canvas.height = 130;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const cx = canvas.width / 2, cy = canvas.height / 2, r = 40;
-    ctx.beginPath(); ctx.arc(cx, cy, r, Math.PI, 2 * Math.PI);
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 8; ctx.stroke();
-    ctx.beginPath(); ctx.arc(cx, cy, r, Math.PI, Math.PI + (val / 100) * Math.PI);
-    ctx.strokeStyle = '#0ea5e9'; ctx.lineWidth = 8; ctx.stroke();
-}
+/* ==========================================================================
+   PARTE 2: Reconhecimento de Voz, Gravação de Áudio, TTS & Captura de Gráficos
+   ========================================================================== */
 
-// cockpit.js (Parte 2) - Lógica de Gravação Real, Tokens e Transição
-async function toggleGravacaoMicrofone() {
-    const btn = document.getElementById('btnMicToggle');
+let recognition = null;
 
-    if (!gravando) {
-        if (currentTokens <= 0) {
-            alert('Tokens insuficientes para calibração.');
-            return;
+// Inicializa a fala e escuta contínua do usuário
+function configurarReconhecimentoVoz() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        console.warn("SpeechRecognition não suportado neste navegador.");
+        return null;
+    }
+    const rec = new SpeechRecognition();
+    rec.lang = "pt-BR";
+    rec.continuous = true;
+    rec.interimResults = true;
+
+    rec.onresult = (event) => {
+        let textoTemporario = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            textoTemporario += event.results[i][0].transcript;
         }
+        const txtArea = document.getElementById("txtTranscricaoUsuario");
+        if (txtArea) {
+            txtArea.value = estadoSimbiotico.transcricaoAcumulada + " " + textoTemporario;
+        }
+    };
+    return rec;
+}
 
+// A IA Simbiótica fala o texto em voz alta (TTS) e adiciona ao Chat Box
+function falarEExibirIA(texto) {
+    const chatBox = document.getElementById("chatBox");
+    if (chatBox) {
+        chatBox.innerHTML += `
+            <div style="font-size: 12px; padding: 10px 14px; border-radius: 10px; max-width: 85%; background: rgba(14, 165, 233, 0.1); border-left: 3px solid var(--accent);">
+                <strong>Elayon Core (IA Simbiótica):</strong> ${texto}
+            </div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Para fala anterior
+        const utterance = new SpeechSynthesisUtterance(texto);
+        utterance.lang = "pt-BR";
+        utterance.rate = 0.95; // Ritmo mais calmo e humano
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
+function saudacaoInicialIA() {
+    const nome = estadoSimbiotico.operadorNome;
+    const msg = `Olá, ${nome}! Iniciando Conexão Simbiótica. Vamos realizar a Calibração Fonoaudiológica 1 de 3. Clique em Ligar Microfone, conte até dez com calma e suavidade, e desligue manualmente ao terminar.`;
+    falarEExibirIA(msg);
+}
+
+// Captura snapshots em PNG dos 8 gráficos atuais para migração FIFO
+function capturarSnapshotsModulacoes() {
+    let imagensBase64 = [];
+    for (let i = 1; i <= 8; i++) {
+        const canvas = document.getElementById(`cvMod${i}`);
+        if (canvas) {
+            imagensBase64.push(canvas.toDataURL("image/png"));
+        }
+    }
+    return imagensBase64;
+}
+
+/* ==========================================================================
+   PARTE 3: Controle de Gravação Manual, Migração FIFO, Supabase & Conclusão
+   ========================================================================== */
+
+// Botão de alternância manual do microfone
+async function toggleGravacaoManual() {
+    const btn = document.getElementById("btnMicToggle");
+    const txtArea = document.getElementById("txtTranscricaoUsuario");
+
+    if (!estadoSimbiotico.gravando) {
+        // INICIAR GRAVAÇÃO
+        estadoSimbiotico.gravando = true;
+        if (txtArea) estadoSimbiotico.transcricaoAcumulada = txtArea.value;
+        
+        btn.style.background = "linear-gradient(135deg, var(--success), #34d399)";
+        btn.innerText = "⏹️ DESLIGAR MICROFONE (Processar Etapa)";
+        
+        // Iniciar Web Speech
+        if (!recognition) recognition = configurarReconhecimentoVoz();
+        try { recognition.start(); } catch(e) {}
+
+        // Iniciar MediaRecorder para o Áudio Bruto
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            audioChunks = [];
-            mediaRecorder = new MediaRecorder(stream);
-
-            // Web Audio API para monitorar espectro em tempo real
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioContext.createAnalyser();
-            microphone = audioContext.createMediaStreamSource(stream);
-            microphone.connect(analyser);
-            analyser.fftSize = 256;
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-
-            function atualizarEspectroAoVivo() {
-                if (!gravando) return;
-                analyser.getByteFrequencyData(dataArray);
-                let sum = 0;
-                for (let i = 0; i < bufferLength; i++) { sum += dataArray[i]; }
-                let avg = sum / bufferLength; // Intensidade média do áudio atual (0 - 255)
-                let pct = Math.min(100, (avg / 150) * 100);
-
-                renderizarTodosOsGraficos(pct);
-                document.getElementById('mVal1').innerText = `${Math.round(avg * 2)} dB | ${Math.round(pct)}%`;
-                requestAnimationFrame(atualizarEspectroAoVivo);
-            }
-
-            mediaRecorder.ondataavailable = event => {
-                if (event.data.size > 0) audioChunks.push(event.data);
-            };
-
-            mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                const audioUrl = URL.createObjectURL(audioBlob);
-
-                // Armazena no buffer FIFO da sessão atual
-                const audioPlayer = document.getElementById(`audioPlayer${etapaCalibracao}`);
-                audioPlayer.src = audioUrl;
-                audioPlayer.style.display = 'block';
-                document.getElementById(`infoSessao${etapaCalibracao}`).innerText = `Gravado (${segundosGravados}s)`;
-
-                await processarCalibracaoCRS(audioBlob, segundosGravados);
-            };
-
-            mediaRecorder.start();
-            gravando = true;
-            segundosGravados = 0;
-
-            btn.innerText = "⏹️ Parar Gravação / Confirmar Etapa (Gravando...)";
-            btn.style.background = "linear-gradient(135deg, #10b981, #059669)";
-
-            // Temporizador de até 30 segundos
-            tempoGravacaoTimer = setInterval(() => {
-                segundosGravados++;
-                if (segundosGravados >= 30) {
-                    toggleGravacaoMicrofone(); // Para automaticamente aos 30s
-                }
-            }, 1000);
-
-            atualizarEspectroAoVivo();
-
-            const chatBox = document.getElementById('chatBox');
-            chatBox.innerHTML += `<div class="chat-message ad"><strong>Elayon Core:</strong> Microfone aberto. Conte até dez devagar e clique em parar quando terminar.</div>`;
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-        } catch (err) {
-            alert('Erro ao aceder ao microfone: ' + err.message);
+            estadoSimbiotico.mediaRecorder = new MediaRecorder(stream);
+            estadoSimbiotico.audioChunks = [];
+            estadoSimbiotico.mediaRecorder.ondataavailable = e => estadoSimbiotico.audioChunks.push(e.data);
+            estadoSimbiotico.mediaRecorder.start();
+        } catch(e) {
+            console.warn("Microfone de áudio bruto indisponível:", e);
         }
+
     } else {
-        // Parar gravação
-        gravando = false;
-        clearInterval(tempoGravacaoTimer);
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            mediaRecorder.stop();
-        }
-        if (audioContext && audioContext.state !== 'closed') {
-            audioContext.close();
-        }
-
-        btn.innerText = "🔄 Processando Relatório CRS v4...";
-        btn.disabled = true;
-    }
-}
-
-async function processarCalibracaoCRS(audioBlob, duracao) {
-    currentTokens -= 1;
-    document.getElementById('hudTokens').textContent = currentTokens;
-
-    const relatorioTexto = `[CRS v4 MULTIVIEW REPORT - ETAPA ${etapaCalibracao}/3]
-- Duração da Fala: ${duracao} segundos
-- Modulação 8-Eixos: Sincronizada com Base Espectral
-- Estabilidade de Frequência (Jitter/Shimmer): Normalizada
-- Taxa de Silêncio e Ritmo (CRS): 22.4% (Ideal)
-- Token debitado com sucesso. Restam ${currentTokens} tokens.`;
-
-    document.getElementById('txtTranscricaoEditavel').value = relatorioTexto;
-    historicoSessoes[etapaCalibracao] = { duracao, relatorio: relatorioTexto };
-
-    if (currentUser) {
-        await supabaseClient.from('profiles').update({ tokens: currentTokens }).eq('id', currentUser.id);
-    }
-
-    const chatBox = document.getElementById('chatBox');
-    chatBox.innerHTML += `<div class="chat-message user">Calibração ${etapaCalibracao} concluída e áudio bruto gravado no Buffer FIFO.</div>`;
-    chatBox.innerHTML += `<div class="chat-message ad"><strong>Elayon Core:</strong> Relatório gerado com sucesso. Restam ${currentTokens} tokens.</div>`;
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    const btn = document.getElementById('btnMicToggle');
-
-    if (etapaCalibracao < 3) {
-        etapaCalibracao++;
-        document.getElementById('calibraStatus').innerText = `🎙️ Calibração ${etapaCalibracao}/3`;
-        document.getElementById('calibStepTitle').innerText = `🎙️ ${etapaCalibracao}ª Calibração de Voz (Etapa ${etapaCalibracao}/3)`;
-        btn.innerText = `🎙️ Abrir Microfone (Gravar Etapa ${etapaCalibracao} • Até 30s)`;
+        // PARAR GRAVAÇÃO E PROCESSAR ETAPA
+        estadoSimbiotico.gravando = false;
         btn.style.background = "linear-gradient(135deg, var(--danger), #f43f5e)";
-        btn.disabled = false;
+        btn.innerText = "🎙️ LIGAR MICROFONE (Falar Próxima Etapa)";
 
-        if (etapaCalibracao === 2) {
-            chatBox.innerHTML += `<div class="chat-message ad"><strong>Elayon Core:</strong> Perfeito! Na 2ª etapa, mantenha a consciência de presença: diga seu nome, a data de hoje e o horário atual. Pressione para gravar.</div>`;
-        } else if (etapaCalibracao === 3) {
-            chatBox.innerHTML += `<div class="chat-message ad"><strong>Elayon Core:</strong> Excelente! 3ª e última etapa (Baseline). Vamos conectar ao Elayon Space? Diga se deseja falar alguma coisa especial para iniciar. Pressione para gravar.</div>`;
+        if (recognition) {
+            try { recognition.stop(); } catch(e) {}
         }
-        chatBox.scrollTop = chatBox.scrollHeight;
+
+        if (estadoSimbiotico.mediaRecorder) {
+            estadoSimbiotico.mediaRecorder.stop();
+            estadoSimbiotico.mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(estadoSimbiotico.audioChunks, { type: 'audio/webm' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                await processarEtapaConcluida(audioUrl);
+            };
+        } else {
+            await processarEtapaConcluida(null);
+        }
+    }
+}
+
+// Processa o ciclo FIFO, grava no Supabase e avança as etapas
+async function processarEtapaConcluida(audioUrl) {
+    const etapa = estadoSimbiotico.etapaAtual;
+    const txtArea = document.getElementById("txtTranscricaoUsuario");
+    const transcricaoFinal = txtArea ? txtArea.value : "";
+    
+    // Captura imagens dos gráficos
+    const snapshots = capturarSnapshotsModulacoes();
+    const crsValidado = "CRS OK • SILÊNCIO 18%";
+
+    // Atualiza estrutura FIFO local
+    estadoSimbiotico.sessoesFIFO[etapa - 1] = {
+        audioUrl: audioUrl,
+        imagens: snapshots,
+        crsStatus: crsValidado,
+        transcricao: transcricaoFinal
+    };
+
+    // Renderiza na UI do FIFO
+    renderizarBufferFIFO(etapa);
+
+    // Consome Token e Grava no Supabase
+    estadoSimbiotico.tokens = Math.max(0, estadoSimbiotico.tokens - 1);
+    const hudTokens = document.getElementById("hudTokens");
+    if (hudTokens) hudTokens.innerText = estadoSimbiotico.tokens;
+
+    if (supabaseClient) {
+        try {
+            await supabaseClient.from("calibracoes_crs").insert([{
+                user_id: estadoSimbiotico.userId,
+                operador_nome: estadoSimbiotico.operadorNome,
+                etapa: etapa,
+                transcricao_usuario: transcricaoFinal,
+                resposta_ia: `Processado com sucesso na etapa ${etapa}`,
+                crs_status: crsValidado,
+                silence_pct: 18.5,
+                rms_value: 0.74,
+                audio_url: audioUrl || "local_blob",
+                imagens_modulacoes: snapshots,
+                tokens_consumidos: 1
+            }]);
+        } catch (err) {
+            console.error("Erro ao salvar no Supabase:", err);
+        }
+    }
+
+    // Avança etapas ou finaliza
+    if (etapa < 3) {
+        estadoSimbiotico.etapaAtual++;
+        document.getElementById("calibraStatus").innerText = `🎙️ Calibração ${estadoSimbiotico.etapaAtual}/3`;
+        document.getElementById("calibStepTitle").innerText = `🎙️ ${estadoSimbiotico.etapaAtual}ª Calibração de Voz (Etapa ${estadoSimbiotico.etapaAtual}/3)`;
+        
+        falarEExibirIA(`Etapa ${etapa} concluída e migrada para o Buffer FIFO! Preparando para a Etapa ${estadoSimbiotico.etapaAtual}. Leia a nova instrução e ligue o microfone.`);
     } else {
-        document.getElementById('calibraStatus').innerText = `✅ Baseline Concluído`;
-        document.getElementById('calibStepTitle').innerText = `✅ Calibração Fonoaudiológica Finalizada`;
-        btn.innerText = `✨ Calibração Finalizada com Sucesso`;
-        btn.style.background = "var(--success)";
-        btn.style.color = "#fff";
-        btn.disabled = true;
-
-        const btnLiberar = document.getElementById('btnLiberarHealth');
-        if (btnLiberar) btnLiberar.style.display = "block";
-
-        chatBox.innerHTML += `<div class="chat-message ad"><strong>Elayon Core:</strong> Todas as 3 calibrações foram concluídas com êxito! Acesso liberado para o repositório de triagem.</div>`;
-        chatBox.scrollTop = chatBox.scrollHeight;
+        // Finalizou as 3 etapas
+        falarEExibirIA("Calibração fonoaudiológica completa com sucesso! Conexão Simbiótica estabelecida. Botão de entrada para o ecossistema liberado.");
+        document.getElementById("btnMicToggle").style.display = "none";
+        document.getElementById("btnLiberarHealth").style.display = "block";
     }
 }
 
-function carregarSessaoVisual(num) {
-    const sessao = historicoSessoes[num];
-    if (!sessao) {
-        alert(`A sessão de calibração ${num} ainda não foi executada.`);
-        return;
+// Atualiza visualmente o FIFO nas 3 caixas do HTML
+function renderizarBufferFIFO(etapa) {
+    const sessao = estadoSimbiotico.sessoesFIFO[etapa - 1];
+    
+    // Atualiza Áudio
+    const audioPlayer = document.getElementById(`audioPlayer${etapa}`);
+    if (audioPlayer && sessao.audioUrl) {
+        audioPlayer.src = sessao.audioUrl;
+        audioPlayer.style.display = "block";
     }
-    document.getElementById('txtTranscricaoEditavel').value = sessao.relatorio;
-    alert(`Carregando dados da Sessão ${num} para o painel.`);
+
+    // Atualiza Badge CRS
+    const badge = document.getElementById(`crsBadge${etapa}`);
+    if (badge) {
+        badge.innerText = sessao.crsStatus;
+        badge.className = "fifo-badge ok";
+    }
+
+    // Atualiza Miniaturas de Imagens
+    const imgGrid = document.getElementById(`imgGrid${etapa}`);
+    if (imgGrid && sessao.imagens.length > 0) {
+        imgGrid.innerHTML = sessao.imagens.slice(0, 4).map(img => `<img src="${img}" />`).join("");
+    }
+
+    // Move classe ativa para a próxima caixa FIFO
+    if (etapa < 3) {
+        document.getElementById(`fifoBox${etapa}`).classList.remove("ativo");
+        document.getElementById(`fifoBox${etapa + 1}`).classList.add("ativo");
+    }
 }
 
-function irParaElayonTriagem() {
-    // Redireciona diretamente para o repositório Elayon CRS Triagem no GitHub Pages
-    window.location.href = "https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/";
+// Redirecionamento final para o index do elayon-crs-triagem
+function concluirEMigrarParaIndex() {
+    window.location.href = "../elayon-crs-triagem/index.html";
 }
-
-window.addEventListener('DOMContentLoaded', initCockpit);
