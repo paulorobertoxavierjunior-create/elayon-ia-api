@@ -3,13 +3,13 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Elayon Space • Cockpit de Calibração & Espectro Real CRS v4</title>
+    <title>Elayon Space • Cockpit Multiview CRS v4 (Calibração Simbiótica)</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg1: #0f172a; --bg2: #1e293b; --card: rgba(30, 41, 59, 0.85);
-            --ink: #f8fafc; --muted: #94a3b8; --line: rgba(255, 255, 255, 0.1);
-            --accent: #0ea5e9; --accent2: #14b8a6; --accent-glow: rgba(14, 165, 233, 0.3);
+            --bg1: #0f172a; --bg2: #1e293b; --card: rgba(30, 41, 59, 0.9);
+            --ink: #f8fafc; --muted: #94a3b8; --line: rgba(255, 255, 255, 0.12);
+            --accent: #0ea5e9; --accent2: #14b8a6; --accent-glow: rgba(14, 165, 233, 0.25);
             --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
             --shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
@@ -51,9 +51,8 @@
         @media(max-width: 900px) { .graphs-grid-2col { grid-template-columns: 1fr; } }
 
         details.graph-accordion {
-            background: var(--card); backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; transition: 0.3s;
+            background: var(--card); backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; transition: 0.3s; border-color: var(--accent);
         }
-        details.graph-accordion[open] { border-color: var(--accent); box-shadow: 0 10px 30px var(--accent-glow); }
         summary.graph-summary {
             padding: 16px; font-size: 12px; font-weight: 800; color: var(--ink); cursor: pointer;
             background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center; user-select: none;
@@ -68,6 +67,9 @@
         .metric-box-card { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; text-align: left; border-left: 3px solid var(--accent); display: flex; justify-content: space-between; align-items: center; }
         .metric-val-lbl { font-size: 13px; font-family: monospace; font-weight: 800; color: var(--ink); }
         .metric-status { font-size: 10px; font-weight: 700; color: var(--success); background: rgba(16, 185, 129, 0.1); padding: 2px 6px; border-radius: 4px; }
+
+        .fifo-box { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 14px; padding: 14px; transition: 0.3s; }
+        .fifo-box.ativo { border-color: var(--accent); background: rgba(14, 165, 233, 0.08); box-shadow: 0 0 15px var(--accent-glow); }
     </style>
 </head>
 
@@ -76,7 +78,7 @@
         
         <!-- HUD Superior -->
         <header class="hud-header">
-            <div class="hud-info">CRS CORE v4: <span id="hudIaStatus" style="color: var(--success);">MIC & ESPECTRO PRONTOS</span> | TOKENS: <span id="hudTokens">100</span></div>
+            <div class="hud-info">CRS CORE v4: <span id="hudIaStatus" style="color: var(--success);">IA SIMBIÓTICA ATIVA</span> | TOKENS: <span id="hudTokens">100</span></div>
             <a href="perfil.html" class="btn-perfil">⚙️ Voltar ao Perfil</a>
         </header>
 
@@ -89,94 +91,91 @@
             <span class="calibra-tag" id="calibraStatus">🎙️ Calibração 1/3 (Fase Inicial)</span>
         </div>
 
-        <!-- As 8 Modulações de Gráficos Distintos (Destaque para o Espectro de Intensidade em Tempo Real) -->
+        <!-- 8 Modulações Gráficas com Abertura Simultânea (open) e Ritmo Longe/Suave -->
         <div class="section-title">
-            <span>📊 As 8 Modulações de Interação & Espectro de Intensidade</span>
-            <span style="font-size: 10px; color: var(--muted); font-family: monospace;">REAL-TIME SPECTRUM STREAM</span>
+            <span>📊 As 8 Modulações de Interação & Espectro de Intensidade (Ritmo Lento & Suave)</span>
+            <span style="font-size: 10px; color: var(--muted); font-family: monospace;">NEURODIVERGENT COMFORT VIEW</span>
         </div>
         
         <div class="graphs-grid-2col">
             <details class="graph-accordion" open>
-                <summary class="graph-summary">🟦 I. Espectro de Intensidade em Tempo Real (Brilho Dinâmico)</summary>
-                <div class="graph-body"><span class="scale-axis">Tempo (Direita ➔ Esquerda)</span><canvas class="canvas-box" id="cvMod1"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal1">-- dB | -- Hz</div><span class="metric-status" id="mStat1">Aguardando</span></div></div>
+                <summary class="graph-summary">🟦 I. Espectro de Intensidade em Tempo Real (Suave)</summary>
+                <div class="graph-body"><span class="scale-axis">Tempo Lento</span><canvas class="canvas-box" id="cvMod1"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal1">-- dB | -- Hz</div><span class="metric-status" id="mStat1">Aguardando</span></div></div>
             </details>
-            <details class="graph-accordion">
+            <details class="graph-accordion" open>
                 <summary class="graph-summary">🟧 II. Distribuição Proporcional de Energia (Rosca)</summary>
                 <div class="graph-body"><span class="scale-axis">Distribuição %</span><canvas class="canvas-box" id="cvMod2"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal2">-- %</div><span class="metric-status" id="mStat2">Aguardando</span></div></div>
             </details>
-            <details class="graph-accordion">
+            <details class="graph-accordion" open>
                 <summary class="graph-summary">🟩 III. Qualidade / Timbre (Espectrograma em Barras)</summary>
                 <div class="graph-body"><span class="scale-axis">0 dB — 30 dB</span><canvas class="canvas-box" id="cvMod3"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal3">-- dB</div><span class="metric-status" id="mStat3">Aguardando</span></div></div>
             </details>
-            <details class="graph-accordion">
+            <details class="graph-accordion" open>
                 <summary class="graph-summary">🟨 IV. Prosódia / Ritmo & Pausas (Área com Gradiente)</summary>
                 <div class="graph-body"><span class="scale-axis">0% — 100%</span><canvas class="canvas-box" id="cvMod4"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal4">-- %</div><span class="metric-status" id="mStat4">Aguardando</span></div></div>
             </details>
-            <details class="graph-accordion">
+            <details class="graph-accordion" open>
                 <summary class="graph-summary">🟪 V. Perceptivo-Auditivo (Dispersão Vetorial GRBAS)</summary>
                 <div class="graph-body"><span class="scale-axis">G0 — G3</span><canvas class="canvas-box" id="cvMod5"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal5">G--</div><span class="metric-status" id="mStat5">Aguardando</span></div></div>
             </details>
-            <details class="graph-accordion">
+            <details class="graph-accordion" open>
                 <summary class="graph-summary">🟫 VI. Aerodinâmica & Fluxo Subglótico (Linhas Duplas)</summary>
                 <div class="graph-body"><span class="scale-axis">0 L/s — 200 L/s</span><canvas class="canvas-box" id="cvMod6"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal6">-- L/s</div><span class="metric-status" id="mStat6">Aguardando</span></div></div>
             </details>
-            <details class="graph-accordion">
+            <details class="graph-accordion" open>
                 <summary class="graph-summary">🟩 VII. Contato Glótico (Eletroglotografia em Degrau)</summary>
                 <div class="graph-body"><span class="scale-axis">0% — 100%</span><canvas class="canvas-box" id="cvMod7"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal7">-- %</div><span class="metric-status" id="mStat7">Aguardando</span></div></div>
             </details>
-            <details class="graph-accordion">
+            <details class="graph-accordion" open>
                 <summary class="graph-summary">🟦 VIII. Contexto Ambiental & Ruído (Indicador Radial)</summary>
                 <div class="graph-body"><span class="scale-axis">0 dBA — 80 dBA</span><canvas class="canvas-box" id="cvMod8"></canvas><div class="metric-box-card"><div class="metric-val-lbl" id="mVal8">-- dBA</div><span class="metric-status" id="mStat8">Aguardando</span></div></div>
             </details>
         </div>
 
-        <!-- Buffer FIFO & Reprise do Áudio Bruto -->
+        <!-- Buffer FIFO Sequencial Real (Migração Visual de Caixa) -->
         <div class="section-title" style="margin-top: 10px;">
-            <span>📦 Buffer FIFO & Reprise do Áudio Bruto das Sessões</span>
+            <span>📦 Buffer FIFO Sequencial & Migração de Sessões</span>
         </div>
         <section style="background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow);">
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 14px; padding: 14px;">
-                    <div style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Calibração 1 (Atual)</div>
-                    <div style="font-size: 10px; color: var(--muted); margin: 6px 0;" id="infoSessao1">Aguardando captação...</div>
+                <div class="fifo-box ativo" id="fifoBox1">
+                    <div style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Calibração 1 (Ativa)</div>
+                    <div style="font-size: 10px; color: var(--muted); margin: 6px 0;" id="infoSessao1">Pendente captação...</div>
                     <audio id="audioPlayer1" controls style="width:100%; height:28px; margin-top:6px; display:none;"></audio>
-                    <button style="margin-top:8px; width:100%; background:rgba(14,165,233,0.15); color:var(--accent); border:1px solid var(--accent); padding:8px; border-radius:8px; font-size:10px; font-weight:800; cursor:pointer;" onclick="carregarSessaoVisual(1)">📈 Visualizar Gráficos</button>
                 </div>
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 14px; padding: 14px;">
+                <div class="fifo-box" id="fifoBox2">
                     <div style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Calibração 2</div>
-                    <div style="font-size: 10px; color: var(--muted); margin: 6px 0;" id="infoSessao2">Pendente</div>
+                    <div style="font-size: 10px; color: var(--muted); margin: 6px 0;" id="infoSessao2">Aguardando Etapa 1</div>
                     <audio id="audioPlayer2" controls style="width:100%; height:28px; margin-top:6px; display:none;"></audio>
-                    <button style="margin-top:8px; width:100%; background:rgba(14,165,233,0.15); color:var(--accent); border:1px solid var(--accent); padding:8px; border-radius:8px; font-size:10px; font-weight:800; cursor:pointer;" onclick="carregarSessaoVisual(2)">📈 Visualizar Gráficos</button>
                 </div>
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 14px; padding: 14px;">
-                    <div style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Baseline (3/3)</div>
-                    <div style="font-size: 10px; color: var(--muted); margin: 6px 0;" id="infoSessao3">Referência final</div>
+                <div class="fifo-box" id="fifoBox3">
+                    <div style="font-size: 11px; font-weight: 800; color: var(--accent);">🔗 Baseline (3/3 Final)</div>
+                    <div style="font-size: 10px; color: var(--muted); margin: 6px 0;" id="infoSessao3">Aguardando Etapa 2</div>
                     <audio id="audioPlayer3" controls style="width:100%; height:28px; margin-top:6px; display:none;"></audio>
-                    <button style="margin-top:8px; width:100%; background:rgba(14,165,233,0.15); color:var(--accent); border:1px solid var(--accent); padding:8px; border-radius:8px; font-size:10px; font-weight:800; cursor:pointer;" onclick="carregarSessaoVisual(3)">📈 Visualizar Gráficos</button>
                 </div>
             </div>
         </section>
 
-        <!-- Microfone Real & Transcrição / Diálogo -->
+        <!-- Microfone Simbiótico & Diálogo da IA do Usuário -->
         <section style="background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 24px; border: 1px solid var(--line); box-shadow: var(--shadow);">
             <div class="section-title"><span id="calibStepTitle">🎙️ 1ª Calibração de Voz (Etapa 1/3)</span></div>
             <div id="chatBox" style="background: rgba(10, 15, 30, 0.6); border: 1px solid var(--line); border-radius: 14px; height: 180px; overflow-y: auto; padding: 14px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px;">
                 <div style="font-size: 12px; padding: 10px 14px; border-radius: 10px; max-width: 85%; background: rgba(14, 165, 233, 0.1); border-left: 3px solid var(--accent);">
-                    <strong>Elayon Core:</strong> Olá! Seja bem-vindo ao ecossistema Elayon Space. Iniciaremos agora o processo de calibração fonoaudiológica em 3 etapas. Pressione para falar e conte até dez devagar.
+                    <strong>Elayon Core (IA do Operador):</strong> Olá! Sou sua assistente simbiótica. Iniciando protocolo de calibração fonoaudiológica (Etapa 1 de 3). Pressione para falar e conte até dez com calma e suavidade.
                 </div>
             </div>
-            <textarea id="txtTranscricaoEditavel" style="width: 100%; background: rgba(10, 15, 30, 0.6); border: 1.5px solid var(--accent); border-radius: 14px; padding: 14px; font-size: 13px; font-family: monospace; color: var(--ink); margin-bottom: 14px; outline: none; min-height: 70px; resize: vertical;" placeholder="Transcrição ao vivo e relatório do CRS v4 aparecerão aqui..."></textarea>
+            <textarea id="txtTranscricaoEditavel" style="width: 100%; background: rgba(10, 15, 30, 0.6); border: 1.5px solid var(--accent); border-radius: 14px; padding: 14px; font-size: 13px; font-family: monospace; color: var(--ink); margin-bottom: 14px; outline: none; min-height: 70px; resize: vertical;" placeholder="Transcrição por voz em tempo real aparecerá aqui..."></textarea>
             <button id="btnMicToggle" onclick="toggleGravacaoMicrofone()" style="display: block; width: 100%; padding: 16px; border-radius: 14px; font-size: 14px; font-weight: 800; border: none; cursor: pointer; text-align: center; background: linear-gradient(135deg, var(--danger), #f43f5e); color: #fff; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);">
-                🎙️ Abrir Microfone (Gravar Etapa • Até 30s)
+                🎙️ Abrir Microfone (Gravar Etapa Simbiótica • Até 30s)
             </button>
         </section>
 
-        <!-- Transição para Triagem -->
+        <!-- Transição Automática para Elayon CRS Triagem -->
         <section style="background: var(--card); backdrop-filter: blur(12px); border-radius: 20px; padding: 20px; border: 1px solid var(--line); box-shadow: var(--shadow); text-align: center;">
             <div style="display: flex; gap: 12px;">
                 <a href="perfil.html" style="display:block; flex:1; padding:14px; border-radius:14px; font-weight:800; background:rgba(255,255,255,0.05); border:1px solid var(--line); color:var(--ink); text-decoration:none;">⚙️ Voltar ao Perfil</a>
                 <button id="btnLiberarHealth" style="display:none; flex:1; padding:14px; border-radius:14px; font-weight:800; border:none; cursor:pointer; background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#000;" onclick="irParaElayonTriagem()">
-                    🧬 Entrar no Elayon CRS Triagem ➔
+                    🧬 Concluir & Entrar no Elayon CRS Triagem (Index) ➔
                 </button>
             </div>
         </section>
