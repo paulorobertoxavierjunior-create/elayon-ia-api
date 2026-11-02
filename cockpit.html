@@ -1,553 +1,165 @@
-```html
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Elayon Space • Interação Visual de Voz: Calibração Humana (CRS v4)</title>
-    <!-- Supabase JS v2 -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root {
-            --bg1: #04060b; --bg2: #0b101d; --card: rgba(11, 16, 29, 0.95);
-            --ink: #f8fafc; --muted: #94a3b8; --line: rgba(56, 189, 248, 0.2);
-            --accent: #38bdf8; --accent-glow: rgba(56, 189, 248, 0.4);
-            --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
-            --shadow: 0 20px 50px rgba(0,0,0,0.7);
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            min-height: 100vh; background: radial-gradient(circle at top center, var(--bg2), var(--bg1));
-            color: var(--ink); font-family: system-ui, -apple-system, sans-serif;
-            display: flex; flex-direction: column; align-items: center; padding: 20px; padding-bottom: 120px;
-        }
-        .container { width: 100%; max-width: 1240px; display: grid; gap: 20px; }
-
-        .main-title {
-            text-align: center; font-size: 18px; font-weight: 800; color: #38bdf8; letter-spacing: 1px;
-            text-transform: uppercase; margin-bottom: 4px; text-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
-        }
-
-        .hud-header {
-            background: var(--card); backdrop-filter: blur(16px); border: 1px solid var(--line); border-radius: 16px;
-            padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;
-            box-shadow: var(--shadow);
-        }
-        .hud-user-info { display: flex; align-items: center; gap: 12px; }
-        .hud-avatar { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--accent); object-fit: cover; }
-        .hud-info { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; }
-        .hud-info span { color: var(--accent); }
-        
-        .btn-perfil {
-            background: rgba(56, 189, 248, 0.1); border: 1px solid var(--line); color: var(--ink);
-            padding: 7px 14px; border-radius: 10px; font-size: 11px; font-weight: 700;
-            cursor: pointer; text-decoration: none; transition: 0.3s;
-        }
-        .btn-perfil:hover { background: var(--accent); color: #000; border-color: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
-
-        .graphs-grid-2col { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-        @media(max-width: 900px) { .graphs-grid-2col { grid-template-columns: 1fr; } }
-
-        .model-card {
-            background: var(--card); backdrop-filter: blur(16px); border: 1px solid var(--line); border-radius: 16px;
-            padding: 14px; box-shadow: var(--shadow); position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 8px;
-        }
-        .model-card-header {
-            display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;
-        }
-        .model-tag-db {
-            font-size: 10px; font-family: monospace; padding: 2px 8px; border-radius: 6px; background: rgba(0,0,0,0.5); border: 1px solid var(--line); color: var(--muted);
-        }
-        .canvas-box { width: 100%; height: 160px; border-radius: 10px; background: #020408; display: block; border: 1px solid rgba(56, 189, 248, 0.12); }
-        .model-footer-labels {
-            display: flex; justify-content: space-between; font-size: 9px; font-weight: 700; color: var(--muted); text-transform: uppercase; font-family: monospace;
-        }
-
-        .fifo-section {
-            background: var(--card); backdrop-filter: blur(16px); border: 1px solid var(--line); border-radius: 16px; padding: 16px; box-shadow: var(--shadow);
-            display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: center;
-        }
-        @media(max-width: 800px) { .fifo-section { grid-template-columns: 1fr; } }
-        .audio-player-box { display: flex; flex-direction: column; gap: 6px; }
-        .audio-player-box audio { width: 100%; height: 32px; border-radius: 8px; }
-        .fifo-info-box { background: rgba(5, 8, 16, 0.8); border: 1px solid var(--line); border-radius: 12px; padding: 12px; text-align: left; }
-        .fifo-info-box h4 { font-size: 11px; font-weight: 800; color: #38bdf8; margin-bottom: 2px; }
-        .fifo-info-box p { font-size: 10px; color: var(--muted); line-height: 1.3; }
-
-        .btn-mic-gigante {
-            display: block; width: 100%; padding: 18px; border-radius: 16px; font-size: 14px; font-weight: 800;
-            border: 1px solid rgba(239, 68, 68, 0.4); cursor: pointer; text-align: center; text-transform: uppercase;
-            background: linear-gradient(135deg, #7f1d1d, #991b1b, #b91c1c); color: #fff;
-            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4); transition: 0.3s; letter-spacing: 1px;
-        }
-        .btn-mic-gigante:hover { transform: translateY(-2px); box-shadow: 0 15px 40px rgba(239, 68, 68, 0.6); }
-
- .txt-box { width: 100%; background: #020408; border: 1.5px solid var(--line); border-radius: 12px; padding: 12px; font-size: 12px; font-family: monospace; color: var(--ink); outline: none; resize: vertical; min-height: 60px; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elayon Space • Calibração Humana (CRS)</title>
+<style>
+body{margin:0;background:#04060b;padding:10px}
+.crs{background:#04060b;color:#f8fafc;font-family:system-ui;padding:14px;border-radius:16px}
+.crs-t{text-align:center;font-size:17px;color:#7dd3fc;text-transform:uppercase;margin:0 0 12px}
+.crs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){.crs-grid{grid-template-columns:1fr}}
+.crs-card{border:1px solid var(--c);border-radius:14px;padding:10px;background:#070c16;box-shadow:0 0 14px color-mix(in srgb,var(--c) 30%,transparent)}
+.crs-h{display:flex;gap:6px;align-items:baseline;font-size:12px;font-weight:800;text-transform:uppercase;color:var(--c)}
+.crs-h small{font-weight:400;color:#94a3b8;font-size:9px}
+.crs-h i{margin-left:auto;font:10px monospace;font-style:normal;background:#0008;padding:2px 6px;border-radius:5px}
+.crs-card canvas{width:100%;height:150px;display:block;margin:6px 0;background:#020408;border-radius:9px}
+.crs-f{display:flex;justify-content:space-between;font-size:9px;color:#94a3b8}
+.crs-fifo{margin-top:12px;border:1px solid #38bdf833;border-radius:14px;padding:10px;background:#070c16}
+.crs-fifo audio{width:100%;height:34px}
+#crsChips button{background:#0b1d33;color:#7dd3fc;border:1px solid #38bdf855;border-radius:8px;padding:5px 9px;font-size:11px;margin:6px 6px 0 0}
+#crsMic{width:100%;margin-top:12px;padding:16px;border-radius:14px;border:1px solid #ef444466;background:linear-gradient(135deg,#7f1d1d,#b91c1c);color:#fff;font-weight:800;font-size:14px}
+</style>
 </head>
 <body>
-    <div class="container">
-        
-        <h1 class="main-title">Interação Visual de Voz: Calibração Humana</h1>
+<section id="crsCalib" class="crs" style="display:none">
+  <h2 class="crs-t">Interação Visual de Voz: Calibração Humana</h2>
+  <div class="crs-grid">
+    <div class="crs-card" style="--c:#c084fc"><div class="crs-h">Nebulosa de Energia<small>(Intensidade)</small><i id="t1">0 dB</i></div><canvas id="g1"></canvas><div class="crs-f"><span>Volume Mínimo</span><span>Volume Máximo</span></div></div>
+    <div class="crs-card" style="--c:#38bdf8"><div class="crs-h">Anel Orbital<small>(Distribuição)</small><i id="t2">0 dB</i></div><canvas id="g2"></canvas><div class="crs-f"><span>Volume Mínimo</span><span>Volume Máximo</span></div></div>
+    <div class="crs-card" style="--c:#4ade80"><div class="crs-h">Cortina de DNA<small>(Timbre)</small><i id="t3">0 dB</i></div><canvas id="g3"></canvas><div class="crs-f"><span>Volume Mínimo</span><span>Volume Máximo</span></div></div>
+    <div class="crs-card" style="--c:#fbbf24"><div class="crs-h">Trilha Cinética<small>(Prosódia)</small><i id="t4">0 %</i></div><canvas id="g4"></canvas><div class="crs-f"><span>Volume Mínimo</span><span>Volume Máximo</span></div></div>
+    <div class="crs-card" style="--c:#60a5fa"><div class="crs-h">Enxame de Constelação<small>(G.R.B.A.S)</small><i id="t5">0 %</i></div><canvas id="g5"></canvas><div class="crs-f"><span>Volume Mínimo</span><span>Volume Máximo</span></div></div>
+    <div class="crs-card" style="--c:#fb923c"><div class="crs-h">Vórtice Dupla Hélice<small>(Aerodinâmica)</small><i id="t6">0 L/s</i></div><canvas id="g6"></canvas><div class="crs-f"><span>Volume Mínimo</span><span>Volume Máximo</span></div></div>
+    <div class="crs-card" style="--c:#ec4899"><div class="crs-h">Grade de Cristal<small>(Contato Glótico)</small><i id="t7">0 dB</i></div><canvas id="g7"></canvas><div class="crs-f"><span>Volume Mínimo</span><span>Volume Máximo</span></div></div>
+    <div class="crs-card" style="--c:#2dd4bf"><div class="crs-h">Escudo Isolador<small>(Ruído)</small><i id="t8">0 dB</i></div><canvas id="g8"></canvas><div class="crs-f"><span>Volume Mínimo</span><span>Volume Máximo</span></div></div>
+  </div>
+  <div class="crs-fifo">
+    <b id="crsEtapaTit" style="font-size:11px;color:#7dd3fc;text-transform:uppercase">Buffer FIFO & Reprise • Etapa 1/3</b>
+    <audio id="crsAudio" controls></audio>
+    <div id="crsChips"></div>
+  </div>
+  <button id="crsMic" onclick="crsToggle()">🎙️ Abrir Microfone (Gravar Etapa 1 • Até 30s)</button>
+</section>
 
-        <header class="hud-header">
-            <div class="hud-user-info">
-                <img id="hudAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=ElayonUser" class="hud-avatar" alt="Avatar Operador" />
-                <div class="hud-info">
-                    OPERADOR: <span id="hudUserName">A carregar...</span> | 
-                    CRS CORE v4: <span id="hudIaStatus" style="color: var(--success);">IA ATIVA</span> | 
-                    TOKENS: <span id="hudTokens">100</span>
-                </div>
-            </div>
-            <a href="perfil.html" class="btn-perfil">⚙️ Voltar ao Perfil</a>
-        </header>
+<script>
+const $=id=>document.getElementById(id), G=[];
+const CRS={etapa:1,max:3,gravando:false,sessoes:[],rec:null,chunks:[],ctx:null,an:null,fd:null,stream:null,raf:0,sr:null,txt:''};
+const A={vol:.15,lo:.3,mid:.3,hi:.3,pico:.1,t:0};
 
-        <div class="graphs-grid-2col">
-            <div class="model-card" style="border-color: rgba(168, 85, 247, 0.4);">
-                <div class="model-card-header">
-                    <span style="color: #c084fc;">Nebulosa de Energia <span style="font-size: 9px; color: var(--muted); font-weight: normal;">(Intensidade)</span></span>
-                    <span class="model-tag-db" style="color: #c084fc;" id="tag1">-2.5 dB</span>
-                </div>
-                <canvas class="canvas-box" id="cvNebulosa"></canvas>
-                <div class="model-footer-labels"><span>Volume Mínimo</span><span>Volume Máximo</span></div>
-            </div>
+window.habilitarCalibracao=()=>{$('crsCalib').style.display='block';crsFit();if(!CRS.raf)crsLoop()};
+function crsFit(){for(let i=1;i<=8;i++){const c=$('g'+i),r=devicePixelRatio||1;c.width=c.clientWidth*r;c.height=c.clientHeight*r;c.getContext('2d').setTransform(r,0,0,r,0,0)}}
+addEventListener('resize',crsFit);
 
-            <div class="model-card" style="border-color: rgba(56, 189, 248, 0.4);">
-                <div class="model-card-header">
-                    <span style="color: #38bdf8;">Anel Orbital <span style="font-size: 9px; color: var(--muted); font-weight: normal;">(Distribuição)</span></span>
-                    <span class="model-tag-db" style="color: #38bdf8;" id="tag2">+3.2 dB</span>
-                </div>
-                <canvas class="canvas-box" id="cvAnelOrbital"></canvas>
-                <div class="model-footer-labels"><span>Volume Mínimo</span><span>Volume Máximo</span></div>
-            </div>
+function fade(x,W,H,a=.22){x.globalCompositeOperation='source-over';x.fillStyle=`rgba(2,4,8,${a})`;x.fillRect(0,0,W,H);x.globalCompositeOperation='lighter'}
+function dot(x,px,py,r,col){x.fillStyle=col;x.beginPath();x.arc(px,py,r,0,6.2832);x.fill()}
 
-            <div class="model-card" style="border-color: rgba(45, 212, 191, 0.4);">
-                <div class="model-card-header">
-                    <span style="color: #2dd4bf;">Cortina de DNA <span style="font-size: 9px; color: var(--muted); font-weight: normal;">(Timbre / Qualidade)</span></span>
-                    <span class="model-tag-db" style="color: #2dd4bf;" id="tag3">-1.9 dB</span>
-                </div>
-                <canvas class="canvas-box" id="cvCortinaDNA"></canvas>
-                <div class="model-footer-labels"><span>Volume Mínimo</span><span>Volume Máximo</span></div>
-            </div>
+function medir(){
+  const t=A.t;let v=.14+.08*Math.sin(t*1.3),lo=.3+.2*Math.sin(t*.9),mid=.3+.2*Math.sin(t*1.7+1),hi=.3+.2*Math.sin(t*2.3+2);
+  if(CRS.gravando&&CRS.an){CRS.an.getByteFrequencyData(CRS.fd);const n=CRS.fd.length,b=(a,z)=>{let s=0;for(let i=a;i<z;i++)s+=CRS.fd[i];return s/(z-a)/255};
+    lo=b(1,n/8|0);mid=b(n/8|0,n/3|0);hi=b(n/3|0,n/1.5|0);v=Math.min(1,(lo+mid+hi)*1.3)}
+  const k=.12;A.vol+=(v-A.vol)*k;A.lo+=(lo-A.lo)*k;A.mid+=(mid-A.mid)*k;A.hi+=(hi-A.hi)*k;A.pico=Math.max(A.pico*.998,A.vol)
+}
+let fr=0;
+function crsLoop(){
+  A.t+=.016;medir();
+  for(let i=0;i<8;i++){const c=$('g'+(i+1)),x=c.getContext('2d');G[i]&&G[i](x,c.clientWidth,c.clientHeight,A.t,A)}
+  if(++fr%6==0){const db=20*Math.log10(A.vol+.001);
+    $('t1').textContent=db.toFixed(1)+' dB';$('t2').textContent=(20*Math.log10(A.pico+.001)).toFixed(1)+' dB';
+    $('t3').textContent=(A.hi/(A.lo+.01)).toFixed(2)+' ratio';$('t4').textContent=(A.mid*100).toFixed(1)+' %';
+    $('t5').textContent=(A.vol*100).toFixed(1)+' %';$('t6').textContent=(A.lo*10-3).toFixed(1)+' L/s';
+    $('t7').textContent=(db-1.5).toFixed(1)+' dB';$('t8').textContent=(-40+A.hi*15).toFixed(1)+' dB'}
+  CRS.raf=requestAnimationFrame(crsLoop)
+}
 
-            <div class="model-card" style="border-color: rgba(251, 191, 36, 0.4);">
-                <div class="model-card-header">
-                    <span style="color: #fbbf24;">Trilha Cinética <span style="font-size: 9px; color: var(--muted); font-weight: normal;">(Prosódia / Ritmo)</span></span>
-                    <div style="display: flex; gap: 4px;">
-                        <span class="model-tag-db" style="color: #fbbf24;" id="tag4a">-8.3%</span>
-                        <span class="model-tag-db" style="color: #fbbf24;" id="tag4b">-6.0 dB</span>
-                    </div>
-                </div>
-                <canvas class="canvas-box" id="cvTrilhaCinetica"></canvas>
-                <div class="model-footer-labels"><span>Volume Mínimo</span><span>Volume Máximo</span></div>
-            </div>
+async function crsAudio(){
+  if(CRS.stream)return;
+  CRS.ctx=new (window.AudioContext||window.webkitAudioContext)();await CRS.ctx.resume();
+  CRS.stream=await navigator.mediaDevices.getUserMedia({audio:true});
+  CRS.an=CRS.ctx.createAnalyser();CRS.an.fftSize=256;CRS.an.smoothingTimeConstant=.8;
+  CRS.ctx.createMediaStreamSource(CRS.stream).connect(CRS.an);CRS.fd=new Uint8Array(CRS.an.frequencyBinCount)
+}
+async function crsToggle(){
+  const b=$('crsMic');
+  if(!CRS.gravando){
+    try{await crsAudio()}catch(e){return alert('Microfone indisponível')}
+    CRS.chunks=[];CRS.rec=new MediaRecorder(CRS.stream);CRS.rec.ondataavailable=e=>CRS.chunks.push(e.data);
+    CRS.rec.onstop=()=>crsConcluir(new Blob(CRS.chunks,{type:'audio/webm'}));CRS.rec.start();
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;CRS.txt='';
+    if(SR){CRS.sr=new SR();CRS.sr.lang='pt-BR';CRS.sr.continuous=true;CRS.sr.interimResults=false;
+      CRS.sr.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)CRS.txt+=e.results[i][0].transcript+' '};try{CRS.sr.start()}catch(e){}}
+    CRS.gravando=true;b.textContent='⏹️ Parar & Processar Etapa '+CRS.etapa;
+    CRS.lim=setTimeout(()=>CRS.gravando&&crsToggle(),30000)
+  }else{
+    clearTimeout(CRS.lim);CRS.gravando=false;try{CRS.sr&&CRS.sr.stop()}catch(e){}
+    CRS.rec.stop();b.textContent='⏳ Processando...'
+  }
+}
+function crsConcluir(blob){
+  const url=URL.createObjectURL(blob),etapa=CRS.etapa;
+  CRS.sessoes.push({etapa,url,txt:CRS.txt.trim()});
+  if(CRS.sessoes.length>3)URL.revokeObjectURL(CRS.sessoes.shift().url);
+  $('crsAudio').src=url;crsChips();
+  document.dispatchEvent(new CustomEvent('crs:etapa',{detail:{etapa,blob,transcricao:CRS.txt.trim()}}));
+  const b=$('crsMic');
+  if(etapa>=CRS.max){b.textContent='✅ Calibração concluída';document.dispatchEvent(new CustomEvent('crs:concluida',{detail:CRS.sessoes}));CRS.etapa=1;setTimeout(()=>{b.textContent='🎙️ Refazer Calibração (Etapa 1)'},2500)}
+  else{CRS.etapa++;b.textContent=`🎙️ Abrir Microfone (Gravar Etapa ${CRS.etapa} • Até 30s)`}
+  $('crsEtapaTit').textContent=`Buffer FIFO & Reprise • Etapa ${CRS.etapa}/${CRS.max}`
+}
+function crsChips(){$('crsChips').innerHTML=CRS.sessoes.map((s,i)=>`<button onclick="$('crsAudio').src=CRS.sessoes[${i}].url;$('crsAudio').play()">▶ Etapa ${s.etapa}</button>`).join('')}
 
-</div>
+/* ===== GRÁFICOS 1-4 ===== */
+G[0]=(x,W,H,t,a)=>{fade(x,W,H,.16);
+  for(let i=0;i<70;i++){const r=i*.9,an=i*.35+t*2.2+(i%2)*3.14;dot(x,W*.17+Math.cos(an)*r*.8,H/2+Math.sin(an)*r*.8,1.1,`rgba(192,132,252,${.9-i/90})`)}
+  for(let i=0;i<260;i++){const an=i*2.399+t*.35,r=Math.sqrt(i)*(H*.028)*(1+a.vol*.9+.15*Math.sin(t*2+i*.2));
+    dot(x,W*.62+Math.cos(an)*r*1.5,H/2+Math.sin(an)*r*1.05,.9+a.vol*1.6,`rgba(${170+i%60},100,255,${.75-i/450})`)}};
 
-            <div class="model-card" style="border-color: rgba(56, 189, 248, 0.4);">
-                <div class="model-card-header">
-                    <span style="color: #38bdf8;">Enxame de Constelação <span style="font-size: 9px; color: var(--muted); font-weight: normal;">(Perceptivo-Auditivo G.R.B.A.S)</span></span>
-                    <div style="display: flex; gap: 4px;">
-                        <span class="model-tag-db" style="color: #38bdf8;" id="tag5a">33.9%</span>
-                        <span class="model-tag-db" style="color: #ef4444;" id="tag5b">-28.5 L/s</span>
-                    </div>
-                </div>
-                <canvas class="canvas-box" id="cvEnxameConstelacao"></canvas>
-                <div class="model-footer-labels"><span>Volume Mínimo</span><span>Volume Máximo</span></div>
-            </div>
+G[1]=(x,W,H,t,a)=>{fade(x,W,H,.2);const cx=W/2,cy=H/2,R=H*.34*(1+a.vol*.18);
+  const g=x.createRadialGradient(cx,cy,2,cx,cy,H*.17);g.addColorStop(0,'#7dd3fc');g.addColorStop(1,'#0369a122');x.fillStyle=g;x.beginPath();x.arc(cx,cy,H*.14*(1+a.vol*.2),0,6.28);x.fill();
+  for(let i=0;i<220;i++){const an=i/220*6.283+t*.4,w=Math.pow(Math.cos(an),2),rr=R+Math.sin(an*7+t*3)*(2+a.vol*9)*(.4+w);
+    dot(x,cx+Math.cos(an)*rr*1.25,cy+Math.sin(an)*rr,.8+w*2,`rgba(56,189,248,${.3+w*.6})`)}};
 
-            <div class="model-card" style="border-color: rgba(249, 115, 22, 0.4);">
-                <div class="model-card-header">
-                    <span style="color: #f97316;">Vórtice Dupla Hélice <span style="font-size: 9px; color: var(--muted); font-weight: normal;">(Aerodinâmica)</span></span>
-                    <div style="display: flex; gap: 4px;">
-                        <span class="model-tag-db" style="color: #f97316;" id="tag6a">-3.3 L/s</span>
-                        <span class="model-tag-db" style="color: #f97316;" id="tag6b">-1.3 L/s</span>
-                    </div>
-                </div>
-                <canvas class="canvas-box" id="cvVorticeHelice"></canvas>
-                <div class="model-footer-labels"><span>Volume Mínimo</span><span>Volume Máximo</span></div>
-            </div>
+G[2]=(x,W,H,t,a)=>{fade(x,W,H,.25);
+  for(let k=0;k<22;k++){x.strokeStyle=`rgba(74,222,128,${.25+k/60})`;x.lineWidth=1;x.beginPath();
+    for(let px=0;px<=W;px+=4){const u=px/W,amp=H*.1*(.3+u*(.6+a.mid*2.5)),y=H/2+Math.sin(px*.03+t*2.2+k*.28)*amp+Math.sin(px*.07-t*3+k*.5)*amp*.4*u*(a.hi*3)+(k-11)*H*.012*(1+u*Math.sin(t+k));
+      px?x.lineTo(px,y):x.moveTo(px,y)}x.stroke()}};
 
-            <div class="model-card" style="border-color: rgba(236, 72, 153, 0.4);">
-                <div class="model-card-header">
-                    <span style="color: #ec4899;">Grade de Cristal <span style="font-size: 9px; color: var(--muted); font-weight: normal;">(Contato Glótico)</span></span>
-                    <span class="model-tag-db" style="color: #ec4899;" id="tag7">-2.8 dB</span>
-                </div>
-                <canvas class="canvas-box" id="cvGradeCristal"></canvas>
-                <div class="model-footer-labels"><span>Volume Mínimo</span><span>Volume Máximo</span></div>
-            </div>
+G[3]=(x,W,H,t,a)=>{fade(x,W,H,.25);const c=.5+.32*Math.sin(t*.6);
+  for(let k=0;k<16;k++){x.strokeStyle=`rgba(251,191,36,${.3+k/30})`;x.lineWidth=1.1;x.beginPath();
+    for(let px=0;px<=W;px+=4){const u=px/W,e=Math.exp(-Math.pow((u-c)*3.2,2))*H*.42*(.35+a.vol*1.4),y=H*.68-e*(1+.15*Math.sin(px*.05+t*3+k*.4))+Math.sin(u*9+t*2+k*.3)*H*.04*(1+a.mid*2)-k*1.5;
+      px?x.lineTo(px,y):x.moveTo(px,y)}x.stroke()}};
 
-            <div class="model-card" style="border-color: rgba(45, 212, 191, 0.4);">
-                <div class="model-card-header">
-                    <span style="color: #2dd4bf;">Escudo Isolador <span style="font-size: 9px; color: var(--muted); font-weight: normal;">(Ruído Ambiental)</span></span>
-                    <span class="model-tag-db" style="color: #2dd4bf;" id="tag8">-39.5 dB</span>
-                </div>
-                <canvas class="canvas-box" id="cvEscudoIsolador"></canvas>
-                <div class="model-footer-labels"><span>Volume Mínimo</span><span>Volume Máximo</span></div>
-            </div>
-        </div>
+/* ===== GRÁFICOS 5-8 ===== */
+G[4]=(x,W,H,t,a)=>{fade(x,W,H,.18);
+  const N=[['G',.22,.4,'#fbbf24'],['B',.45,.22,'#22d3ee'],['R',.8,.35,'#ef4444'],['A',.3,.75,'#a78bfa'],['S',.72,.74,'#22c55e']]
+    .map((n,i)=>({l:n[0],px:W*n[1]+Math.sin(t*.8+i)*8,py:H*n[2]+Math.cos(t*.7+i*2)*7,c:n[3]}));
+  N.forEach((n,i)=>{const m=N[(i+2)%5];
+    for(let j=0;j<34;j++){const u=(j/34+t*.18+i*.2)%1,mx=(n.px+m.px)/2+Math.sin(t+i)*30,my=(n.py+m.py)/2+Math.cos(t*1.2+i)*30,
+      px=(1-u)*(1-u)*n.px+2*u*(1-u)*mx+u*u*m.px,py=(1-u)*(1-u)*n.py+2*u*(1-u)*my+u*u*m.py;dot(x,px,py,1.2,n.c)}
+    for(let j=0;j<22;j++){const an=j*.9+t*(1.5+i*.2),r=8+j*1.1+a.vol*10;dot(x,n.px+Math.cos(an)*r,n.py+Math.sin(an)*r,1,n.c)}
+    dot(x,n.px,n.py,4+a.vol*5,n.c);x.fillStyle='#e2e8f0';x.font='11px system-ui';x.fillText(n.l,n.px-12,n.py+16)})};
 
-        <section class="fifo-section">
-            <div class="audio-player-box">
-                <span style="font-size: 11px; font-weight: 800; color: #38bdf8; text-transform: uppercase;" id="fifoTitleLabel">Buffer FIFO & Reprise • Etapa 1 / 3</span>
-                <audio id="audioPlayerMaster" controls></audio>
-                <div id="chatBox" style="background: #020408; border: 1px solid var(--line); border-radius: 10px; height: 50px; overflow-y: auto; padding: 8px; font-size: 11px; color: var(--muted);">
-                    Elayon Core: Sistema pronto para calibração multimodal com modelos visuais dinâmicos.
-                </div>
-            </div>
-            <div class="fifo-info-box">
-                <h4 id="etapaInfoTitle">1ª Calibração de Voz (Etapa 1/3)</h4>
-                <p id="etapaInfoDesc">Gravando e reverberando as nuances vocais em tempo real nos 8 modelos visuais simultaneamente.</p>
-            </div>
-        </section>
+G[5]=(x,W,H,t,a)=>{fade(x,W,H,.2);
+  for(let s=0;s<5;s++)for(let px=0;px<W;px+=3){const u=px/W,amp=H*.1+H*.2*u*(.5+a.lo*2),ph=px*.045+t*3+s*.35,
+    y1=H/2+Math.sin(ph)*amp,y2=H/2+Math.sin(ph+3.14)*amp,d1=Math.cos(ph),d2=-d1;
+    dot(x,px,y1,1+(d1+1)*1.1,`rgba(251,146,60,${.35+.3*d1})`);dot(x,px,y2,1+(d2+1)*1.1,`rgba(34,211,238,${.35+.3*d2})`)}};
 
-        <section style="display: grid; gap: 12px;">
-            <textarea id="txtTranscricaoUsuario" class="txt-box" placeholder="A transcrição da fala aparecerá aqui em tempo real..."></textarea>
-            <button id="btnMicToggle" class="btn-mic-gigante" onclick="toggleGravacaoManual()">
-                🎙️ Abrir Microfone (Gravar Etapa 1 • Até 30s)
-            </button>
-        </section>
+G[6]=(x,W,H,t,a)=>{fade(x,W,H,.3);
+  [.27,.73].forEach((f,k)=>{const cx=W*f,cy=H/2,R=H*.36,P=[];
+    for(let i=0;i<9;i++){const an=i/9*6.283+t*.25*(k?-1:1),n=k?Math.sin(t*2+i*2.1)*a.hi*H*.25:0;P.push([cx+Math.cos(an)*(R+n)*(k?1.2:1),cy+Math.sin(an)*(R+n*.8)])}
+    x.lineWidth=.7;x.strokeStyle=k?'rgba(56,189,248,.35)':'rgba(236,72,153,.4)';
+    P.forEach((p,i)=>P.forEach((q,j)=>{if(j>i){x.beginPath();x.moveTo(p[0],p[1]);x.lineTo(q[0],q[1]);x.stroke()}}));
+    P.forEach(p=>dot(x,p[0],p[1],2.5+a.vol*3,k?'#7dd3fc':'#f472b6'))})};
 
-    </div>
+G[7]=(x,W,H,t,a)=>{fade(x,W,H,.22);
+  [.27,.73].forEach((f,k)=>{for(let r=0;r<4;r++){x.strokeStyle=`rgba(45,212,191,${.9-r*.18})`;x.lineWidth=2.4-r*.4;x.beginPath();
+    for(let i=0;i<=64;i++){const an=i/64*6.283,w=k?Math.sin(an*5+t*2.5+r)*(3+a.hi*14)+Math.sin(an*9-t*3)*a.vol*5:0,rr=H*.14+r*H*.065+a.vol*5+w,px=W*f+Math.cos(an)*rr,py=H/2+Math.sin(an)*rr;
+      i?x.lineTo(px,py):x.moveTo(px,py)}x.stroke()}});
+  for(let i=0;i<26;i++){const an=i*1.7+t*.8,r=H*.4+Math.sin(t*2+i)*8;dot(x,W*.73+Math.cos(an)*r,H/2+Math.sin(an)*r*.9,1+a.hi*2,'#5eead4')}};
 
-    <script>
-        const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
-        let supabaseClient = null;
-        try { if (typeof supabase !== 'undefined') supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e){}
-
-        const estadoSimbiotico = {
-            operadorNome: "Carregando...",
-            userId: null,
-            tokens: 100,
-            aiProvider: 'gemini',
-            aiKey: '',
-            etapaAtual: 1,
-            gravando: false,
-            audioChunks: [],
-            mediaRecorder: null,
-            transcricaoAcumulada: "",
-            animacaoId: null,
-            sessoes: []
-        };
-
-let audioCtx = null, analyser = null, micStream = null, freqData = null;
-        let recognition = null;
-
-        document.addEventListener("DOMContentLoaded", async () => {
-            inicializarCanvasesExatos();
-            iniciarLoopAnimacaoModelos();
-            configurarReconhecimentoVoz();
-            await carregarPerfilSupabase();
-        });
-
-        async function carregarPerfilSupabase() {
-            if (!supabaseClient) return;
-            try {
-                const { data: { session } } = await supabaseClient.auth.getSession();
-                if (session && session.user) {
-                    estadoSimbiotico.userId = session.user.id;
-                    const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
-                    if (profile) {
-                        estadoSimbiotico.operadorNome = profile.nome || session.user.email.split('@')[0];
-                        estadoSimbiotico.tokens = profile.tokens ?? 100;
-                        estadoSimbiotico.aiProvider = profile.ai_provider || 'gemini';
-                        estadoSimbiotico.aiKey = profile.ai_key || '';
-
-                        document.getElementById('hudUserName').innerText = estadoSimbiotico.operadorNome;
-                        document.getElementById('hudTokens').innerText = estadoSimbiotico.tokens;
-                        if (profile.avatar_url) document.getElementById('hudAvatar').src = profile.avatar_url;
-                    }
-                }
-            } catch(err) {
-                console.warn("Nenhum perfil autenticado encontrado ou erro de acesso:", err);
-            }
-        }
-
-        function inicializarCanvasesExatos() {
-            ['cvNebulosa', 'cvAnelOrbital', 'cvCortinaDNA', 'cvTrilhaCinetica', 'cvEnxameConstelacao', 'cvVorticeHelice', 'cvGradeCristal', 'cvEscudoIsolador'].forEach(id => {
-                const cv = document.getElementById(id);
-                if (cv) {
-                    cv.width = cv.parentElement.clientWidth - 28;
-                    cv.height = 160;
-                }
-            });
-        }
-
-        async function inicializarAudioReal() {
-            try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    await audioCtx.resume();
-                }
-                if (!micStream) {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-                    micStream = audioCtx.createMediaStreamSource(stream);
-                    analyser = audioCtx.createAnalyser();
-                    analyser.fftSize = 64;
-                    analyser.smoothingTimeConstant = 0.8;
-                    micStream.connect(analyser);
-                    freqData = new Uint8Array(analyser.frequencyBinCount);
-                }
-            } catch(e) { console.warn("Aviso de áudio:", e); }
-        }
-
-function iniciarLoopAnimacaoModelos() {
-            let t = 0;
-            function loop() {
-                t += 0.05;
-                let vol = 0.2;
-                if (analyser && freqData && estadoSimbiotico.gravando) {
-                    try {
-                        analyser.getByteFrequencyData(freqData);
-                        let sum = 0; for(let i=0; i<freqData.length; i++) sum += freqData[i];
-                        vol = Math.min(Math.max((sum / freqData.length) / 80, 0.1), 1.2);
-                    } catch(err) { vol = 0.6; }
-                } else if (estadoSimbiotico.gravando) {
-                    vol = 0.6 + Math.sin(t * 4) * 0.4;
-                }
-
-                renderizarNebulosa(t, vol);
-                renderizarAnelOrbital(t, vol);
-                renderizarCortinaDNA(t, vol);
-                renderizarTrilhaCinetica(t, vol);
-                renderizarEnxameConstelacao(t, vol);
-                renderizarVorticeHelice(t, vol);
-                renderizarGradeCristal(t, vol);
-                renderizarEscudoIsolador(t, vol);
-
-                estadoSimbiotico.animacaoId = requestAnimationFrame(loop);
-            }
-            loop();
-        }
-
-        function renderizarNebulosa(t, vol) {
-            const cv = document.getElementById('cvNebulosa'); if(!cv) return;
-            const ctx = cv.getContext('2d');
-            ctx.fillStyle = '#020408'; ctx.fillRect(0, 0, cv.width, cv.height);
-            ctx.fillStyle = '#c084fc';
-            ctx.beginPath(); ctx.arc(cv.width * 0.2, cv.height * 0.5, 8 + vol * 6, 0, Math.PI*2); ctx.fill();
-            for(let i=0; i<60; i++) {
-                let ang = i + t * 2;
-                let dist = (i * 1.5) * (0.8 + vol * 0.5);
-                let x = (cv.width * 0.65) + Math.cos(ang) * dist;
-                let y = (cv.height * 0.5) + Math.sin(ang * 0.7) * (dist * 0.5);
-                let alpha = Math.max(0.2, 1 - (dist / 100));
-                ctx.fillStyle = `rgba(192, 132, 252, ${alpha})`;
-                ctx.beginPath(); ctx.arc(x, y, 1.5 + vol * 1.5, 0, Math.PI*2); ctx.fill();
-            }
-        }
-
-        function renderizarAnelOrbital(t, vol) {
-            const cv = document.getElementById('cvAnelOrbital'); if(!cv) return;
-            const ctx = cv.getContext('2d');
-            ctx.fillStyle = '#020408'; ctx.fillRect(0, 0, cv.width, cv.height);
-            let cx = cv.width / 2, cy = cv.height / 2;
-            ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(cx, cy, 12 + vol * 10, 0, Math.PI*2); ctx.fill();
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)'; ctx.lineWidth = 1.5;
-            ctx.beginPath(); ctx.arc(cx, cy, 45 + vol * 15, 0, Math.PI*2); ctx.stroke();
-            for(let i=0; i<20; i++) {
-                let ang = t + (i * Math.PI / 10);
-                let rx = cx + Math.cos(ang) * (45 + vol * 15);
-                let ry = cy + Math.sin(ang) * (45 + vol * 15);
-                ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(rx, ry, 2, 0, Math.PI*2); ctx.fill();
-            }
-        }
-
-function renderizarCortinaDNA(t, vol) {
-            const cv = document.getElementById('cvCortinaDNA'); if(!cv) return;
-            const ctx = cv.getContext('2d');
-            ctx.fillStyle = '#020408'; ctx.fillRect(0, 0, cv.width, cv.height);
-            let bars = 45, w = cv.width / bars;
-            for(let i=0; i<bars; i++) {
-                let h = (Math.sin(t * 3 + i * 0.3) * 25 + 35) * (0.5 + vol * 0.8);
-                let x = i * w;
-                let y = (cv.height / 2) - (h / 2);
-                ctx.fillStyle = '#2dd4bf';
-                ctx.fillRect(x + 1, y, w - 2, h);
-            }
-        }
-
-        function renderizarTrilhaCinetica(t, vol) {
-            const cv = document.getElementById('cvTrilhaCinetica'); if(!cv) return;
-            const ctx = cv.getContext('2d');
-            ctx.fillStyle = '#020408'; ctx.fillRect(0, 0, cv.width, cv.height);
-            ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2;
-            ctx.beginPath();
-            for(let x=0; x<cv.width; x+=2) {
-                let y = (cv.height / 2) + Math.sin(x * 0.03 + t * 2) * (15 + vol * 25) * Math.sin(x * 0.01);
-                if(x===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-        }
-
-        function renderizarEnxameConstelacao(t, vol) {
-            const cv = document.getElementById('cvEnxameConstelacao'); if(!cv) return;
-            const ctx = cv.getContext('2d');
-            ctx.fillStyle = '#020408'; ctx.fillRect(0, 0, cv.width, cv.height);
-            let pts = [
-                {x: cv.width*0.3, y: cv.height*0.5, color: '#fbbf24', lbl: 'G'},
-                {x: cv.width*0.5, y: cv.height*0.3, color: '#38bdf8', lbl: 'B'},
-                {x: cv.width*0.7, y: cv.height*0.5, color: '#ef4444', lbl: 'R'},
-                {x: cv.width*0.35, y: cv.height*0.7, color: '#c084fc', lbl: 'A'},
-                {x: cv.width*0.65, y: cv.height*0.7, color: '#10b981', lbl: 'S'}
-            ];
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)'; ctx.lineWidth = 1;
-            for(let i=0; i<pts.length; i++) {
-                for(let j=i+1; j<pts.length; j++) {
-                    ctx.beginPath(); ctx.moveTo(pts[i].x + Math.sin(t+i)*5, pts[i].y); ctx.lineTo(pts[j].x, pts[j].y); ctx.stroke();
-                }
-            }
-            pts.forEach(p => {
-                ctx.fillStyle = p.color;
-                ctx.beginPath(); ctx.arc(p.x + Math.sin(t)*3, p.y + Math.cos(t)*3, 4 + vol * 3, 0, Math.PI*2); ctx.fill();
-            });
-        }
-
-        function renderizarVorticeHelice(t, vol) {
-            const cv = document.getElementById('cvVorticeHelice'); if(!cv) return;
-            const ctx = cv.getContext('2d');
-            ctx.fillStyle = '#020408'; ctx.fillRect(0, 0, cv.width, cv.height);
-            for(let x=0; x<cv.width; x+=3) {
-                let y1 = (cv.height / 2) + Math.sin(x * 0.04 + t * 3) * (15 + vol * 20);
-                let y2 = (cv.height / 2) + Math.cos(x * 0.04 + t * 3) * (15 + vol * 20);
-                ctx.fillStyle = '#f97316'; ctx.fillRect(x, y1, 2, 2);
-                ctx.fillStyle = '#38bdf8'; ctx.fillRect(x, y2, 2, 2);
-            }
-        }
-
-        function renderizarGradeCristal(t, vol) {
-            const cv = document.getElementById('cvGradeCristal'); if(!cv) return;
-            const ctx = cv.getContext('2d');
-            ctx.fillStyle = '#020408'; ctx.fillRect(0, 0, cv.width, cv.height);
-            let cx1 = cv.width * 0.3, cx2 = cv.width * 0.7, cy = cv.height / 2, r = 35 + vol * 10;
-            [cx1, cx2].forEach((cx, idx) => {
-                ctx.strokeStyle = idx === 0 ? '#ec4899' : '#38bdf8'; ctx.lineWidth = 1.2;
-                ctx.beginPath();
-                for(let i=0; i<6; i++) {
-                    let ang = (i * Math.PI / 3) + t * 0.5;
-                    let x = cx + Math.cos(ang) * r;
-                    let y = cy + Math.sin(ang) * r;
-                    if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-                }
-                ctx.closePath(); ctx.stroke();
-            });
-        }
-
-function renderizarEscudoIsolador(t, vol) {
-            const cv = document.getElementById('cvEscudoIsolador'); if(!cv) return;
-            const ctx = cv.getContext('2d');
-            ctx.fillStyle = '#020408'; ctx.fillRect(0, 0, cv.width, cv.height);
-            let cx1 = cv.width * 0.3, cx2 = cv.width * 0.7, cy = cv.height / 2;
-            [cx1, cx2].forEach(cx => {
-                for(let r=15; r<50; r+=12) {
-                    ctx.strokeStyle = 'rgba(45, 212, 191, 0.5)'; ctx.lineWidth = 1.5;
-                    ctx.beginPath(); ctx.arc(cx, cy, r + (vol * 8), 0, Math.PI*2); ctx.stroke();
-                }
-            });
-        }
-
-        function configurarReconhecimentoVoz() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) return;
-            recognition = new SpeechRecognition();
-            recognition.lang = "pt-BR"; recognition.continuous = true; recognition.interimResults = true;
-            recognition.onresult = (e) => {
-                let temp = "";
-                for (let i = e.resultIndex; i < e.results.length; i++) temp += e.results[i][0].transcript;
-                const txt = document.getElementById("txtTranscricaoUsuario");
-                if(txt) txt.value = estadoSimbiotico.transcricaoAcumulada + " " + temp;
-            };
-        }
-
-        async function toggleGravacaoManual() {
-            const btn = document.getElementById("btnMicToggle");
-            const txtArea = document.getElementById("txtTranscricaoUsuario");
-
-            if (!estadoSimbiotico.gravando) {
-                await inicializarAudioReal();
-                estadoSimbiotico.gravando = true;
-                if (txtArea) estadoSimbiotico.transcricaoAcumulada = txtArea.value;
-
-                btn.style.background = "linear-gradient(135deg, #047857, #10b981)";
-                btn.innerText = `⏹️ Parar Gravação & Processar Etapa ${estadoSimbiotico.etapaAtual}`;
-
-                if (recognition) { try { recognition.start(); } catch(e){} }
-
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    estadoSimbiotico.mediaRecorder = new MediaRecorder(stream);
-                    estadoSimbiotico.audioChunks = [];
-                    estadoSimbiotico.mediaRecorder.ondataavailable = e => estadoSimbiotico.audioChunks.push(e.data);
-                    estadoSimbiotico.mediaRecorder.start();
-                } catch(e){ console.warn("MediaRecorder err:", e); }
-
-            } else {
-                estadoSimbiotico.gravando = false;
-                btn.style.background = "linear-gradient(135deg, #7f1d1d, #b91c1c)";
-                btn.innerText = "⏳ Processando etapa...";
-
-                if (recognition) { try { recognition.stop(); } catch(e){} }
-
-                if (estadoSimbiotico.mediaRecorder && estadoSimbiotico.mediaRecorder.state !== 'inactive') {
-                    estadoSimbiotico.mediaRecorder.stop();
-                    estadoSimbiotico.mediaRecorder.onstop = async () => {
-                        const blob = new Blob(estadoSimbiotico.audioChunks, { type: 'audio/webm' });
-                        const url = URL.createObjectURL(blob);
-                        concluirEtapaAtual(url);
-                    };
-                } else {
-                    concluirEtapaAtual(null);
-                }
-            }
-        }
-
-async function concluirEtapaAtual(audioUrl) {
-            const etapa = estadoSimbiotico.etapaAtual;
-            const txt = document.getElementById("txtTranscricaoUsuario").value;
-
-            estadoSimbiotico.sessoes.push({ etapa, audioUrl, transcricao: txt });
-
-            if (audioUrl) {
-                document.getElementById('audioPlayerMaster').src = audioUrl;
-            }
-
-            if (supabaseClient && estadoSimbiotico.userId) {
-                try {
-                    await supabaseClient.from("calibracoes_crs").insert([{
-                        user_id: estadoSimbiotico.userId,
-                        operador_nome: estadoSimbiotico.operadorNome,
-                        etapa: etapa,
-                        transcricao_usuario: txt,
-                        audio_url: audioUrl || "local_blob",
-                        tokens_consumidos: 1
-                    }]);
-                    
-                    if (estadoSimbiotico.tokens > 0) {
-                        estadoSimbiotico.tokens -= 1;
-                        document.getElementById('hudTokens').innerText = estadoSimbiotico.tokens;
-                        await supabaseClient.from('profiles').update({ tokens: estadoSimbiotico.tokens }).eq('id', estadoSimbiotico.userId);
-                    }
-                } catch(err) { console.error("Supabase error:", err); }
-            }
-
-            if (etapa < 3) {
-                estadoSimbiotico.etapaAtual++;
-                document.getElementById('fifoTitleLabel').innerText = `Buffer FIFO & Reprise • Etapa ${estadoSimbiotico.etapaAtual} / 3`;
-                document.getElementById('etapaInfoTitle').innerText = `${estadoSimbiotico.etapaAtual}ª Calibração de Voz (Etapa ${estadoSimbiotico.etapaAtual}/3)`;
-                document.getElementById('etapaInfoDesc').innerText = `Gravando etapa ${estadoSimbiotico.etapaAtual} com reverberação em tempo real.`;
-                document.getElementById("btnMicToggle").innerText = `🎙️ Abrir Microfone (Gravar Etapa ${estadoSimbiotico.etapaAtual} • Até 30s)`;
-                document.getElementById("txtTranscricaoUsuario").value = "";
-                estadoSimbiotico.transcricaoAcumulada = "";
-            } else {
-                document.getElementById('fifoTitleLabel').innerText = `✨ Calibração Multimodal Completa (3/3)`;
-                document.getElementById('etapaInfoTitle').innerText = `Baseline Simbiótico Concluído`;
-                document.getElementById('etapaInfoDesc').innerText = `Todas as 3 etapas foram gravadas e migradas com sucesso.`;
-                document.getElementById("btnMicToggle").style.display = "none";
-            }
-        }
-    </script>
+/* abre sozinho nesta página */
+addEventListener('DOMContentLoaded',()=>habilitarCalibracao());
+</script>
 </body>
 </html>
