@@ -130,7 +130,7 @@ canvas {
     gap: 14px; 
 }
 
-/* Chat Exclusivo por Voz (Sem caixa de texto para digitar) */
+/* Chat Exclusivo por Voz (Sem caixa de texto manual para digitar) */
 .chat-container {
     background: #020408;
     border: 1px solid var(--line);
@@ -205,6 +205,18 @@ canvas {
     transform: scale(1.01);
 }
 
+.relatorio-crs { 
+    width: 100%; 
+    height: 75px; 
+    background: #020408; 
+    border: 1px solid var(--line); 
+    border-radius: 10px; 
+    color: var(--muted); 
+    font: 10px monospace; 
+    padding: 8px; 
+    resize: none; 
+}
+
 /* Slots da Memória das 3 Últimas Sessões (FIFO) */
 .fifo-slots { 
     display: grid; 
@@ -247,9 +259,8 @@ canvas {
     <div class="hud-tokens">TOKENS<b id="hudTokens">100</b></div>
   </header>
 
-  <!-- ==========================================================================
-       BLOCO DE GRÁFICOS ISOLADO (12 MODULAÇÕES VISUAIS DE PRESSÃO E RITMO)
-       Fácil de alterar: cada canvas possui ID e contêiner próprio
+<!-- ==========================================================================
+       BLOCO DE GRÁFICOS ISOLADO (12 MODULAÇÕES VISUAIS)
      ========================================================================== -->
   <div class="section-title">
     <span>Telemetria Espectral de Voz (12 Modulações)</span>
@@ -257,84 +268,61 @@ canvas {
   </div>
 
   <div class="graphs-grid">
-    <!-- 1. Nebulosa de Energia -->
     <div class="graph-card">
       <div class="graph-header">Nebulosa de Energia <small>(Intensidade)</small><span id="valG1">0%</span></div>
       <canvas id="cvsNebulosa"></canvas>
       <div class="graph-footer"><span>Voz Baixa</span><span>Volume Máximo</span></div>
     </div>
-
-    <!-- 2. Anel Orbital -->
     <div class="graph-card">
       <div class="graph-header">Anel Orbital <small>(Hesitação)</small><span id="valG2">0%</span></div>
       <canvas id="cvsOrbital"></canvas>
       <div class="graph-footer"><span>Estável</span><span>Oscilante</span></div>
     </div>
-
-    <!-- 3. Cortina de DNA -->
     <div class="graph-card">
       <div class="graph-header">Cortina de DNA <small>(Timbre)</small><span id="valG3">0%</span></div>
       <canvas id="cvsDNA"></canvas>
       <div class="graph-footer"><span>Grave</span><span>Agudo</span></div>
     </div>
-
-    <!-- 4. Trilha Cinética -->
     <div class="graph-card">
       <div class="graph-header">Trilha Cinética <small>(Pressão)</small><span id="valG4">0%</span></div>
       <canvas id="cvsCinetica"></canvas>
       <div class="graph-footer"><span>Suave</span><span>Forte</span></div>
     </div>
-
-    <!-- 5. Enxame de Constelação -->
     <div class="graph-card">
       <div class="graph-header">Enxame Constelação <small>(Grave/Agudo)</small><span id="valG5">0%</span></div>
       <canvas id="cvsConstelacao"></canvas>
       <div class="graph-footer"><span>Disperso</span><span>Concentrado</span></div>
     </div>
-
-    <!-- 6. Vórtice Dupla Hélice -->
     <div class="graph-card">
       <div class="graph-header">Vórtice Dupla Hélice <small>(Aceleração)</small><span id="valG6">0%</span></div>
       <canvas id="cvsHelice"></canvas>
       <div class="graph-footer"><span>Lento</span><span>Acelerado</span></div>
     </div>
-
-    <!-- 7. Grade de Cristal -->
     <div class="graph-card">
       <div class="graph-header">Grade de Cristal <small>(Domínio Elétrico)</small><span id="valG7">0%</span></div>
       <canvas id="cvsCristal"></canvas>
       <div class="graph-footer"><span>Rígido</span><span>Fluido</span></div>
     </div>
-
-    <!-- 8. Escudo Isolador -->
     <div class="graph-card">
       <div class="graph-header">Escudo Isolador <small>(Ruído Base)</small><span id="valG8">0%</span></div>
       <canvas id="cvsEscudo"></canvas>
       <div class="graph-footer"><span>Silêncio</span><span>Interferência</span></div>
     </div>
-
-    <!-- 9. Espectro de Bandas Reais -->
     <div class="graph-card">
       <div class="graph-header">Espectro de Bandas <small>(Equalizador)</small><span id="valG9">0%</span></div>
       <canvas id="cvsEspectro"></canvas>
       <div class="graph-footer"><span>Sub</span><span>Agudo</span></div>
     </div>
-
-    <!-- 10. Matriz de Pulso Rítmico -->
     <div class="graph-card">
       <div class="graph-header">Matriz de Cadência <small>(Ritmo x Silêncio)</small><span id="valG10">0%</span></div>
       <canvas id="cvsMatriz"></canvas>
       <div class="graph-footer"><span>Pausas</span><span>Continuidade</span></div>
     </div>
-
-    <!-- 11. Densidade Harmônica -->
     <div class="graph-card">
       <div class="graph-header">Densidade Harmônica <small>(Ressonância)</small><span id="valG11">0%</span></div>
       <canvas id="cvsHarmonica"></canvas>
       <div class="graph-footer"><span>Puro</span><span>Modulado</span></div>
     </div>
-
-    <!-- 12. Mapa de Tendência Temporal (3 Sessões) -->
     <div class="graph-card">
       <div class="graph-header">Comparativo Histórico <small>(3 Sessões)</small><span id="valG12">S1-S3</span></div>
       <canvas id="cvsHistorico"></canvas>
@@ -343,7 +331,7 @@ canvas {
   </div>
 
   <!-- ==========================================================================
-       PAINEL DE CHAT CONVERSACIONAL POR VOZ + BUFFER FIFO (3 SLOTS)
+       PAINEL DE CHAT POR VOZ + BUFFER FIFO
      ========================================================================== -->
   <div class="control-panel">
     <div class="status-bar">
@@ -354,21 +342,21 @@ canvas {
       <div id="tempoPausa" style="color: var(--accent); display: none;">Estabilizando (2s)...</div>
     </div>
 
-    <!-- Chat Exclusivo por Voz (Sem caixa de texto manual para digitar) -->
+    <!-- Chat Exclusivo por Voz -->
     <div class="chat-container" id="chatContainer">
       <div class="msg ia">
         <span class="msg-tag">ELAYON IA</span>
-        Olá, Paulo! Clique em "Ativar Conexão" para iniciarmos. Eu falo a instrução, seu microfone abre automaticamente, você responde por voz e analisamos sua cadência em tempo real.
+        Olá, Paulo! Clique em "Ativar Conexão Simbiótica" para iniciarmos. Eu falo a instrução, seu microfone abre automaticamente e conversamos por voz em tempo real.
       </div>
     </div>
 
-    <!-- Botão Principal de Alternância por Voz -->
+    <!-- Botão Principal -->
     <button class="btn-acao" id="btnAtivarSimbiose">🎙️ Ativar Conexão Simbiótica</button>
 
-    <!-- Histórico de Métricas Fonoaudiológicas / CRS (Retorno sem transcrição) -->
+    <!-- Relatório CRS (Background técnico) -->
     <textarea class="relatorio-crs" id="relatorioCRS" readonly placeholder="Aguardando dados brutos do CRS para parametrização clínica e fonoaudiológica..."></textarea>
 
-    <!-- Buffer FIFO de 3 Slots (As 3 últimas sessões) -->
+    <!-- Buffer FIFO de 3 Slots -->
     <div class="section-title">
       <span>Buffer de Memória Curta (3 Últimas Sessões)</span>
       <small style="color: var(--muted); font-size: 10px;">Comparações de Aceleração e Hesitação</small>
@@ -390,24 +378,28 @@ canvas {
         <button onclick="carregarSessao(3)">Carregar</button>
       </div>
     </div>
-    
-    <audio id="audioPlayer" controls style="display:none; margin-top:6px;"></audio>
   </div>
 </div>
 
+
+<!-- ==========================================================================
+     MOTOR JAVASCRIPT CORRETO E ENCAPSULADO
+     ========================================================================== -->
+<script>
 document.addEventListener("DOMContentLoaded", () => {
+    const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
     const URL_CRS = "https://nucleo-crs-elayon.onrender.com/api/crs/analisar";
     
-    // Elementos de Controle e UI
     const btnSimbiose = document.getElementById("btnAtivarSimbiose");
     const chatContainer = document.getElementById("chatContainer");
     const statusDot = document.getElementById("statusDot");
     const statusTexto = document.getElementById("statusTexto");
     const tempoPausa = document.getElementById("tempoPausa");
     const relatorioCRS = document.getElementById("relatorioCRS");
-    const audioPlayer = document.getElementById("audioPlayer");
 
-    // Estados do Sistema
     let audioCtx = null;
     let analyser = null;
     let microphoneStream = null;
@@ -415,11 +407,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let isRunning = false;
     let animationId = null;
 
-    // Buffer FIFO de 3 Sessões
     let sessoesBuffer = [];
     let sessaoAtualIndex = 1;
 
-    // Canvas dos 12 Gráficos
     const canvases = {
         g1: document.getElementById("cvsNebulosa").getContext("2d"),
         g2: document.getElementById("cvsOrbital").getContext("2d"),
@@ -435,12 +425,21 @@ document.addEventListener("DOMContentLoaded", () => {
         g12: document.getElementById("cvsHistorico").getContext("2d")
     };
 
-    // Valores atuais de telemetria
     let telemetria = { volume: 0, graves: 0, medios: 0, agudos: 0, ruido: 0, estabilidade: 50 };
 
-    // ==========================================================================
-    // 1. INICIALIZAÇÃO DA WEB AUDIO API E MICROFONE REAL
-    // ==========================================================================
+    async function carregarSessaoUsuario() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session && session.user) {
+            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
+            if (profile) {
+                if (profile.nome) document.getElementById('hudNome').textContent = profile.nome;
+                if (profile.tokens !== undefined) document.getElementById('hudTokens').textContent = profile.tokens;
+                if (profile.avatar_url) document.getElementById('hudAvatar').src = profile.profile_url || profile.avatar_url;
+            }
+        }
+    }
+    carregarSessaoUsuario();
+
     async function iniciarAudio() {
         try {
             microphoneStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -458,31 +457,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // ==========================================================================
-    // 2. RENDERIZAÇÃO DOS 12 GRÁFICOS (RESSONÂNCIA FIEL + ESMORECIMENTO)
-    // ==========================================================================
     function atualizarGraficos() {
         if (analyser && isRunning) {
             analyser.getByteFrequencyData(dataArray);
             let sum = 0;
             for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-            let rawVol = Math.round((sum / dataArray.length) / 2.55); // 0 a 100
+            let rawVol = Math.round((sum / dataArray.length) / 2.55);
 
-            // Esmorecimento natural se houver silêncio
             telemetria.volume = rawVol > 5 ? rawVol : Math.max(0, telemetria.volume - 5);
             telemetria.graves = dataArray[2] ? Math.round(dataArray[2] / 2.55) : 0;
             telemetria.medios = dataArray[15] ? Math.round(dataArray[15] / 2.55) : 0;
             telemetria.agudos = dataArray[40] ? Math.round(dataArray[40] / 2.55) : 0;
             telemetria.ruido = dataArray[100] ? Math.round(dataArray[100] / 2.55) : 10;
         } else {
-            // Esmorece suavemente até zero ao parar
             telemetria.volume = Math.max(0, telemetria.volume - 8);
             telemetria.graves = Math.max(0, telemetria.graves - 8);
             telemetria.medios = Math.max(0, telemetria.medios - 8);
             telemetria.agudos = Math.max(0, telemetria.agudos - 8);
         }
 
-        // Desenhar em cada um dos 12 canvases
         Object.keys(canvases).forEach((key, idx) => {
             const ctx = canvases[key];
             const w = ctx.canvas.width = ctx.canvas.clientWidth || 200;
@@ -492,12 +485,10 @@ document.addEventListener("DOMContentLoaded", () => {
             ctx.fillStyle = "#020408";
             ctx.fillRect(0, 0, w, h);
 
-            // Desenho reativo baseado no volume e índice
             let val = (telemetria.volume / 100) * h;
             ctx.fillStyle = idx % 2 === 0 ? "#0ea5e9" : "#14b8a6";
             ctx.fillRect(20, h - val, w - 40, val);
 
-            // Atualiza indicador numérico na UI se houver
             const badge = document.getElementById(`valG${idx+1}`);
             if (badge) badge.innerText = `${telemetria.volume}%`;
         });
@@ -507,9 +498,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // ==========================================================================
-    // 3. FLUXO SIMBIÓTICO (IA FALA ➔ MIC ABRE ➔ CHAT ➔ PAUSA 2s ➔ CRS)
-    // ==========================================================================
     function adicionarMensagem(remetente, texto, tipo) {
         const div = document.createElement("div");
         div.className = `msg ${tipo}`;
@@ -578,7 +566,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         falarTTS(instrucaoInicial, () => {
             abrirReconhecimentoVoz(async (textoTranscrito) => {
-                // Pausa exata de 2 segundos para estabilização da ressonância
                 statusTexto.innerText = "Organizando e estabilizando interação...";
                 tempoPausa.style.display = "inline";
                 
@@ -598,7 +585,6 @@ document.addEventListener("DOMContentLoaded", () => {
     async function processarEnvioCRS(texto) {
         statusTexto.innerText = "Enviando telemetria e áudio ao CRS...";
         
-        // Payload paramétrico para o CRS (sem texto bruto de conteúdo sensível)
         const payloadCRS = {
             context: "Sessão cockpit conversacional simbiótico",
             transcript_raw: texto,
@@ -611,7 +597,6 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         try {
-            // Disparo em background para o CRS
             const res = await fetch(URL_CRS, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -623,7 +608,6 @@ document.addEventListener("DOMContentLoaded", () => {
             statusTexto.innerText = "Sessão consolidada com sucesso!";
             statusDot.className = "status-indicator";
 
-            // Adiciona ao Buffer FIFO (Máximo 3 sessões)
             salvarSessaoNoBuffer({
                 id: sessaoAtualIndex++,
                 timestamp: new Date().toLocaleTimeString(),
@@ -632,7 +616,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
         } catch (e) {
-            console.warn("CRS offline ou erro de rede. Usando fallback local.");
             relatorioCRS.value = "Relatório CRS (Offline Fallback): Telemetria de volume média " + telemetria.volume + "% registrada com sucesso.";
             statusTexto.innerText = "Sessão registrada (Modo Resiliente).";
             statusDot.className = "status-indicator";
@@ -648,16 +631,12 @@ document.addEventListener("DOMContentLoaded", () => {
         btnSimbiose.disabled = false;
     }
 
-    // ==========================================================================
-    // 4. BUFFER FIFO (GERENCIAMENTO DAS 3 ÚLTIMAS SESSÕES)
-    // ==========================================================================
-    function salvarSessaoNoBuffer(sessao) {
+function salvarSessaoNoBuffer(sessao) {
         sessoesBuffer.push(sessao);
         if (sessoesBuffer.length > 3) {
-            sessoesBuffer.shift(); // FIFO: descarta a mais antiga
+            sessoesBuffer.shift();
         }
 
-        // Atualiza UI dos 3 Slots
         sessoesBuffer.forEach((s, i) => {
             const slotInfo = document.getElementById(`slot${i+1}Info`);
             if (slotInfo) {
@@ -672,13 +651,13 @@ document.addEventListener("DOMContentLoaded", () => {
             alert(`A Sessão ${slotNum} no buffer ainda está vazia.`);
             return;
         }
-        relatorioCRS.value = `--- CARREGADO DA SESSÃO ${sessao.id} (${sessao.timestamp}) ---\n` + JSON.exit(sessao.relatorio, null, 2) || JSON.stringify(sessao.relatorio, null, 2);
+        relatorioCRS.value = `--- CARREGADO DA SESSÃO ${sessao.id} (${sessao.timestamp}) ---\n` + JSON.stringify(sessao.relatorio, null, 2);
         statusTexto.innerText = `Sessão ${sessao.id} carregada no painel.`;
     };
 
-    // Event Listeners
     btnSimbiose.addEventListener("click", dispararCicloSimbiotico);
-    
-    // Inicializa gráficos em repouso
     atualizarGraficos();
 });
+</script>
+</body>
+</html>
