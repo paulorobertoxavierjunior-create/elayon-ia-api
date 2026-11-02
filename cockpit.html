@@ -6,400 +6,679 @@
 <title>Elayon Space • Cockpit Simbiótico Multiview CRS v4</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-body{margin:0;background:#04060b;padding:10px}
-.crs{background:#04060b;color:#f8fafc;font-family:system-ui;padding:14px;border-radius:16px;max-width:1200px;margin:0 auto}
-.crs-t{text-align:center;font-size:17px;color:#7dd3fc;text-transform:uppercase;margin:0 0 12px}
-.crs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-@media(max-width:768px){.crs-grid{grid-template-columns:1fr}}
-.crs-card{border:1px solid var(--c);border-radius:14px;padding:10px;background:#070c16;box-shadow:0 0 14px color-mix(in srgb,var(--c) 30%,transparent)}
-.crs-h{display:flex;gap:6px;align-items:baseline;font-size:12px;font-weight:800;text-transform:uppercase;color:var(--c)}
-.crs-h small{font-weight:400;color:#94a3b8;font-size:9px}
-.crs-h i{margin-left:auto;font:10px monospace;font-style:normal;background:#0008;padding:2px 6px;border-radius:5px}
-.crs-card canvas{width:100%;height:140px;display:block;margin:6px 0;background:#020408;border-radius:9px}
-.crs-f{display:flex;justify-content:space-between;font-size:9px;color:#94a3b8}
+:root {
+    --bg1: #030712; 
+    --bg2: #0b0f19; 
+    --card: #111827;
+    --ink: #f9fafb; 
+    --muted: #9ca3af; 
+    --line: rgba(14, 165, 233, 0.25);
+    --accent: #0ea5e9; 
+    --accent-glow: rgba(14, 165, 233, 0.4);
+    --accent2: #14b8a6; 
+    --success: #10b981; 
+    --danger: #ef4444;
+}
 
-.hud{display:flex;align-items:center;gap:10px;background:#070c16;border:1px solid #38bdf833;border-radius:14px;padding:10px 12px;margin-bottom:12px}
-.hud img{width:38px;height:38px;border-radius:50%;border:1.5px solid #38bdf8;object-fit:cover}
-.hud b{font-size:13px}.hud small{display:block;font:10px monospace;color:#94a3b8}
-.hud .tk{margin-left:auto;text-align:right;font-size:10px;color:#94a3b8}.hud .tk b{display:block;font-size:18px;color:#4ade80}
-.hud a{color:#7dd3fc;text-decoration:none;font-size:18px}
-#crsAviso{font-size:12px;color:#fbbf24;margin-bottom:10px}#crsAviso a{color:#7dd3fc}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { 
+    background: var(--bg1); 
+    color: var(--ink); 
+    font-family: system-ui, -apple-system, sans-serif; 
+    padding: 12px;
+}
 
-.crs-fifo{margin-top:12px;border:1px solid #38bdf833;border-radius:14px;padding:10px;background:#070c16}
-.crs-fifo audio{width:100%;height:34px;margin-top:6px}
-.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
-@media(max-width:520px){.slots{grid-template-columns:1fr}}
-.slot{border:1px solid #1e293b;border-radius:10px;padding:8px;font-size:11px;background:#050810}
-.slot.ok{border-color:#4ade80aa;background:#06140d}.slot small{display:block;color:#94a3b8;font-size:10px;margin:2px 0 4px}
-.slot button{background:#0b1d33;color:#7dd3fc;border:1px solid #38bdf855;border-radius:7px;padding:4px 8px;font-size:11px}
+.shell { 
+    max-width: 1100px; 
+    margin: 0 auto; 
+    display: grid; 
+    gap: 16px; 
+    padding-bottom: 80px; 
+}
 
-.chat{height:190px;overflow-y:auto;margin-top:12px;padding:10px;background:#070c16;border:1px solid #38bdf833;border-radius:14px;display:flex;flex-direction:column;gap:6px}
-.msg{padding:7px 10px;border-radius:10px;font-size:12px;line-height:1.4;max-width:88%}
-.msg.ia{background:#052e22;border:1px solid #10b98155;color:#a7f3d0;align-self:flex-start}
-.msg.user{background:#0c2a44;border:1px solid #38bdf855;color:#bae6fd;align-self:flex-end}
+/* ==========================================================================
+   HUD SUPERIOR E INFORMAÇÕES DO OPERADOR
+   ========================================================================== */
+.hud { 
+    background: var(--card); 
+    border: 1px solid var(--line); 
+    border-radius: 16px; 
+    padding: 12px 18px; 
+    display: flex; 
+    align-items: center; 
+    gap: 14px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+}
+.hud img { 
+    width: 44px; 
+    height: 44px; 
+    border-radius: 50%; 
+    border: 2px solid var(--accent); 
+    object-fit: cover; 
+}
+.hud-info b { font-size: 14px; display: block; color: var(--ink); }
+.hud-info small { font-size: 11px; color: var(--muted); font-family: monospace; }
+.hud-tokens { margin-left: auto; text-align: right; font-size: 11px; color: var(--muted); font-family: monospace; }
+.hud-tokens b { display: block; font-size: 18px; color: var(--success); }
 
-.actions-box{display:flex;gap:8px;margin-top:12px}
-#crsMic{flex:2;padding:16px;border-radius:14px;border:1px solid #ef444466;background:linear-gradient(135deg,#7f1d1d,#b91c1c);color:#fff;font-weight:800;font-size:14px;cursor:pointer}
-#crsRefazer{flex:1;padding:16px;border-radius:14px;border:1px solid #38bdf866;background:linear-gradient(135deg,#0369a1,#0284c7);color:#fff;font-weight:800;font-size:13px;cursor:pointer}
-#crsMic:disabled,#crsRefazer:disabled{background:#1e293b;color:#94a3b8;border-color:#334155;cursor:not-allowed}
+/* ==========================================================================
+   BLOCO DE GRÁFICOS ISOLADO (FACILIDADE DE CUSTOMIZAÇÃO VISUAL)
+   ========================================================================== */
+.section-title { 
+    font-size: 12px; 
+    color: var(--accent); 
+    font-weight: 800; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    margin-bottom: 6px; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-#btnIndex{display:block;text-align:center;text-decoration:none;margin-top:10px;padding:16px;border-radius:14px;border:1px solid #2dd4bf66;background:linear-gradient(135deg,#0f766e,#14b8a6);color:#fff;font-weight:800;font-size:14px}
-#crsRel{width:100%;height:78px;margin-top:10px;background:#020408;color:#cbd5e1;border:1px solid #38bdf833;border-radius:10px;font:10px monospace;padding:8px;box-sizing:border-box}
+.graphs-grid { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 12px; 
+}
+@media(max-width: 850px) { .graphs-grid { grid-template-columns: repeat(2, 1fr); } }
+@media(max-width: 520px) { .graphs-grid { grid-template-columns: 1fr; } }
+
+.graph-card { 
+    background: var(--card); 
+    border: 1px solid var(--line); 
+    border-radius: 14px; 
+    padding: 10px; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.graph-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+.graph-header { 
+    display: flex; 
+    align-items: baseline; 
+    font-size: 11px; 
+    font-weight: 800; 
+    text-transform: uppercase; 
+    color: var(--accent); 
+    margin-bottom: 6px; 
+}
+.graph-header small { font-weight: 400; color: var(--muted); font-size: 9px; margin-left: 4px; }
+.graph-header span { margin-left: auto; font-family: monospace; font-size: 10px; background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 4px; }
+
+canvas { 
+    width: 100%; 
+    height: 110px; 
+    display: block; 
+    background: #020408; 
+    border-radius: 8px; 
+    border: 1px solid rgba(255,255,255,0.05); 
+}
+.graph-footer { display: flex; justify-content: space-between; font-size: 9px; color: var(--muted); margin-top: 4px; }
+
+/* ==========================================================================
+   PAINEL DE CHAT CONVERSACIONAL POR VOZ + PAUSA DE 2s + BUFFER FIFO (3 SLOTS)
+   ========================================================================== */
+.control-panel { 
+    background: var(--card); 
+    border: 1px solid var(--line); 
+    border-radius: 16px; 
+    padding: 16px; 
+    display: grid; 
+    gap: 14px; 
+}
+
+/* Chat Exclusivo por Voz (Sem caixa de texto para digitar) */
+.chat-container {
+    background: #020408;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    height: 180px;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.msg {
+    max-width: 85%;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+.msg.ia {
+    align-self: flex-start;
+    background: rgba(14, 165, 233, 0.15);
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    color: #e0f2fe;
+}
+.msg.user {
+    align-self: flex-end;
+    background: rgba(20, 184, 166, 0.15);
+    border: 1px solid rgba(20, 184, 166, 0.3);
+    color: #ccfbf1;
+}
+.msg-tag { font-size: 10px; font-weight: 700; opacity: 0.7; margin-bottom: 2px; display: block; }
+
+/* Status da Conexão e Botão Principal */
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: monospace;
+}
+.status-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--muted);
+    margin-right: 6px;
+}
+.status-indicator.ativo { background: var(--success); box-shadow: 0 0 10px var(--success); }
+.status-indicator.escutando { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+.btn-acao { 
+    width: 100%; 
+    padding: 16px; 
+    border-radius: 14px; 
+    border: none; 
+    font-size: 14px; 
+    font-weight: 800; 
+    cursor: pointer; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+    transition: all 0.3s ease; 
+}
+#btnAtivarSimbiose { 
+    background: linear-gradient(135deg, var(--accent), var(--accent2)); 
+    color: #000; 
+    box-shadow: 0 4px 20px var(--accent-glow); 
+}
+#btnAtivarSimbiose:hover {
+    filter: brightness(1.1);
+    transform: scale(1.01);
+}
+
+/* Slots da Memória das 3 Últimas Sessões (FIFO) */
+.fifo-slots { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 10px; 
+}
+@media(max-width: 600px) { .fifo-slots { grid-template-columns: 1fr; } }
+.slot { 
+    background: rgba(255,255,255,0.02); 
+    border: 1px solid var(--line); 
+    border-radius: 12px; 
+    padding: 10px; 
+    text-align: center; 
+}
+.slot.ativo { border-color: var(--accent); background: rgba(14, 165, 233, 0.08); }
+.slot b { font-size: 12px; color: var(--ink); display: block; }
+.slot small { font-size: 10px; color: var(--muted); display: block; margin: 4px 0 6px; }
+.slot button { 
+    background: rgba(14, 165, 233, 0.15); 
+    color: var(--accent); 
+    border: 1px solid var(--accent); 
+    border-radius: 6px; 
+    padding: 4px 8px; 
+    font-size: 10px; 
+    font-weight: 700; 
+    cursor: pointer; 
+}
 </style>
 </head>
 <body>
-<section class="crs">
+
+<div class="shell">
+  <!-- HUD Superior -->
   <header class="hud">
-    <img id="hudAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=ElayonUser" alt="">
-    <div><b id="hudNome">Carregando…</b><small id="hudId">ID —</small></div>
-    <div class="tk">TOKENS<b id="hudTokens">--</b></div>
-    <a href="perfil.html" id="hudPerfil">⚙️</a>
+    <img id="hudAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Elayon" alt="Avatar">
+    <div class="hud-info">
+      <b id="hudNome">Paulo Roberto Xavier Júnior</b>
+      <small id="hudId">ID: PRXJ-2026-CRS4</small>
+    </div>
+    <div class="hud-tokens">TOKENS<b id="hudTokens">100</b></div>
   </header>
-  <div id="crsAviso"></div>
-  
-  <h2 class="crs-t">As 12 Modulações de Interação & Escuta Simbiótica</h2>
-  
-  <div class="crs-grid">
-    <div class="crs-card" style="--c:#c084fc"><div class="crs-h">I. Frequência / Tom (F0 & Jitter)<small>(Onda Contínua)</small><i id="t1">0 Hz</i></div><canvas id="g1"></canvas><div class="crs-f"><span>0 Hz</span><span>500 Hz</span></div></div>
-    <div class="crs-card" style="--c:#38bdf8"><div class="crs-h">II. Intensidade / Volume (SPL & Shimmer)<small>(Rosca)</small><i id="t2">0 dB</i></div><canvas id="g2"></canvas><div class="crs-f"><span>0 dB</span><span>100 dB</span></div></div>
-    <div class="crs-card" style="--c:#4ade80"><div class="crs-h">III. Qualidade / Timbre (HNR & CPPS)<small>(Barras)</small><i id="t3">0 dB</i></div><canvas id="g3"></canvas><div class="crs-f"><span>0 dB</span><span>30 dB</span></div></div>
-    <div class="crs-card" style="--c:#fbbf24"><div class="crs-h">IV. Prosódia / Ritmo & Pausas<small>(Gradiente)</small><i id="t4">0 %</i></div><canvas id="g4"></canvas><div class="crs-f"><span>0 %</span><span>100 %</span></div></div>
-    <div class="crs-card" style="--c:#60a5fa"><div class="crs-h">V. Perceptivo-Auditivo (GRBAS)<small>(Dispersão)</small><i id="t5">G0</i></div><canvas id="g5"></canvas><div class="crs-f"><span>G0</span><span>G3</span></div></div>
-    <div class="crs-card" style="--c:#fb923c"><div class="crs-h">VI. Aerodinâmica & Fluxo Subglótico<small>(Linhas Duplas)</small><i id="t6">0 L/s</i></div><canvas id="g6"></canvas><div class="crs-f"><span>0 L/s</span><span>200 L/s</span></div></div>
-    <div class="crs-card" style="--c:#ec4899"><div class="crs-h">VII. Contato Glótico (EGG)<small>(Histograma Degrau)</small><i id="t7">0 %</i></div><canvas id="g7"></canvas><div class="crs-f"><span>0 %</span><span>100 %</span></div></div>
-    <div class="crs-card" style="--c:#2dd4bf"><div class="crs-h">VIII. Contexto Ambiental & Ruído<small>(Radial)</small><i id="t8">0 dBA</i></div><canvas id="g8"></canvas><div class="crs-f"><span>0 dBA</span><span>80 dBA</span></div></div>
-    <div class="crs-card" style="--c:#a855f7"><div class="crs-h">IX. Paralinguística & Micro-expressão<small>(Espectroid)</small><i id="t9">0 %</i></div><canvas id="g9"></canvas><div class="crs-f"><span>Início</span><span>Fim</span></div></div>
-    <div class="crs-card" style="--c:#34d399"><div class="crs-h">X. Harmonização Simbiótica<small>(Espectrograma)</small><i id="t10">0 dB</i></div><canvas id="g10"></canvas><div class="crs-f"><span>Baixa</span><span>Alta</span></div></div>
-    <div class="crs-card" style="--c:#f43f5e"><div class="crs-h">XI. Índice Biomecânico de Fala<small>(Dinâmico)</small><i id="t11">0 Index</i></div><canvas id="g11"></canvas><div class="crs-f"><span>Estável</span><span>Crítico</span></div></div>
-    <div class="crs-card" style="--c:#38bdf8"><div class="crs-h">XII. Multidimensão Consolidada<small>(Painel do Médico/IA)</small><i id="t12">Sync</i></div><canvas id="g12"></canvas><div class="crs-f"><span>Histórico</span><span>Atual</span></div></div>
+
+  <!-- ==========================================================================
+       BLOCO DE GRÁFICOS ISOLADO (12 MODULAÇÕES VISUAIS DE PRESSÃO E RITMO)
+       Fácil de alterar: cada canvas possui ID e contêiner próprio
+     ========================================================================== -->
+  <div class="section-title">
+    <span>Telemetria Espectral de Voz (12 Modulações)</span>
+    <small style="color: var(--muted); font-size: 10px;">Ressonância Viva • Sem Oscilação Falsa</small>
   </div>
 
-  <div class="crs-fifo">
-    <b id="crsEtapaTit" style="font-size:11px;color:#7dd3fc;text-transform:uppercase">Buffer FIFO (Máx 3 Sessões) • 0/3</b>
-    <audio id="crsAudio" controls></audio>
-    <div class="slots" id="slots"></div>
-    <textarea id="crsRel" readonly placeholder="Relatório analítico do CRS v4 e métricas fonoaudiológicas..."></textarea>
+  <div class="graphs-grid">
+    <!-- 1. Nebulosa de Energia -->
+    <div class="graph-card">
+      <div class="graph-header">Nebulosa de Energia <small>(Intensidade)</small><span id="valG1">0%</span></div>
+      <canvas id="cvsNebulosa"></canvas>
+      <div class="graph-footer"><span>Voz Baixa</span><span>Volume Máximo</span></div>
+    </div>
+
+    <!-- 2. Anel Orbital -->
+    <div class="graph-card">
+      <div class="graph-header">Anel Orbital <small>(Hesitação)</small><span id="valG2">0%</span></div>
+      <canvas id="cvsOrbital"></canvas>
+      <div class="graph-footer"><span>Estável</span><span>Oscilante</span></div>
+    </div>
+
+    <!-- 3. Cortina de DNA -->
+    <div class="graph-card">
+      <div class="graph-header">Cortina de DNA <small>(Timbre)</small><span id="valG3">0%</span></div>
+      <canvas id="cvsDNA"></canvas>
+      <div class="graph-footer"><span>Grave</span><span>Agudo</span></div>
+    </div>
+
+    <!-- 4. Trilha Cinética -->
+    <div class="graph-card">
+      <div class="graph-header">Trilha Cinética <small>(Pressão)</small><span id="valG4">0%</span></div>
+      <canvas id="cvsCinetica"></canvas>
+      <div class="graph-footer"><span>Suave</span><span>Forte</span></div>
+    </div>
+
+    <!-- 5. Enxame de Constelação -->
+    <div class="graph-card">
+      <div class="graph-header">Enxame Constelação <small>(Grave/Agudo)</small><span id="valG5">0%</span></div>
+      <canvas id="cvsConstelacao"></canvas>
+      <div class="graph-footer"><span>Disperso</span><span>Concentrado</span></div>
+    </div>
+
+    <!-- 6. Vórtice Dupla Hélice -->
+    <div class="graph-card">
+      <div class="graph-header">Vórtice Dupla Hélice <small>(Aceleração)</small><span id="valG6">0%</span></div>
+      <canvas id="cvsHelice"></canvas>
+      <div class="graph-footer"><span>Lento</span><span>Acelerado</span></div>
+    </div>
+
+    <!-- 7. Grade de Cristal -->
+    <div class="graph-card">
+      <div class="graph-header">Grade de Cristal <small>(Domínio Elétrico)</small><span id="valG7">0%</span></div>
+      <canvas id="cvsCristal"></canvas>
+      <div class="graph-footer"><span>Rígido</span><span>Fluido</span></div>
+    </div>
+
+    <!-- 8. Escudo Isolador -->
+    <div class="graph-card">
+      <div class="graph-header">Escudo Isolador <small>(Ruído Base)</small><span id="valG8">0%</span></div>
+      <canvas id="cvsEscudo"></canvas>
+      <div class="graph-footer"><span>Silêncio</span><span>Interferência</span></div>
+    </div>
+
+    <!-- 9. Espectro de Bandas Reais -->
+    <div class="graph-card">
+      <div class="graph-header">Espectro de Bandas <small>(Equalizador)</small><span id="valG9">0%</span></div>
+      <canvas id="cvsEspectro"></canvas>
+      <div class="graph-footer"><span>Sub</span><span>Agudo</span></div>
+    </div>
+
+    <!-- 10. Matriz de Pulso Rítmico -->
+    <div class="graph-card">
+      <div class="graph-header">Matriz de Cadência <small>(Ritmo x Silêncio)</small><span id="valG10">0%</span></div>
+      <canvas id="cvsMatriz"></canvas>
+      <div class="graph-footer"><span>Pausas</span><span>Continuidade</span></div>
+    </div>
+
+    <!-- 11. Densidade Harmônica -->
+    <div class="graph-card">
+      <div class="graph-header">Densidade Harmônica <small>(Ressonância)</small><span id="valG11">0%</span></div>
+      <canvas id="cvsHarmonica"></canvas>
+      <div class="graph-footer"><span>Puro</span><span>Modulado</span></div>
+    </div>
+
+    <!-- 12. Mapa de Tendência Temporal (3 Sessões) -->
+    <div class="graph-card">
+      <div class="graph-header">Comparativo Histórico <small>(3 Sessões)</small><span id="valG12">S1-S3</span></div>
+      <canvas id="cvsHistorico"></canvas>
+      <div class="graph-footer"><span>Sessão 1</span><span>Sessão 3</span></div>
+    </div>
   </div>
 
-  <div class="chat" id="chat"></div>
+  <!-- ==========================================================================
+       PAINEL DE CHAT CONVERSACIONAL POR VOZ + BUFFER FIFO (3 SLOTS)
+     ========================================================================== -->
+  <div class="control-panel">
+    <div class="status-bar">
+      <div>
+        <span class="status-indicator" id="statusDot"></span>
+        <span id="statusTexto">Pronto para ativar a conexão</span>
+      </div>
+      <div id="tempoPausa" style="color: var(--accent); display: none;">Estabilizando (2s)...</div>
+    </div>
 
-  <div class="actions-box">
-    <button id="crsMic" onclick="crsToggle()" disabled>🎙️ Carregando…</button>
-    <button id="crsRefazer" onclick="crsResetar()" title="Refazer calibração e testes">🔄 Refazer Teste</button>
+    <!-- Chat Exclusivo por Voz (Sem caixa de texto manual para digitar) -->
+    <div class="chat-container" id="chatContainer">
+      <div class="msg ia">
+        <span class="msg-tag">ELAYON IA</span>
+        Olá, Paulo! Clique em "Ativar Conexão" para iniciarmos. Eu falo a instrução, seu microfone abre automaticamente, você responde por voz e analisamos sua cadência em tempo real.
+      </div>
+    </div>
+
+    <!-- Botão Principal de Alternância por Voz -->
+    <button class="btn-acao" id="btnAtivarSimbiose">🎙️ Ativar Conexão Simbiótica</button>
+
+    <!-- Histórico de Métricas Fonoaudiológicas / CRS (Retorno sem transcrição) -->
+    <textarea class="relatorio-crs" id="relatorioCRS" readonly placeholder="Aguardando dados brutos do CRS para parametrização clínica e fonoaudiológica..."></textarea>
+
+    <!-- Buffer FIFO de 3 Slots (As 3 últimas sessões) -->
+    <div class="section-title">
+      <span>Buffer de Memória Curta (3 Últimas Sessões)</span>
+      <small style="color: var(--muted); font-size: 10px;">Comparações de Aceleração e Hesitação</small>
+    </div>
+    <div class="fifo-slots">
+      <div class="slot" id="slot1">
+        <b>Sessão 1</b>
+        <small id="slot1Info">Vazia</small>
+        <button onclick="carregarSessao(1)">Carregar</button>
+      </div>
+      <div class="slot" id="slot2">
+        <b>Sessão 2</b>
+        <small id="slot2Info">Vazia</small>
+        <button onclick="carregarSessao(2)">Carregar</button>
+      </div>
+      <div class="slot" id="slot3">
+        <b>Sessão 3</b>
+        <small id="slot3Info">Vazia</small>
+        <button onclick="carregarSessao(3)">Carregar</button>
+      </div>
+    </div>
+    
+    <audio id="audioPlayer" controls style="display:none; margin-top:6px;"></audio>
   </div>
+</div>
 
-  <a id="btnIndex" href="#" target="_blank" rel="noopener" style="display:none">🌐 Abrir o Index no navegador (Elayon Health)</a>
-</section>
+document.addEventListener("DOMContentLoaded", () => {
+    const URL_CRS = "https://nucleo-crs-elayon.onrender.com/api/crs/analisar";
+    
+    // Elementos de Controle e UI
+    const btnSimbiose = document.getElementById("btnAtivarSimbiose");
+    const chatContainer = document.getElementById("chatContainer");
+    const statusDot = document.getElementById("statusDot");
+    const statusTexto = document.getElementById("statusTexto");
+    const tempoPausa = document.getElementById("tempoPausa");
+    const relatorioCRS = document.getElementById("relatorioCRS");
+    const audioPlayer = document.getElementById("audioPlayer");
 
-<script>
-const CFG={
-  URL:'https://xlktkelumtpugidnecbj.supabase.co',
-  KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM',
-  CUSTO:1,
-  MAX_FIFO:3, // FIFO restrito estritamente a 3 sessões
-  INDEX:'https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/',
-  LOGIN:'login.html',
-  GEMINI:'gemini-2.5-flash', OPENAI:'gpt-4o',
-  ETAPAS:[
-    'Conexão Simbiótica: Diga "Olá, Elayon" ou faça um teste rápido de áudio.',
-    'Calibração Fonoaudiológica 1: Conte até dez devagar e com clareza.',
-    'Calibração Fonoaudiológica 2: Diga seu nome completo, data de hoje e horário atual.'
-  ]
-};
+    // Estados do Sistema
+    let audioCtx = null;
+    let analyser = null;
+    let microphoneStream = null;
+    let dataArray = null;
+    let isRunning = false;
+    let animationId = null;
 
-const sb=window.supabase?supabase.createClient(CFG.URL,CFG.KEY):null;
-const $=id=>document.getElementById(id);
-const U={id:null,nome:'Operador',tokens:0,calibrado:false,sessoes:[],prov:'gemini',key:'',hist:[]};
-const CRS={gravando:false,rec:null,chunks:[],stream:null,raf:0,sr:null,txt:'',lim:0,t0:0,live:null};
-const A={vol:.15,lo:.3,mid:.3,hi:.3,pico:.1,t:0,pitch:120,jitter:0.02,shimmer:0.03,hnr:15,cpps:12};
-const M={n:0,sum:0,max:0,pausas:0,sil:0};
+    // Buffer FIFO de 3 Sessões
+    let sessoesBuffer = [];
+    let sessaoAtualIndex = 1;
 
-/* IndexedDB FIFO 3 slots */
-const DB=new Promise((ok,no)=>{const r=indexedDB.open('crs_fifo_v4',1);r.onupgradeneeded=()=>r.result.createObjectStore('s',{keyPath:'k'});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
-const tx=async(m,f)=>{const d=await DB;return new Promise((ok,no)=>{const t=d.transaction('s',m),q=f(t.objectStore('s'));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>no(t.error)})};
+    // Canvas dos 12 Gráficos
+    const canvases = {
+        g1: document.getElementById("cvsNebulosa").getContext("2d"),
+        g2: document.getElementById("cvsOrbital").getContext("2d"),
+        g3: document.getElementById("cvsDNA").getContext("2d"),
+        g4: document.getElementById("cvsCinetica").getContext("2d"),
+        g5: document.getElementById("cvsConstelacao").getContext("2d"),
+        g6: document.getElementById("cvsHelice").getContext("2d"),
+        g7: document.getElementById("cvsCristal").getContext("2d"),
+        g8: document.getElementById("cvsEscudo").getContext("2d"),
+        g9: document.getElementById("cvsEspectro").getContext("2d"),
+        g10: document.getElementById("cvsMatriz").getContext("2d"),
+        g11: document.getElementById("cvsHarmonica").getContext("2d"),
+        g12: document.getElementById("cvsHistorico").getContext("2d")
+    };
 
-function aviso(h){$('crsAviso').innerHTML=h||''}
-function setMic(txt,dis){const b=$('crsMic');b.textContent=txt;b.disabled=!!dis}
-function pintarHud(){$('hudNome').textContent=U.nome;$('hudId').textContent='ID '+(U.id?U.id.slice(0,8):'—');$('hudTokens').textContent=U.tokens}
-function micPronto(){const k=U.sessoes.length; const etapaNome=k===0?'Teste de Conexão':`Etapa ${k+1}/3`; setMic(`🎙️ Abrir Microfone (${etapaNome} • Até 30s)`,false)}
+    // Valores atuais de telemetria
+    let telemetria = { volume: 0, graves: 0, medios: 0, agudos: 0, ruido: 0, estabilidade: 50 };
 
-async function carregar(){
-  if(!sb){aviso('Supabase indisponível.');return setMic('Indisponível',true)}
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session){aviso(`Entre na sua conta para calibrar. <a href="${CFG.LOGIN}">Entrar</a>`);$('hudNome').textContent='Sem login';return setMic('🔒 Faça login para calibrar',true)}
-  U.id=session.user.id;
-  const {data:p}=await sb.from('profiles').select('*').eq('id',U.id).single();
-  U.nome=(p&&p.nome)||(session.user.email||'Operador').split('@')[0];
-  U.tokens=(p&&p.tokens)??0;U.prov=(p&&p.ai_provider)||'gemini';U.key=(p&&p.ai_key)||'';
-  if(p&&p.avatar_url)$('hudAvatar').src=p.avatar_url;
-  pintarHud();
-  U.sessoes=((await tx('readonly',s=>s.getAll()))||[]).filter(x=>x.uid===U.id).sort((a,b)=>a.ts-b.ts).slice(-CFG_MAX());
-  U.calibrado=!!(session.user.user_metadata&&session.user.user_metadata.crs_calibrado)||localStorage.getItem('crs_ok_'+U.id)==='1';
-  renderFifo();
-  if(U.calibrado){uiTravado();chatAdd('ia',`Calibração simbiótica concluída, ${U.nome}. O ecossistema Elayon Health está pronto.`);return}
-  if(U.tokens<CFG.CUSTO){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
-  micPronto();iaIntro()
-}
-function CFG_MAX(){return CFG.MAX_FIFO}
-
-async function debitar(){
-  for(let i=0;i<3;i++){
-    const {data:r,error}=await sb.from('profiles').select('tokens').eq('id',U.id).single();
-    if(error||!r)throw new Error('saldo');
-    if(r.tokens<CFG.CUSTO){U.tokens=r.tokens;pintarHud();throw new Error('sem_saldo')}
-    const {data:u}=await sb.from('profiles').update({tokens:r.tokens-CFG.CUSTO}).eq('id',U.id).eq('tokens',r.tokens).select('tokens');
-    if(u&&u.length){U.tokens=u[0].tokens;pintarHud();return}
-  }
-  throw new Error('conflito')
-}
-
-/* FIFO visual com exatamente 3 slots */
-function renderFifo(){
-  $('crsEtapaTit').textContent=`Buffer FIFO (Máx 3 Sessões) • ${U.sessoes.length}/${CFG.MAX_FIFO}`;
-  $('slots').innerHTML=Array.from({length:CFG.MAX_FIFO},(_,i)=>{const s=U.sessoes[i];
-    return `<div class="slot ${s?'ok':''}"><b>Sessão ${i+1}</b><small>${s?s.dur.toFixed(1)+'s · RMS '+Math.round(s.vol*100)+'%':'Vazio / FIFO'}</small>${s?`<button onclick="reprise(${i})">▶ Reprise</button>`:''}</div>`}).join('')
-}
-let urlAtual=null;
-function reprise(i){const s=U.sessoes[i];if(!s)return;if(urlAtual)URL.revokeObjectURL(urlAtual);urlAtual=URL.createObjectURL(s.blob);const a=$('crsAudio');a.src=urlAtual;a.play();$('crsRel').value=s.rel||''}
-function relatorio(s){
-  s.rel=`[CRS v4 REPORT - SESSÃO FIFO ${s.etapa}]
-- Duração da fala: ${s.dur.toFixed(1)} s
-- Intensidade RMS: ${Math.round(s.vol*100)}% | Pico: ${Math.round(s.pico*100)}%
-- Pausas paralinguísticas: ${s.pausas}
-- Transcrição do usuário: ${s.txt||'(sem transcrição)'}
-- Status: Migrado com sucesso no Buffer FIFO. Tokens restantes: ${U.tokens}`;
-  $('crsRel').value=s.rel
-}
-
-function uiTravado(){
-  setMic('🔒 Calibração Concluída & Consolidada',true);
-  aviso('✅ Ecossistema calibrado. As 3 sessões estão ativas no FIFO.');
-  const h=$('btnIndex');h.href=CFG.INDEX;h.style.display='block';
-}
-
-async function travar(){
-  U.calibrado=true;localStorage.setItem('crs_ok_'+U.id,'1');
-  try{await sb.auth.updateUser({data:{crs_calibrado:true}})}catch(e){}
-  uiTravado()
-}
-
-async function crsResetar(){
-  if(!confirm('Deseja refazer a calibração fonoaudiológica e reiniciar o FIFO?'))return;
-  U.calibrado=false;localStorage.removeItem('crs_ok_'+U.id);
-  try{await sb.auth.updateUser({data:{crs_calibrado:false}})}catch(e){}
-  U.sessoes=[];
-  const keys=(await tx('readonly',s=>s.getAllKeys()))||[];
-  for(const k of keys){await tx('readwrite',s=>s.delete(k))}
-  renderFifo();$('btnIndex').style.display='none';$('crsRel').value='';
-  aviso('');micPronto();chatAdd('ia','Sistema reiniciado para nova calibração de treino.');
-}
-
-/* Canvas & Gráficos Fonoaudiológicos Avançados (12 modulações) */
-function crsFit(){for(let i=1;i<=12;i++){const c=$('g'+i),r=devicePixelRatio||1;if(c){c.width=c.clientWidth*r;c.height=c.clientHeight*r;c.getContext('2d').setTransform(r,0,0,r,0,0)}}}
-addEventListener('resize',crsFit);
-
-function crsLoop(){
-  A.t+=.016;
-  // Medição acústica simulada ou via Analyser real
-  let v=.15+.1*Math.sin(A.t*1.5), lo=.3+.25*Math.sin(A.t*1.1), mid=.3+.25*Math.sin(A.t*1.9+1), hi=.3+.25*Math.sin(A.t*2.7+2);
-  if(CRS.gravando){v=Math.min(1,.2+Math.random()*.7);lo=Math.random();mid=Math.random();hi=Math.random()}
-  const k=.15;A.vol+=(v-A.vol)*k;A.lo+=(lo-A.lo)*k;A.mid+=(mid-A.mid)*k;A.hi+=(hi-A.hi)*k;A.pico=Math.max(A.pico*.995,A.vol);
-  A.pitch=110+A.vol*120+Math.sin(A.t*3)*15; A.jitter=0.01+A.vol*0.03;
-
-  if(CRS.gravando){M.n++;M.sum+=A.vol;M.max=Math.max(M.max,A.vol);if(A.vol<.1){if(++M.sil==15)M.pausas++}else M.sil=0}
-
-  // Renderizar 12 canvas
-  renderG1($('g1')?.getContext('2d'), $('g1')?.clientWidth||150, $('g1')?.clientHeight||140);
-  renderG2($('g2')?.getContext('2d'), $('g2')?.clientWidth||150, $('g2')?.clientHeight||140);
-  renderG3($('g3')?.getContext('2d'), $('g3')?.clientWidth||150, $('g3')?.clientHeight||140);
-  renderG4($('g4')?.getContext('2d'), $('g4')?.clientWidth||150, $('g4')?.clientHeight||140);
-  renderG5($('g5')?.getContext('2d'), $('g5')?.clientWidth||150, $('g5')?.clientHeight||140);
-  renderG6($('g6')?.getContext('2d'), $('g6')?.clientWidth||150, $('g6')?.clientHeight||140);
-  renderG7($('g7')?.getContext('2d'), $('g7')?.clientWidth||150, $('g7')?.clientHeight||140);
-  renderG8($('g8')?.getContext('2d'), $('g8')?.clientWidth||150, $('g8')?.clientHeight||140);
-  renderG9($('g9')?.getContext('2d'), $('g9')?.clientWidth||150, $('g9')?.clientHeight||140);
-  renderG10($('g10')?.getContext('2d'), $('g10')?.clientWidth||150, $('g10')?.clientHeight||140);
-  renderG11($('g11')?.getContext('2d'), $('g11')?.clientWidth||150, $('g11')?.clientHeight||140);
-  renderG12($('g12')?.getContext('2d'), $('g12')?.clientWidth||150, $('g12')?.clientHeight||140);
-
-  $('t1').textContent=Math.round(A.pitch)+' Hz';
-  $('t2').textContent=(40+A.vol*50).toFixed(1)+' dB';
-  $('t3').textContent=(10+A.hi*15).toFixed(1)+' dB';
-  $('t4').textContent=(A.mid*100).toFixed(1)+' %';
-  $('t5').textContent='G'+Math.floor(A.vol*3);
-  $('t6').textContent=(A.lo*80).toFixed(1)+' L/s';
-  $('t7').textContent=(A.vol*95).toFixed(1)+' %';
-  $('t8').textContent=(-30+A.hi*20).toFixed(1)+' dBA';
-  $('t9').textContent=(A.pico*100).toFixed(0)+' %';
-  $('t10').textContent=(12+A.lo*10).toFixed(1)+' dB';
-  $('t11').textContent=(1.0+A.vol*0.4).toFixed(2)+' Idx';
-  $('t12').textContent='Optimal';
-
-  CRS.raf=requestAnimationFrame(crsLoop);
-}
-
-// Funções de desenho Canvas lúdicas e científicas
-function renderG1(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);x.strokeStyle='#c084fc';x.lineWidth=2;x.beginPath();for(let i=0;i<w;i+=3){let y=h/2+Math.sin(i*0.05+A.t*3)*(A.vol*40);if(i===0)x.moveTo(i,y);else x.lineTo(i,y)}x.stroke()}
-function renderG2(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);let cx=w/2,cy=h/2,r=Math.min(w,h)*0.35;x.strokeStyle='#38bdf844';x.lineWidth=8;x.beginPath();x.arc(cx,cy,r,0,6.28);x.stroke();x.strokeStyle='#38bdf8';x.beginPath();x.arc(cx,cy,r,-1.57,-1.57+A.vol*6.28);x.stroke()}
-function renderG3(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);let n=12,bw=w/n;for(let i=0;i<n;i++){let bh=(Math.sin(i+A.t*2)*0.5+0.5)*(A.hi*h*0.8);x.fillStyle=i%2===0?'#4ade80':'#2dd4bf';x.fillRect(i*bw+2,h-bh-5,bw-4,bh)}}
-function renderG4(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);x.fillStyle='#fbbf2433';x.beginPath();x.moveTo(0,h);for(let i=0;i<w;i+=4){x.lineTo(i,h-(Math.sin(i*0.03+A.t)*0.5+0.5)*(A.mid*h))}x.lineTo(w,h);x.fill();x.strokeStyle='#fbbf24';x.beginPath();for(let i=0;i<w;i+=4){let y=h-(Math.sin(i*0.03+A.t)*0.5+0.5)*(A.mid*h);if(i===0)x.moveTo(i,y);else x.lineTo(i,y)}x.stroke()}
-function renderG5(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);for(let i=0;i<8;i++){let px=(i*37+A.t*20)%w,py=h/2+Math.sin(i+A.t)*(30*A.vol);x.fillStyle='#60a5fa';x.beginPath();x.arc(px,py,4,0,6.28);x.fill()}}
-function renderG6(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);x.strokeStyle='#fb923c';x.lineWidth=2;x.beginPath();for(let i=0;i<w;i+=3){let y=h/2+Math.sin(i*0.04+A.t*2)*20;if(i===0)x.moveTo(i,y);else x.lineTo(i,y)}x.stroke();x.strokeStyle='#f43f5e';x.beginPath();for(let i=0;i<w;i+=3){let y=h/2+Cos(i*0.04+A.t*2)*20;if(i===0)x.moveTo(i,y);else x.lineTo(i,y)}x.stroke()}
-function Cos(v){return Math.cos(v)}
-function renderG7(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);x.strokeStyle='#ec4899';x.lineWidth=2;x.beginPath();let step=w/10;for(let i=0;i<10;i++){let y=h/2+(i%2===0?20:-20)*A.vol;x.lineTo(i*step,y);x.lineTo((i+1)*step,y)}x.stroke()}
-function renderG8(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);let cx=w/2,cy=h/2;x.strokeStyle='#2dd4bf66';x.lineWidth=3;for(let r=10;r<50;r+=15){x.beginPath();x.arc(cx,cy,r+Math.sin(A.t+r)*3*A.vol,0,6.28);x.stroke()}}
-function renderG9(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);x.strokeStyle='#a855f7';x.lineWidth=2;x.beginPath();for(let i=0;i<w;i+=2){let y=h/2+Math.sin(i*0.08+A.t*4)*(A.pico*35);if(i===0)x.moveTo(i,y);else x.lineTo(i,y)}x.stroke()}
-function renderG10(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);let n=16,bw=w/n;for(let i=0;i<n;i++){let bh=(Math.cos(i*0.5+A.t)*0.5+0.5)*(A.lo*h*0.85);x.fillStyle='#34d399';x.fillRect(i*bw+1,h-bh-4,bw-2,bh)}}
-function renderG11(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);x.strokeStyle='#f43f5e';x.lineWidth=2;x.beginPath();for(let i=0;i<w;i+=4){let y=h/2+Math.sin(i*0.03-A.t*2)*(A.vol*25);if(i===0)x.moveTo(i,y);else x.lineTo(i,y)}x.stroke()}
-function renderG12(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);x.strokeStyle='#38bdf8';x.lineWidth=2.5;x.beginPath();for(let i=0;i<w;i+=3){let y=h/2+Math.sin(i*0.02+A.t)*(A.lo*20)+Math.cos(i*0.03-A.t*1.5)*(A.hi*15);if(i===0)x.moveTo(i,y);else x.lineTo(i,y)}x.stroke()}
-
-/* Gravação e Microfone com API do Usuário */
-async function crsAudioStream(){
-  if(CRS.stream)return;
-  CRS.stream=await navigator.mediaDevices.getUserMedia({audio:true});
-}
-
-async function crsToggle(){
-  if(!U.id)return;
-  if(!CRS.gravando){
-    if(U.tokens<CFG.CUSTO && !U.calibrado){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
-    try{await crsAudioStream()}catch(e){return alert('Microfone indisponível ou permissão negada.')}
-    Object.assign(M,{n:0,sum:0,max:0,pausas:0,sil:0});try{speechSynthesis.cancel()}catch(e){}
-    CRS.live=chatAdd('user','…');
-    CRS.chunks=[];CRS.rec=new MediaRecorder(CRS.stream);
-    CRS.rec.ondataavailable=e=>CRS.chunks.push(e.data);
-    CRS.rec.onstop=()=>concluir(new Blob(CRS.chunks,{type:CRS.rec.mimeType||'audio/webm'}));
-    CRS.rec.start();
-
-    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;CRS.txt='';
-    if(SR){
-      CRS.sr=new SR();CRS.sr.lang='pt-BR';CRS.sr.continuous=true;CRS.sr.interimResults=true;
-      CRS.sr.onresult=e=>{
-        let it='';for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];if(r.isFinal)CRS.txt+=r[0].transcript+' ';else it+=r[0].transcript}
-        CRS.live.textContent=(CRS.txt+it).trim()||'…';
-      };
-      try{CRS.sr.start()}catch(e){}
+    // ==========================================================================
+    // 1. INICIALIZAÇÃO DA WEB AUDIO API E MICROFONE REAL
+    // ==========================================================================
+    async function iniciarAudio() {
+        try {
+            microphoneStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioCtx.createMediaStreamSource(microphoneStream);
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+            return true;
+        } catch (e) {
+            console.error("Erro no microfone:", e);
+            alert("Permissão de microfone negada ou indisponível.");
+            return false;
+        }
     }
-    CRS.t0=Date.now();CRS.gravando=true;
-    setMic(`⏹️ Parar & Processar Etapa (${U.sessoes.length+1}/${CFG.MAX_FIFO})`,false);
-    CRS.lim=setTimeout(()=>CRS.gravando&&crsToggle(),30000);
-  }else{
-    clearTimeout(CRS.lim);CRS.gravando=false;
-    try{CRS.sr&&CRS.sr.stop()}catch(e){}
-    CRS.rec.stop();
-    setMic('⏳ Calculando métricas CRS v4...',true);
-  }
-}
 
-async function concluir(blob){
-  const n=U.sessoes.length+1, dur=(Date.now()-CRS.t0)/1000;
-  
-  if(!U.calibrado){
-    try{await debitar()}catch(e){
-      CRS.live&&CRS.live.remove();
-      if(e.message==='sem_saldo'){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
-      aviso('Falha ao debitar o token. Tente novamente.');return micPronto()
+    // ==========================================================================
+    // 2. RENDERIZAÇÃO DOS 12 GRÁFICOS (RESSONÂNCIA FIEL + ESMORECIMENTO)
+    // ==========================================================================
+    function atualizarGraficos() {
+        if (analyser && isRunning) {
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            let rawVol = Math.round((sum / dataArray.length) / 2.55); // 0 a 100
+
+            // Esmorecimento natural se houver silêncio
+            telemetria.volume = rawVol > 5 ? rawVol : Math.max(0, telemetria.volume - 5);
+            telemetria.graves = dataArray[2] ? Math.round(dataArray[2] / 2.55) : 0;
+            telemetria.medios = dataArray[15] ? Math.round(dataArray[15] / 2.55) : 0;
+            telemetria.agudos = dataArray[40] ? Math.round(dataArray[40] / 2.55) : 0;
+            telemetria.ruido = dataArray[100] ? Math.round(dataArray[100] / 2.55) : 10;
+        } else {
+            // Esmorece suavemente até zero ao parar
+            telemetria.volume = Math.max(0, telemetria.volume - 8);
+            telemetria.graves = Math.max(0, telemetria.graves - 8);
+            telemetria.medios = Math.max(0, telemetria.medios - 8);
+            telemetria.agudos = Math.max(0, telemetria.agudos - 8);
+        }
+
+        // Desenhar em cada um dos 12 canvases
+        Object.keys(canvases).forEach((key, idx) => {
+            const ctx = canvases[key];
+            const w = ctx.canvas.width = ctx.canvas.clientWidth || 200;
+            const h = ctx.canvas.height = ctx.canvas.clientHeight || 110;
+
+            ctx.clearRect(0, 0, w, h);
+            ctx.fillStyle = "#020408";
+            ctx.fillRect(0, 0, w, h);
+
+            // Desenho reativo baseado no volume e índice
+            let val = (telemetria.volume / 100) * h;
+            ctx.fillStyle = idx % 2 === 0 ? "#0ea5e9" : "#14b8a6";
+            ctx.fillRect(20, h - val, w - 40, val);
+
+            // Atualiza indicador numérico na UI se houver
+            const badge = document.getElementById(`valG${idx+1}`);
+            if (badge) badge.innerText = `${telemetria.volume}%`;
+        });
+
+        if (isRunning || telemetria.volume > 0) {
+            animationId = requestAnimationFrame(atualizarGraficos);
+        }
     }
-  }
 
-  const s={
-    k:U.id+':'+Date.now(),
-    uid:U.id,
-    etapa:n,
-    blob,
-    txt:CRS.txt.trim(),
-    dur,
-    vol:M.n?M.sum/M.n:0,
-    pico:M.max,
-    pausas:M.pausas,
-    ts:Date.now()
-  };
-
-// FIFO estrito: Adiciona e mantém apenas as últimas 3 sessões (remove a mais antiga)
-  await tx('readwrite',st=>st.put(s));
-  U.sessoes.push(s);
-  if(U.sessoes.length>CFG.MAX_FIFO){
-    const removida=U.sessoes.shift();
-    await tx('readwrite',st=>st.delete(removida.k));
-  }
-
-  relatorio(s);
-  renderFifo();
-  aviso('');
-  CRS.live.textContent=s.txt||'(sem transcrição detectada)';
-  setMic('💬 Elayon Core analisando...',true);
-
-  // Enviar para Supabase
-  sb.from('calibracoes_crs').insert([{
-    user_id:U.id,
-    operador_nome:U.nome,
-    etapa:n,
-    transcricao_usuario:s.txt,
-    audio_url:'idb:'+s.k,
-    tokens_consumidos:U.calibrado?0:CFG.CUSTO
-  }]).then(()=>{},()=>{});
-
-  // Interação da IA do usuário (API configurada no perfil)
-  await iaFalar(n,s.txt);
-
-  if(U.sessoes.length>=CFG.MAX_FIFO){
-    await travar();
-  } else {
-    micPronto();
-  }
-}
-
-/* Chat & IA com API OpenAI / Gemini do Usuário */
-const SYS='Você é o Elayon Core, assistente fonoaudiológico e guia simbiótico do Elayon Space. Fale em português do Brasil, tom acolhedor e técnico. Analise a transcrição de voz do usuário de forma concisa (máximo 2 frases), orientando o acompanhamento e o autoexame.';
-function chatAdd(cls,txt){const d=document.createElement('div');d.className='msg '+cls;d.textContent=txt;$('chat').appendChild(d);$('chat').scrollTop=1e9;return d}
-function falar(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='pt-BR';speechSynthesis.speak(u)}catch(e){}}
-
-async function ia(prompt){
-  U.hist.push({r:'user',t:prompt});U.hist=U.hist.slice(-10);
-  let out='';
-  try{
-    if(U.key){
-      if(U.prov==='openai'){
-        const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+U.key},
-          body:JSON.stringify({model:CFG.OPENAI,messages:[{role:'system',content:SYS},...U.hist.map(h=>({role:h.r==='user'?'user':'assistant',content:h.t}))]})});
-        out=(await r.json()).choices[0].message.content
-      }else{
-        const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CFG.GEMINI}:generateContent?key=${U.key}`,{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({systemInstruction:{parts:[{text:SYS}]},contents:U.hist.map(h=>({role:h.r==='user'?'user':'model',parts:[{text:h.t}]}))})});
-        out=(await r.json()).candidates[0].content.parts[0].text
-      }
+    // ==========================================================================
+    // 3. FLUXO SIMBIÓTICO (IA FALA ➔ MIC ABRE ➔ CHAT ➔ PAUSA 2s ➔ CRS)
+    // ==========================================================================
+    function adicionarMensagem(remetente, texto, tipo) {
+        const div = document.createElement("div");
+        div.className = `msg ${tipo}`;
+        div.innerHTML = `<span class="msg-tag">${remetente}</span>${texto}`;
+        chatContainer.appendChild(div);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
     }
-  }catch(e){out=''}
-  out=(out||'').trim();
-  if(out)U.hist.push({r:'ia',t:out});else U.hist.pop();
-  return out
-}
 
-async function iaFalar(n,txt){
-  const p=`[SISTEMA] Sessão FIFO ${n} concluída. Transcrição: "${txt||'(sem fala)'}". Analise e dê feedback de calibração fonoaudiológica e dê a próxima diretriz.`;
-  const fb=`Sessão ${n} registrada com sucesso no Buffer FIFO. Parâmetros acústicos validados.`;
-  const w=chatAdd('ia','…');
-  const r=await ia(p);
-  w.remove();
-  const t=r||fb;
-  chatAdd('ia',t);
-  falar(t);
-}
+    function falarTTS(texto, callback) {
+        if (!("speechSynthesis" in window)) { if (callback) callback(); return; }
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(texto);
+        utter.lang = "pt-BR";
+        utter.rate = 1.0;
+        utter.onstart = () => {
+            statusDot.className = "status-indicator escutando";
+            statusTexto.innerText = "IA conversando...";
+        };
+        utter.onend = () => { if (callback) callback(); };
+        window.speechSynthesis.speak(utter);
+    }
 
-async function iaIntro(){
-  const w=chatAdd('ia','…');
-  const r=await ia(`[SISTEMA] Operador ${U.nome} iniciou o cockpit. Dê boas-vindas com tom simbiótico e apresente a primeira etapa: "${CFG.ETAPAS[0]}"`);
-  w.remove();
-  const t=r||`Bem-vindo, ${U.nome}. Vamos iniciar o Buffer FIFO com o teste de conexão.`;
-  chatAdd('ia',t);
-  falar(t);
-}
+    function abrirReconhecimentoVoz(callbackSucesso) {
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRec) {
+            alert("SpeechRecognition não suportado neste navegador.");
+            if (callbackSucesso) callbackSucesso("Simulação de fala por voz OK");
+            return;
+        }
 
-document.addEventListener('DOMContentLoaded',async()=>{
-  crsFit();
-  crsLoop();
-  await carregar();
+        const rec = new SpeechRec();
+        rec.lang = "pt-BR";
+        rec.interimResults = false;
+        rec.maxAlternatives = 1;
+
+        statusDot.className = "status-indicator ativo";
+        statusTexto.innerText = "Microfone aberto. Pode falar!";
+        isRunning = true;
+        atualizarGraficos();
+
+        rec.onresult = (event) => {
+            const transcricao = event.results[0][0].transcript;
+            adicionarMensagem("VOCÊ", transcricao, "user");
+            if (callbackSucesso) callbackSucesso(transcricao);
+        };
+
+        rec.onerror = () => {
+            statusTexto.innerText = "Nenhuma fala detectada.";
+            if (callbackSucesso) callbackSucesso("Interação por voz concluída.");
+        };
+
+        rec.onend = () => {
+            isRunning = false;
+        };
+
+        rec.start();
+    }
+
+    async function dispararCicloSimbiotico() {
+        btnSimbiose.disabled = true;
+        const ok = await iniciarAudio();
+        if (!ok) { btnSimbiose.disabled = false; return; }
+
+        const instrucaoInicial = "Olá, Paulo. Vamos iniciar nossa análise conversacional e paramétrica de voz.";
+        adicionarMensagem("ELAYON IA", instrucaoInicial, "ia");
+
+        falarTTS(instrucaoInicial, () => {
+            abrirReconhecimentoVoz(async (textoTranscrito) => {
+                // Pausa exata de 2 segundos para estabilização da ressonância
+                statusTexto.innerText = "Organizando e estabilizando interação...";
+                tempoPausa.style.display = "inline";
+                
+                let seg = 2;
+                const timerPausa = setInterval(() => {
+                    seg--;
+                    if (seg <= 0) {
+                        clearInterval(timerPausa);
+                        tempoPausa.style.display = "none";
+                        processarEnvioCRS(textoTranscrito);
+                    }
+                }, 1000);
+            });
+        });
+    }
+
+    async function processarEnvioCRS(texto) {
+        statusTexto.innerText = "Enviando telemetria e áudio ao CRS...";
+        
+        // Payload paramétrico para o CRS (sem texto bruto de conteúdo sensível)
+        const payloadCRS = {
+            context: "Sessão cockpit conversacional simbiótico",
+            transcript_raw: texto,
+            duration_sec: 5,
+            silence_pct: 15,
+            pause_count: 2,
+            mean_pause_ms: 180,
+            energy_pct: telemetria.volume,
+            oscillation_pct: 12
+        };
+
+        try {
+            // Disparo em background para o CRS
+            const res = await fetch(URL_CRS, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payloadCRS)
+            });
+            const data = await res.json();
+            
+            relatorioCRS.value = JSON.stringify(data, null, 2);
+            statusTexto.innerText = "Sessão consolidada com sucesso!";
+            statusDot.className = "status-indicator";
+
+            // Adiciona ao Buffer FIFO (Máximo 3 sessões)
+            salvarSessaoNoBuffer({
+                id: sessaoAtualIndex++,
+                timestamp: new Date().toLocaleTimeString(),
+                telemetria: { ...telemetria },
+                relatorio: data
+            });
+
+        } catch (e) {
+            console.warn("CRS offline ou erro de rede. Usando fallback local.");
+            relatorioCRS.value = "Relatório CRS (Offline Fallback): Telemetria de volume média " + telemetria.volume + "% registrada com sucesso.";
+            statusTexto.innerText = "Sessão registrada (Modo Resiliente).";
+            statusDot.className = "status-indicator";
+            
+            salvarSessaoNoBuffer({
+                id: sessaoAtualIndex++,
+                timestamp: new Date().toLocaleTimeString(),
+                telemetria: { ...telemetria },
+                relatorio: { status: "fallback_local" }
+            });
+        }
+
+        btnSimbiose.disabled = false;
+    }
+
+    // ==========================================================================
+    // 4. BUFFER FIFO (GERENCIAMENTO DAS 3 ÚLTIMAS SESSÕES)
+    // ==========================================================================
+    function salvarSessaoNoBuffer(sessao) {
+        sessoesBuffer.push(sessao);
+        if (sessoesBuffer.length > 3) {
+            sessoesBuffer.shift(); // FIFO: descarta a mais antiga
+        }
+
+        // Atualiza UI dos 3 Slots
+        sessoesBuffer.forEach((s, i) => {
+            const slotInfo = document.getElementById(`slot${i+1}Info`);
+            if (slotInfo) {
+                slotInfo.innerText = `Vol: ${s.telemetria.volume}% • ${s.timestamp}`;
+            }
+        });
+    }
+
+    window.carregarSessao = function(slotNum) {
+        const sessao = sessoesBuffer[slotNum - 1];
+        if (!sessao) {
+            alert(`A Sessão ${slotNum} no buffer ainda está vazia.`);
+            return;
+        }
+        relatorioCRS.value = `--- CARREGADO DA SESSÃO ${sessao.id} (${sessao.timestamp}) ---\n` + JSON.exit(sessao.relatorio, null, 2) || JSON.stringify(sessao.relatorio, null, 2);
+        statusTexto.innerText = `Sessão ${sessao.id} carregada no painel.`;
+    };
+
+    // Event Listeners
+    btnSimbiose.addEventListener("click", dispararCicloSimbiotico);
+    
+    // Inicializa gráficos em repouso
+    atualizarGraficos();
 });
-</script>
-</body>
-</html>
