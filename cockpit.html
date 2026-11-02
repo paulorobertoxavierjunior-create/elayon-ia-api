@@ -1,663 +1,355 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Elayon Space • Cockpit Simbiótico Multiview CRS v4</title>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Elayon Space • Calibração Humana (CRS v5)</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root {
-    --bg1: #030712; 
-    --bg2: #0b0f19; 
-    --card: #111827;
-    --ink: #f9fafb; 
-    --muted: #9ca3af; 
-    --line: rgba(14, 165, 233, 0.25);
-    --accent: #0ea5e9; 
-    --accent-glow: rgba(14, 165, 233, 0.4);
-    --accent2: #14b8a6; 
-    --success: #10b981; 
-    --danger: #ef4444;
-}
+body{margin:0;background:#04060b;color:#f8fafc;font-family:system-ui;padding:10px}
+.hud{display:flex;align-items:center;gap:10px;background:#070c16;border:1px solid #38bdf833;border-radius:14px;padding:10px 12px}
+.hud img{width:38px;height:38px;border-radius:50%;border:1.5px solid #38bdf8;object-fit:cover}
+.hud small{display:block;font:10px monospace;color:#94a3b8}.hud a{color:#7dd3fc;text-decoration:none;font-size:18px}
+.tk{margin-left:auto;text-align:right;font-size:10px;color:#94a3b8}.tk b{display:block;font-size:18px;color:#4ade80}
+#av{font-size:12px;color:#fbbf24;margin:8px 0}#av a{color:#7dd3fc}
+h2{text-align:center;font-size:16px;color:#7dd3fc;text-transform:uppercase;margin:8px 0}
+.st{display:inline-block;font:10px monospace;padding:2px 8px;border-radius:6px;background:#0b1d33;color:#7dd3fc}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+@media(max-width:480px){.grid{grid-template-columns:1fr}}
+.c{border:1px solid var(--c);border-radius:12px;padding:8px;background:#070c16}.w{grid-column:1/-1}
+.h{display:flex;gap:5px;align-items:baseline;font-size:11px;font-weight:800;text-transform:uppercase;color:var(--c)}
+.h small{font-weight:400;color:#94a3b8;font-size:9px}
+.h i{margin-left:auto;font:10px monospace;font-style:normal;background:#0008;padding:2px 5px;border-radius:5px;white-space:nowrap}
+canvas{width:100%;height:120px;display:block;margin-top:5px;background:#020408;border-radius:8px}.w canvas{height:150px}
+.box{margin-top:10px;border:1px solid #38bdf833;border-radius:14px;padding:10px;background:#070c16}
+.box audio{width:100%;height:34px}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.slot{border:1px solid #1e293b;border-radius:10px;padding:6px;font-size:11px;background:#050810}
+.slot.ok{border-color:#4ade8088}.slot.sel{box-shadow:0 0 0 1px #7dd3fc}
+.slot img{width:100%;border-radius:6px;margin:4px 0}.slot small{display:block;color:#94a3b8;font-size:10px}
+button,.btn{font-family:inherit}
+.slot button{background:#0b1d33;color:#7dd3fc;border:1px solid #38bdf855;border-radius:7px;padding:4px 9px;font-size:12px;margin-right:4px}
+.chat{height:210px;overflow-y:auto;margin-top:10px;padding:10px;background:#070c16;border:1px solid #38bdf833;border-radius:14px;display:flex;flex-direction:column;gap:6px}
+.msg{padding:7px 10px;border-radius:10px;font-size:12px;line-height:1.4;max-width:88%}
+.msg.ia{background:#052e22;border:1px solid #10b98155;color:#a7f3d0;align-self:flex-start}
+.msg.user{background:#0c2a44;border:1px solid #38bdf855;color:#bae6fd;align-self:flex-end}
+.mic{width:100%;margin-top:10px;padding:16px;border-radius:14px;border:1px solid #ef444466;background:linear-gradient(135deg,#7f1d1d,#b91c1c);color:#fff;font-weight:800;font-size:14px}
+.mic:disabled{background:#1e293b;color:#94a3b8;border-color:#334155}
+.fim{display:none;gap:8px;margin-top:10px}
+.fim a{flex:1;text-align:center;text-decoration:none;padding:16px;border-radius:14px;background:linear-gradient(135deg,#0f766e,#14b8a6);color:#fff;font-weight:800;font-size:14px}
+.fim button{width:56px;border-radius:14px;border:1px solid #fbbf2488;background:#1c1405;color:#fbbf24;font-size:22px}
+.mon{background:#0b1d33;color:#7dd3fc;border:1px solid #38bdf855;border-radius:8px;padding:5px 10px;font-size:11px;margin-left:6px}
+</style></head><body>
+<header class="hud"><img id="hudAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=ElayonUser" alt="">
+<div><b id="hudNome">Carregando…</b><small id="hudId">ID —</small></div>
+<div class="tk">TOKENS<b id="hudTokens">--</b></div><a href="perfil.html">⚙️</a></header>
+<div id="av"></div>
+<h2>Interação Visual de Voz: Calibração Humana</h2>
+<div style="text-align:center"><span class="st" id="modo">DEMO</span><button class="mon" onclick="crsAudio().catch(()=>alert('Microfone indisponível'))">👂 Escuta ao vivo</button></div>
+<div class="grid" id="grid"></div>
+<div class="box"><b id="fifoT" style="font-size:11px;color:#7dd3fc;text-transform:uppercase">Buffer FIFO</b>
+<audio id="crsAudio" controls></audio><div class="slots" id="slots"></div>
+<img id="esp" alt="espectroide" style="display:none;width:100%;border-radius:10px;margin-top:8px"></div>
+<div class="chat" id="chat"></div>
+<button class="mic" id="crsMic" onclick="crsToggle()" disabled>🎙️ Carregando…</button>
+<div class="fim" id="fim"><a id="btnIndex" href="#" target="_blank" rel="noopener">🌐 Abrir o Index no navegador</a><button onclick="refazer()" title="Refazer calibração">↻</button></div>
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { 
-    background: var(--bg1); 
-    color: var(--ink); 
-    font-family: system-ui, -apple-system, sans-serif; 
-    padding: 12px;
-}
-
-.shell { 
-    max-width: 1100px; 
-    margin: 0 auto; 
-    display: grid; 
-    gap: 16px; 
-    padding-bottom: 80px; 
-}
-
-/* ==========================================================================
-   HUD SUPERIOR E INFORMAÇÕES DO OPERADOR
-   ========================================================================== */
-.hud { 
-    background: var(--card); 
-    border: 1px solid var(--line); 
-    border-radius: 16px; 
-    padding: 12px 18px; 
-    display: flex; 
-    align-items: center; 
-    gap: 14px; 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-}
-.hud img { 
-    width: 44px; 
-    height: 44px; 
-    border-radius: 50%; 
-    border: 2px solid var(--accent); 
-    object-fit: cover; 
-}
-.hud-info b { font-size: 14px; display: block; color: var(--ink); }
-.hud-info small { font-size: 11px; color: var(--muted); font-family: monospace; }
-.hud-tokens { margin-left: auto; text-align: right; font-size: 11px; color: var(--muted); font-family: monospace; }
-.hud-tokens b { display: block; font-size: 18px; color: var(--success); }
-
-/* ==========================================================================
-   BLOCO DE GRÁFICOS ISOLADO (FACILIDADE DE CUSTOMIZAÇÃO VISUAL)
-   ========================================================================== */
-.section-title { 
-    font-size: 12px; 
-    color: var(--accent); 
-    font-weight: 800; 
-    text-transform: uppercase; 
-    letter-spacing: 1px; 
-    margin-bottom: 6px; 
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.graphs-grid { 
-    display: grid; 
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 12px; 
-}
-@media(max-width: 850px) { .graphs-grid { grid-template-columns: repeat(2, 1fr); } }
-@media(max-width: 520px) { .graphs-grid { grid-template-columns: 1fr; } }
-
-.graph-card { 
-    background: var(--card); 
-    border: 1px solid var(--line); 
-    border-radius: 14px; 
-    padding: 10px; 
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
-    transition: transform 0.2s ease, border-color 0.2s ease;
-}
-.graph-card:hover {
-    border-color: var(--accent);
-    transform: translateY(-2px);
-}
-.graph-header { 
-    display: flex; 
-    align-items: baseline; 
-    font-size: 11px; 
-    font-weight: 800; 
-    text-transform: uppercase; 
-    color: var(--accent); 
-    margin-bottom: 6px; 
-}
-.graph-header small { font-weight: 400; color: var(--muted); font-size: 9px; margin-left: 4px; }
-.graph-header span { margin-left: auto; font-family: monospace; font-size: 10px; background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 4px; }
-
-canvas { 
-    width: 100%; 
-    height: 110px; 
-    display: block; 
-    background: #020408; 
-    border-radius: 8px; 
-    border: 1px solid rgba(255,255,255,0.05); 
-}
-.graph-footer { display: flex; justify-content: space-between; font-size: 9px; color: var(--muted); margin-top: 4px; }
-
-/* ==========================================================================
-   PAINEL DE CHAT CONVERSACIONAL POR VOZ + PAUSA DE 2s + BUFFER FIFO (3 SLOTS)
-   ========================================================================== */
-.control-panel { 
-    background: var(--card); 
-    border: 1px solid var(--line); 
-    border-radius: 16px; 
-    padding: 16px; 
-    display: grid; 
-    gap: 14px; 
-}
-
-/* Chat Exclusivo por Voz (Sem caixa de texto manual para digitar) */
-.chat-container {
-    background: #020408;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    height: 180px;
-    overflow-y: auto;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.msg {
-    max-width: 85%;
-    padding: 8px 12px;
-    border-radius: 10px;
-    font-size: 13px;
-    line-height: 1.4;
-}
-.msg.ia {
-    align-self: flex-start;
-    background: rgba(14, 165, 233, 0.15);
-    border: 1px solid rgba(14, 165, 233, 0.3);
-    color: #e0f2fe;
-}
-.msg.user {
-    align-self: flex-end;
-    background: rgba(20, 184, 166, 0.15);
-    border: 1px solid rgba(20, 184, 166, 0.3);
-    color: #ccfbf1;
-}
-.msg-tag { font-size: 10px; font-weight: 700; opacity: 0.7; margin-bottom: 2px; display: block; }
-
-/* Status da Conexão e Botão Principal */
-.status-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 12px;
-    color: var(--muted);
-    font-family: monospace;
-}
-.status-indicator {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--muted);
-    margin-right: 6px;
-}
-.status-indicator.ativo { background: var(--success); box-shadow: 0 0 10px var(--success); }
-.status-indicator.escutando { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
-
-.btn-acao { 
-    width: 100%; 
-    padding: 16px; 
-    border-radius: 14px; 
-    border: none; 
-    font-size: 14px; 
-    font-weight: 800; 
-    cursor: pointer; 
-    text-transform: uppercase; 
-    letter-spacing: 0.5px; 
-    transition: all 0.3s ease; 
-}
-#btnAtivarSimbiose { 
-    background: linear-gradient(135deg, var(--accent), var(--accent2)); 
-    color: #000; 
-    box-shadow: 0 4px 20px var(--accent-glow); 
-}
-#btnAtivarSimbiose:hover {
-    filter: brightness(1.1);
-    transform: scale(1.01);
-}
-
-.relatorio-crs { 
-    width: 100%; 
-    height: 75px; 
-    background: #020408; 
-    border: 1px solid var(--line); 
-    border-radius: 10px; 
-    color: var(--muted); 
-    font: 10px monospace; 
-    padding: 8px; 
-    resize: none; 
-}
-
-/* Slots da Memória das 3 Últimas Sessões (FIFO) */
-.fifo-slots { 
-    display: grid; 
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 10px; 
-}
-@media(max-width: 600px) { .fifo-slots { grid-template-columns: 1fr; } }
-.slot { 
-    background: rgba(255,255,255,0.02); 
-    border: 1px solid var(--line); 
-    border-radius: 12px; 
-    padding: 10px; 
-    text-align: center; 
-}
-.slot.ativo { border-color: var(--accent); background: rgba(14, 165, 233, 0.08); }
-.slot b { font-size: 12px; color: var(--ink); display: block; }
-.slot small { font-size: 10px; color: var(--muted); display: block; margin: 4px 0 6px; }
-.slot button { 
-    background: rgba(14, 165, 233, 0.15); 
-    color: var(--accent); 
-    border: 1px solid var(--accent); 
-    border-radius: 6px; 
-    padding: 4px 8px; 
-    font-size: 10px; 
-    font-weight: 700; 
-    cursor: pointer; 
-}
-</style>
-</head>
-<body>
-
-<div class="shell">
-  <!-- HUD Superior -->
-  <header class="hud">
-    <img id="hudAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Elayon" alt="Avatar">
-    <div class="hud-info">
-      <b id="hudNome">Paulo Roberto Xavier Júnior</b>
-      <small id="hudId">ID: PRXJ-2026-CRS4</small>
-    </div>
-    <div class="hud-tokens">TOKENS<b id="hudTokens">100</b></div>
-  </header>
-
-<!-- ==========================================================================
-       BLOCO DE GRÁFICOS ISOLADO (12 MODULAÇÕES VISUAIS)
-     ========================================================================== -->
-  <div class="section-title">
-    <span>Telemetria Espectral de Voz (12 Modulações)</span>
-    <small style="color: var(--muted); font-size: 10px;">Ressonância Viva • Sem Oscilação Falsa</small>
-  </div>
-
-  <div class="graphs-grid">
-    <div class="graph-card">
-      <div class="graph-header">Nebulosa de Energia <small>(Intensidade)</small><span id="valG1">0%</span></div>
-      <canvas id="cvsNebulosa"></canvas>
-      <div class="graph-footer"><span>Voz Baixa</span><span>Volume Máximo</span></div>
-    </div>
-    <div class="graph-card">
-      <div class="graph-header">Anel Orbital <small>(Hesitação)</small><span id="valG2">0%</span></div>
-      <canvas id="cvsOrbital"></canvas>
-      <div class="graph-footer"><span>Estável</span><span>Oscilante</span></div>
-    </div>
-    <div class="graph-card">
-      <div class="graph-header">Cortina de DNA <small>(Timbre)</small><span id="valG3">0%</span></div>
-      <canvas id="cvsDNA"></canvas>
-      <div class="graph-footer"><span>Grave</span><span>Agudo</span></div>
-    </div>
-    <div class="graph-card">
-      <div class="graph-header">Trilha Cinética <small>(Pressão)</small><span id="valG4">0%</span></div>
-      <canvas id="cvsCinetica"></canvas>
-      <div class="graph-footer"><span>Suave</span><span>Forte</span></div>
-    </div>
-    <div class="graph-card">
-      <div class="graph-header">Enxame Constelação <small>(Grave/Agudo)</small><span id="valG5">0%</span></div>
-      <canvas id="cvsConstelacao"></canvas>
-      <div class="graph-footer"><span>Disperso</span><span>Concentrado</span></div>
-    </div>
-    <div class="graph-card">
-      <div class="graph-header">Vórtice Dupla Hélice <small>(Aceleração)</small><span id="valG6">0%</span></div>
-      <canvas id="cvsHelice"></canvas>
-      <div class="graph-footer"><span>Lento</span><span>Acelerado</span></div>
-    </div>
-    <div class="graph-card">
-      <div class="graph-header">Grade de Cristal <small>(Domínio Elétrico)</small><span id="valG7">0%</span></div>
-      <canvas id="cvsCristal"></canvas>
-      <div class="graph-footer"><span>Rígido</span><span>Fluido</span></div>
-    </div>
-    <div class="graph-card">
-      <div class="graph-header">Escudo Isolador <small>(Ruído Base)</small><span id="valG8">0%</span></div>
-      <canvas id="cvsEscudo"></canvas>
-      <div class="graph-footer"><span>Silêncio</span><span>Interferência</span></div>
-    </div>
-    <div class="graph-card">
-      <div class="graph-header">Espectro de Bandas <small>(Equalizador)</small><span id="valG9">0%</span></div>
-      <canvas id="cvsEspectro"></canvas>
-      <div class="graph-footer"><span>Sub</span><span>Agudo</span></div>
-    </div>
-    <div class="graph-card">
-      <div class="graph-header">Matriz de Cadência <small>(Ritmo x Silêncio)</small><span id="valG10">0%</span></div>
-      <canvas id="cvsMatriz"></canvas>
-      <div class="graph-footer"><span>Pausas</span><span>Continuidade</span></div>
-    </div>
-    <div class="graph-card">
-      <div class="graph-header">Densidade Harmônica <small>(Ressonância)</small><span id="valG11">0%</span></div>
-      <canvas id="cvsHarmonica"></canvas>
-      <div class="graph-footer"><span>Puro</span><span>Modulado</span></div>
-    </div>
-    <div class="graph-card">
-      <div class="graph-header">Comparativo Histórico <small>(3 Sessões)</small><span id="valG12">S1-S3</span></div>
-      <canvas id="cvsHistorico"></canvas>
-      <div class="graph-footer"><span>Sessão 1</span><span>Sessão 3</span></div>
-    </div>
-  </div>
-
-  <!-- ==========================================================================
-       PAINEL DE CHAT POR VOZ + BUFFER FIFO
-     ========================================================================== -->
-  <div class="control-panel">
-    <div class="status-bar">
-      <div>
-        <span class="status-indicator" id="statusDot"></span>
-        <span id="statusTexto">Pronto para ativar a conexão</span>
-      </div>
-      <div id="tempoPausa" style="color: var(--accent); display: none;">Estabilizando (2s)...</div>
-    </div>
-
-    <!-- Chat Exclusivo por Voz -->
-    <div class="chat-container" id="chatContainer">
-      <div class="msg ia">
-        <span class="msg-tag">ELAYON IA</span>
-        Olá, Paulo! Clique em "Ativar Conexão Simbiótica" para iniciarmos. Eu falo a instrução, seu microfone abre automaticamente e conversamos por voz em tempo real.
-      </div>
-    </div>
-
-    <!-- Botão Principal -->
-    <button class="btn-acao" id="btnAtivarSimbiose">🎙️ Ativar Conexão Simbiótica</button>
-
-    <!-- Relatório CRS (Background técnico) -->
-    <textarea class="relatorio-crs" id="relatorioCRS" readonly placeholder="Aguardando dados brutos do CRS para parametrização clínica e fonoaudiológica..."></textarea>
-
-    <!-- Buffer FIFO de 3 Slots -->
-    <div class="section-title">
-      <span>Buffer de Memória Curta (3 Últimas Sessões)</span>
-      <small style="color: var(--muted); font-size: 10px;">Comparações de Aceleração e Hesitação</small>
-    </div>
-    <div class="fifo-slots">
-      <div class="slot" id="slot1">
-        <b>Sessão 1</b>
-        <small id="slot1Info">Vazia</small>
-        <button onclick="carregarSessao(1)">Carregar</button>
-      </div>
-      <div class="slot" id="slot2">
-        <b>Sessão 2</b>
-        <small id="slot2Info">Vazia</small>
-        <button onclick="carregarSessao(2)">Carregar</button>
-      </div>
-      <div class="slot" id="slot3">
-        <b>Sessão 3</b>
-        <small id="slot3Info">Vazia</small>
-        <button onclick="carregarSessao(3)">Carregar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<!-- ==========================================================================
-     MOTOR JAVASCRIPT CORRETO E ENCAPSULADO
-     ========================================================================== -->
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    const URL_CRS = "https://nucleo-crs-elayon.onrender.com/api/crs/analisar";
-    
-    const btnSimbiose = document.getElementById("btnAtivarSimbiose");
-    const chatContainer = document.getElementById("chatContainer");
-    const statusDot = document.getElementById("statusDot");
-    const statusTexto = document.getElementById("statusTexto");
-    const tempoPausa = document.getElementById("tempoPausa");
-    const relatorioCRS = document.getElementById("relatorioCRS");
+const CFG={URL:'https://xlktkelumtpugidnecbj.supabase.co',
+KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM',
+CUSTO:1,MAX:3,INDEX:'https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/',LOGIN:'login.html',
+GEMINI:'gemini-2.5-flash',OPENAI:'gpt-4o',
+ETAPAS:['Teste de conexão: abra o microfone e diga apenas “olá”, de forma rápida e natural.','Conte de um até dez, devagar e com voz tranquila.','Sustente a vogal “a” por cerca de cinco segundos e, depois, diga a data de hoje.']};
+const sb=window.supabase?supabase.createClient(CFG.URL,CFG.KEY):null;
+const $=id=>document.getElementById(id);
+const U={id:null,nome:'Operador',tokens:0,calibrado:false,ciclo:0,sessoes:[],sel:null,prov:'gemini',key:'',proto:'',hist:[]};
+const R={ctx:null,an:null,stream:null,buf:null,fb:null,sr:48000,fl:[],P:[],A:[],vz:[],rec:null,rep:null,repS:null,prev:.3};
+let rec=null,H=[],D={n:new Array(11).fill(0),sp:new Float32Array(64),f0:150,db:-60,jit:0,shim:0,hnr:10,cpp:5,cent:1000,G:0,Rr:0,B:0,As:0,S:0,flow:.2,cq:.5,floor:-70};
 
-    let audioCtx = null;
-    let analyser = null;
-    let microphoneStream = null;
-    let dataArray = null;
-    let isRunning = false;
-    let animationId = null;
+const GR=[['I. Frequência / Tom','F0 & Jitter','#38bdf8'],['II. Intensidade','Rosca & Shimmer','#fb923c'],['III. Timbre','HNR & CPPS','#4ade80'],['IV. Prosódia / Pausas','CRS ritmo e silêncio','#fbbf24'],['V. Perceptivo-Auditivo','GRBAS acústico','#c084fc'],['VI. Aerodinâmica','fluxo (proxy)','#2dd4bf'],['VII. Contato Glótico','EGG (proxy)','#ec4899'],['VIII. Ambiente / Ruído','piso & SNR','#60a5fa'],['IX. Espectro (FFT)','escuta simbólica','#a3e635'],['X. Detecção de Silêncio','escuta simbólica','#f87171'],['XI. Dimensões CRS','8 linhas · escuta simbólica','#22d3ee'],['XII. Acompanhamento IA','1 linha por gráfico · sessão completa','#f8fafc']];
+$('grid').innerHTML=GR.map((g,i)=>`<div class="c ${i>9?'w':''}" style="--c:${g[2]}"><div class="h">${g[0]}<small>${g[1]}</small><i id="t${i}">--</i></div><canvas id="g${i}"></canvas></div>`).join('');
+const rg=(v,a,b)=>Math.max(0,Math.min(1,(v-a)/(b-a)));
+const cv=[...Array(12).keys()].map(i=>{const c=$('g'+i);return{c,x:c.getContext('2d'),W:0,h:0}});
+function fit(){const r=Math.min(devicePixelRatio||1,1.5);cv.forEach(o=>{o.W=o.c.clientWidth;o.h=o.c.clientHeight;o.c.width=o.W*r;o.c.height=o.h*r;o.x.setTransform(r,0,0,r,0,0)})}
+addEventListener('resize',fit);
+const fade=(x,W,h,a)=>{x.globalCompositeOperation='source-over';x.fillStyle=`rgba(2,4,8,${a})`;x.fillRect(0,0,W,h);x.globalCompositeOperation='lighter'};
+const dot=(x,px,py,r,c)=>{x.fillStyle=c;x.beginPath();x.arc(px,py,r,0,6.2832);x.fill()};
 
-    let sessoesBuffer = [];
-    let sessaoAtualIndex = 1;
+/* ===== FIFO persistente ===== */
+const DB=new Promise((ok,no)=>{const r=indexedDB.open('crs_fifo',1);r.onupgradeneeded=()=>r.result.createObjectStore('s',{keyPath:'k'});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
+const tx=async(m,f)=>{const d=await DB;return new Promise((ok,no)=>{const t=d.transaction('s',m),q=f(t.objectStore('s'));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>no(t.error)})};
 
-    const canvases = {
-        g1: document.getElementById("cvsNebulosa").getContext("2d"),
-        g2: document.getElementById("cvsOrbital").getContext("2d"),
-        g3: document.getElementById("cvsDNA").getContext("2d"),
-        g4: document.getElementById("cvsCinetica").getContext("2d"),
-        g5: document.getElementById("cvsConstelacao").getContext("2d"),
-        g6: document.getElementById("cvsHelice").getContext("2d"),
-        g7: document.getElementById("cvsCristal").getContext("2d"),
-        g8: document.getElementById("cvsEscudo").getContext("2d"),
-        g9: document.getElementById("cvsEspectro").getContext("2d"),
-        g10: document.getElementById("cvsMatriz").getContext("2d"),
-        g11: document.getElementById("cvsHarmonica").getContext("2d"),
-        g12: document.getElementById("cvsHistorico").getContext("2d")
-    };
+/* ===== Perfil / token ===== */
+const aviso=h=>{$('av').innerHTML=h||''};
+const setMic=(t,d)=>{const b=$('crsMic');b.textContent=t;b.disabled=!!d};
+const hud=()=>{$('hudNome').textContent=U.nome;$('hudId').textContent='ID '+(U.id?U.id.slice(0,8):'—');$('hudTokens').textContent=U.tokens};
+const micPronto=()=>setMic(`🎙️ Abrir Microfone (Sessão ${U.ciclo+1}/${CFG.MAX} • até 30s)`,false);
+async function carregar(){
+  if(!sb){aviso('Supabase indisponível.');return setMic('Indisponível',true)}
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){aviso(`Entre na sua conta para calibrar. <a href="${CFG.LOGIN}">Entrar</a>`);$('hudNome').textContent='Sem login';return setMic('🔒 Faça login para calibrar',true)}
+  U.id=session.user.id;
+  const {data:p}=await sb.from('profiles').select('*').eq('id',U.id).single();
+  U.nome=(p&&p.nome)||(session.user.email||'Operador').split('@')[0];U.tokens=(p&&p.tokens)??0;
+  U.prov=(p&&p.ai_provider)||'gemini';U.key=(p&&p.ai_key)||'';U.proto=(p&&(p.protocolo_ia||p.protocolo))||'';
+  if(p&&p.avatar_url)$('hudAvatar').src=p.avatar_url;hud();
+  const todas=(await tx('readonly',s=>s.getAll()))||[];
+  for(const s of todas)if(s.uid===U.id&&!s.tk)await tx('readwrite',st=>st.delete(s.k));
+  U.sessoes=todas.filter(s=>s.uid===U.id&&s.tk).sort((a,b)=>b.ts-a.ts).slice(0,3);
+  const ini=+localStorage.getItem('crs_ini_'+U.id)||0;U.ciclo=Math.min(CFG.MAX,U.sessoes.filter(s=>s.ts>ini).length);
+  U.calibrado=!!(session.user.user_metadata&&session.user.user_metadata.crs_calibrado)||localStorage.getItem('crs_ok_'+U.id)==='1';
+  renderFifo();
+  if(U.calibrado){travado();chatAdd('ia',`Calibração concluída, ${U.nome}. Pode seguir para o Index ou refazer para testar.`);return}
+  if(U.tokens<CFG.CUSTO){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
+  micPronto();iaIntro()
+}
+async function debitar(){
+  for(let i=0;i<3;i++){
+    const {data:r,error}=await sb.from('profiles').select('tokens').eq('id',U.id).single();
+    if(error||!r)throw new Error('saldo');
+    if(r.tokens<CFG.CUSTO){U.tokens=r.tokens;hud();throw new Error('sem_saldo')}
+    const {data:u}=await sb.from('profiles').update({tokens:r.tokens-CFG.CUSTO}).eq('id',U.id).eq('tokens',r.tokens).select('tokens');
+    if(u&&u.length){U.tokens=u[0].tokens;hud();return}
+  }throw new Error('conflito')
+}
+function travado(){setMic(`🔒 Calibração concluída ${CFG.MAX}/${CFG.MAX}`,true);aviso('✅ Calibração concluída e travada.');$('btnIndex').href=CFG.INDEX;$('fim').style.display='flex'}
+async function travar(){U.calibrado=true;localStorage.setItem('crs_ok_'+U.id,'1');try{await sb.auth.updateUser({data:{crs_calibrado:true}})}catch(e){}travado()}
+async function refazer(){
+  U.calibrado=false;U.ciclo=0;localStorage.removeItem('crs_ok_'+U.id);localStorage.setItem('crs_ini_'+U.id,Date.now());
+  try{await sb.auth.updateUser({data:{crs_calibrado:false}})}catch(e){}
+  $('fim').style.display='none';aviso('');renderFifo();
+  if(U.tokens<CFG.CUSTO){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
+  micPronto();iaIntro()
+}
 
-    let telemetria = { volume: 0, graves: 0, medios: 0, agudos: 0, ruido: 0, estabilidade: 50 };
+/* ===== DSP fonoaudiológico (20 Hz) — estimativas acústicas de microfone ===== */
+const med=a=>a.length?a.reduce((p,q)=>p+q,0)/a.length:0;
+function mk(o){
+  R.vz.push(o.voz?1:0);if(R.vz.length>40)R.vz.shift();
+  const pros=med(R.vz),sil=1-med(R.vz.slice(-10));
+  const R_=Math.min(3,o.jit/1),B_=Math.min(3,Math.max(0,(15-o.hnr)/5)),A_=Math.min(3,Math.max(0,(-42-o.db)/6)),S_=Math.min(3,Math.max(0,(o.cent-1800)/700)),G_=Math.min(3,(R_+B_+A_+S_)/4*1.6);
+  const k=Object.assign({},o,{G:G_,Rr:R_,B:B_,As:A_,S:S_,pros,sil});
+  if(o.voz)R.prev=rg(o.f0,70,400);
+  k.n=[R.prev,rg(o.db,-70,-10),rg(o.hnr,0,30),pros,G_/3,o.flow,o.cq,rg(o.floor,-90,-30),rg(o.cent,200,4000),sil,0];
+  k.n[10]=med(k.n.slice(0,8));return k
+}
+function demo(){const t=Date.now()/1000,voz=Math.sin(t*.55)>-.3,f0=150+25*Math.sin(t*.9)+8*Math.sin(t*3.1),db=voz?-34+9*Math.sin(t*1.3)+4*Math.sin(t*4):-64,sp=new Uint8Array(64);
+  for(let j=0;j<64;j++)sp[j]=Math.max(0,(.45+.4*Math.sin(j*.4+t*2))*(1-j/90)*(voz?1:.12)*255);
+  return mk({f0:voz?f0:0,db,jit:.4+.3*Math.sin(t),shim:.3+.2*Math.sin(t*1.7),hnr:16+5*Math.sin(t*.8),cpp:8+2*Math.sin(t),cent:1100+400*Math.sin(t*.7),tilt:-8,voz,flow:.3+.15*Math.sin(t*1.1),cq:.5+.15*Math.sin(t*.6),floor:-68,sp})}
+function analisar(){
+  const b=R.buf,sr=R.sr;R.an.getFloatTimeDomainData(b);R.an.getFloatFrequencyData(R.fb);
+  let e=0;for(let i=0;i<b.length;i++)e+=b[i]*b[i];const rms=Math.sqrt(e/b.length),db=20*Math.log10(rms+1e-6);
+  const d=Math.max(1,Math.round(sr/12000)),n=512,x=new Float32Array(n),off=b.length-n*d;
+  for(let i=0;i<n;i++){let s=0;for(let j=0;j<d;j++)s+=b[off+i*d+j]||0;x[i]=s/d}
+  const fs=sr/d,lmin=Math.floor(fs/400),lmax=Math.floor(fs/70);let r0=1e-9;for(let i=0;i<n;i++)r0+=x[i]*x[i];
+  let best=0,bl=lmin;const rr=[];
+  for(let l=lmin;l<=lmax;l++){let s=0;for(let i=0;i<n-l;i++)s+=x[i]*x[i+l];s/=r0;rr[l]=s;if(s>best){best=s;bl=l}}
+  for(let l=lmin+1;l<bl;l++)if(rr[l]>=.9*best&&rr[l]>rr[l-1]&&rr[l]>=rr[l+1]){bl=l;best=rr[l];break}
+  R.fl.push(db);if(R.fl.length>80)R.fl.shift();const floor=Math.min(...R.fl);
+  const voz=db>floor+9&&best>.5;let f0=0,jit=D.jit,shim=D.shim;
+  if(voz){const T=bl/fs;f0=1/T;R.P.push(T);R.A.push(rms);if(R.P.length>10){R.P.shift();R.A.shift()}
+    if(R.P.length>3){let s=0,q=0;for(let i=1;i<R.P.length;i++){s+=Math.abs(R.P[i]-R.P[i-1]);q+=Math.abs(20*Math.log10(R.A[i]/R.A[i-1]))}jit=s/(R.P.length-1)/med(R.P)*100;shim=q/(R.A.length-1)}}
+  else{R.P=[];R.A=[]}
+  const bc=Math.min(.98,Math.max(.02,best)),hnr=10*Math.log10(bc/(1-bc)),fb=R.fb,nb=fb.length,bh=sr/2/nb,sp=new Uint8Array(64),pw=[];
+  let lo=0,hi=0,cs=0,ct=0;
+  for(let j=0;j<64;j++){const f1=60*Math.pow(8000/60,j/64),f2=60*Math.pow(8000/60,(j+1)/64);let m=-140;
+    for(let k=Math.floor(f1/bh);k<=Math.max(Math.floor(f2/bh),Math.floor(f1/bh));k++)if(fb[k]>m)m=fb[k];
+    sp[j]=Math.max(0,Math.min(255,(m+100)*3.2));const p=Math.pow(10,m/10),fc=Math.sqrt(f1*f2);cs+=fc*p;ct+=p;if(fc<1000)lo+=p;else if(fc<5000)hi+=p}
+  const cent=ct?cs/ct:0,tilt=10*Math.log10((hi+1e-12)/(lo+1e-12));
+  const k0=Math.ceil(60/bh),k1=Math.floor(4000/bh);let mL=0;for(let k=k0;k<k1;k++)mL+=Math.max(-140,fb[k]);mL/=(k1-k0);
+  let cmax=0,csum=0,cn=0;for(let q=.001;q<.02;q+=.0004){let s=0;for(let k=k0;k<k1;k++)s+=(Math.max(-140,fb[k])-mL)*Math.cos(6.2832*k*bh*q);s=Math.abs(s)/(k1-k0);csum+=s;cn++;if(q>.0025&&q<.014&&s>cmax)cmax=s}
+  const cpp=Math.max(0,cmax-csum/cn);
+  let cq=.5,flow=.3;
+  if(voz){const a=Math.max(...[-1,0,1].map(o=>fb[Math.round(f0/bh)+o]||-140)),c=Math.max(...[-1,0,1].map(o=>fb[Math.round(2*f0/bh)+o]||-140));cq=Math.max(.1,Math.min(.9,.6-(a-c)/40));flow=Math.min(1,.15+.5*(1-bc)+.35*rg(db,-60,-10))}
+  return mk({f0,db,jit,shim,hnr,cpp,cent,tilt,voz,flow,cq,floor,sp})
+}
+function tick(){
+  if(R.rep)return;let k;try{k=R.an?analisar():demo()}catch(e){k=demo()}
+  H.push(k);if(H.length>600)H.shift();if(rec)rec.tk.push(k)
+}
+setInterval(tick,50);
 
-    async function carregarSessaoUsuario() {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session && session.user) {
-            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
-            if (profile) {
-                if (profile.nome) document.getElementById('hudNome').textContent = profile.nome;
-                if (profile.tokens !== undefined) document.getElementById('hudTokens').textContent = profile.tokens;
-                if (profile.avatar_url) document.getElementById('hudAvatar').src = profile.profile_url || profile.avatar_url;
-            }
-        }
-    }
-    carregarSessaoUsuario();
+/* ===== Gráficos ===== */
+const G=[];const serie=()=>rec?rec.tk:(U.sel!=null&&U.sessoes[U.sel]?U.sessoes[U.sel].tk:H);
+G[0]=(x,W,h,t)=>{fade(x,W,h,.28);const L=H.slice(-160),Y=k=>h-8-rg(k.f0,70,400)*(h-16);
+  for(const [lw,al] of [[6,.12],[2.2,.95]]){x.lineWidth=lw;x.strokeStyle=`rgba(56,189,248,${al})`;x.beginPath();let pen=false;L.forEach((k,i)=>{const px=i/159*W;if(k.voz){pen?x.lineTo(px,Y(k)):x.moveTo(px,Y(k));pen=true}else pen=false});x.stroke()}
+  L.forEach((k,i)=>{if(k.voz)for(let q=0;q<3;q++)dot(x,i/159*W+Math.sin(i*7+q*2+t*9)*k.jit*2,Y(k)+Math.cos(i*5+q+t*8)*(2+k.jit*5),1,'rgba(165,243,252,.55)')});
+  const py=h-8-rg(D.f0,70,400)*(h-16);for(let r=0;r<3;r++){x.strokeStyle=`rgba(125,211,252,${.6-r*.18})`;x.lineWidth=1;x.beginPath();x.arc(W-4,py,4+((t*30+r*8)%24),0,6.28);x.stroke()}};
+G[1]=(x,W,h,t)=>{fade(x,W,h,.3);const cx=W/2,cy=h/2,q=rg(D.db,-60,-10),R0=h*.25+q*h*.14,th=3+q*9,sh=D.shim*4;
+  for(let p=0;p<3;p++){x.strokeStyle=`rgba(251,146,60,${.9-p*.28})`;x.lineWidth=Math.max(1,th-p*2.4);x.beginPath();
+    for(let i=0;i<=120;i++){const a=i/120*6.2832,r=R0+Math.sin(a*6+t*3+p)*(1+sh)*(1+p*.4)+Math.sin(a*11-t*4)*sh;const px=cx+Math.cos(a)*r*1.5,py=cy+Math.sin(a)*r;i?x.lineTo(px,py):x.moveTo(px,py)}x.closePath();x.stroke()}
+  dot(x,cx,cy,5+q*9,'rgba(254,215,170,.9)')};
+G[2]=(x,W,h,t)=>{fade(x,W,h,.35);const n=48,bw=W/n,q=rg(D.hnr,0,25);
+  for(let i=0;i<n;i++){const v=D.sp[Math.floor(i*64/n)]/255,bh=v*(h-10)*(.88+.12*Math.sin(t*5+i));x.fillStyle=`hsla(${20+q*110},85%,${45+v*20}%,.9)`;x.fillRect(i*bw+1,h-bh,bw-2,bh);x.fillStyle='rgba(255,255,255,.5)';x.fillRect(i*bw+1,h-bh-2,bw-2,2)}};
+G[3]=(x,W,h,t)=>{fade(x,W,h,.4);const L=H.slice(-200),g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(251,191,36,.85)');g.addColorStop(1,'rgba(251,191,36,.02)');
+  L.forEach((k,i)=>{if(!k.voz){x.fillStyle='rgba(239,68,68,.16)';x.fillRect(i/199*W,0,W/199+1,h)}});
+  x.beginPath();L.forEach((k,i)=>{const px=i/199*W,py=h-4-rg(k.db,-70,-10)*(h-14)*(.97+.03*Math.sin(t*6+i));i?x.lineTo(px,py):x.moveTo(px,py)});
+  x.strokeStyle='#fde68a';x.lineWidth=1.5;x.stroke();x.lineTo(W,h);x.lineTo(0,h);x.fillStyle=g;x.fill()};
+G[4]=(x,W,h,t)=>{fade(x,W,h,.3);const cx=W/2,cy=h/2,L=['G','R','B','A','S'],v=[D.G,D.Rr,D.B,D.As,D.S],cl=['#fbbf24','#f87171','#38bdf8','#a78bfa','#4ade80'];
+  v.forEach((s,i)=>{const a=i/5*6.2832-1.57+Math.sin(t*.5+i)*.08,rad=h*.1+Math.min(s,3)/3*h*.32,px=cx+Math.cos(a)*rad*1.5,py=cy+Math.sin(a)*rad;
+    x.strokeStyle=cl[i]+'55';x.lineWidth=1;x.beginPath();x.moveTo(cx,cy);x.lineTo(px,py);x.stroke();
+    for(let q=0;q<16;q++){const aa=q*1.7+t*(1+i*.2),rr=4+s*8+q;dot(x,px+Math.cos(aa)*rr,py+Math.sin(aa)*rr,1,cl[i])}
+    dot(x,px,py,4+s*2,cl[i]);x.fillStyle='#e2e8f0';x.font='10px system-ui';x.fillText(L[i]+s.toFixed(1),px+7,py-6)});dot(x,cx,cy,3,'#fff')};
+G[5]=(x,W,h,t)=>{fade(x,W,h,.3);const A1=h*.12+D.flow*h*.28,A2=h*.1+D.cq*h*.25;
+  for(let px=0;px<W;px+=3){const u=px/W,y1=h/2+Math.sin(px*.045+t*3)*A1*(.5+.5*Math.sin(u*3+t)),y2=h/2+Math.sin(px*.045+t*3+2.2)*A2;
+    x.fillStyle='rgba(45,212,191,.12)';x.fillRect(px,Math.min(y1,y2),2,Math.abs(y1-y2));dot(x,px,y1,1.6,'#2dd4bf');dot(x,px,y2,1.6,'#fbbf24')}};
+G[6]=(x,W,h,t)=>{fade(x,W,h,.35);const L=H.slice(-120);let p0=h;x.beginPath();x.moveTo(0,h);
+  L.forEach((k,i)=>{const px=i/119*W,py=h-6-(k.voz?k.cq:.05)*(h-14);x.lineTo(px,p0);x.lineTo(px,py);p0=py});
+  x.lineTo(W,p0);x.strokeStyle='#ec4899';x.lineWidth=2;x.stroke();x.lineTo(W,h);x.fillStyle='rgba(236,72,153,.15)';x.fill();x.fillStyle='rgba(255,255,255,.07)';x.fillRect((t*80)%W,0,3,h)};
+G[7]=(x,W,h,t)=>{fade(x,W,h,.4);const cx=W/2,cy=h*.8,r=h*.62,v=[rg(D.floor,-90,-30),rg(D.db-D.floor,0,50),D.n[3]],cl=['#60a5fa','#4ade80','#fbbf24'];
+  v.forEach((q,i)=>{const rr=r-i*12;x.lineWidth=7;x.strokeStyle='#1e293b';x.beginPath();x.arc(cx,cy,rr,Math.PI,6.2832);x.stroke();x.strokeStyle=cl[i];x.beginPath();x.arc(cx,cy,rr,Math.PI,Math.PI+q*Math.PI);x.stroke()});
+  const a=Math.PI+((t*.8)%1)*Math.PI;dot(x,cx+Math.cos(a)*r,cy+Math.sin(a)*r,3,'#fff')};
+G[8]=(x,W,h,t)=>{fade(x,W,h,.35);const n=64,bw=W/n;D.pk=D.pk||new Float32Array(n);
+  for(let i=0;i<n;i++){const v=D.sp[i]/255,hh=v*h*.8;D.pk[i]=Math.max(D.pk[i]-.006,v);x.fillStyle=`hsla(${80+i*2},80%,55%,.85)`;x.fillRect(i*bw+1,h-hh,bw-2,hh);x.fillStyle='#fff';x.fillRect(i*bw+1,h-D.pk[i]*h*.8-2,bw-2,2)}};
+G[9]=(x,W,h,t)=>{fade(x,W,h,.5);const L=H.slice(-200),bw=W/200;
+  L.forEach((k,i)=>{x.fillStyle=k.voz?'rgba(34,211,238,.25)':'rgba(248,113,113,.7)';x.fillRect(i*bw,k.voz?h*.35:0,bw+.5,k.voz?h*.3:h);if(i>5&&k.voz&&!L[i-1].voz)dot(x,i*bw,h/2,3,'#fff')});x.fillStyle='rgba(255,255,255,.2)';x.fillRect((t*60)%W,0,2,h)};
+G[10]=(x,W,h,t)=>{fade(x,W,h,.4);const L=H.slice(-160);
+  for(let m=0;m<8;m++){x.strokeStyle=GR[m][2];x.lineWidth=1.4;x.beginPath();L.forEach((k,i)=>{const px=i/159*W,py=h-6-k.n[m]*(h-12);i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke();if(L.length)dot(x,W-3,h-6-L[L.length-1].n[m]*(h-12),3,GR[m][2])}};
+G[11]=(x,W,h,t)=>{fade(x,W,h,1);const S=serie(),n=S.length;if(n<2)return;
+  for(let s=1;s<n/20;s++){x.fillStyle='rgba(255,255,255,.08)';x.fillRect(s*20/n*W,0,1,h)}
+  const st=Math.max(1,Math.floor(n/240));
+  for(let m=0;m<11;m++){x.strokeStyle=GR[m][2];x.lineWidth=1.2;x.beginPath();for(let i=0;i<n;i+=st){const px=i/(n-1)*W,py=h-6-S[i].n[m]*(h-12);i?x.lineTo(px,py):x.moveTo(px,py)}x.stroke()}
+  if(R.rep){x.fillStyle='#fff';x.fillRect(Math.min(1,$('crsAudio').currentTime*20/n)*W,0,2,h)}};
 
-    async function iniciarAudio() {
-        try {
-            microphoneStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const source = audioCtx.createMediaStreamSource(microphoneStream);
-            analyser = audioCtx.createAnalyser();
-            analyser.fftSize = 256;
-            source.connect(analyser);
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
-            return true;
-        } catch (e) {
-            console.error("Erro no microfone:", e);
-            alert("Permissão de microfone negada ou indisponível.");
-            return false;
-        }
-    }
+let last=0,tt=0,fr=0;
+function loop(ms){requestAnimationFrame(loop);if(ms-last<33)return;last=ms;tt+=.033;
+  if(R.rep){const i=Math.floor($('crsAudio').currentTime*20),tk=R.rep.tk;H=tk.slice(Math.max(0,i-199),i+1)}
+  const c=H[H.length-1];if(!c)return;
+  for(const k of ['f0','db','jit','shim','hnr','cpp','cent','G','Rr','B','As','S','flow','cq','floor'])D[k]+=((c[k]||0)-D[k])*.2;
+  for(let i=0;i<11;i++)D.n[i]+=(c.n[i]-D.n[i])*.2;for(let i=0;i<64;i++)D.sp[i]+=(c.sp[i]-D.sp[i])*.35;
+  cv.forEach((o,i)=>G[i](o.x,o.W,o.h,tt));
+  if(++fr%6==0){const L=H.slice(-200),pa=L.filter((k,i)=>i&&k.voz&&!L[i-1].voz).length,S=serie();
+    const T=[`${c.voz?Math.round(D.f0):'--'} Hz | jit ${D.jit.toFixed(2)}%`,`${D.db.toFixed(1)} dBFS | shim ${D.shim.toFixed(2)}`,`HNR ${D.hnr.toFixed(1)} | CPP ${D.cpp.toFixed(1)}`,`${pa} retomadas | fon ${Math.round(c.pros*100)}%`,`G${D.G.toFixed(1)} R${D.Rr.toFixed(1)} B${D.B.toFixed(1)} A${D.As.toFixed(1)} S${D.S.toFixed(1)}`,`fluxo ~${D.flow.toFixed(2)}`,`CQ ~${D.cq.toFixed(2)}`,`${D.floor.toFixed(0)} dBFS | SNR ${(D.db-D.floor).toFixed(0)}`,`${Math.round(D.cent)} Hz cent.`,`${Math.round(c.sil*100)}% sil.`,`CRS ${D.n[10].toFixed(2)}`,`${(S.length/20).toFixed(1)}s | ${U.sessoes.length} sess.`];
+    T.forEach((s,i)=>$('t'+i).textContent=s);
+    $('modo').textContent=R.rep?'REPRISE':rec?'● GRAVANDO':R.an?'AO VIVO':'DEMO'}}
 
-    function atualizarGraficos() {
-        if (analyser && isRunning) {
-            analyser.getByteFrequencyData(dataArray);
-            let sum = 0;
-            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-            let rawVol = Math.round((sum / dataArray.length) / 2.55);
+/* ===== Análise da sessão (deriva por segundo, integra por retomada) ===== */
+function analisarSessao(tk){
+  const dur=tk.length/20,V=tk.filter(k=>k.voz),r=(v,d=1)=>+(+v).toFixed(d);
+  const est=a=>{if(!a.length)return null;const m=med(a);return{m:r(m,2),min:r(Math.min(...a),2),max:r(Math.max(...a),2),dp:r(Math.sqrt(med(a.map(q=>(q-m)**2))),2)}};
+  const segs=[];let sil=0,cur=null;
+  tk.forEach((k,i)=>{if(k.voz){if(!cur||sil>=6){if(cur)segs.push(cur);cur={t0:i/20,f:[],ar:0,n:0}}sil=0;cur.n++;cur.ar+=Math.pow(10,k.db/20)*.05;if(k.f0)cur.f.push(k.f0)}else sil++});
+  if(cur)segs.push(cur);
+  const ret=segs.map(s=>({t:r(s.t0),dur:r(s.n/20),f0:Math.round(med(s.f)),area:r(s.ar*100,2)}));
+  let pk=0;tk.forEach((k,i)=>{if(k.voz&&i>3&&i<tk.length-3&&k.db>tk[i-1].db&&k.db>=tk[i+1].db&&k.db-Math.min(...tk.slice(i-3,i+4).map(q=>q.db))>4)pk++});
+  const sec=[];for(let s=0;s*20<tk.length;s++){const B=tk.slice(s*20,s*20+20),Vv=B.filter(k=>k.voz);sec.push({db:med(B.map(k=>k.db)),f0:Vv.length?med(Vv.map(k=>k.f0)):0,hnr:med(Vv.map(k=>k.hnr)),jit:med(Vv.map(k=>k.jit)),shim:med(Vv.map(k=>k.shim)),cpp:med(Vv.map(k=>k.cpp))})}
+  const m=a=>r(med(V.map(k=>k[a])),2);
+  const res={dur:r(dur),fon:r(V.length/Math.max(1,tk.length),2),pausas:Math.max(0,segs.length-1),silabas_s:r(pk/Math.max(.5,V.length/20)),
+    f0:est(V.map(k=>k.f0)),db:est(V.map(k=>k.db)),jit:est(V.map(k=>k.jit)),shim:est(V.map(k=>k.shim)),hnr:est(V.map(k=>k.hnr)),cpp:est(V.map(k=>k.cpp)),cent:est(V.map(k=>k.cent)),
+    grbas_est:{G:m('G'),R:m('Rr'),B:m('B'),A:m('As'),S:m('S')},fluxo_proxy:m('flow'),contato_proxy:m('cq'),piso_ruido_dbfs:r(med(tk.map(k=>k.floor)),0),
+    retomadas:ret.slice(0,12),por_s:{f0:sec.map(s=>Math.round(s.f0)),db:sec.map(s=>r(s.db)),hnr:sec.map(s=>r(s.hnr)),jit:sec.map(s=>r(s.jit,2))},d_db_por_s:sec.map((s,i)=>i?r(s.db-sec[i-1].db):0)};
+  return{res,sec,ret}
+}
+function espectroide(tk,sec,ret,dur){
+  const W=900,Hh=540,c=document.createElement('canvas');c.width=W;c.height=Hh;const x=c.getContext('2d'),n=tk.length||1,w=W/n+.8;
+  x.fillStyle='#04060b';x.fillRect(0,0,W,Hh);
+  tk.forEach((k,i)=>{for(let j=0;j<64;j++){const v=k.sp[j]/255;x.fillStyle=`hsl(${280-v*260},90%,${6+v*58}%)`;x.fillRect(i/n*W,(63-j)*3.9,w,4.5)}});
+  x.strokeStyle='#fde047';x.lineWidth=2;x.beginPath();let pen=false;tk.forEach((k,i)=>{if(k.voz&&k.f0){const y=250-250*Math.log(k.f0/60)/Math.log(8000/60);pen?x.lineTo(i/n*W,y):x.moveTo(i/n*W,y);pen=true}else pen=false});x.stroke();
+  x.fillStyle='#020408';x.fillRect(0,256,W,140);
+  for(let m=0;m<11;m++){x.strokeStyle=GR[m][2];x.lineWidth=1.3;x.beginPath();tk.forEach((k,i)=>{const y=392-k.n[m]*128;i?x.lineTo(i/n*W,y):x.moveTo(i/n*W,y)});x.stroke()}
+  tk.forEach((k,i)=>{x.fillStyle=k.voz?'#0e7490':'#b91c1c';x.fillRect(i/n*W,402,w,22)});
+  x.fillStyle='#020408';x.fillRect(0,430,W,100);const sw=W/Math.max(1,dur);
+  sec.forEach((s,i)=>{const d=i?s.db-sec[i-1].db:0,hh=Math.max(-30,Math.min(30,d*3));x.fillStyle=d>=0?'#22c55e':'#ef4444';x.fillRect(i*sw+2,470-Math.max(hh,0),sw-4,Math.abs(hh)||1);x.fillStyle='#94a3b8';x.font='11px monospace';x.fillText(i+'s',i*sw+3,525)});
+  x.setLineDash([5,4]);x.strokeStyle='#fff';x.lineWidth=1;ret.slice(1).forEach(s=>{const px=s.t/dur*W;x.beginPath();x.moveTo(px,0);x.lineTo(px,440);x.stroke();x.fillStyle='#fff';x.font='bold 11px sans-serif';x.fillText('↻∫'+s.area,px+3,12)});x.setLineDash([]);
+  x.fillStyle='#e2e8f0';x.font='11px sans-serif';x.fillText('Espectrograma 60Hz–8kHz + F0 (amarelo)',6,246);x.fillText('Dimensões I–XI (normalizadas)',6,272);x.fillText('Voz (azul) / Silêncio (vermelho)',6,420);x.fillText('Δ intensidade por segundo (verde sobe, vermelho cai) · ↻ = retomada sonora, ∫ = área da fala',6,448);
+  return c.toDataURL('image/jpeg',.82)
+}
 
-            telemetria.volume = rawVol > 5 ? rawVol : Math.max(0, telemetria.volume - 5);
-            telemetria.graves = dataArray[2] ? Math.round(dataArray[2] / 2.55) : 0;
-            telemetria.medios = dataArray[15] ? Math.round(dataArray[15] / 2.55) : 0;
-            telemetria.agudos = dataArray[40] ? Math.round(dataArray[40] / 2.55) : 0;
-            telemetria.ruido = dataArray[100] ? Math.round(dataArray[100] / 2.55) : 10;
-        } else {
-            telemetria.volume = Math.max(0, telemetria.volume - 8);
-            telemetria.graves = Math.max(0, telemetria.graves - 8);
-            telemetria.medios = Math.max(0, telemetria.medios - 8);
-            telemetria.agudos = Math.max(0, telemetria.agudos - 8);
-        }
+/* ===== FIFO visual ===== */
+function renderFifo(){
+  $('fifoT').textContent=`Buffer FIFO • ${U.sessoes.length}/3 • ciclo ${U.ciclo}/${CFG.MAX}`;
+  $('slots').innerHTML=[0,1,2].map(i=>{const s=U.sessoes[i];return `<div class="slot ${s?'ok':''} ${U.sel===i?'sel':''}"><b>Sessão ${i+1}${i?'':' • atual'}</b>${s?`<img src="${s.img}" onclick="ver(${i})"><small>${s.dur.toFixed(1)}s · ${s.res.f0?Math.round(s.res.f0.m)+' Hz':'sem F0'}</small><button onclick="rep(${i})">▶</button><button onclick="ver(${i})">👁</button>`:'<small>vazio</small>'}</div>`}).join('')
+}
+function ver(i){const s=U.sessoes[i];if(!s)return;U.sel=i;const e=$('esp');e.src=s.img;e.style.display='block';renderFifo()}
+let urlA=null;
+function rep(i){const s=U.sessoes[i];if(!s)return;ver(i);R.repS=s;if(urlA)URL.revokeObjectURL(urlA);urlA=URL.createObjectURL(s.blob);const a=$('crsAudio');a.src=urlA;a.play()}
+$('crsAudio').onplay=()=>{R.rep=R.repS};
+['pause','ended'].forEach(e=>$('crsAudio').addEventListener(e,()=>{R.rep=null;R.repS=null;H=[]}));
 
-        Object.keys(canvases).forEach((key, idx) => {
-            const ctx = canvases[key];
-            const w = ctx.canvas.width = ctx.canvas.clientWidth || 200;
-            const h = ctx.canvas.height = ctx.canvas.clientHeight || 110;
+/* ===== Áudio / gravação / transcrição pela API do usuário ===== */
+async function crsAudio(){
+  if(R.stream)return;
+  R.ctx=new (window.AudioContext||window.webkitAudioContext)();await R.ctx.resume();
+  R.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+  R.an=R.ctx.createAnalyser();R.an.fftSize=2048;R.an.smoothingTimeConstant=.3;R.sr=R.ctx.sampleRate;
+  R.ctx.createMediaStreamSource(R.stream).connect(R.an);R.buf=new Float32Array(2048);R.fb=new Float32Array(1024);H=[]
+}
+let mr=null,chunks=[],t0=0,lim=0,live=null;
+async function crsToggle(){
+  if(!U.id||U.calibrado)return;
+  if(!rec){
+    if(U.tokens<CFG.CUSTO){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
+    try{await crsAudio()}catch(e){return alert('Microfone indisponível')}
+    try{speechSynthesis.cancel()}catch(e){}
+    rec={tk:[]};chunks=[];mr=new MediaRecorder(R.stream);mr.ondataavailable=e=>chunks.push(e.data);
+    mr.onstop=()=>processar(new Blob(chunks,{type:mr.mimeType||'audio/webm'}));mr.start();t0=Date.now();
+    live=chatAdd('user','🎙️ gravando…');setMic(`⏹️ Parar & Processar Sessão ${U.ciclo+1}`,false);
+    lim=setTimeout(()=>rec&&crsToggle(),30000)
+  }else{clearTimeout(lim);setMic('⏳ Processando...',true);mr.stop()}
+}
+const b64=u=>{let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)};
+async function wav(blob){
+  const ab=await blob.arrayBuffer(),AC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+  const buf=await new AC(1,1,16000).decodeAudioData(ab),oc=new AC(1,Math.ceil(buf.duration*16000),16000),s=oc.createBufferSource();s.buffer=buf;s.connect(oc.destination);s.start();
+  const o=(await oc.startRendering()).getChannelData(0),v=new DataView(new ArrayBuffer(44+o.length*2)),w=(p,t)=>[...t].forEach((c,i)=>v.setUint8(p+i,c.charCodeAt(0)));
+  w(0,'RIFF');v.setUint32(4,36+o.length*2,true);w(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,16000,true);v.setUint32(28,32000,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,o.length*2,true);
+  for(let i=0;i<o.length;i++)v.setInt16(44+i*2,Math.max(-1,Math.min(1,o[i]))*32767,true);return new Uint8Array(v.buffer)
+}
+async function transcrever(blob){
+  if(!U.key)return '';
+  try{const w=await wav(blob);let t='';
+    if(U.prov==='openai'){const f=new FormData();f.append('file',new Blob([w],{type:'audio/wav'}),'a.wav');f.append('model','whisper-1');f.append('language','pt');
+      t=(await (await fetch('https://api.openai.com/v1/audio/transcriptions',{method:'POST',headers:{Authorization:'Bearer '+U.key},body:f})).json()).text||''}
+    else{const j=await (await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CFG.GEMINI}:generateContent?key=${U.key}`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:'Transcreva fielmente a fala em português do Brasil. Responda somente com a transcrição. Se não houver fala, responda exatamente: (silêncio)'},{inline_data:{mime_type:'audio/wav',data:b64(w)}}]}]})})).json();
+      t=j.candidates[0].content.parts[0].text}
+    t=t.trim();return t==='(silêncio)'?'':t}catch(e){return ''}
+}
+async function processar(blob){
+  const rt=rec;rec=null;const bub=live;bub.textContent='⏳ transcrevendo…';
+  const txt=await transcrever(blob);bub.textContent=txt||(U.key?'(sem fala detectada)':'(sem transcrição — configure a IA no perfil)');
+  setMic('📊 Calculando CRS...',true);
+  try{await debitar()}catch(e){bub.remove();if(e.message==='sem_saldo'){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}aviso('Falha ao debitar o token. Tente de novo.');return micPronto()}
+  const {res,sec,ret}=analisarSessao(rt.tk),img=espectroide(rt.tk,sec,ret,Math.max(1,res.dur));
+  const s={k:U.id+':'+Date.now(),uid:U.id,ts:Date.now(),blob,txt,dur:res.dur,tk:rt.tk,res,img};
+  await tx('readwrite',st=>st.put(s));U.sessoes.unshift(s);                       // entra na 1ª caixa, as outras migram
+  while(U.sessoes.length>3){const o=U.sessoes.pop();await tx('readwrite',st=>st.delete(o.k))}   // FIFO: sai a mais antiga
+  U.ciclo++;U.sel=0;renderFifo();$('esp').src=img;$('esp').style.display='block';
+  sb.from('calibracoes_crs').insert([{user_id:U.id,operador_nome:U.nome,etapa:U.ciclo,transcricao_usuario:txt,audio_url:'idb:'+s.k,tokens_consumidos:CFG.CUSTO}]).then(()=>{},()=>{});
+  document.dispatchEvent(new CustomEvent('crs:sessao',{detail:{res,txt}}));
+  const fim=U.ciclo>=CFG.MAX;if(fim)await travar();
+  await iaFalar(txt,res,img,fim);
+  if(!fim){if(U.tokens<CFG.CUSTO){aviso('Saldo insuficiente para a próxima sessão.');setMic('Saldo insuficiente',true)}else micPronto()}
+}
 
-            ctx.clearRect(0, 0, w, h);
-            ctx.fillStyle = "#020408";
-            ctx.fillRect(0, 0, w, h);
+/* ===== Chat com a IA do usuário ===== */
+const SYS='Você é o Elayon Core, guia de calibração e acompanhamento vocal do Elayon Space, apoiando um profissional de saúde. Fale em português do Brasil, tom calmo e acolhedor, no máximo 4 frases curtas, sem listas nem emojis. NUNCA dê diagnóstico: descreva achados em linguagem simples, compare com as sessões anteriores, sugira exercícios leves ou autoexame e indique que os valores são estimativas acústicas de microfone de celular, cabendo a avaliação ao profissional. Os blocos [SISTEMA] e os dados CRS são internos: interprete, não recite números crus. Quando houver imagem, é o espectroide da sessão (espectrograma com F0, linhas das dimensões I a XI, faixa voz/silêncio e variação por segundo; linhas tracejadas marcam retomadas sonoras). No encerramento, agradeça e despeça-se.';
+function chatAdd(cls,txt){const d=document.createElement('div');d.className='msg '+cls;d.textContent=txt;$('chat').appendChild(d);$('chat').scrollTop=1e9;return d}
+function falar(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='pt-BR';speechSynthesis.speak(u)}catch(e){}}
+async function ia(prompt,img){
+  U.hist.push({r:'user',t:prompt});U.hist=U.hist.slice(-10);let out='';
+  const sys=SYS+(U.proto?' Protocolo definido pelo médico responsável: '+U.proto:''),im=img?img.split(',')[1]:null,last=U.hist.length-1;
+  try{if(U.key){
+    if(U.prov==='openai'){
+      const m=U.hist.map((h,i)=>({role:h.r==='user'?'user':'assistant',content:(i===last&&im)?[{type:'text',text:h.t},{type:'image_url',image_url:{url:img}}]:h.t}));
+      out=(await (await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+U.key},body:JSON.stringify({model:CFG.OPENAI,messages:[{role:'system',content:sys},...m]})})).json()).choices[0].message.content
+    }else{
+      const m=U.hist.map((h,i)=>({role:h.r==='user'?'user':'model',parts:(i===last&&im)?[{text:h.t},{inline_data:{mime_type:'image/jpeg',data:im}}]:[{text:h.t}]}));
+      out=(await (await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CFG.GEMINI}:generateContent?key=${U.key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:m})})).json()).candidates[0].content.parts[0].text}}}catch(e){out=''}
+  out=(out||'').trim();if(out)U.hist.push({r:'ia',t:out});else U.hist.pop();return out
+}
+async function iaFalar(txt,res,img,fim){
+  const n=U.ciclo,prev=U.sessoes.slice(1).map(s=>({f0:s.res.f0&&s.res.f0.m,db:s.res.db&&s.res.db.m,jit:s.res.jit&&s.res.jit.m,shim:s.res.shim&&s.res.shim.m,hnr:s.res.hnr&&s.res.hnr.m,cpp:s.res.cpp&&s.res.cpp.m,pausas:s.res.pausas}));
+  const p=`[SISTEMA] Sessão ${n}/${CFG.MAX} do ciclo concluída. Fala transcrita: "${txt||'(nada detectado)'}". Dados CRS internos: ${JSON.stringify({atual:res,anteriores:prev})}. `+(fim?'Esta foi a última sessão: comente os achados em linguagem simples, sem diagnóstico, agradeça e despeça-se.':`Comente brevemente e passe a próxima instrução: "${CFG.ETAPAS[n]}"`);
+  const w=chatAdd('ia','…'),r=await ia(p,img);w.remove();
+  if(!r&&U.key)aviso('A IA não respondeu. Confira provedor e chave no perfil.');
+  const t=r||(fim?`Calibração concluída, ${U.nome}. Obrigado! Até logo.`:`Sessão ${n} registrada. Próxima: ${CFG.ETAPAS[n]}`);chatAdd('ia',t);falar(t)
+}
+async function iaIntro(){
+  const k=U.ciclo,w=chatAdd('ia','…'),r=await ia(`[SISTEMA] Operador: ${U.nome}. ${k?`Retomando o ciclo, ${k} de ${CFG.MAX} sessões feitas.`:`Dê boas-vindas e explique em uma frase que são ${CFG.MAX} sessões curtas de voz e que a primeira é só um teste de conexão.`} Passe a instrução da sessão ${k+1}: "${CFG.ETAPAS[k]}"`);
+  w.remove();if(!r&&!U.key)aviso('IA do perfil não configurada: conversa em modo roteiro. <a href="perfil.html">Configurar</a>');
+  const t=r||`Bem-vindo, ${U.nome}. Faremos ${CFG.MAX} sessões curtas de voz. Sessão ${k+1}: ${CFG.ETAPAS[k]}`;chatAdd('ia',t);falar(t)
+}
 
-            let val = (telemetria.volume / 100) * h;
-            ctx.fillStyle = idx % 2 === 0 ? "#0ea5e9" : "#14b8a6";
-            ctx.fillRect(20, h - val, w - 40, val);
-
-            const badge = document.getElementById(`valG${idx+1}`);
-            if (badge) badge.innerText = `${telemetria.volume}%`;
-        });
-
-        if (isRunning || telemetria.volume > 0) {
-            animationId = requestAnimationFrame(atualizarGraficos);
-        }
-    }
-
-    function adicionarMensagem(remetente, texto, tipo) {
-        const div = document.createElement("div");
-        div.className = `msg ${tipo}`;
-        div.innerHTML = `<span class="msg-tag">${remetente}</span>${texto}`;
-        chatContainer.appendChild(div);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    function falarTTS(texto, callback) {
-        if (!("speechSynthesis" in window)) { if (callback) callback(); return; }
-        window.speechSynthesis.cancel();
-        const utter = new SpeechSynthesisUtterance(texto);
-        utter.lang = "pt-BR";
-        utter.rate = 1.0;
-        utter.onstart = () => {
-            statusDot.className = "status-indicator escutando";
-            statusTexto.innerText = "IA conversando...";
-        };
-        utter.onend = () => { if (callback) callback(); };
-        window.speechSynthesis.speak(utter);
-    }
-
-    function abrirReconhecimentoVoz(callbackSucesso) {
-        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRec) {
-            alert("SpeechRecognition não suportado neste navegador.");
-            if (callbackSucesso) callbackSucesso("Simulação de fala por voz OK");
-            return;
-        }
-
-        const rec = new SpeechRec();
-        rec.lang = "pt-BR";
-        rec.interimResults = false;
-        rec.maxAlternatives = 1;
-
-        statusDot.className = "status-indicator ativo";
-        statusTexto.innerText = "Microfone aberto. Pode falar!";
-        isRunning = true;
-        atualizarGraficos();
-
-        rec.onresult = (event) => {
-            const transcricao = event.results[0][0].transcript;
-            adicionarMensagem("VOCÊ", transcricao, "user");
-            if (callbackSucesso) callbackSucesso(transcricao);
-        };
-
-        rec.onerror = () => {
-            statusTexto.innerText = "Nenhuma fala detectada.";
-            if (callbackSucesso) callbackSucesso("Interação por voz concluída.");
-        };
-
-        rec.onend = () => {
-            isRunning = false;
-        };
-
-        rec.start();
-    }
-
-    async function dispararCicloSimbiotico() {
-        btnSimbiose.disabled = true;
-        const ok = await iniciarAudio();
-        if (!ok) { btnSimbiose.disabled = false; return; }
-
-        const instrucaoInicial = "Olá, Paulo. Vamos iniciar nossa análise conversacional e paramétrica de voz.";
-        adicionarMensagem("ELAYON IA", instrucaoInicial, "ia");
-
-        falarTTS(instrucaoInicial, () => {
-            abrirReconhecimentoVoz(async (textoTranscrito) => {
-                statusTexto.innerText = "Organizando e estabilizando interação...";
-                tempoPausa.style.display = "inline";
-                
-                let seg = 2;
-                const timerPausa = setInterval(() => {
-                    seg--;
-                    if (seg <= 0) {
-                        clearInterval(timerPausa);
-                        tempoPausa.style.display = "none";
-                        processarEnvioCRS(textoTranscrito);
-                    }
-                }, 1000);
-            });
-        });
-    }
-
-    async function processarEnvioCRS(texto) {
-        statusTexto.innerText = "Enviando telemetria e áudio ao CRS...";
-        
-        const payloadCRS = {
-            context: "Sessão cockpit conversacional simbiótico",
-            transcript_raw: texto,
-            duration_sec: 5,
-            silence_pct: 15,
-            pause_count: 2,
-            mean_pause_ms: 180,
-            energy_pct: telemetria.volume,
-            oscillation_pct: 12
-        };
-
-        try {
-            const res = await fetch(URL_CRS, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payloadCRS)
-            });
-            const data = await res.json();
-            
-            relatorioCRS.value = JSON.stringify(data, null, 2);
-            statusTexto.innerText = "Sessão consolidada com sucesso!";
-            statusDot.className = "status-indicator";
-
-            salvarSessaoNoBuffer({
-                id: sessaoAtualIndex++,
-                timestamp: new Date().toLocaleTimeString(),
-                telemetria: { ...telemetria },
-                relatorio: data
-            });
-
-        } catch (e) {
-            relatorioCRS.value = "Relatório CRS (Offline Fallback): Telemetria de volume média " + telemetria.volume + "% registrada com sucesso.";
-            statusTexto.innerText = "Sessão registrada (Modo Resiliente).";
-            statusDot.className = "status-indicator";
-            
-            salvarSessaoNoBuffer({
-                id: sessaoAtualIndex++,
-                timestamp: new Date().toLocaleTimeString(),
-                telemetria: { ...telemetria },
-                relatorio: { status: "fallback_local" }
-            });
-        }
-
-        btnSimbiose.disabled = false;
-    }
-
-function salvarSessaoNoBuffer(sessao) {
-        sessoesBuffer.push(sessao);
-        if (sessoesBuffer.length > 3) {
-            sessoesBuffer.shift();
-        }
-
-        sessoesBuffer.forEach((s, i) => {
-            const slotInfo = document.getElementById(`slot${i+1}Info`);
-            if (slotInfo) {
-                slotInfo.innerText = `Vol: ${s.telemetria.volume}% • ${s.timestamp}`;
-            }
-        });
-    }
-
-    window.carregarSessao = function(slotNum) {
-        const sessao = sessoesBuffer[slotNum - 1];
-        if (!sessao) {
-            alert(`A Sessão ${slotNum} no buffer ainda está vazia.`);
-            return;
-        }
-        relatorioCRS.value = `--- CARREGADO DA SESSÃO ${sessao.id} (${sessao.timestamp}) ---\n` + JSON.stringify(sessao.relatorio, null, 2);
-        statusTexto.innerText = `Sessão ${sessao.id} carregada no painel.`;
-    };
-
-    btnSimbiose.addEventListener("click", dispararCicloSimbiotico);
-    atualizarGraficos();
-});
+addEventListener('DOMContentLoaded',()=>{fit();requestAnimationFrame(loop);carregar()});
 </script>
 </body>
 </html>
