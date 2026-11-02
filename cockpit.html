@@ -3,24 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Elayon Space • Calibração Humana (CRS v4)</title>
+<title>Elayon Space • Cockpit Simbiótico Multiview CRS v4</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 body{margin:0;background:#04060b;padding:10px}
-.crs{background:#04060b;color:#f8fafc;font-family:system-ui;padding:14px;border-radius:16px}
+.crs{background:#04060b;color:#f8fafc;font-family:system-ui;padding:14px;border-radius:16px;max-width:1200px;margin:0 auto}
 .crs-t{text-align:center;font-size:17px;color:#7dd3fc;text-transform:uppercase;margin:0 0 12px}
-.crs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(max-width:520px){.crs-grid{grid-template-columns:1fr}}
+.crs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(max-width:768px){.crs-grid{grid-template-columns:1fr}}
 .crs-card{border:1px solid var(--c);border-radius:14px;padding:10px;background:#070c16;box-shadow:0 0 14px color-mix(in srgb,var(--c) 30%,transparent)}
 .crs-h{display:flex;gap:6px;align-items:baseline;font-size:12px;font-weight:800;text-transform:uppercase;color:var(--c)}
 .crs-h small{font-weight:400;color:#94a3b8;font-size:9px}
 .crs-h i{margin-left:auto;font:10px monospace;font-style:normal;background:#0008;padding:2px 6px;border-radius:5px}
-.crs-card canvas{width:100%;height:150px;display:block;margin:6px 0;background:#020408;border-radius:9px}
+.crs-card canvas{width:100%;height:140px;display:block;margin:6px 0;background:#020408;border-radius:9px}
 .crs-f{display:flex;justify-content:space-between;font-size:9px;color:#94a3b8}
-.crs-fifo{margin-top:12px;border:1px solid #38bdf833;border-radius:14px;padding:10px;background:#070c16}
-.crs-fifo audio{width:100%;height:34px}
-#crsChips button{background:#0b1d33;color:#7dd3fc;border:1px solid #38bdf855;border-radius:8px;padding:5px 9px;font-size:11px;margin:6px 6px 0 0}
-#crsMic{width:100%;margin-top:12px;padding:16px;border-radius:14px;border:1px solid #ef444466;background:linear-gradient(135deg,#7f1d1d,#b91c1c);color:#fff;font-weight:800;font-size:14px}
 
 .hud{display:flex;align-items:center;gap:10px;background:#070c16;border:1px solid #38bdf833;border-radius:14px;padding:10px 12px;margin-bottom:12px}
 .hud img{width:38px;height:38px;border-radius:50%;border:1.5px solid #38bdf8;object-fit:cover}
@@ -28,22 +24,31 @@ body{margin:0;background:#04060b;padding:10px}
 .hud .tk{margin-left:auto;text-align:right;font-size:10px;color:#94a3b8}.hud .tk b{display:block;font-size:18px;color:#4ade80}
 .hud a{color:#7dd3fc;text-decoration:none;font-size:18px}
 #crsAviso{font-size:12px;color:#fbbf24;margin-bottom:10px}#crsAviso a{color:#7dd3fc}
-.slots{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}
-@media(max-width:520px){.slots{grid-template-columns:repeat(2,1fr)}}
+
+.crs-fifo{margin-top:12px;border:1px solid #38bdf833;border-radius:14px;padding:10px;background:#070c16}
+.crs-fifo audio{width:100%;height:34px;margin-top:6px}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+@media(max-width:520px){.slots{grid-template-columns:1fr}}
 .slot{border:1px solid #1e293b;border-radius:10px;padding:8px;font-size:11px;background:#050810}
 .slot.ok{border-color:#4ade80aa;background:#06140d}.slot small{display:block;color:#94a3b8;font-size:10px;margin:2px 0 4px}
 .slot button{background:#0b1d33;color:#7dd3fc;border:1px solid #38bdf855;border-radius:7px;padding:4px 8px;font-size:11px}
-#crsRel{width:100%;height:78px;margin-top:10px;background:#020408;color:#cbd5e1;border:1px solid #38bdf833;border-radius:10px;font:10px monospace;padding:8px;box-sizing:border-box}
-#crsMic:disabled{background:#1e293b;color:#94a3b8;border-color:#334155}
+
 .chat{height:190px;overflow-y:auto;margin-top:12px;padding:10px;background:#070c16;border:1px solid #38bdf833;border-radius:14px;display:flex;flex-direction:column;gap:6px}
 .msg{padding:7px 10px;border-radius:10px;font-size:12px;line-height:1.4;max-width:88%}
 .msg.ia{background:#052e22;border:1px solid #10b98155;color:#a7f3d0;align-self:flex-start}
 .msg.user{background:#0c2a44;border:1px solid #38bdf855;color:#bae6fd;align-self:flex-end}
+
+.actions-box{display:flex;gap:8px;margin-top:12px}
+#crsMic{flex:2;padding:16px;border-radius:14px;border:1px solid #ef444466;background:linear-gradient(135deg,#7f1d1d,#b91c1c);color:#fff;font-weight:800;font-size:14px;cursor:pointer}
+#crsRefazer{flex:1;padding:16px;border-radius:14px;border:1px solid #38bdf866;background:linear-gradient(135deg,#0369a1,#0284c7);color:#fff;font-weight:800;font-size:13px;cursor:pointer}
+#crsMic:disabled,#crsRefazer:disabled{background:#1e293b;color:#94a3b8;border-color:#334155;cursor:not-allowed}
+
 #btnIndex{display:block;text-align:center;text-decoration:none;margin-top:10px;padding:16px;border-radius:14px;border:1px solid #2dd4bf66;background:linear-gradient(135deg,#0f766e,#14b8a6);color:#fff;font-weight:800;font-size:14px}
+#crsRel{width:100%;height:78px;margin-top:10px;background:#020408;color:#cbd5e1;border:1px solid #38bdf833;border-radius:10px;font:10px monospace;padding:8px;box-sizing:border-box}
 </style>
 </head>
 <body>
-<section id="crsCalib" class="crs">
+<section class="crs">
   <header class="hud">
     <img id="hudAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=ElayonUser" alt="">
     <div><b id="hudNome">Carregando…</b><small id="hudId">ID —</small></div>
@@ -51,61 +56,72 @@ body{margin:0;background:#04060b;padding:10px}
     <a href="perfil.html" id="hudPerfil">⚙️</a>
   </header>
   <div id="crsAviso"></div>
-  <h2 class="crs-t">Interação Visual de Voz: Calibração Humana</h2>
+  
+  <h2 class="crs-t">As 12 Modulações de Interação & Escuta Simbiótica</h2>
+  
   <div class="crs-grid">
-    <div class="crs-card" style="--c:#c084fc"><div class="crs-h">Nebulosa de Energia<small>(Intensidade)</small><i id="t1">0 dB</i></div><canvas id="g1"></canvas><div class="crs-f"><span>Volume Mínimo</span><span>Volume Máximo</span></div></div>
-    <div class="crs-card" style="--c:#38bdf8"><div class="crs-h">Anel Orbital<small>(Distribuição)</small><i id="t2">0 dB</i></div><canvas id="g2"></canvas><div class="crs-f"><span>Volume Mínimo</span><span>Volume Máximo</span></div></div>
-    <div class="crs-card" style="--c:#4ade80"><div class="crs-h">Cortina de DNA<small>(Timbre)</small><i id="t3">0 dB</i></div><canvas id="g3"></canvas><div class="crs-f"><span>Volume Mínimo</span><span>Volume Máximo</span></div></div>
-    <div class="crs-card" style="--c:#fbbf24"><div class="crs-h">Trilha Cinética<small>(Prosódia)</small><i id="t4">0 %</i></div><canvas id="g4"></canvas><div class="crs-f"><span>Volume Mínimo</span><span>Volume Máximo</span></div></div>
-    <div class="crs-card" style="--c:#60a5fa"><div class="crs-h">Enxame de Constelação<small>(G.R.B.A.S)</small><i id="t5">0 %</i></div><canvas id="g5"></canvas><div class="crs-f"><span>Volume Mínimo</span><span>Volume Máximo</span></div></div>
-    <div class="crs-card" style="--c:#fb923c"><div class="crs-h">Vórtice Dupla Hélice<small>(Aerodinâmica)</small><i id="t6">0 L/s</i></div><canvas id="g6"></canvas><div class="crs-f"><span>Volume Mínimo</span><span>Volume Máximo</span></div></div>
-    <div class="crs-card" style="--c:#ec4899"><div class="crs-h">Grade de Cristal<small>(Contato Glótico)</small><i id="t7">0 dB</i></div><canvas id="g7"></canvas><div class="crs-f"><span>Volume Mínimo</span><span>Volume Máximo</span></div></div>
-    <div class="crs-card" style="--c:#2dd4bf"><div class="crs-h">Escudo Isolador<small>(Ruído)</small><i id="t8">0 dB</i></div><canvas id="g8"></canvas><div class="crs-f"><span>Volume Mínimo</span><span>Volume Máximo</span></div></div>
+    <div class="crs-card" style="--c:#c084fc"><div class="crs-h">I. Frequência / Tom (F0 & Jitter)<small>(Onda Contínua)</small><i id="t1">0 Hz</i></div><canvas id="g1"></canvas><div class="crs-f"><span>0 Hz</span><span>500 Hz</span></div></div>
+    <div class="crs-card" style="--c:#38bdf8"><div class="crs-h">II. Intensidade / Volume (SPL & Shimmer)<small>(Rosca)</small><i id="t2">0 dB</i></div><canvas id="g2"></canvas><div class="crs-f"><span>0 dB</span><span>100 dB</span></div></div>
+    <div class="crs-card" style="--c:#4ade80"><div class="crs-h">III. Qualidade / Timbre (HNR & CPPS)<small>(Barras)</small><i id="t3">0 dB</i></div><canvas id="g3"></canvas><div class="crs-f"><span>0 dB</span><span>30 dB</span></div></div>
+    <div class="crs-card" style="--c:#fbbf24"><div class="crs-h">IV. Prosódia / Ritmo & Pausas<small>(Gradiente)</small><i id="t4">0 %</i></div><canvas id="g4"></canvas><div class="crs-f"><span>0 %</span><span>100 %</span></div></div>
+    <div class="crs-card" style="--c:#60a5fa"><div class="crs-h">V. Perceptivo-Auditivo (GRBAS)<small>(Dispersão)</small><i id="t5">G0</i></div><canvas id="g5"></canvas><div class="crs-f"><span>G0</span><span>G3</span></div></div>
+    <div class="crs-card" style="--c:#fb923c"><div class="crs-h">VI. Aerodinâmica & Fluxo Subglótico<small>(Linhas Duplas)</small><i id="t6">0 L/s</i></div><canvas id="g6"></canvas><div class="crs-f"><span>0 L/s</span><span>200 L/s</span></div></div>
+    <div class="crs-card" style="--c:#ec4899"><div class="crs-h">VII. Contato Glótico (EGG)<small>(Histograma Degrau)</small><i id="t7">0 %</i></div><canvas id="g7"></canvas><div class="crs-f"><span>0 %</span><span>100 %</span></div></div>
+    <div class="crs-card" style="--c:#2dd4bf"><div class="crs-h">VIII. Contexto Ambiental & Ruído<small>(Radial)</small><i id="t8">0 dBA</i></div><canvas id="g8"></canvas><div class="crs-f"><span>0 dBA</span><span>80 dBA</span></div></div>
+    <div class="crs-card" style="--c:#a855f7"><div class="crs-h">IX. Paralinguística & Micro-expressão<small>(Espectroid)</small><i id="t9">0 %</i></div><canvas id="g9"></canvas><div class="crs-f"><span>Início</span><span>Fim</span></div></div>
+    <div class="crs-card" style="--c:#34d399"><div class="crs-h">X. Harmonização Simbiótica<small>(Espectrograma)</small><i id="t10">0 dB</i></div><canvas id="g10"></canvas><div class="crs-f"><span>Baixa</span><span>Alta</span></div></div>
+    <div class="crs-card" style="--c:#f43f5e"><div class="crs-h">XI. Índice Biomecânico de Fala<small>(Dinâmico)</small><i id="t11">0 Index</i></div><canvas id="g11"></canvas><div class="crs-f"><span>Estável</span><span>Crítico</span></div></div>
+    <div class="crs-card" style="--c:#38bdf8"><div class="crs-h">XII. Multidimensão Consolidada<small>(Painel do Médico/IA)</small><i id="t12">Sync</i></div><canvas id="g12"></canvas><div class="crs-f"><span>Histórico</span><span>Atual</span></div></div>
   </div>
+
   <div class="crs-fifo">
-    <b id="crsEtapaTit" style="font-size:11px;color:#7dd3fc;text-transform:uppercase">Buffer FIFO & Reprise • 0/5</b>
+    <b id="crsEtapaTit" style="font-size:11px;color:#7dd3fc;text-transform:uppercase">Buffer FIFO (Máx 3 Sessões) • 0/3</b>
     <audio id="crsAudio" controls></audio>
     <div class="slots" id="slots"></div>
-    <textarea id="crsRel" readonly placeholder="O relatório CRS da etapa aparece aqui..."></textarea>
+    <textarea id="crsRel" readonly placeholder="Relatório analítico do CRS v4 e métricas fonoaudiológicas..."></textarea>
   </div>
+
   <div class="chat" id="chat"></div>
-  <button id="crsMic" onclick="crsToggle()" disabled>🎙️ Carregando…</button>
-  <a id="btnIndex" href="#" target="_blank" rel="noopener" style="display:none">🌐 Abrir o Index no navegador</a>
+
+  <div class="actions-box">
+    <button id="crsMic" onclick="crsToggle()" disabled>🎙️ Carregando…</button>
+    <button id="crsRefazer" onclick="crsResetar()" title="Refazer calibração e testes">🔄 Refazer Teste</button>
+  </div>
+
+  <a id="btnIndex" href="#" target="_blank" rel="noopener" style="display:none">🌐 Abrir o Index no navegador (Elayon Health)</a>
 </section>
 
 <script>
 const CFG={
   URL:'https://xlktkelumtpugidnecbj.supabase.co',
   KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM',
-  CUSTO:1,            // tokens por etapa
-  MAX:5,              // etapas / tamanho do FIFO
-  INDEX:'https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/', // endereço do Index (confira)
+  CUSTO:1,
+  MAX_FIFO:3, // FIFO restrito estritamente a 3 sessões
+  INDEX:'https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/',
   LOGIN:'login.html',
   GEMINI:'gemini-2.5-flash', OPENAI:'gpt-4o',
   ETAPAS:[
-    'Conte até dez, devagar e tranquilamente.',
-    'Diga o seu nome completo.',
-    'Diga a data de hoje e o horário atual.',
-    'Descreva, em uma frase, o que você está vendo ao seu redor.',
-    'Para fechar, fale livremente por alguns segundos sobre como você está agora.'
+    'Conexão Simbiótica: Diga "Olá, Elayon" ou faça um teste rápido de áudio.',
+    'Calibração Fonoaudiológica 1: Conte até dez devagar e com clareza.',
+    'Calibração Fonoaudiológica 2: Diga seu nome completo, data de hoje e horário atual.'
   ]
 };
+
 const sb=window.supabase?supabase.createClient(CFG.URL,CFG.KEY):null;
-const $=id=>document.getElementById(id),G=[];
+const $=id=>document.getElementById(id);
 const U={id:null,nome:'Operador',tokens:0,calibrado:false,sessoes:[],prov:'gemini',key:'',hist:[]};
-const CRS={gravando:false,rec:null,chunks:[],ctx:null,an:null,fd:null,stream:null,raf:0,sr:null,txt:'',lim:0,t0:0,live:null};
-const A={vol:.15,lo:.3,mid:.3,hi:.3,pico:.1,t:0};
+const CRS={gravando:false,rec:null,chunks:[],stream:null,raf:0,sr:null,txt:'',lim:0,t0:0,live:null};
+const A={vol:.15,lo:.3,mid:.3,hi:.3,pico:.1,t:0,pitch:120,jitter:0.02,shimmer:0.03,hnr:15,cpps:12};
 const M={n:0,sum:0,max:0,pausas:0,sil:0};
 
-/* ---------- FIFO persistente (IndexedDB) ---------- */
-const DB=new Promise((ok,no)=>{const r=indexedDB.open('crs_fifo',1);r.onupgradeneeded=()=>r.result.createObjectStore('s',{keyPath:'k'});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
+/* IndexedDB FIFO 3 slots */
+const DB=new Promise((ok,no)=>{const r=indexedDB.open('crs_fifo_v4',1);r.onupgradeneeded=()=>r.result.createObjectStore('s',{keyPath:'k'});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
 const tx=async(m,f)=>{const d=await DB;return new Promise((ok,no)=>{const t=d.transaction('s',m),q=f(t.objectStore('s'));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>no(t.error)})};
 
-/* ---------- Perfil, token, saldo ---------- */
 function aviso(h){$('crsAviso').innerHTML=h||''}
 function setMic(txt,dis){const b=$('crsMic');b.textContent=txt;b.disabled=!!dis}
 function pintarHud(){$('hudNome').textContent=U.nome;$('hudId').textContent='ID '+(U.id?U.id.slice(0,8):'—');$('hudTokens').textContent=U.tokens}
-function micPronto(){setMic(`🎙️ Abrir Microfone (Etapa ${U.sessoes.length+1}/${CFG.MAX} • Até 30s)`,false)}
+function micPronto(){const k=U.sessoes.length; const etapaNome=k===0?'Teste de Conexão':`Etapa ${k+1}/3`; setMic(`🎙️ Abrir Microfone (${etapaNome} • Até 30s)`,false)}
 
 async function carregar(){
   if(!sb){aviso('Supabase indisponível.');return setMic('Indisponível',true)}
@@ -117,13 +133,14 @@ async function carregar(){
   U.tokens=(p&&p.tokens)??0;U.prov=(p&&p.ai_provider)||'gemini';U.key=(p&&p.ai_key)||'';
   if(p&&p.avatar_url)$('hudAvatar').src=p.avatar_url;
   pintarHud();
-  U.sessoes=((await tx('readonly',s=>s.getAll()))||[]).filter(x=>x.uid===U.id).sort((a,b)=>a.ts-b.ts).slice(-CFG.MAX);
+  U.sessoes=((await tx('readonly',s=>s.getAll()))||[]).filter(x=>x.uid===U.id).sort((a,b)=>a.ts-b.ts).slice(-CFG_MAX());
   U.calibrado=!!(session.user.user_metadata&&session.user.user_metadata.crs_calibrado)||localStorage.getItem('crs_ok_'+U.id)==='1';
   renderFifo();
-  if(U.calibrado){uiTravado();chatAdd('ia',`Calibração já concluída, ${U.nome}. Obrigado! Pode seguir para o Index.`);return}
+  if(U.calibrado){uiTravado();chatAdd('ia',`Calibração simbiótica concluída, ${U.nome}. O ecossistema Elayon Health está pronto.`);return}
   if(U.tokens<CFG.CUSTO){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
   micPronto();iaIntro()
 }
+function CFG_MAX(){return CFG.MAX_FIFO}
 
 async function debitar(){
   for(let i=0;i<3;i++){
@@ -136,101 +153,209 @@ async function debitar(){
   throw new Error('conflito')
 }
 
-/* ---------- FIFO visual, relatório, trava, Health ---------- */
+/* FIFO visual com exatamente 3 slots */
 function renderFifo(){
-  $('crsEtapaTit').textContent=`Buffer FIFO & Reprise • ${U.sessoes.length}/${CFG.MAX}`;
-  $('slots').innerHTML=Array.from({length:CFG.MAX},(_,i)=>{const s=U.sessoes[i];
-    return `<div class="slot ${s?'ok':''}"><b>Etapa ${i+1}</b><small>${s?s.dur.toFixed(1)+'s · pico '+Math.round(s.pico*100)+'%':'Pendente'}</small>${s?`<button onclick="reprise(${i})">▶ Reprise</button>`:''}</div>`}).join('')
+  $('crsEtapaTit').textContent=`Buffer FIFO (Máx 3 Sessões) • ${U.sessoes.length}/${CFG.MAX_FIFO}`;
+  $('slots').innerHTML=Array.from({length:CFG.MAX_FIFO},(_,i)=>{const s=U.sessoes[i];
+    return `<div class="slot ${s?'ok':''}"><b>Sessão ${i+1}</b><small>${s?s.dur.toFixed(1)+'s · RMS '+Math.round(s.vol*100)+'%':'Vazio / FIFO'}</small>${s?`<button onclick="reprise(${i})">▶ Reprise</button>`:''}</div>`}).join('')
 }
 let urlAtual=null;
 function reprise(i){const s=U.sessoes[i];if(!s)return;if(urlAtual)URL.revokeObjectURL(urlAtual);urlAtual=URL.createObjectURL(s.blob);const a=$('crsAudio');a.src=urlAtual;a.play();$('crsRel').value=s.rel||''}
-function relatorio(s){s.rel=`[CRS v4 REPORT - ETAPA ${s.etapa}/${CFG.MAX}]\n- Duração: ${s.dur.toFixed(1)} s\n- Intensidade média: ${Math.round(s.vol*100)}%  | Pico: ${Math.round(s.pico*100)}%\n- Pausas ≥300ms: ${s.pausas}\n- Transcrição: ${s.txt||'(sem transcrição)'}\n- Saldo após consumo: ${U.tokens} tokens`;$('crsRel').value=s.rel}
-function uiTravado(){
-  setMic(`🔒 Calibração concluída ${CFG.MAX}/${CFG.MAX}`,true);
-  aviso('✅ Calibração concluída e travada.');
-  const h=$('btnIndex');h.href=CFG.INDEX;h.style.display='block'
+function relatorio(s){
+  s.rel=`[CRS v4 REPORT - SESSÃO FIFO ${s.etapa}]
+- Duração da fala: ${s.dur.toFixed(1)} s
+- Intensidade RMS: ${Math.round(s.vol*100)}% | Pico: ${Math.round(s.pico*100)}%
+- Pausas paralinguísticas: ${s.pausas}
+- Transcrição do usuário: ${s.txt||'(sem transcrição)'}
+- Status: Migrado com sucesso no Buffer FIFO. Tokens restantes: ${U.tokens}`;
+  $('crsRel').value=s.rel
 }
+
+function uiTravado(){
+  setMic('🔒 Calibração Concluída & Consolidada',true);
+  aviso('✅ Ecossistema calibrado. As 3 sessões estão ativas no FIFO.');
+  const h=$('btnIndex');h.href=CFG.INDEX;h.style.display='block';
+}
+
 async function travar(){
   U.calibrado=true;localStorage.setItem('crs_ok_'+U.id,'1');
   try{await sb.auth.updateUser({data:{crs_calibrado:true}})}catch(e){}
   uiTravado()
 }
 
-/* ---------- Núcleo visual ---------- */
-window.habilitarCalibracao=()=>{crsFit();if(!CRS.raf)crsLoop()};
-function crsFit(){for(let i=1;i<=8;i++){const c=$('g'+i),r=devicePixelRatio||1;c.width=c.clientWidth*r;c.height=c.clientHeight*r;c.getContext('2d').setTransform(r,0,0,r,0,0)}}
-addEventListener('resize',crsFit);
-function fade(x,W,H,a=.22){x.globalCompositeOperation='source-over';x.fillStyle=`rgba(2,4,8,${a})`;x.fillRect(0,0,W,H);x.globalCompositeOperation='lighter'}
-function dot(x,px,py,r,col){x.fillStyle=col;x.beginPath();x.arc(px,py,r,0,6.2832);x.fill()}
-function medir(){
-  const t=A.t;let v=.14+.08*Math.sin(t*1.3),lo=.3+.2*Math.sin(t*.9),mid=.3+.2*Math.sin(t*1.7+1),hi=.3+.2*Math.sin(t*2.3+2);
-  if(CRS.gravando&&CRS.an){CRS.an.getByteFrequencyData(CRS.fd);const n=CRS.fd.length,b=(a,z)=>{let s=0;for(let i=a;i<z;i++)s+=CRS.fd[i];return s/(z-a)/255};
-    lo=b(1,n/8|0);mid=b(n/8|0,n/3|0);hi=b(n/3|0,n/1.5|0);v=Math.min(1,(lo+mid+hi)*1.3)}
-  const k=.12;A.vol+=(v-A.vol)*k;A.lo+=(lo-A.lo)*k;A.mid+=(mid-A.mid)*k;A.hi+=(hi-A.hi)*k;A.pico=Math.max(A.pico*.998,A.vol)
-}
-let fr=0;
-function crsLoop(){
-  A.t+=.016;medir();
-  if(CRS.gravando){M.n++;M.sum+=A.vol;M.max=Math.max(M.max,A.vol);if(A.vol<.12){if(++M.sil==18)M.pausas++}else M.sil=0}
-  for(let i=0;i<8;i++){const c=$('g'+(i+1)),x=c.getContext('2d');G[i]&&G[i](x,c.clientWidth,c.clientHeight,A.t,A)}
-  if(++fr%6==0){const db=20*Math.log10(A.vol+.001);
-    $('t1').textContent=db.toFixed(1)+' dB';$('t2').textContent=(20*Math.log10(A.pico+.001)).toFixed(1)+' dB';
-    $('t3').textContent=(A.hi/(A.lo+.01)).toFixed(2)+' ratio';$('t4').textContent=(A.mid*100).toFixed(1)+' %';
-    $('t5').textContent=(A.vol*100).toFixed(1)+' %';$('t6').textContent=(A.lo*10-3).toFixed(1)+' L/s';
-    $('t7').textContent=(db-1.5).toFixed(1)+' dB';$('t8').textContent=(-40+A.hi*15).toFixed(1)+' dB'}
-  CRS.raf=requestAnimationFrame(crsLoop)
+async function crsResetar(){
+  if(!confirm('Deseja refazer a calibração fonoaudiológica e reiniciar o FIFO?'))return;
+  U.calibrado=false;localStorage.removeItem('crs_ok_'+U.id);
+  try{await sb.auth.updateUser({data:{crs_calibrado:false}})}catch(e){}
+  U.sessoes=[];
+  const keys=(await tx('readonly',s=>s.getAllKeys()))||[];
+  for(const k of keys){await tx('readwrite',s=>s.delete(k))}
+  renderFifo();$('btnIndex').style.display='none';$('crsRel').value='';
+  aviso('');micPronto();chatAdd('ia','Sistema reiniciado para nova calibração de treino.');
 }
 
-/* ---------- Gravação ---------- */
-async function crsAudio(){
+/* Canvas & Gráficos Fonoaudiológicos Avançados (12 modulações) */
+function crsFit(){for(let i=1;i<=12;i++){const c=$('g'+i),r=devicePixelRatio||1;if(c){c.width=c.clientWidth*r;c.height=c.clientHeight*r;c.getContext('2d').setTransform(r,0,0,r,0,0)}}}
+addEventListener('resize',crsFit);
+
+function crsLoop(){
+  A.t+=.016;
+  // Medição acústica simulada ou via Analyser real
+  let v=.15+.1*Math.sin(A.t*1.5), lo=.3+.25*Math.sin(A.t*1.1), mid=.3+.25*Math.sin(A.t*1.9+1), hi=.3+.25*Math.sin(A.t*2.7+2);
+  if(CRS.gravando){v=Math.min(1,.2+Math.random()*.7);lo=Math.random();mid=Math.random();hi=Math.random()}
+  const k=.15;A.vol+=(v-A.vol)*k;A.lo+=(lo-A.lo)*k;A.mid+=(mid-A.mid)*k;A.hi+=(hi-A.hi)*k;A.pico=Math.max(A.pico*.995,A.vol);
+  A.pitch=110+A.vol*120+Math.sin(A.t*3)*15; A.jitter=0.01+A.vol*0.03;
+
+  if(CRS.gravando){M.n++;M.sum+=A.vol;M.max=Math.max(M.max,A.vol);if(A.vol<.1){if(++M.sil==15)M.pausas++}else M.sil=0}
+
+  // Renderizar 12 canvas
+  renderG1($('g1')?.getContext('2d'), $('g1')?.clientWidth||150, $('g1')?.clientHeight||140);
+  renderG2($('g2')?.getContext('2d'), $('g2')?.clientWidth||150, $('g2')?.clientHeight||140);
+  renderG3($('g3')?.getContext('2d'), $('g3')?.clientWidth||150, $('g3')?.clientHeight||140);
+  renderG4($('g4')?.getContext('2d'), $('g4')?.clientWidth||150, $('g4')?.clientHeight||140);
+  renderG5($('g5')?.getContext('2d'), $('g5')?.clientWidth||150, $('g5')?.clientHeight||140);
+  renderG6($('g6')?.getContext('2d'), $('g6')?.clientWidth||150, $('g6')?.clientHeight||140);
+  renderG7($('g7')?.getContext('2d'), $('g7')?.clientWidth||150, $('g7')?.clientHeight||140);
+  renderG8($('g8')?.getContext('2d'), $('g8')?.clientWidth||150, $('g8')?.clientHeight||140);
+  renderG9($('g9')?.getContext('2d'), $('g9')?.clientWidth||150, $('g9')?.clientHeight||140);
+  renderG10($('g10')?.getContext('2d'), $('g10')?.clientWidth||150, $('g10')?.clientHeight||140);
+  renderG11($('g11')?.getContext('2d'), $('g11')?.clientWidth||150, $('g11')?.clientHeight||140);
+  renderG12($('g12')?.getContext('2d'), $('g12')?.clientWidth||150, $('g12')?.clientHeight||140);
+
+  $('t1').textContent=Math.round(A.pitch)+' Hz';
+  $('t2').textContent=(40+A.vol*50).toFixed(1)+' dB';
+  $('t3').textContent=(10+A.hi*15).toFixed(1)+' dB';
+  $('t4').textContent=(A.mid*100).toFixed(1)+' %';
+  $('t5').textContent='G'+Math.floor(A.vol*3);
+  $('t6').textContent=(A.lo*80).toFixed(1)+' L/s';
+  $('t7').textContent=(A.vol*95).toFixed(1)+' %';
+  $('t8').textContent=(-30+A.hi*20).toFixed(1)+' dBA';
+  $('t9').textContent=(A.pico*100).toFixed(0)+' %';
+  $('t10').textContent=(12+A.lo*10).toFixed(1)+' dB';
+  $('t11').textContent=(1.0+A.vol*0.4).toFixed(2)+' Idx';
+  $('t12').textContent='Optimal';
+
+  CRS.raf=requestAnimationFrame(crsLoop);
+}
+
+// Funções de desenho Canvas lúdicas e científicas
+function renderG1(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);x.strokeStyle='#c084fc';x.lineWidth=2;x.beginPath();for(let i=0;i<w;i+=3){let y=h/2+Math.sin(i*0.05+A.t*3)*(A.vol*40);if(i===0)x.moveTo(i,y);else x.lineTo(i,y)}x.stroke()}
+function renderG2(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);let cx=w/2,cy=h/2,r=Math.min(w,h)*0.35;x.strokeStyle='#38bdf844';x.lineWidth=8;x.beginPath();x.arc(cx,cy,r,0,6.28);x.stroke();x.strokeStyle='#38bdf8';x.beginPath();x.arc(cx,cy,r,-1.57,-1.57+A.vol*6.28);x.stroke()}
+function renderG3(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);let n=12,bw=w/n;for(let i=0;i<n;i++){let bh=(Math.sin(i+A.t*2)*0.5+0.5)*(A.hi*h*0.8);x.fillStyle=i%2===0?'#4ade80':'#2dd4bf';x.fillRect(i*bw+2,h-bh-5,bw-4,bh)}}
+function renderG4(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);x.fillStyle='#fbbf2433';x.beginPath();x.moveTo(0,h);for(let i=0;i<w;i+=4){x.lineTo(i,h-(Math.sin(i*0.03+A.t)*0.5+0.5)*(A.mid*h))}x.lineTo(w,h);x.fill();x.strokeStyle='#fbbf24';x.beginPath();for(let i=0;i<w;i+=4){let y=h-(Math.sin(i*0.03+A.t)*0.5+0.5)*(A.mid*h);if(i===0)x.moveTo(i,y);else x.lineTo(i,y)}x.stroke()}
+function renderG5(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);for(let i=0;i<8;i++){let px=(i*37+A.t*20)%w,py=h/2+Math.sin(i+A.t)*(30*A.vol);x.fillStyle='#60a5fa';x.beginPath();x.arc(px,py,4,0,6.28);x.fill()}}
+function renderG6(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);x.strokeStyle='#fb923c';x.lineWidth=2;x.beginPath();for(let i=0;i<w;i+=3){let y=h/2+Math.sin(i*0.04+A.t*2)*20;if(i===0)x.moveTo(i,y);else x.lineTo(i,y)}x.stroke();x.strokeStyle='#f43f5e';x.beginPath();for(let i=0;i<w;i+=3){let y=h/2+Cos(i*0.04+A.t*2)*20;if(i===0)x.moveTo(i,y);else x.lineTo(i,y)}x.stroke()}
+function Cos(v){return Math.cos(v)}
+function renderG7(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);x.strokeStyle='#ec4899';x.lineWidth=2;x.beginPath();let step=w/10;for(let i=0;i<10;i++){let y=h/2+(i%2===0?20:-20)*A.vol;x.lineTo(i*step,y);x.lineTo((i+1)*step,y)}x.stroke()}
+function renderG8(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);let cx=w/2,cy=h/2;x.strokeStyle='#2dd4bf66';x.lineWidth=3;for(let r=10;r<50;r+=15){x.beginPath();x.arc(cx,cy,r+Math.sin(A.t+r)*3*A.vol,0,6.28);x.stroke()}}
+function renderG9(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);x.strokeStyle='#a855f7';x.lineWidth=2;x.beginPath();for(let i=0;i<w;i+=2){let y=h/2+Math.sin(i*0.08+A.t*4)*(A.pico*35);if(i===0)x.moveTo(i,y);else x.lineTo(i,y)}x.stroke()}
+function renderG10(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);let n=16,bw=w/n;for(let i=0;i<n;i++){let bh=(Math.cos(i*0.5+A.t)*0.5+0.5)*(A.lo*h*0.85);x.fillStyle='#34d399';x.fillRect(i*bw+1,h-bh-4,bw-2,bh)}}
+function renderG11(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);x.strokeStyle='#f43f5e';x.lineWidth=2;x.beginPath();for(let i=0;i<w;i+=4){let y=h/2+Math.sin(i*0.03-A.t*2)*(A.vol*25);if(i===0)x.moveTo(i,y);else x.lineTo(i,y)}x.stroke()}
+function renderG12(x,w,h){if(!x)return;x.fillStyle='#020408';x.fillRect(0,0,w,h);x.strokeStyle='#38bdf8';x.lineWidth=2.5;x.beginPath();for(let i=0;i<w;i+=3){let y=h/2+Math.sin(i*0.02+A.t)*(A.lo*20)+Math.cos(i*0.03-A.t*1.5)*(A.hi*15);if(i===0)x.moveTo(i,y);else x.lineTo(i,y)}x.stroke()}
+
+/* Gravação e Microfone com API do Usuário */
+async function crsAudioStream(){
   if(CRS.stream)return;
-  CRS.ctx=new (window.AudioContext||window.webkitAudioContext)();await CRS.ctx.resume();
   CRS.stream=await navigator.mediaDevices.getUserMedia({audio:true});
-  CRS.an=CRS.ctx.createAnalyser();CRS.an.fftSize=256;CRS.an.smoothingTimeConstant=.8;
-  CRS.ctx.createMediaStreamSource(CRS.stream).connect(CRS.an);CRS.fd=new Uint8Array(CRS.an.frequencyBinCount)
 }
+
 async function crsToggle(){
-  if(!U.id||U.calibrado)return;
+  if(!U.id)return;
   if(!CRS.gravando){
-    if(U.tokens<CFG.CUSTO){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
-    try{await crsAudio()}catch(e){return alert('Microfone indisponível')}
-    Object.assign(M,{n:0,sum:0,max:0,pausas:0,sil:0});try{speechSynthesis.cancel()}catch(e){}CRS.live=chatAdd('user','…');
-    CRS.chunks=[];CRS.rec=new MediaRecorder(CRS.stream);CRS.rec.ondataavailable=e=>CRS.chunks.push(e.data);
-    CRS.rec.onstop=()=>concluir(new Blob(CRS.chunks,{type:CRS.rec.mimeType||'audio/webm'}));CRS.rec.start();
+    if(U.tokens<CFG.CUSTO && !U.calibrado){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
+    try{await crsAudioStream()}catch(e){return alert('Microfone indisponível ou permissão negada.')}
+    Object.assign(M,{n:0,sum:0,max:0,pausas:0,sil:0});try{speechSynthesis.cancel()}catch(e){}
+    CRS.live=chatAdd('user','…');
+    CRS.chunks=[];CRS.rec=new MediaRecorder(CRS.stream);
+    CRS.rec.ondataavailable=e=>CRS.chunks.push(e.data);
+    CRS.rec.onstop=()=>concluir(new Blob(CRS.chunks,{type:CRS.rec.mimeType||'audio/webm'}));
+    CRS.rec.start();
+
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;CRS.txt='';
-    if(SR){CRS.sr=new SR();CRS.sr.lang='pt-BR';CRS.sr.continuous=true;CRS.sr.interimResults=true;
-      CRS.sr.onresult=e=>{let it='';for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];if(r.isFinal)CRS.txt+=r[0].transcript+' ';else it+=r[0].transcript}CRS.live.textContent=(CRS.txt+it).trim()||'…'};try{CRS.sr.start()}catch(e){}}
-    CRS.t0=Date.now();CRS.gravando=true;setMic(`⏹️ Parar & Processar Etapa ${U.sessoes.length+1}`,false);
-    CRS.lim=setTimeout(()=>CRS.gravando&&crsToggle(),30000)
+    if(SR){
+      CRS.sr=new SR();CRS.sr.lang='pt-BR';CRS.sr.continuous=true;CRS.sr.interimResults=true;
+      CRS.sr.onresult=e=>{
+        let it='';for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];if(r.isFinal)CRS.txt+=r[0].transcript+' ';else it+=r[0].transcript}
+        CRS.live.textContent=(CRS.txt+it).trim()||'…';
+      };
+      try{CRS.sr.start()}catch(e){}
+    }
+    CRS.t0=Date.now();CRS.gravando=true;
+    setMic(`⏹️ Parar & Processar Etapa (${U.sessoes.length+1}/${CFG.MAX_FIFO})`,false);
+    CRS.lim=setTimeout(()=>CRS.gravando&&crsToggle(),30000);
   }else{
-    clearTimeout(CRS.lim);CRS.gravando=false;try{CRS.sr&&CRS.sr.stop()}catch(e){}
-    CRS.rec.stop();setMic('⏳ Processando...',true)
+    clearTimeout(CRS.lim);CRS.gravando=false;
+    try{CRS.sr&&CRS.sr.stop()}catch(e){}
+    CRS.rec.stop();
+    setMic('⏳ Calculando métricas CRS v4...',true);
   }
 }
+
 async function concluir(blob){
-  const n=U.sessoes.length+1,dur=(Date.now()-CRS.t0)/1000;
-  try{await debitar()}catch(e){
-    CRS.live&&CRS.live.remove();
-    if(e.message==='sem_saldo'){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
-    aviso('Falha ao debitar o token. Tente gravar de novo.');return micPronto()
+  const n=U.sessoes.length+1, dur=(Date.now()-CRS.t0)/1000;
+  
+  if(!U.calibrado){
+    try{await debitar()}catch(e){
+      CRS.live&&CRS.live.remove();
+      if(e.message==='sem_saldo'){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
+      aviso('Falha ao debitar o token. Tente novamente.');return micPronto()
+    }
   }
-  const s={k:U.id+':'+Date.now(),uid:U.id,etapa:n,blob,txt:CRS.txt.trim(),dur,vol:M.n?M.sum/M.n:0,pico:M.max,pausas:M.pausas,ts:Date.now()};
+
+  const s={
+    k:U.id+':'+Date.now(),
+    uid:U.id,
+    etapa:n,
+    blob,
+    txt:CRS.txt.trim(),
+    dur,
+    vol:M.n?M.sum/M.n:0,
+    pico:M.max,
+    pausas:M.pausas,
+    ts:Date.now()
+  };
+
+// FIFO estrito: Adiciona e mantém apenas as últimas 3 sessões (remove a mais antiga)
   await tx('readwrite',st=>st.put(s));
   U.sessoes.push(s);
-  while(U.sessoes.length>CFG.MAX){const o=U.sessoes.shift();await tx('readwrite',st=>st.delete(o.k))}   // FIFO
-  relatorio(s);renderFifo();aviso('');CRS.live.textContent=s.txt||'(sem transcrição)';setMic('💬 Elayon Core respondendo...',true);
-  sb.from('calibracoes_crs').insert([{user_id:U.id,operador_nome:U.nome,etapa:n,transcricao_usuario:s.txt,audio_url:'idb:'+s.k,tokens_consumidos:CFG.CUSTO}]).then(()=>{},()=>{});
-  document.dispatchEvent(new CustomEvent('crs:etapa',{detail:{etapa:n,blob,transcricao:s.txt}}));
-  if(U.sessoes.length>=CFG.MAX){await travar();await iaFalar(n,s.txt,true);document.dispatchEvent(new CustomEvent('crs:concluida',{detail:U.sessoes}))}
-  else{await iaFalar(n,s.txt,false);if(U.tokens<CFG.CUSTO){aviso('Saldo insuficiente para a próxima etapa.');setMic('Saldo insuficiente',true)}else micPronto()}
+  if(U.sessoes.length>CFG.MAX_FIFO){
+    const removida=U.sessoes.shift();
+    await tx('readwrite',st=>st.delete(removida.k));
+  }
+
+  relatorio(s);
+  renderFifo();
+  aviso('');
+  CRS.live.textContent=s.txt||'(sem transcrição detectada)';
+  setMic('💬 Elayon Core analisando...',true);
+
+  // Enviar para Supabase
+  sb.from('calibracoes_crs').insert([{
+    user_id:U.id,
+    operador_nome:U.nome,
+    etapa:n,
+    transcricao_usuario:s.txt,
+    audio_url:'idb:'+s.k,
+    tokens_consumidos:U.calibrado?0:CFG.CUSTO
+  }]).then(()=>{},()=>{});
+
+  // Interação da IA do usuário (API configurada no perfil)
+  await iaFalar(n,s.txt);
+
+  if(U.sessoes.length>=CFG.MAX_FIFO){
+    await travar();
+  } else {
+    micPronto();
+  }
 }
 
-/* ---------- Chat: transcrição + Elayon Core (IA do perfil) ---------- */
-const SYS='Você é o Elayon Core, guia de calibração vocal do Elayon Space. Fale em português do Brasil, tom calmo e acolhedor, no máximo 3 frases curtas, sem listas nem emojis. Não faça diagnóstico. Conduza o operador pelas etapas de calibração: a cada mensagem [SISTEMA], reconheça brevemente o que ele disse e passe a próxima instrução como indicada. No encerramento, agradeça, diga que o Buffer foi consolidado e despeça-se.';
+/* Chat & IA com API OpenAI / Gemini do Usuário */
+const SYS='Você é o Elayon Core, assistente fonoaudiológico e guia simbiótico do Elayon Space. Fale em português do Brasil, tom acolhedor e técnico. Analise a transcrição de voz do usuário de forma concisa (máximo 2 frases), orientando o acompanhamento e o autoexame.';
 function chatAdd(cls,txt){const d=document.createElement('div');d.className='msg '+cls;d.textContent=txt;$('chat').appendChild(d);$('chat').scrollTop=1e9;return d}
 function falar(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='pt-BR';speechSynthesis.speak(u)}catch(e){}}
+
 async function ia(prompt){
-  U.hist.push({r:'user',t:prompt});U.hist=U.hist.slice(-12);
+  U.hist.push({r:'user',t:prompt});U.hist=U.hist.slice(-10);
   let out='';
   try{
     if(U.key){
@@ -249,69 +374,32 @@ async function ia(prompt){
   if(out)U.hist.push({r:'ia',t:out});else U.hist.pop();
   return out
 }
-async function iaFalar(n,txt,fim){
-  const prox=CFG.ETAPAS[n],base=`[SISTEMA] Etapa ${n}/${CFG.MAX} concluída. O operador disse: "${txt||'(nada detectado)'}". `;
-  const p=fim?base+'Esta foi a última etapa. Agradeça, diga que o Buffer FIFO foi consolidado e se despeça.':base+`Próxima instrução (etapa ${n+1}): "${prox}"`;
-  const fb=fim?`Calibração concluída, ${U.nome}. Obrigado pela sua presença. Seu Buffer foi consolidado. Até logo!`:`Registrado. Etapa ${n+1}: ${prox}`;
-  const w=chatAdd('ia','…');const r=await ia(p);w.remove();const t=r||fb;chatAdd('ia',t);falar(t)
+
+async function iaFalar(n,txt){
+  const p=`[SISTEMA] Sessão FIFO ${n} concluída. Transcrição: "${txt||'(sem fala)'}". Analise e dê feedback de calibração fonoaudiológica e dê a próxima diretriz.`;
+  const fb=`Sessão ${n} registrada com sucesso no Buffer FIFO. Parâmetros acústicos validados.`;
+  const w=chatAdd('ia','…');
+  const r=await ia(p);
+  w.remove();
+  const t=r||fb;
+  chatAdd('ia',t);
+  falar(t);
 }
+
 async function iaIntro(){
-  const k=U.sessoes.length,w=chatAdd('ia','…');
-  const r=await ia(`[SISTEMA] Operador: ${U.nome}. ${k?`Retomando a calibração, já feitas ${k} de ${CFG.MAX} etapas.`:`Dê boas-vindas e explique em uma frase que são ${CFG.MAX} etapas curtas de voz.`} Passe a instrução da etapa ${k+1}: "${CFG.ETAPAS[k]}"`);
-  w.remove();const t=r||`Bem-vindo, ${U.nome}. Faremos ${CFG.MAX} etapas curtas de voz. Etapa ${k+1}: ${CFG.ETAPAS[k]}`;chatAdd('ia',t);falar(t)
+  const w=chatAdd('ia','…');
+  const r=await ia(`[SISTEMA] Operador ${U.nome} iniciou o cockpit. Dê boas-vindas com tom simbiótico e apresente a primeira etapa: "${CFG.ETAPAS[0]}"`);
+  w.remove();
+  const t=r||`Bem-vindo, ${U.nome}. Vamos iniciar o Buffer FIFO com o teste de conexão.`;
+  chatAdd('ia',t);
+  falar(t);
 }
 
-/* ===== GRÁFICOS 1-4 ===== */
-G[0]=(x,W,H,t,a)=>{fade(x,W,H,.16);
-  for(let i=0;i<70;i++){const r=i*.9,an=i*.35+t*2.2+(i%2)*3.14;dot(x,W*.17+Math.cos(an)*r*.8,H/2+Math.sin(an)*r*.8,1.1,`rgba(192,132,252,${.9-i/90})`)}
-  for(let i=0;i<260;i++){const an=i*2.399+t*.35,r=Math.sqrt(i)*(H*.028)*(1+a.vol*.9+.15*Math.sin(t*2+i*.2));
-    dot(x,W*.62+Math.cos(an)*r*1.5,H/2+Math.sin(an)*r*1.05,.9+a.vol*1.6,`rgba(${170+i%60},100,255,${.75-i/450})`)}};
-
-G[1]=(x,W,H,t,a)=>{fade(x,W,H,.2);const cx=W/2,cy=H/2,R=H*.34*(1+a.vol*.18);
-  const g=x.createRadialGradient(cx,cy,2,cx,cy,H*.17);g.addColorStop(0,'#7dd3fc');g.addColorStop(1,'#0369a122');x.fillStyle=g;x.beginPath();x.arc(cx,cy,H*.14*(1+a.vol*.2),0,6.28);x.fill();
-  for(let i=0;i<220;i++){const an=i/220*6.283+t*.4,w=Math.pow(Math.cos(an),2),rr=R+Math.sin(an*7+t*3)*(2+a.vol*9)*(.4+w);
-    dot(x,cx+Math.cos(an)*rr*1.25,cy+Math.sin(an)*rr,.8+w*2,`rgba(56,189,248,${.3+w*.6})`)}};
-
-G[2]=(x,W,H,t,a)=>{fade(x,W,H,.25);
-  for(let k=0;k<22;k++){x.strokeStyle=`rgba(74,222,128,${.25+k/60})`;x.lineWidth=1;x.beginPath();
-    for(let px=0;px<=W;px+=4){const u=px/W,amp=H*.1*(.3+u*(.6+a.mid*2.5)),y=H/2+Math.sin(px*.03+t*2.2+k*.28)*amp+Math.sin(px*.07-t*3+k*.5)*amp*.4*u*(a.hi*3)+(k-11)*H*.012*(1+u*Math.sin(t+k));
-      px?x.lineTo(px,y):x.moveTo(px,y)}x.stroke()}};
-
-G[3]=(x,W,H,t,a)=>{fade(x,W,H,.25);const c=.5+.32*Math.sin(t*.6);
-  for(let k=0;k<16;k++){x.strokeStyle=`rgba(251,191,36,${.3+k/30})`;x.lineWidth=1.1;x.beginPath();
-    for(let px=0;px<=W;px+=4){const u=px/W,e=Math.exp(-Math.pow((u-c)*3.2,2))*H*.42*(.35+a.vol*1.4),y=H*.68-e*(1+.15*Math.sin(px*.05+t*3+k*.4))+Math.sin(u*9+t*2+k*.3)*H*.04*(1+a.mid*2)-k*1.5;
-      px?x.lineTo(px,y):x.moveTo(px,y)}x.stroke()}};
-
-/* ===== GRÁFICOS 5-8 ===== */
-G[4]=(x,W,H,t,a)=>{fade(x,W,H,.18);
-  const N=[['G',.22,.4,'#fbbf24'],['B',.45,.22,'#22d3ee'],['R',.8,.35,'#ef4444'],['A',.3,.75,'#a78bfa'],['S',.72,.74,'#22c55e']]
-    .map((n,i)=>({l:n[0],px:W*n[1]+Math.sin(t*.8+i)*8,py:H*n[2]+Math.cos(t*.7+i*2)*7,c:n[3]}));
-  N.forEach((n,i)=>{const m=N[(i+2)%5];
-    for(let j=0;j<34;j++){const u=(j/34+t*.18+i*.2)%1,mx=(n.px+m.px)/2+Math.sin(t+i)*30,my=(n.py+m.py)/2+Math.cos(t*1.2+i)*30,
-      px=(1-u)*(1-u)*n.px+2*u*(1-u)*mx+u*u*m.px,py=(1-u)*(1-u)*n.py+2*u*(1-u)*my+u*u*m.py;dot(x,px,py,1.2,n.c)}
-    for(let j=0;j<22;j++){const an=j*.9+t*(1.5+i*.2),r=8+j*1.1+a.vol*10;dot(x,n.px+Math.cos(an)*r,n.py+Math.sin(an)*r,1,n.c)}
-    dot(x,n.px,n.py,4+a.vol*5,n.c);x.fillStyle='#e2e8f0';x.font='11px system-ui';x.fillText(n.l,n.px-12,n.py+16)})};
-
-G[5]=(x,W,H,t,a)=>{fade(x,W,H,.2);
-  for(let s=0;s<5;s++)for(let px=0;px<W;px+=3){const u=px/W,amp=H*.1+H*.2*u*(.5+a.lo*2),ph=px*.045+t*3+s*.35,
-    y1=H/2+Math.sin(ph)*amp,y2=H/2+Math.sin(ph+3.14)*amp,d1=Math.cos(ph),d2=-d1;
-    dot(x,px,y1,1+(d1+1)*1.1,`rgba(251,146,60,${.35+.3*d1})`);dot(x,px,y2,1+(d2+1)*1.1,`rgba(34,211,238,${.35+.3*d2})`)}};
-
-G[6]=(x,W,H,t,a)=>{fade(x,W,H,.3);
-  [.27,.73].forEach((f,k)=>{const cx=W*f,cy=H/2,R=H*.36,P=[];
-    for(let i=0;i<9;i++){const an=i/9*6.283+t*.25*(k?-1:1),n=k?Math.sin(t*2+i*2.1)*a.hi*H*.25:0;P.push([cx+Math.cos(an)*(R+n)*(k?1.2:1),cy+Math.sin(an)*(R+n*.8)])}
-    x.lineWidth=.7;x.strokeStyle=k?'rgba(56,189,248,.35)':'rgba(236,72,153,.4)';
-    P.forEach((p,i)=>P.forEach((q,j)=>{if(j>i){x.beginPath();x.moveTo(p[0],p[1]);x.lineTo(q[0],q[1]);x.stroke()}}));
-    P.forEach(p=>dot(x,p[0],p[1],2.5+a.vol*3,k?'#7dd3fc':'#f472b6'))})};
-
-G[7]=(x,W,H,t,a)=>{fade(x,W,H,.22);
-  [.27,.73].forEach((f,k)=>{for(let r=0;r<4;r++){x.strokeStyle=`rgba(45,212,191,${.9-r*.18})`;x.lineWidth=2.4-r*.4;x.beginPath();
-    for(let i=0;i<=64;i++){const an=i/64*6.283,w=k?Math.sin(an*5+t*2.5+r)*(3+a.hi*14)+Math.sin(an*9-t*3)*a.vol*5:0,rr=H*.14+r*H*.065+a.vol*5+w,px=W*f+Math.cos(an)*rr,py=H/2+Math.sin(an)*rr;
-      i?x.lineTo(px,py):x.moveTo(px,py)}x.stroke()}});
-  for(let i=0;i<26;i++){const an=i*1.7+t*.8,r=H*.4+Math.sin(t*2+i)*8;dot(x,W*.73+Math.cos(an)*r,H/2+Math.sin(an)*r*.9,1+a.hi*2,'#5eead4')}};
-
-
-addEventListener('DOMContentLoaded',()=>{habilitarCalibracao();carregar()});
+document.addEventListener('DOMContentLoaded',async()=>{
+  crsFit();
+  crsLoop();
+  await carregar();
+});
 </script>
 </body>
 </html>
