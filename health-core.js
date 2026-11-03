@@ -11,3 +11,4 @@ async function aiCall(ME,prompt,imgs=[]){
   const parts=[{text:prompt},...imgs.map(u=>({inline_data:{mime_type:'image/jpeg',data:u.split(',')[1]}}))];
   return (await (await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${k}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:[{role:'user',parts}]})})).json()).candidates[0].content.parts[0].text
 }
+ 
