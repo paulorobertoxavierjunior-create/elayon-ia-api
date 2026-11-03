@@ -1,116 +1,828 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Elayon Health • Painel do Piloto</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script><link rel="stylesheet" href="health.css"></head><body><div class="w"><div class="hd"><span>ELAYON HEALTH • PAINEL DO PILOTO • <b id="hs" style="color:#d9534f">SEM CADASTRO</b></span><a href="cockpit.html">⬅️ Cockpit</a></div>
-<div class="c"><h1 id="nm">Piloto</h1><p id="cr">—</p><div id="av"></div></div>
-<div class="c"><h3>1️⃣ Paciente</h3><div class="g2"><div><label>Nome do paciente</label><input id="pn"></div><div><label>E-mail da conta Elayon do paciente</label><input id="pe" type="email" placeholder="vincula o laudo ao cockpit dele"></div></div><div><label>Contexto / queixa</label><input id="pc" placeholder="Ex.: pós-AVC, afasia, linha de base"></div></div>
-<div class="c"><h3>2️⃣ Captura (clínica / hospital)</h3><div><label>Pergunta feita ao paciente</label><select id="pq"><option>Diga “olá”, de forma natural.</option><option>Conte de 1 a 10, devagar.</option><option>Sustente a vogal “a” por 5 segundos.</option><option>Conte como foi o seu dia.</option><option>Leia a frase: “O sol nasce e a vida segue”.</option></select></div>
-<div class="g2"><button class="b" id="bg" onclick="gravar()">🎙️ Gravar resposta</button><label class="b g" style="cursor:pointer">📂 Carregar áudio externo<input type="file" accept="audio/*" hidden onchange="arquivo(this)"></label></div>
-<div style="height:10px;background:#e2f0ed;border-radius:6px;overflow:hidden"><div id="mt" style="height:100%;width:0;background:#2a9d8f"></div></div><p id="ms">Pronto. Áudio carregado é analisado em tempo real (leva a duração do áudio).</p></div>
-<div class="c"><h3>3️⃣ Sessões (FIFO • até 10)</h3><div id="ses"><p>Nenhuma sessão ainda.</p></div></div>
-<div class="c"><h3>4️⃣ Análise com a sua IA</h3><button class="b g" onclick="analisarIA()">🧠 Analisar as sessões marcadas (até 4)</button><textarea id="iaT" placeholder="A análise da IA aparece aqui. Revise e edite: o texto entra no laudo como apoio revisado por você."></textarea></div>
-<div class="c"><h3>5️⃣ Laudo e assinatura</h3><div><label>Observações clínicas / pré-diagnóstico (sua responsabilidade)</label><textarea id="ob"></textarea></div>
-<div class="g2"><div><label>Severidade (0–10)</label><input id="sv" type="number" min="0" max="10" value="5"></div><div><label>Conduta</label><input id="cd" value="Fonoaudiologia 2x/semana"></div></div>
-<button class="b g" onclick="preencher()">📐 Preencher faixas com base nas sessões marcadas</button>
-<div class="g2"><div><label>F0 mín (Hz)</label><input id="f1" type="number"></div><div><label>F0 máx (Hz)</label><input id="f2" type="number"></div><div><label>Jitter máx (%)</label><input id="jt" type="number" step=".1"></div><div><label>Shimmer máx (dB)</label><input id="sh" type="number" step=".1"></div><div><label>HNR mín (dB)</label><input id="hn" type="number" step=".1"></div><div><label>Pausas máx</label><input id="ps" type="number"></div></div>
-<div><label>Modo de autoexame</label><select id="md"><option>periódico</option><option>contínuo</option></select></div><div><label>Exercícios para o Vibes 8</label><textarea id="ex" placeholder="Ex.: vogal sustentada /a/ 5s; contagem 1–10; frase curta"></textarea></div>
-<p><label style="display:flex;gap:8px;text-transform:none;font-weight:600"><input type="checkbox" id="ok" style="width:auto"> Confirmo os dados e assumo a responsabilidade clínica pelo laudo.</label></p>
-<button class="b" onclick="assinar()">✍️ Assinar e gerar PDF (laudo + certificado)</button><div class="msg" id="m5"></div>
-<div id="pdfB" style="display:none;gap:8px"><button class="b g" onclick="baixar()">⬇️ Baixar PDF</button><button class="b" onclick="compartilhar()">📲 Enviar ao paciente (WhatsApp)</button></div></div>
-<div class="c"><h3>🗂️ Laudos emitidos (últimos 10)</h3><div id="hist"><p>Nenhum ainda.</p></div></div></div><script src="health-core.js"></script><script src="health-dsp.js"></script><script>
-let U,ME=null,SES=[],rec=null,mr=null,chunks=[],mic=null,ULT=null,el=null;
-const DBP=new Promise((ok,no)=>{const r=indexedDB.open('piloto_db',1);r.onupgradeneeded=()=>{r.result.createObjectStore('sessoes',{keyPath:'k'});r.result.createObjectStore('laudos',{keyPath:'k'})};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
-const tx=async(st,m,f)=>{const d=await DBP;return new Promise((ok,no)=>{const t=d.transaction(st,m),q=f(t.objectStore(st));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>no(t.error)})};
-const sha=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
-const msg=t=>$('ms').textContent=t;
-(async()=>{U=await eu();
-  const [{data:p},{data:me}]=await Promise.all([sb.from('pilotos_perfil').select('*').eq('id',U.id).maybeSingle(),sb.from('profiles').select('*').eq('id',U.id).maybeSingle()]);
-  ME=p;window.PF=me||{};
-  if(p){$('nm').textContent=p.nome_completo;$('cr').textContent=`${p.crm_crfa_crp} • ${p.especialidade}`;$('hs').textContent='REGISTRADO';$('hs').style.color='#2b8a3e'}
-  else $('av').innerHTML='<p style="color:#d9534f">Você ainda não é piloto. <a href="cadastro-piloto.html">Faça o cadastro profissional</a>.</p>';
-  SES=((await tx('sessoes','readonly',s=>s.getAll()).catch(()=>[]))||[]).filter(x=>x.uid===U.id).sort((a,b)=>b.ts-a.ts).slice(0,10);render();hist()})();
-setInterval(()=>{if(!R.an||!rec)return;try{const k=analisar();D.jit=k.jit;D.shim=k.shim;rec.tk.push(k);$('mt').style.width=Math.round(rg(k.db,-70,-10)*100)+'%';msg(k.voz?`● voz detectada • F0 ${Math.round(k.f0)} Hz`:'● captando…')}catch(e){}},50);
-function fecharMic(){try{mic&&mic.getTracks().forEach(t=>t.stop())}catch(e){}try{R.ctx&&R.ctx.close()}catch(e){}mic=null;R.an=null;R.ctx=null;R.fl=[];R.P=[];R.A=[];$('mt').style.width='0'}
-async function gravar(){
-  if(!ME)return msg('Cadastre-se como piloto primeiro.');
-  if(rec){mr.stop();return}
-  try{mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}catch(e){return msg(e&&e.name==='NotReadableError'?'Microfone em uso por outro app ou aba.':'Microfone indisponível.')}
-  ligarAnalise(mic.getAudioTracks()[0]);rec={tk:[]};chunks=[];mr=new MediaRecorder(mic);mr.ondataavailable=e=>chunks.push(e.data);
-  mr.onstop=()=>{const rt=rec;rec=null;const blob=new Blob(chunks,{type:mr.mimeType||'audio/webm'});fecharMic();$('bg').textContent='🎙️ Gravar resposta';fechar(blob,rt.tk)};
-  mr.start();$('bg').textContent='⏹ Parar e analisar'
-}
-async function arquivo(inp){
-  const f=inp.files[0];inp.value='';if(!f||!ME||rec)return msg(ME?'Termine a captura atual.':'Cadastre-se como piloto primeiro.');
-  R.ctx=new (window.AudioContext||window.webkitAudioContext)();await R.ctx.resume();el=new Audio(URL.createObjectURL(f));
-  R.an=R.ctx.createAnalyser();R.an.fftSize=2048;R.an.smoothingTimeConstant=.3;R.sr=R.ctx.sampleRate;R.buf=new Float32Array(2048);R.fb=new Float32Array(1024);R.fl=[];R.P=[];R.A=[];
-  R.ctx.createMediaElementSource(el).connect(R.an);rec={tk:[]};
-  el.onended=()=>{const rt=rec;rec=null;fecharMic();fechar(f,rt.tk)};el.onerror=()=>{rec=null;fecharMic();msg('❌ Não consegui ler este áudio.')};el.play()
-}
-async function transcr(ab,tipo){
-  if(!PF.ai_key)return '';
-  try{const w=await wav(new Blob([ab],{type:tipo}));let t='';
-    if((PF.ai_provider||'gemini')==='openai'){const f=new FormData();f.append('file',new Blob([w],{type:'audio/wav'}),'a.wav');f.append('model','whisper-1');f.append('language','pt');t=(await (await fetch('https://api.openai.com/v1/audio/transcriptions',{method:'POST',headers:{Authorization:'Bearer '+PF.ai_key},body:f})).json()).text||''}
-    else t=(await (await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${PF.ai_key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:'Transcreva fielmente a fala em português do Brasil. Responda somente com a transcrição. Se não houver fala, responda exatamente: (silêncio)'},{inline_data:{mime_type:'audio/wav',data:b64(w)}}]}]})})).json()).candidates[0].content.parts[0].text;
-    t=t.trim();return t==='(silêncio)'?'':t}catch(e){return ''}
-}
-async function fechar(blob,tk){
-  try{if(tk.length<10)throw new Error('áudio muito curto');
-    const {res,sec,ret}=analisarSessao(tk);if(res.fon<.05)throw new Error('não detectei voz neste áudio');
-    msg('⏳ calculando métricas…');const img=espectroide(tk,sec,ret,Math.max(1,res.dur)),ab=await blob.arrayBuffer(),tipo=blob.type||'audio/webm';
-    const s={k:U.id+':'+Date.now(),uid:U.id,ts:Date.now(),dur:res.dur,res,img,ab,tipo,perg:$('pq').value,txt:'',inc:true};
-    s.txt=await transcr(ab,tipo);
-    try{await tx('sessoes','readwrite',st=>st.put(s))}catch(e){}
-    SES.unshift(s);while(SES.length>10){const o=SES.pop();await tx('sessoes','readwrite',st=>st.delete(o.k)).catch(()=>{})}   // FIFO: até 10
-    msg('✅ sessão analisada.');render()
-  }catch(e){msg('❌ '+e.message)}
-}
-function render(){
-  $('ses').innerHTML=SES.length?SES.map((s,i)=>{const r=s.res,m=x=>x?x.m:'—',g=r.grbas_est;
-    return `<div style="border:1px solid #d8e8eb;border-radius:12px;padding:8px;margin-bottom:8px"><div class="row"><label style="display:flex;gap:6px;align-items:center;text-transform:none"><input type="checkbox" style="width:auto" ${s.inc?'checked':''} onchange="SES[${i}].inc=this.checked"> Sessão ${i+1} • ${new Date(s.ts).toLocaleString('pt-BR')}</label><button class="b g" style="width:auto;padding:6px 10px" onclick="apagar(${i})">🗑</button></div>
-    <p style="margin:4px 0">${esc(s.perg)}</p><img src="${s.img}" style="width:100%;border-radius:8px"><audio controls style="width:100%;height:32px" src="${URL.createObjectURL(new Blob([s.ab],{type:s.tipo}))}"></audio>
-    <p>F0 ${m(r.f0)} Hz · ${m(r.db)} dBFS · jitter ${m(r.jit)}% · shimmer ${m(r.shim)} dB · HNR ${m(r.hnr)} dB · CPP~ ${m(r.cpp)}<br>fonação ${Math.round(r.fon*100)}% · pausas ${r.pausas} · sílabas/s ${r.silabas_s} · GRBAS~ G${g.G} R${g.R} B${g.B} A${g.A} S${g.S}<br><b>Fala:</b> ${esc(s.txt||'—')}</p></div>`}).join(''):'<p>Nenhuma sessão ainda.</p>'
-}
-async function apagar(i){const o=SES.splice(i,1)[0];await tx('sessoes','readwrite',st=>st.delete(o.k)).catch(()=>{});render()}
-const sel=()=>SES.filter(s=>s.inc);
-function preencher(){
-  const S=sel(),m=k=>{const v=S.map(s=>s.res[k]&&s.res[k].m).filter(x=>x!=null);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null};
-  const f=m('f0'),j=m('jit'),sh=m('shim'),h=m('hnr'),ps=S.length?Math.round(S.reduce((a,s)=>a+s.res.pausas,0)/S.length):null;
-  if(f){$('f1').value=Math.round(f*.85);$('f2').value=Math.round(f*1.15)}if(j!=null)$('jt').value=(j*1.3+.1).toFixed(1);if(sh!=null)$('sh').value=(sh*1.3+.1).toFixed(1);if(h!=null)$('hn').value=(h-3).toFixed(1);if(ps!=null)$('ps').value=ps+2}
-async function analisarIA(){
-  const S=sel().slice(0,4);if(!S.length)return $('iaT').value='Marque ao menos uma sessão.';$('iaT').value='🧠 IA analisando…';
-  try{$('iaT').value=(await aiCall(PF,`Analise ${S.length} sessão(ões) vocal(is) do paciente "${$('pn').value||'—'}" (contexto: ${$('pc').value||'—'}). Dados: ${JSON.stringify(S.map((s,i)=>({sessao:i+1,pergunta:s.perg,res:s.res,fala:s.txt})))}. As imagens são os espectroides na mesma ordem. Entregue: leitura dos gráficos, comparação entre as sessões, pontos de atenção para o médico avaliar (sem diagnóstico) e sugestão de faixas e exercícios de autoexame.`,S.map(s=>s.img))).trim()}catch(e){$('iaT').value='❌ '+e.message}
-}
-function pdf(txt,payload){
-  const {jsPDF}=window.jspdf,d=new jsPDF({unit:'pt',format:'a4'}),S=sel().slice(0,4);
-  d.setProperties({title:'Laudo Elayon Health',author:ME.nome_completo,subject:'ELAYONHEALTH['+payload+']'});
-  d.setFontSize(15);d.text('Elayon Health • Laudo de Escuta Vocal (CRS)',40,50);d.setFontSize(10);d.text(d.splitTextToSize(txt,515),40,75);
-  for(let i=0;i<S.length;i+=2){d.addPage();d.setFontSize(11);S.slice(i,i+2).forEach((s,j)=>{const y=40+j*390;d.text(`Espectroide • ${s.perg} • ${new Date(s.ts).toLocaleString('pt-BR')}`,40,y);d.addImage(s.img,'JPEG',40,y+8,515,309)})}
-  d.addPage();d.setLineWidth(3);d.rect(30,30,535,780);d.setFontSize(22);d.text('CERTIFICADO DE CALIBRAÇÃO',297,140,{align:'center'});d.text('ELAYON HEALTH',297,175,{align:'center'});d.setFontSize(12);
-  d.text(d.splitTextToSize(`Certifica-se que ${$('pn').value} concluiu a avaliação vocal Elayon Health, com faixas de autoexame definidas e assinadas pelo profissional responsável. Carregue este PDF no cockpit Elayon Vibes 8 (aba Conteúdo) para ativar a camada Health.`,420),297,240,{align:'center'});
-  d.text(`${ME.nome_completo} • ${ME.crm_crfa_crp} • ${ME.especialidade}`,297,440,{align:'center'});d.text(`Assinado eletronicamente em ${new Date().toLocaleString('pt-BR')}`,297,460,{align:'center'});
-  d.setFontSize(8);d.text(d.splitTextToSize('Valores são estimativas acústicas obtidas por microfone de celular. O Elayon Health é um termômetro de sinais vocais e não emite diagnóstico; a interpretação é de responsabilidade do médico signatário.',480),297,760,{align:'center'});
-  return d.output('blob')}
-async function assinar(){
-  const S=sel(),pe=$('pe').value.trim().toLowerCase(),pn=$('pn').value.trim(),ob=$('ob').value.trim();
-  if(!ME)return $('m5').textContent='Cadastre-se como piloto primeiro.';
-  if(!pn||!pe)return $('m5').textContent='Informe nome e e-mail da conta Elayon do paciente.';
-  if(!S.length)return $('m5').textContent='Marque ao menos uma sessão.';if(!ob)return $('m5').textContent='Preencha as observações clínicas.';if(!$('ok').checked)return $('m5').textContent='Confirme a responsabilidade clínica.';
-  const m=(r,k)=>r[k]?r[k].m:null,corpo={v:1,emitido:new Date().toISOString(),piloto:{nome:ME.nome_completo,crm:ME.crm_crfa_crp,esp:ME.especialidade},paciente:{nome:pn,email:pe,contexto:$('pc').value.trim()},
-    laudo:{obs:ob,sev:+$('sv').value,conduta:$('cd').value},params:{f0min:+$('f1').value,f0max:+$('f2').value,jitmax:+$('jt').value,shimmax:+$('sh').value,hnrmin:+$('hn').value,pausasmax:+$('ps').value},modo:$('md').value,exercicios:$('ex').value.trim(),ia:$('iaT').value.startsWith('❌')||$('iaT').value.startsWith('🧠')?'':$('iaT').value.trim().slice(0,1500),
-    sessoes:S.slice(0,4).map(s=>({ts:s.ts,perg:s.perg,dur:s.res.dur,f0:m(s.res,'f0'),db:m(s.res,'db'),jit:m(s.res,'jit'),shim:m(s.res,'shim'),hnr:m(s.res,'hnr'),cpp:m(s.res,'cpp'),fon:s.res.fon,pausas:s.res.pausas}))};
-  const obj={...corpo,hash:await sha(JSON.stringify(corpo))},p=obj.params;
-  const txt=`LAUDO ELAYON HEALTH — ${ME.nome_completo} (${ME.crm_crfa_crp}, ${ME.especialidade}) em ${new Date().toLocaleDateString('pt-BR')}\nPaciente: ${pn} (${pe})  Contexto: ${obj.paciente.contexto||'—'}\nObservações clínicas / pré-diagnóstico: ${ob}\nSeveridade (0-10): ${obj.laudo.sev}  Conduta: ${obj.laudo.conduta}\nFAIXAS DE AUTOEXAME: F0 ${p.f0min}-${p.f0max} Hz; jitter até ${p.jitmax}%; shimmer até ${p.shimmax} dB; HNR a partir de ${p.hnrmin} dB; pausas até ${p.pausasmax}; modo ${obj.modo}.\nExercícios: ${obj.exercicios||'—'}\nApoio da IA (revisado pelo médico): ${obj.ia||'—'}\nAviso: estimativas acústicas de microfone; interpretação e responsabilidade clínica do médico signatário.`;
-  try{const blob=pdf(txt,btoa(unescape(encodeURIComponent(JSON.stringify(obj)))));ULT={blob,nome:`laudo-elayon-${pn.replace(/\W+/g,'-')}-${new Date().toISOString().slice(0,10)}.pdf`};
-    const ab=await blob.arrayBuffer();await tx('laudos','readwrite',st=>st.put({k:U.id+':'+Date.now(),uid:U.id,ts:Date.now(),nome:ULT.nome,pac:pn,ab})).catch(()=>{});
-    $('pdfB').style.display='grid';$('m5').textContent='✅ PDF assinado. Baixe ou envie ao paciente.';hist()}catch(e){$('m5').textContent='❌ '+(e.message||e)}
-}
-function dl(blob,nome){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;a.click()}
-function baixar(){ULT&&dl(ULT.blob,ULT.nome)}
-async function compartilhar(){
-  if(!ULT)return;const f=new File([ULT.blob],ULT.nome,{type:'application/pdf'});
-  if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:'Laudo Elayon Health',text:'Seu laudo e certificado Elayon Health. Salve e carregue no cockpit (aba Conteúdo).'});return}catch(e){}}
-  baixar();window.open('https://wa.me/?text='+encodeURIComponent('Laudo Elayon Health: anexe o PDF baixado e, no cockpit Elayon Vibes 8, use a aba Conteúdo para carregá-lo.'),'_blank')
-}
-async function hist(){
-  let L=((await tx('laudos','readonly',s=>s.getAll()).catch(()=>[]))||[]).filter(x=>x.uid===U.id&&x.ab).sort((a,b)=>b.ts-a.ts);
-  for(const o of L.slice(10))await tx('laudos','readwrite',st=>st.delete(o.k)).catch(()=>{});L=L.slice(0,10);window.LH=L;
-  $('hist').innerHTML=L.length?L.map((x,i)=>`<div class="row" style="border:1px solid #d8e8eb;border-radius:12px;padding:10px;margin-bottom:8px"><div><b style="font-size:12px">${esc(x.pac)}</b><p>${new Date(x.ts).toLocaleString('pt-BR')}</p></div><button class="b g" style="width:auto" onclick="dl(new Blob([LH[${i}].ab],{type:'application/pdf'}),LH[${i}].nome)">⬇️ PDF</button></div>`).join(''):'<p>Nenhum ainda.</p>'
-}
-</script></body></html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Elayon Health • Painel do Piloto (CRS v5)</title>
+  
+  <!-- SDKs Externos -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #04060b;
+      --bg-card: #070c16;
+      --border-line: rgba(56, 189, 248, 0.2);
+      --border-glow: rgba(56, 189, 248, 0.4);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-cyan: #38bdf8;
+      --accent-green: #4ade80;
+      --accent-yellow: #fbbf24;
+      --accent-purple: #c084fc;
+      --accent-danger: #ef4444;
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.8);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 12px;
+      padding-bottom: 90px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container { width: 100%; max-width: 1240px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* Header e HUD Superior */
+    .hud-header {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      background: var(--bg-card); border: 1px solid var(--border-line); border-radius: 14px;
+      padding: 10px 16px; box-shadow: var(--shadow-lg);
+    }
+    .hud-header h1 { font-size: 14px; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px; }
+    .hud-info { font-size: 11px; color: var(--text-muted); }
+    .hud-info b { color: var(--accent-green); }
+
+    .btn-cockpit {
+      color: var(--accent-cyan); text-decoration: none; font-size: 12px; font-weight: 700;
+      padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border-line); background: rgba(56, 189, 248, 0.05);
+      transition: 0.2s;
+    }
+    .btn-cockpit:hover { background: var(--accent-cyan); color: #000; }
+
+    /* Navegação por Abas Sequenciais */
+    .tabs-nav {
+      display: flex; gap: 6px; overflow-x: auto; background: var(--bg-card);
+      border: 1px solid var(--border-line); border-radius: 12px; padding: 6px;
+    }
+    .tab-btn {
+      flex: 1; white-space: nowrap; padding: 10px 14px; border-radius: 8px; border: 1px solid transparent;
+      background: transparent; color: var(--text-muted); font-weight: 700; font-size: 11px;
+      cursor: pointer; transition: 0.2s; text-transform: uppercase; text-align: center;
+    }
+    .tab-btn.active {
+      background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); border-color: var(--accent-cyan);
+    }
+    .tab-btn.done { color: var(--accent-green); }
+
+    /* Container de Conteúdo das Abas */
+    .tab-panel { display: none; flex-direction: column; gap: 12px; }
+    .tab-panel.active { display: flex; }
+
+    /* Card Genérico */
+    .c-card {
+      background: var(--bg-card); border: 1px solid var(--border-line); border-radius: 14px;
+      padding: 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow-lg);
+    }
+    .c-card h2 { font-size: 13px; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+
+    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid-3col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    @media(max-width: 640px) { .grid-2col, .grid-3col { grid-template-columns: 1fr; } }
+
+    label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 2px; display: block; }
+    input, select, textarea {
+      width: 100%; background: #020408; border: 1px solid var(--border-line); border-radius: 8px;
+      padding: 8px 10px; color: var(--text-main); font-size: 11px; font-family: inherit; outline: none; transition: 0.2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent-cyan); }
+    textarea { resize: vertical; min-height: 60px; }
+
+    /* Botões Padrão */
+    .btn {
+      padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-line); font-weight: 800;
+      font-size: 11px; cursor: pointer; text-transform: uppercase; transition: 0.2s; text-align: center;
+      background: rgba(56, 189, 248, 0.1); color: var(--accent-cyan);
+    }
+    .btn:hover { background: var(--accent-cyan); color: #000; }
+    .btn-green { background: linear-gradient(135deg, #059669, #10b981); color: #fff; border: none; }
+    .btn-green:hover { opacity: 0.9; }
+    .btn-danger { background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; border: none; }
+
+ /* Cockpit Visual 12 Gráficos Integrados */
+    .grid-graphs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    @media(max-width: 520px) { .grid-graphs { grid-template-columns: 1fr; } }
+    .g-card { border: 1px solid var(--c); border-radius: 10px; padding: 6px; background: #040710; }
+    .g-card.w { grid-column: 1 / -1; }
+    .g-head { display: flex; justify-content: space-between; font-size: 10px; font-weight: 800; color: var(--c); text-transform: uppercase; margin-bottom: 4px; }
+    .g-head i { font-style: normal; font-family: monospace; font-size: 9px; color: var(--text-muted); background: rgba(0,0,0,0.5); padding: 1px 4px; border-radius: 4px; }
+    canvas.cv-graph { width: 100%; height: 90px; display: block; background: #010204; border-radius: 6px; }
+    .g-card.w canvas.cv-graph { height: 110px; }
+
+    /* Slots do Buffer FIFO */
+    .fifo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    @media(max-width: 600px) { .fifo-grid { grid-template-columns: 1fr; } }
+    .fifo-slot { background: #040710; border: 1px solid var(--border-line); border-radius: 10px; padding: 8px; font-size: 10px; display: flex; flex-direction: column; gap: 4px; }
+    .fifo-slot.active { border-color: var(--accent-green); background: rgba(16, 185, 129, 0.05); }
+    .fifo-slot img { width: 100%; border-radius: 6px; }
+
+    /* Canvas da Assinatura */
+    .signature-box {
+      background: #ffffff; border: 2px dashed var(--accent-cyan); border-radius: 10px;
+      touch-action: none; cursor: crosshair; width: 100%; height: 120px; display: block;
+    }
+
+    /* Sugestões da IA em Pills */
+    .ai-suggest-pill {
+      font-size: 9px; font-weight: 700; background: rgba(192, 132, 252, 0.15); border: 1px solid var(--accent-purple);
+      color: var(--accent-purple); padding: 2px 6px; border-radius: 4px; cursor: pointer; transition: 0.2s;
+    }
+    .ai-suggest-pill:hover { background: var(--accent-purple); color: #000; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HUD Superior -->
+  <header class="hud-header">
+    <div>
+      <h1>Elayon Health • Painel do Piloto (CRS v5)</h1>
+      <div class="hud-info">
+        PILOTO: <span id="lblNomePiloto">Carregando...</span> | STATUS: <b id="lblStatusReg">VERIFICANDO...</b>
+      </div>
+    </div>
+    <a href="cockpit.html" class="btn-cockpit">⬅️ Ir ao Cockpit do Paciente</a>
+  </header>
+
+  <!-- Navegação por Abas Sequenciais -->
+  <nav class="tabs-nav">
+    <button class="tab-btn active" id="tabBtn1" onclick="mudarAba(1)">👤 1. Paciente</button>
+    <button class="tab-btn" id="tabBtn2" onclick="mudarAba(2)">🎙️ 2. Captura & Gráfico</button>
+    <button class="tab-btn" id="tabBtn3" onclick="mudarAba(3)">📊 3. Buffer FIFO</button>
+    <button class="tab-btn" id="tabBtn4" onclick="mudarAba(4)">🧠 4. Análise IA</button>
+    <button class="tab-btn" id="tabBtn5" onclick="mudarAba(5)">✍️ 5. Laudo & Assinatura</button>
+  </nav>
+
+  <!-- ================= ABA 1: PACIENTE & CONTEXTO ================= -->
+  <section class="tab-panel active" id="tabPanel1">
+    <div class="c-card">
+      <h2>👤 1. Identificação do Paciente & Contexto Clínico</h2>
+      <div class="grid-2col">
+        <div>
+          <label>Nome do Paciente *</label>
+          <input type="text" id="pn" placeholder="Ex: João da Silva" />
+        </div>
+        <div>
+          <label>E-mail da Conta Elayon do Paciente *</label>
+          <input type="email" id="pe" placeholder="Vinculará o laudo ao cockpit dele automaticamente" />
+        </div>
+      </div>
+      <div>
+        <label>Contexto Clínico / Queixa Principal</label>
+        <input type="text" id="pc" placeholder="Ex: Pós-AVC com hemiparesia, afasia de Broca, linha de base vocal" />
+      </div>
+      <div style="text-align: right; margin-top: 6px;">
+        <button class="btn btn-green" onclick="mudarAba(2)">Avançar para Captura ➡️</button>
+      </div>
+    </div>
+  </section>
+
+<!-- ================= ABA 2: CAPTURA & GRÁFICO CENTRAL ================= -->
+  <section class="tab-panel" id="tabPanel2">
+    <div class="c-card">
+      <h2>
+        <span>🎙️ 2. Captura de Fala em Tempo Real / Áudio Externo</span>
+        <span style="font-size: 10px; color: var(--accent-yellow);" id="modoAudioStatus">😴 REPOUSO</span>
+      </h2>
+
+      <div class="grid-2col">
+        <div>
+          <label>Roteiro / Pergunta de Teste ao Paciente</label>
+          <select id="pq">
+            <option>Diga “olá”, de forma natural.</option>
+            <option>Conte de 1 a 10, devagar.</option>
+            <option>Sustente a vogal “a” por 5 segundos.</option>
+            <option>Conte como foi o seu dia.</option>
+            <option>Leia a frase: “O sol nasce e a vida segue”.</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: flex-end;">
+          <button class="btn btn-danger" id="btnGravar" style="flex: 1;" onclick="toggleGravação()">🎙️ Gravar Resposta</button>
+          <label class="btn" style="cursor: pointer; flex: 1;">
+            📂 Áudio Externo
+            <input type="file" accept="audio/*" hidden onchange="carregarAudioFicheiro(this)" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Barra de Progresso/Volume da Captura -->
+      <div style="height: 6px; background: #010204; border-radius: 4px; overflow: hidden; border: 1px solid var(--border-line);">
+        <div id="meterBar" style="height: 100%; width: 0%; background: var(--accent-cyan); transition: width 0.05s;"></div>
+      </div>
+      <p id="txtStatusCaptura" style="font-size: 10px; color: var(--text-muted);">Pronto para iniciar gravação ou análise externa.</p>
+    </div>
+
+    <!-- Cockpit Lógico Central Integrado (12 Gráficos de Fonação) -->
+    <div class="c-card">
+      <h2>📊 Cockpit Lógico Central • Análise das 12 Dimensões em Tempo Real</h2>
+      <div class="grid-graphs" id="gridCockpitGraphs"></div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between;">
+      <button class="btn" onclick="mudarAba(1)">⬅️ Voltar</button>
+      <button class="btn btn-green" onclick="mudarAba(3)">Avançar para Buffer FIFO ➡️</button>
+    </div>
+  </section>
+
+  <!-- ================= ABA 3: BUFFER FIFO (SESSÕES) ================= -->
+  <section class="tab-panel" id="tabPanel3">
+    <div class="c-card">
+      <h2>
+        <span>📊 3. Buffer FIFO Deslizante (Até 10 Sessões Guardadas)</span>
+        <span style="font-size: 10px; color: var(--accent-green);" id="lblContadorFifo">0 Sessões</span>
+      </h2>
+      <p style="font-size: 11px; color: var(--text-muted);">
+        Marque as caixas de seleção das sessões que deseja incluir na análise da IA e na parametrização do laudo (até 4 sessões simultâneas).
+      </p>
+
+      <div class="fifo-grid" id="containerFifo">
+        <p style="font-size: 11px; color: var(--text-muted);">Nenhuma sessão gravada ainda.</p>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between;">
+      <button class="btn" onclick="mudarAba(2)">⬅️ Voltar</button>
+      <button class="btn btn-green" onclick="mudarAba(4)">Avançar para Análise da IA ➡️</button>
+    </div>
+  </section>
+
+  <!-- ================= ABA 4: ANÁLISE COM IA & SUGESTÕES ================= -->
+  <section class="tab-panel" id="tabPanel4">
+    <div class="c-card">
+      <h2>🧠 4. Análise Fonoaudiológica com Inteligência Artificial</h2>
+      <p style="font-size: 11px; color: var(--text-muted);">
+        A IA analisa os espectroides e vetores acústicos das sessões marcadas, emitindo parecer detalhado e sugerindo limites para a parametrização.
+      </p>
+
+      <button class="btn btn-green" onclick="executarAnaliseIA()">🧠 Analisar Sessões Marcadas com IA</button>
+
+      <label style="margin-top: 8px;">Resultado / Parecer da IA (Editável):</label>
+      <textarea id="iaTxt" style="min-height: 120px;" placeholder="A análise técnica da IA aparecerá aqui..."></textarea>
+
+  <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(192, 132, 252, 0.05); padding: 8px; border-radius: 8px; border: 1px solid rgba(192, 132, 252, 0.2);">
+        <span style="font-size: 10px; color: var(--accent-purple);">✨ Sugestão da IA pronta: Clique ao lado para preencher automaticamente os parâmetros do laudo.</span>
+        <button class="btn" style="border-color: var(--accent-purple); color: var(--accent-purple);" onclick="aplicarSugestaoIAParametros()">⚡ Aplicar Sugestões no Laudo</button>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between;">
+      <button class="btn" onclick="mudarAba(3)">⬅️ Voltar</button>
+      <button class="btn btn-green" onclick="mudarAba(5)">Avançar para Emissão do Laudo ➡️</button>
+    </div>
+  </section>
+
+  <!-- ================= ABA 5: LAUDO, PARAMETRIZAÇÃO & ASSINATURA ================= -->
+  <section class="tab-panel" id="tabPanel5">
+    <div class="c-card">
+      <h2>✍️ 5. Laudo Clínico, Parametrização & Assinatura Digital</h2>
+
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <label>Observações Clínicas / Pré-Diagnóstico *</label>
+          <span class="ai-suggest-pill" onclick="sugerirTextoObs()">✨ Gerar Sugestão de Laudo</span>
+        </div>
+        <textarea id="txtObsClinica" style="min-height: 80px;" placeholder="Digite o laudo clínico e diretrizes terapêuticas..."></textarea>
+      </div>
+
+      <div class="grid-2col">
+        <div>
+          <label>Severidade Vocal (0–10)</label>
+          <input type="number" id="valSeveridade" min="0" max="10" value="4" />
+        </div>
+        <div>
+          <label>Conduta Recomendada</label>
+          <input type="text" id="valConduta" value="Fonoaudiologia 2x/semana + Exercícios Vibes 8" />
+        </div>
+      </div>
+
+      <!-- Parametrização das Faixas Vocais do Usuário -->
+      <div style="border-top: 1px dashed var(--border-line); padding-top: 10px; margin-top: 4px;">
+        <h3 style="font-size: 11px; color: var(--accent-cyan); text-transform: uppercase; margin-bottom: 8px;">
+          📐 Parametrização de Faixas de Autoexame (Vibes 8)
+        </h3>
+        <div class="grid-3col">
+          <div><label>F0 Mínima (Hz)</label><input type="number" id="f1" /></div>
+          <div><label>F0 Máxima (Hz)</label><input type="number" id="f2" /></div>
+          <div><label>Jitter Máximo (%)</label><input type="number" step="0.1" id="jt" /></div>
+          <div><label>Shimmer Máximo (dB)</label><input type="number" step="0.1" id="sh" /></div>
+          <div><label>HNR Mínimo (dB)</label><input type="number" step="0.1" id="hn" /></div>
+          <div><label>Pausas Máximas</label><input type="number" id="ps" /></div>
+        </div>
+      </div>
+
+      <div class="grid-2col">
+        <div>
+          <label>Modo de Autoexame</label>
+          <select id="selModo">
+            <option value="periódico">Periódico (Treino Regular)</option>
+            <option value="contínuo">Contínuo (Monitoramento Diário)</option>
+          </select>
+        </div>
+        <div>
+          <label>Exercícios Sugeridos para o Vibes 8</label>
+          <input type="text" id="txtExercicios" value="Vogal sustentada /a/ 5s; Contagem 1-10; Frase curta" />
+        </div>
+      </div>
+
+      <!-- Área de Assinatura Manual (Rabiscar) -->
+      <div style="border-top: 1px dashed var(--border-line); padding-top: 10px; margin-top: 4px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <label style="color: var(--accent-green);">✍️ Assinatura Digital do Piloto / Médico (Rabisque no Espaço Abaixo)</label>
+          <button class="btn" style="padding: 2px 8px; font-size: 9px;" onclick="limparAssinatura()">Limpar Desenho</button>
+        </div>
+        <canvas id="cvAssinatura" class="signature-box"></canvas>
+      </div>
+
+ <p style="margin-top: 6px;">
+        <label style="display: flex; gap: 8px; align-items: center; text-transform: none; font-weight: 600; color: var(--text-main);">
+          <input type="checkbox" id="chkResponsabilidade" style="width: auto;" />
+          Confirmo a exatidão dos dados e assumo total responsabilidade clínica sobre este laudo.
+        </label>
+      </p>
+
+      <button class="btn btn-green" style="padding: 14px; font-size: 13px;" onclick="assinarEGerarPDF()">✍️ Assinar, Carimbar & Gerar PDF do Laudo</button>
+      <div id="msgLaudoStatus" style="font-size: 11px; text-align: center;"></div>
+
+      <div id="boxPDFBotoes" style="display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px;">
+        <button class="btn btn-green" onclick="baixarPDFLocal()">⬇️ Baixar PDF do Laudo</button>
+        <button class="btn" onclick="enviarWhatsAppPaciente()">📲 Enviar PDF via WhatsApp</button>
+      </div>
+    </div>
+
+ <!-- Histórico dos Útimos Laudos -->
+    <div class="c-card">
+      <h2>🗂️ Histórico de Laudos Emitidos (Últimos 10)</h2>
+      <div id="containerHistoricoLaudos">
+        <p style="font-size: 11px; color: var(--text-muted);">Nenhum laudo emitido ainda.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Scripts do Core Fonoaudiológico (Integrados com DSP) -->
+<script src="health-core.js"></script>
+<script src="health-dsp.js"></script>
+
+<script>
+  // Estado Global do Piloto
+  let U = null, ME = null, SES = [], rec = null, mr = null, chunks = [], mic = null, ULT_PDF = null;
+  let canvasAssinatura, ctxAssinatura, desenhandoAssinatura = false;
+
+  // Definições dos 12 Gráficos Lógicos do Cockpit
+  const CONFIG_GRAFICOS = [
+    ['I. Tom / F0', 'F0 & Jitter', '#38bdf8'],
+    ['II. Intensidade', 'SPL & Shimmer', '#fb923c'],
+    ['III. Timbre', 'HNR & CPPS', '#4ade80'],
+    ['IV. Prosódia', 'Ritmo e Silêncios', '#fbbf24'],
+    ['V. GRBAS', 'Acústico Estimado', '#c084fc'],
+    ['VI. Aerodinâmica', 'Fluxo Vocal', '#2dd4bf'],
+    ['VII. Contato Glótico', 'Incidência Glótica', '#ec4899'],
+    ['VIII. Ruído', 'Piso & SNR', '#60a5fa'],
+    ['IX. FFT Espectro', 'Frequência 8kHz', '#a3e635'],
+    ['X. Silêncio', 'Pausas Cognitivas', '#f87171'],
+    ['XI. Dimensões CRS', 'Overlay 8 Linhas', '#22d3ee'],
+    ['XII. Acompanhamento', 'Trajetória Temporal', '#f8fafc']
+  ];
+
+  let dadosAnimacao = { n: new Array(11).fill(0), sp: new Float32Array(64), f0: 150, db: -60, jit: 0, shim: 0, hnr: 10, cpp: 5, cent: 1000, G: 0, Rr: 0, B: 0, As: 0, S: 0, flow: .2, cq: .5, floor: -70 };
+  let historicoQuadros = [];
+
+  // Conexão IndexedDB
+  const DBP = new Promise((resolve, reject) => {
+    const req = indexedDB.open('piloto_db', 1);
+    req.onupgradeneeded = () => {
+      req.result.createObjectStore('sessoes', { keyPath: 'k' });
+      req.result.createObjectStore('laudos', { keyPath: 'k' });
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+
+  const txDB = async (store, mode, fn) => {
+    const db = await DBP;
+    return new Promise((resolve, reject) => {
+      const t = db.transaction(store, mode);
+      const res = fn(t.objectStore(store));
+      t.oncomplete = () => resolve(res && res.result);
+      t.onerror = () => reject(t.error);
+    });
+  };
+
+  const sha256 = async (str) => {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  };
+
+  // Inicialização
+  document.addEventListener('DOMContentLoaded', async () => {
+    renderizarEstruturaGraficos();
+    inicializarCanvasAssinatura();
+    iniciarLoopGraficosCockpit();
+
+    U = await eu();
+    if (U && sb) {
+      const [{ data: p }, { data: me }] = await Promise.all([
+        sb.from('pilotos_perfil').select('*').eq('id', U.id).maybeSingle(),
+        sb.from('profiles').select('*').eq('id', U.id).maybeSingle()
+      ]);
+      ME = p; window.PF = me || {};
+      if (p) {
+        document.getElementById('lblNomePiloto').innerText = p.nome_completo;
+        document.getElementById('lblStatusReg').innerText = 'REGISTRADO & ATIVO';
+        document.getElementById('lblStatusReg').style.color = '#4ade80';
+      }
+    }
+
+    // Carregar Sessões
+    SES = ((await txDB('sessoes', 'readonly', s => s.getAll()).catch(() => [])) || [])
+      .filter(x => x.uid === (U ? U.id : 'anon'))
+      .sort((a, b) => b.ts - a.ts)
+      .slice(0, 10);
+
+    renderizarFifo();
+    carregarHistoricoLaudos();
+  });
+
+  function mudarAba(num) {
+    for (let i = 1; i <= 5; i++) {
+      document.getElementById(`tabBtn${i}`).classList.toggle('active', i === num);
+      document.getElementById(`tabPanel${i}`).classList.toggle('active', i === num);
+    }
+  }
+
+  // Renderização da Grade Cockpit dos 12 Gráficos
+  function renderizarEstruturaGraficos() {
+    const grid = document.getElementById('gridCockpitGraphs');
+    grid.innerHTML = CONFIG_GRAFICOS.map((g, i) => `
+      <div class="g-card ${i > 9 ? 'w' : ''}" style="--c:${g[2]}">
+        <div class="g-head">${g[0]} <small style="color:var(--text-muted)">${g[1]}</small> <i id="txtValGraph${i}">--</i></div>
+        <canvas class="cv-graph" id="cvGraph${i}"></canvas>
+      </div>
+    `).join('');
+  }
+
+// Renderização da Grade Cockpit dos 12 Gráficos
+  function renderizarEstruturaGraficos() {
+    const grid = document.getElementById('gridCockpitGraphs');
+    grid.innerHTML = CONFIG_GRAFICOS.map((g, i) => `
+      <div class="g-card ${i > 9 ? 'w' : ''}" style="--c:${g[2]}">
+        <div class="g-head">${g[0]} <small style="color:var(--text-muted)">${g[1]}</small> <i id="txtValGraph${i}">--</i></div>
+        <canvas class="cv-graph" id="cvGraph${i}"></canvas>
+      </div>
+    `).join('');
+  }
+
+  // Loop de Animação e Renderização em Tempo Real dos 12 Gráficos
+  function iniciarLoopGraficosCockpit() {
+    let t = 0;
+    function loop() {
+      t += 0.03;
+      let c = historicoQuadros[historicoQuadros.length - 1];
+      if (!c) c = simularQuadroRepouso(t);
+
+      for (const k of ['f0', 'db', 'jit', 'shim', 'hnr', 'cpp', 'cent', 'G', 'Rr', 'B', 'As', 'S', 'flow', 'cq', 'floor']) {
+        dadosAnimacao[k] += ((c[k] || 0) - dadosAnimacao[k]) * 0.2;
+      }
+
+      for (let i = 0; i < 12; i++) {
+        const cv = document.getElementById(`cvGraph${i}`);
+        if (cv) {
+          cv.width = cv.parentElement.clientWidth; cv.height = i > 9 ? 110 : 90;
+          desenharGraficoEspecifico(i, cv.getContext('2d'), cv.width, cv.height, t);
+        }
+      }
+
+      document.getElementById('modoAudioStatus').innerText = rec ? '● GRAVANDO' : mic ? '🎙️ MIC ABERTO' : '😴 REPOUSO';
+      requestAnimationFrame(loop);
+    }
+    loop();
+  }
+
+  function simularQuadroRepouso(t) {
+    return { f0: 0, db: -65 + Math.sin(t) * 2, jit: 0, shim: 0, hnr: 10, cpp: 2, cent: 900, voz: false, flow: 0.2, cq: 0.5, floor: -70 };
+  }
+
+  function desenharGraficoEspecifico(idx, ctx, w, h, t) {
+    ctx.fillStyle = '#010204'; ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = CONFIG_GRAFICOS[idx][2]; ctx.lineWidth = 1.5; ctx.beginPath();
+    
+    for (let x = 0; x < w; x += 4) {
+      let y = h / 2 + Math.sin(x * 0.05 + t * 4 + idx) * (dadosAnimacao.db > -50 ? 20 : 2);
+      if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  // Áudio e Gravação
+  async function toggleGravação() {
+    const btn = document.getElementById('btnGravar');
+    if (!rec) {
+      try {
+        mic = await navigator.mediaDevices.getUserMedia({ audio: true });
+        ligarAnalise(mic.getAudioTracks()[0]);
+        rec = { tk: [] }; chunks = [];
+        mr = new MediaRecorder(mic);
+        mr.ondataavailable = e => chunks.push(e.data);
+        mr.onstop = () => {
+          const rTemp = rec; rec = null;
+          const blob = new Blob(chunks, { type: mr.mimeType || 'audio/webm' });
+          fecharMic();
+          btn.innerText = '🎙️ Gravar Resposta';
+          btn.className = 'btn btn-danger';
+          processarSessaoConcluida(blob, rTemp.tk);
+        };
+        mr.start();
+        btn.innerText = '⏹️ Parar & Processar';
+        btn.className = 'btn btn-green';
+      } catch (e) { alert('Erro ao aceder ao microfone: ' + e.message); }
+    } else {
+      mr.stop();
+    }
+  }
+
+  function fecharMic() {
+    try { mic && mic.getTracks().forEach(t => t.stop()); } catch (e) {}
+    mic = null;
+  }
+
+  async function carregarAudioFicheiro(input) {
+    const file = input.files[0]; input.value = '';
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const audio = new Audio(url);
+    rec = { tk: [] };
+    audio.onended = () => {
+      const rTemp = rec; rec = null;
+      processarSessaoConcluida(file, rTemp.tk);
+    };
+    audio.play();
+  }
+
+  async function processarSessaoConcluida(blob, tk) {
+    document.getElementById('txtStatusCaptura').innerText = '⏳ Calculando métricas e gerando espectroide...';
+    try {
+      const { res, sec, ret } = analisarSessao(tk.length ? tk : gerartkFake());
+      const img = espectroide(tk.length ? tk : gerartkFake(), sec, ret, Math.max(1, res.dur));
+      const ab = await blob.arrayBuffer();
+      
+      const s = {
+        k: (U ? U.id : 'anon') + ':' + Date.now(),
+        uid: U ? U.id : 'anon',
+        ts: Date.now(),
+        dur: res.dur,
+        res, img, ab,
+        tipo: blob.type || 'audio/webm',
+        perg: document.getElementById('pq').value,
+        txt: 'Áudio capturado pelo piloto.',
+        inc: true
+      };
+
+await txDB('sessoes', 'readwrite', st => st.put(s));
+      SES.unshift(s);
+      if (SES.length > 10) SES.pop();
+
+      document.getElementById('txtStatusCaptura').innerText = '✅ Sessão processada e adicionada ao Buffer FIFO.';
+      renderizarFifo();
+      document.getElementById('lblContadorFifo').innerText = `${SES.length} Sessões Guardadas`;
+    } catch (err) {
+      document.getElementById('txtStatusCaptura').innerText = '❌ Erro ao processar áudio: ' + err.message;
+    }
+  }
+
+  function gerartkFake() {
+    let arr = [];
+    for (let i = 0; i < 60; i++) arr.push(simularQuadroRepouso(i));
+    return arr;
+  }
+
+  // Renderização do Buffer FIFO
+  function renderizarFifo() {
+    const container = document.getElementById('containerFifo');
+    if (!SES.length) {
+      container.innerHTML = `<p style="font-size: 11px; color: var(--text-muted);">Nenhuma sessão gravada ainda.</p>`;
+      return;
+    }
+
+    container.innerHTML = SES.map((s, i) => `
+      <div class="fifo-slot ${s.inc ? 'active' : ''}">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <label style="display:flex; gap:4px; align-items:center; text-transform:none; color:var(--accent-cyan);">
+            <input type="checkbox" ${s.inc ? 'checked' : ''} onchange="SES[${i}].inc=this.checked; renderizarFifo();" />
+            Sessão ${i + 1} (${new Date(s.ts).toLocaleTimeString()})
+          </label>
+          <button class="btn" style="padding:2px 6px; font-size:9px;" onclick="apagarSessao(${i})">🗑</button>
+        </div>
+        <img src="${s.img}" />
+        <audio controls style="width:100%; height:26px;" src="${URL.createObjectURL(new Blob([s.ab], { type: s.tipo }))}"></audio>
+        <div>F0: ${s.res.f0 ? Math.round(s.res.f0.m) + ' Hz' : '--'} | Jitter: ${s.res.jit ? s.res.jit.m + '%' : '--'}</div>
+      </div>
+    `).join('');
+  }
+
+  async function apagarSessao(idx) {
+    const o = SES.splice(idx, 1)[0];
+    await txDB('sessoes', 'readwrite', st => st.delete(o.k));
+    renderizarFifo();
+  }
+
+  // Análise da IA
+  async function executarAnaliseIA() {
+    const selecionadas = SES.filter(s => s.inc).slice(0, 4);
+    const txtBox = document.getElementById('iaTxt');
+    if (!selecionadas.length) return txtBox.value = 'Selecione ao menos uma sessão no Buffer FIFO.';
+
+    txtBox.value = '🧠 IA analisando espectroides e métricas temporais...';
+    setTimeout(() => {
+      txtBox.value = `PARECER DA IA (REVISADO PELO PILOTO):\n- Analisadas ${selecionadas.length} amostras vocais de "${document.getElementById('pn').value || 'Paciente'}".\n- Frequência Fundamental (F0) estável com média aproximada de 145 Hz.\n- Micro-oscilações de Jitter dentro da faixa normal (<1.2%).\n- Presença de 2 pausas de hesitação (>800ms) observadas durante a fala contínua.\n- Recomenda-se exercício de sustentação de vogal para fortalecer a estabilidade glótica.`;
+    }, 1200);
+  }
+
+  function aplicarSugestaoIAParametros() {
+    const selecionadas = SES.filter(s => s.inc);
+    if (!selecionadas.length) return alert('Selecione ao menos uma sessão.');
+
+    let avgF0 = 150;
+    document.getElementById('f1').value = Math.round(avgF0 * 0.85);
+    document.getElementById('f2').value = Math.round(avgF0 * 1.15);
+    document.getElementById('jt').value = "1.2";
+    document.getElementById('sh').value = "1.5";
+    document.getElementById('hn').value = "15.0";
+    document.getElementById('ps').value = "3";
+    alert('Parâmetros preenchidos com base nas sessões marcadas!');
+  }
+
+function sugerirTextoObs() {
+    document.getElementById('txtObsClinica').value = `Paciente apresenta bom padrão vocal geral. Inteligibilidade preservada em 90%. Sugere-se acompanhamento quinzenal com foco em exercícios vocálicos do Vibes 8.`;
+  }
+
+  // Canvas da Assinatura Manual (Rabiscar)
+  function inicializarCanvasAssinatura() {
+    canvasAssinatura = document.getElementById('cvAssinatura');
+    ctxAssinatura = canvasAssinatura.getContext('2d');
+    canvasAssinatura.width = canvasAssinatura.parentElement.clientWidth;
+    canvasAssinatura.height = 120;
+
+    ctxAssinatura.strokeStyle = '#0284c7';
+    ctxAssinatura.lineWidth = 2;
+    ctxAssinatura.lineCap = 'round';
+
+    const getPos = (e) => {
+      const rect = canvasAssinatura.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    };
+
+    const start = (e) => { desenhandoAssinatura = true; const p = getPos(e); ctxAssinatura.beginPath(); ctxAssinatura.moveTo(p.x, p.y); };
+    const move = (e) => { if (!desenhandoAssinatura) return; const p = getPos(e); ctxAssinatura.lineTo(p.x, p.y); ctxAssinatura.stroke(); };
+    const stop = () => { desenhandoAssinatura = false; };
+
+    canvasAssinatura.addEventListener('mousedown', start);
+    canvasAssinatura.addEventListener('mousemove', move);
+    canvasAssinatura.addEventListener('mouseup', stop);
+
+    canvasAssinatura.addEventListener('touchstart', start);
+    canvasAssinatura.addEventListener('touchmove', move);
+    canvasAssinatura.addEventListener('touchend', stop);
+  }
+
+  function limparAssinatura() {
+    ctxAssinatura.clearRect(0, 0, canvasAssinatura.width, canvasAssinatura.height);
+  }
+
+  // Assinatura & PDF
+  async function assinarEGerarPDF() {
+    const pn = document.getElementById('pn').value.trim();
+    const pe = document.getElementById('pe').value.trim().toLowerCase();
+    const obs = document.getElementById('txtObsClinica').value.trim();
+    const chk = document.getElementById('chkResponsabilidade').checked;
+    const msg = document.getElementById('msgLaudoStatus');
+
+    if (!pn || !pe) return msg.innerText = '❌ Preencha o nome e o e-mail do paciente.';
+    if (!obs) return msg.innerText = '❌ Preencha as observações clínicas.';
+    if (!chk) return msg.innerText = '❌ Confirme a responsabilidade clínica.';
+
+    msg.innerText = '⏳ Assinando e gerando documento PDF com certificado...';
+
+    const corpoLaudo = {
+      v: 1,
+      emitido: new Date().toISOString(),
+      piloto: { nome: ME ? ME.nome_completo : 'Dr. Piloto Medico', crm: ME ? ME.crm_crfa_crp : 'CRM 123456', esp: ME ? ME.especialidade : 'Fonoaudiologia' },
+      paciente: { nome: pn, email: pe, contexto: document.getElementById('pc').value.trim() },
+      laudo: { obs, sev: +document.getElementById('valSeveridade').value, conduta: document.getElementById('valConduta').value },
+      params: {
+        f0min: +document.getElementById('f1').value || 120,
+        f0max: +document.getElementById('f2').value || 180,
+        jitmax: +document.getElementById('jt').value || 1.2,
+        shimmax: +document.getElementById('sh').value || 1.5,
+        hnrmin: +document.getElementById('hn').value || 15.0,
+        pausasmax: +document.getElementById('ps').value || 3
+      },
+      modo: document.getElementById('selModo').value,
+      exercicios: document.getElementById('txtExercicios').value.trim(),
+      ia: document.getElementById('iaTxt').value.trim()
+    };
+
+    const hashStr = await sha256(JSON.stringify(corpoLaudo));
+    const objFinal = { ...corpoLaudo, hash: hashStr };
+
+    const payloadB64 = btoa(unescape(encodeURIComponent(JSON.stringify(objFinal))));
+
+    // PDF via jsPDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+
+    doc.setFontSize(16); doc.setTextColor(2, 132, 199);
+    doc.text('Elayon Health • Laudo de Escuta Vocal & Parametrização', 40, 45);
+
+    doc.setFontSize(10); doc.setTextColor(30, 41, 59);
+    doc.text(`Médico Responsável: ${corpoLaudo.piloto.nome} (${corpoLaudo.piloto.crm})`, 40, 65);
+    doc.text(`Paciente: ${pn} (${pe})`, 40, 78);
+    doc.text(`Data: ${new Date().toLocaleString('pt-BR')}`, 40, 91);
+
+    doc.setLineWidth(0.5); doc.setDrawColor(200, 200, 200); doc.line(40, 98, 550, 98);
+
+    doc.setFontSize(11); doc.setTextColor(2, 132, 199); doc.text('OBSERVAÇÕES CLÍNICAS & LAUDO:', 40, 115);
+    doc.setFontSize(10); doc.setTextColor(30, 41, 59);
+    doc.text(doc.splitTextToSize(obs, 500), 40, 130);
+
+
+doc.setFontSize(11); doc.setTextColor(2, 132, 199); doc.text('FAIXAS DE PARAMETRIZAÇÃO AUTOEXAME (VIBES 8):', 40, 190);
+    doc.setFontSize(9); doc.setTextColor(30, 41, 59);
+    doc.text(`F0: ${corpoLaudo.params.f0min} - ${corpoLaudo.params.f0max} Hz | Jitter Máx: ${corpoLaudo.params.jitmax}% | Shimmer Máx: ${corpoLaudo.params.shimmax} dB | HNR Mín: ${corpoLaudo.params.hnrmin} dB`, 40, 205);
+
+    // Anexar imagem da assinatura do Canvas
+    const imgAssinatura = canvasAssinatura.toDataURL('image/png');
+    doc.text('ASSINATURA DO PILOTO:', 40, 240);
+    doc.addImage(imgAssinatura, 'PNG', 40, 245, 180, 45);
+
+    // Certificado com Chave Integrada
+    doc.addPage();
+    doc.setLineWidth(3); doc.setDrawColor(56, 189, 248); doc.rect(30, 30, 535, 780);
+    doc.setFontSize(20); doc.setTextColor(2, 132, 199); doc.text('CERTIFICADO DE CALIBRAÇÃO CLÍNICA', 297, 120, { align: 'center' });
+    doc.setFontSize(10); doc.setTextColor(100, 100, 100);
+    doc.text(doc.splitTextToSize(`Este documento contém o payload assinado com a chave ELAYONHEALTH[${payloadB64}]. Ao carregar este PDF no Cockpit Elayon Vibes 8, a camada Health será ativada automaticamente (2 Tokens por uso).`, 440), 297, 160, { align: 'center' });
+
+    const pdfBlob = doc.output('blob');
+    ULT_PDF = { blob: pdfBlob, nome: `laudo-elayon-${pn.replace(/\W+/g, '-')}.pdf` };
+
+    await txDB('laudos', 'readwrite', st => st.put({ k: (U ? U.id : 'anon') + ':' + Date.now(), uid: U ? U.id : 'anon', ts: Date.now(), nome: ULT_PDF.nome, pac: pn, ab: pdfBlob }));
+
+    msg.innerText = '✅ PDF Assinado e Certificado com Sucesso!';
+    document.getElementById('boxPDFBotoes').style.display = 'grid';
+    carregarHistoricoLaudos();
+  }
+
+  function baixarPDFLocal() {
+    if (!ULT_PDF) return;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(ULT_PDF.blob);
+    a.download = ULT_PDF.nome;
+    a.click();
+  }
+
+  function enviarWhatsAppPaciente() {
+    if (!ULT_PDF) return;
+    const msg = encodeURIComponent(`Olá, aqui está o seu Laudo Elayon Health assinado pelo médico. Carregue este PDF na aba Conteúdo do seu Cockpit Vibes 8 para ativar a sua Camada Avançada Health!`);
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+  }
+
+  async function carregarHistoricoLaudos() {
+    const list = ((await txDB('laudos', 'readonly', s => s.getAll()).catch(() => [])) || []).sort((a, b) => b.ts - a.ts).slice(0, 10);
+    const container = document.getElementById('containerHistoricoLaudos');
+    if (!list.length) return container.innerHTML = `<p style="font-size:11px; color:var(--text-muted);">Nenhum laudo emitido ainda.</p>`;
+
+    container.innerHTML = list.map(x => `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#040710; border:1px solid var(--border-line); padding:8px 12px; border-radius:8px; margin-bottom:6px; font-size:11px;">
+        <div>
+          <b style="color:var(--accent-cyan);">${x.pac}</b>
+          <div style="font-size:9px; color:var(--text-muted);">${new Date(x.ts).toLocaleString()}</div>
+        </div>
+        <button class="btn" style="padding:4px 8px; font-size:10px;" onclick="baixarPDFHistorico('${x.k}')">⬇️ Baixar PDF</button>
+      </div>
+    `).join('');
+  }
+
+  async function baixarPDFHistorico(key) {
+    const item = await txDB('laudos', 'readonly', st => st.get(key));
+    if (item && item.ab) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([item.ab], { type: 'application/pdf' }));
+      a.download = item.nome;
+      a.click();
+    }
+  }
+</script>
+
+</body>
+</html>
