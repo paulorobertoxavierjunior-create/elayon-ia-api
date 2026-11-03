@@ -423,7 +423,7 @@ async function camHealth(){
   aba('C')
 }
 const sha=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
-function textoLaudo(o){const p=o.params||{};return `LAUDO ELAYON HEALTH — ${o.piloto.nome} (${o.piloto.crm}, ${o.piloto.esp}) em ${String(o.emitido).slice(0,10)}. Observações clínicas: ${o.laudo.obs}. Severidade ${o.laudo.sev}/10. Conduta: ${o.laudo.conduta}. Faixas de autoexame: F0 ${p.f0min}-${p.f0max} Hz; jitter até ${p.jitmax}%; shimmer até ${p.shimmax} dB; HNR a partir de ${p.hnrmin} dB; pausas até ${p.pausasmax}; modo ${o.modo}. Exercícios: ${o.exercicios||'—'}. Apoio de IA revisado pelo médico: ${o.ia||'—'}`}
+function textoLaudo(o){const p=o.params||{};return `LAUDO ELAYON HEALTH — ${o.piloto.nome} (${o.piloto.crm}, ${o.piloto.esp}) em ${String(o.emitido).slice(0,10)}. Observações clínicas: ${o.laudo.obs}. Severidade ${o.laudo.sev}/10. Conduta: ${o.laudo.conduta}. Faixas de autoexame: F0 ${p.f0min}-${p.f0max} Hz; jitter até ${p.jitmax}%; shimmer até ${p.shimmax} dB; HNR a partir de ${p.hnrmin} dB; pausas até ${p.pausasmax}; modo ${o.modo}. Exercícios: ${o.exercicios||'—'}. Apoio de IA revisado pelo médico: ${o.ia||'—'}.${o.sessoes&&o.sessoes.length?' Sessões analisadas pelo médico: '+o.sessoes.map(x=>`áudio ${x.n} F0 ${x.f0} Hz, jitter ${x.jit}%, shimmer ${x.shim} dB, HNR ${x.hnr} dB, pausas ${x.pausas}`).join(' | ')+'.':''}${o.notas&&o.notas.length?' Marcações do médico: '+o.notas.map(x=>`áudio ${x.a} em ${x.t}s: ${x.txt}`).join(' | ')+'.':''}${o.sintese?' Síntese do médico: '+o.sintese:''}`}
 function lerLocal(){try{const o=JSON.parse(localStorage.getItem('crs_health_'+U.id));return o?{obj:o,texto:textoLaudo(o)}:null}catch(e){return null}}
 function hStat(){fontesUI();const L=lerLocal(),e=$('hStat');e.textContent=L?`✅ Laudo ativo: ${L.obj.piloto.nome} (${L.obj.piloto.crm}) • emitido em ${String(L.obj.emitido).slice(0,10)} • modo ${L.obj.modo}. Camada Health ligada (2 tokens por uso).`:'Nenhum laudo carregado.'}
 function msgC(t){$('hStat').textContent=t}
@@ -492,7 +492,6 @@ function colapsar(i){COL[i]=!COL[i];if(FOCO===i)FOCO=-1;aplicaCol()}
 function foco(i){FOCO=FOCO===i?-1:i;if(FOCO>=0)COL[i]=false;aplicaCol()}
 function todos(v){COL=GR.map(()=>v);FOCO=-1;aplicaCol()}
 
-
 /* ===== Transcrição: navegador (SpeechRecognition) → API do usuário → modelo interno; se não entendeu, pede para repetir ===== */
 const DG=[];function diag(t){DG.push(new Date().toLocaleTimeString('pt-BR')+' '+t);if(DG.length>12)DG.shift();const e=$('diag');if(e)e.textContent=DG.join('\n')}
 const SRC=window.SpeechRecognition||window.webkitSpeechRecognition;let sr=null,srF='',srP='',srAc='',srN=0,srOn=false;
@@ -516,5 +515,3 @@ async function resolverTexto(blob,bub){
 
 addEventListener('DOMContentLoaded',()=>{fit();requestAnimationFrame(loop);aplicaCol();layers();carregar()});
 </script></body></html>
-
-
