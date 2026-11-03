@@ -262,4 +262,4 @@ async function hist(){
   let Lh=((await tx('laudos','readonly',s=>s.getAll()).catch(()=>[]))||[]).filter(x=>x.uid===U.id&&x.ab).sort((a,b)=>b.ts-a.ts);
   for(const o of Lh.slice(10))await tx('laudos','readwrite',st=>st.delete(o.k)).catch(()=>{});Lh=Lh.slice(0,10);window.LH=Lh;
   $('hist').innerHTML=Lh.length?Lh.map((x,i)=>`<div class="row" style="border:1px solid #d8e8eb;border-radius:12px;padding:10px;margin-bottom:8px"><div><b style="font-size:12px">${esc(x.pac)}</b><p>${new Date(x.ts).toLocaleString('pt-BR')}</p></div><button class="b g" style="width:auto" onclick="dl(new Blob([LH[${i}].ab],{type:'application/pdf'}),LH[${i}].nome)">⬇️ PDF</button></div>`).join(''):'<p>Nenhum ainda.</p>'}
-</script></body></html>1111111111111111111111111
+</script></body></html>11
