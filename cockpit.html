@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -37,14 +38,22 @@ button,.btn{font-family:inherit}
 .fim a{flex:1;text-align:center;text-decoration:none;padding:16px;border-radius:14px;background:linear-gradient(135deg,#0f766e,#14b8a6);color:#fff;font-weight:800;font-size:14px}
 .fim button{width:56px;border-radius:14px;border:1px solid #fbbf2488;background:#1c1405;color:#fbbf24;font-size:22px}
 .mon{background:#0b1d33;color:#7dd3fc;border:1px solid #38bdf855;border-radius:8px;padding:5px 10px;font-size:11px;margin-left:6px}
+.tabs2{display:flex;gap:6px;margin:8px 0;overflow-x:auto}.tabs2 button{flex:1;white-space:nowrap;padding:10px 12px;border-radius:12px;border:1px solid #334155;background:#0b1220;color:#94a3b8;font-weight:800;font-size:12px}.tabs2 button.on{border-color:#38bdf8;color:#7dd3fc;background:#07182b}
+.up{display:block;text-align:center;padding:16px;border-radius:12px;border:1px dashed #38bdf8;color:#7dd3fc;font-weight:800;margin:10px 0;cursor:pointer}
+.pn p{font-size:12px;line-height:1.5;color:#cbd5e1;margin:6px 0}.pn a{display:block;text-align:center;padding:12px;border-radius:12px;border:1px solid #334155;color:#7dd3fc;text-decoration:none;font-weight:800;font-size:12px;margin-top:8px}
+#hStat{font-size:12px;line-height:1.5;color:#a7f3d0;background:#052e22;border:1px solid #10b98155;border-radius:10px;padding:10px;margin-top:8px}
+#start{position:fixed;inset:0;z-index:99;background:#04060bf5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center}
+#start img{width:96px;height:96px;border-radius:22px;object-fit:contain;background:#fafaf8;border:2px solid #38bdf8}#start h1{font-size:20px;color:#7dd3fc;margin:0}#start p{font-size:12px;color:#94a3b8;max-width:320px;line-height:1.5;margin:0}
 </style></head><body>
+<div id="start"><img src="IMG-20260218-WA0016.jpg" alt="Elayon" onerror="this.style.display='none'"><h1>Elayon Vibes 8</h1><p>Cockpit de calibração e acompanhamento vocal. A IA vai falar com você e os gráficos acompanham a voz dela. O microfone só liga quando você abrir.</p><button class="mic" id="bStart" style="max-width:320px" onclick="iniciar()" disabled>Carregando…</button></div>
 <header class="hud"><img id="hudAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=ElayonUser" alt="">
 <div><b id="hudNome">Carregando…</b><small id="hudId">ID —</small></div>
 <div class="tk">TOKENS<b id="hudTokens">--</b></div><a href="perfil.html">⚙️</a></header>
+<div class="tabs2"><button id="bV" class="on" onclick="aba('V')">🎙️ Calibração</button><button id="bC" onclick="aba('C')">📥 Conteúdo</button><button id="bT" onclick="aba('T')">🗣️ Testes vocálicos</button><button id="bR" onclick="aba('R')">🏋️ Treino</button></div>
 <div id="av"></div>
 <div class="lay"><button id="bH" onclick="camHealth()">🏥 Elayon Health</button><button id="bP" onclick="camPsyq()">❄️ PsyQ</button><button id="bPC" onclick="camPC()">💻 Elayon PC</button></div><div id="lmsg"></div>
-<h2>Elayon Vibes • Cockpit do Usuário</h2>
-<div style="text-align:center"><span class="st" id="modo">DEMO</span><button class="mon" onclick="crsAudio().catch(()=>alert('Microfone indisponível'))">👂 Escuta ao vivo</button></div>
+<div id="pV"><h2>Elayon Vibes 8 • Cockpit do Usuário</h2>
+<div style="text-align:center"><span class="st" id="modo">😴 REPOUSO</span></div>
 <div class="grid" id="grid"></div>
 <div class="box"><b id="fifoT" style="font-size:11px;color:#7dd3fc;text-transform:uppercase">Buffer FIFO</b>
 <audio id="crsAudio" controls></audio><div class="slots" id="slots"></div>
@@ -52,17 +61,24 @@ button,.btn{font-family:inherit}
 <div class="chat" id="chat"></div>
 <button class="mic" id="crsMic" onclick="crsToggle()" disabled>🎙️ Carregando…</button>
 <button class="ref" onclick="refazer()">↻ Refazer calibração (teste)</button>
-<div style="height:55vh"></div>
+<div style="height:55vh"></div></div>
+<div id="pC" class="box pn" style="display:none"><b style="color:#7dd3fc">📥 Conteúdo & camada Health</b>
+<p>Peça ao seu médico (piloto) o laudo em PDF. Ele chega pelo WhatsApp: salve no celular e carregue aqui. Com o laudo, a camada Health fica ativa e passa a consumir <b>2 tokens por uso</b> (1 da camada CRS + 1 da Health). A IA lê o laudo antes de responder.</p>
+<label class="up">📄 Carregar PDF do laudo Elayon Health<input type="file" id="pdfIn" accept="application/pdf" onchange="carregarPDF(this)" hidden></label>
+<div id="hStat">Nenhum laudo carregado.</div><button class="ref" onclick="removerLaudo()">Remover laudo deste aparelho</button>
+<a href="cadastro-piloto.html">👨‍⚕️ Sou médico: cadastro profissional de piloto</a><a href="piloto.html">🩺 Painel do piloto (gravar/carregar áudios e emitir laudo)</a></div>
+<div id="pT" class="box pn" style="display:none"><b style="color:#7dd3fc">🗣️ Testes vocálicos de comandos</b><p>Em breve: a IA dá um comando (vogal sustentada, contagem, frase), você responde e o Vibes 8 compara cada medida com as faixas definidas no laudo do seu médico, mostrando nos 12 gráficos o que ficou dentro e fora.</p><p>Pré-requisito: laudo carregado na aba Conteúdo.</p></div>
+<div id="pR" class="box pn" style="display:none"><b style="color:#7dd3fc">🏋️ Treino, orientação e autoconsulta simbólica</b><p>Em breve: exercícios orientados pela IA, periódicos ou contínuos, conforme o modo e os exercícios que o médico definiu no laudo. Cada autoexame entra no acompanhamento (gráfico XII) para comparar com as sessões anteriores.</p><p>Esta aba já aponta para o fluxo; o conteúdo chega na próxima etapa.</p></div>
 
 <script>
 const CFG={URL:'https://xlktkelumtpugidnecbj.supabase.co',
 KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM',
-MAX:3,INDEX:'https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/',TRIAGEM:'https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/',LOGIN:'login.html',
+MAX:3,IA_CAPTA_MIC:false,INDEX:'https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/',TRIAGEM:'https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/',LOGIN:'login.html',
 GEMINI:'gemini-2.5-flash',OPENAI:'gpt-4o',
 ETAPAS:['Teste de conexão: abra o microfone e diga apenas “olá”, de forma rápida e natural.','Conte de um até dez, devagar e com voz tranquila.','Sustente a vogal “a” por cerca de cinco segundos e, depois, diga a data de hoje.']};
 const sb=window.supabase?supabase.createClient(CFG.URL,CFG.KEY):null;
 const $=id=>document.getElementById(id);
-const U={id:null,nome:'Operador',tokens:0,calibrado:false,ciclo:0,sessoes:[],sel:null,prov:'gemini',key:'',proto:'',hist:[],health:'nenhum',relatorio:'',psyq:false};
+const U={id:null,nome:'Operador',tokens:0,calibrado:false,ciclo:0,sessoes:[],sel:null,prov:'gemini',key:'',proto:'',hist:[],health:'nenhum',relatorio:'',psyq:false,params:null,email:''};
 const custo=()=>U.psyq?3:U.health==='ok'?2:1;
 const R={ctx:null,an:null,stream:null,buf:null,fb:null,sr:48000,fl:[],P:[],A:[],vz:[],rec:null,rep:null,repS:null,prev:.3};
 let rec=null,H=[],D={n:new Array(11).fill(0),sp:new Float32Array(64),f0:150,db:-60,jit:0,shim:0,hnr:10,cpp:5,cent:1000,G:0,Rr:0,B:0,As:0,S:0,flow:.2,cq:.5,floor:-70};
@@ -88,20 +104,20 @@ const micPronto=()=>setMic(U.calibrado?`🎙️ Falar com a IA (${custo()} token
 async function carregar(){
   if(!sb){aviso('Supabase indisponível.');return setMic('Indisponível',true)}
   const {data:{session}}=await sb.auth.getSession();
-  if(!session){aviso(`Entre na sua conta para calibrar. <a href="${CFG.LOGIN}">Entrar</a>`);$('hudNome').textContent='Sem login';return setMic('🔒 Faça login para calibrar',true)}
-  U.id=session.user.id;
+  if(!session){aviso(`Entre na sua conta para calibrar. <a href="${CFG.LOGIN}">Entrar</a>`);$('hudNome').textContent='Sem login';$('bStart').textContent='Entrar';$('bStart').disabled=false;$('bStart').onclick=()=>location.href=CFG.LOGIN;return setMic('🔒 Faça login para calibrar',true)}
+  U.id=session.user.id;U.email=session.user.email||'';
   const {data:p}=await sb.from('profiles').select('*').eq('id',U.id).single();
   U.nome=(p&&p.nome)||(session.user.email||'Operador').split('@')[0];U.tokens=(p&&p.tokens)??0;
   U.prov=(p&&p.ai_provider)||'gemini';U.key=(p&&p.ai_key)||'';U.proto=(p&&(p.protocolo_ia||p.protocolo))||'';
   aplicarHealth(p);if(p&&p.avatar_url)$('hudAvatar').src=p.avatar_url;hud();
-  const todas=(await tx('readonly',s=>s.getAll()))||[];
-  for(const s of todas)if(s.uid===U.id&&!s.tk)await tx('readwrite',st=>st.delete(s.k));
+  const todas=(await tx('readonly',s=>s.getAll()).catch(()=>[]))||[];
+  for(const s of todas)if(s.uid===U.id&&!s.tk)await tx('readwrite',st=>st.delete(s.k)).catch(()=>{});
   U.sessoes=todas.filter(s=>s.uid===U.id&&s.tk).sort((a,b)=>b.ts-a.ts).slice(0,3);
   const ini=+localStorage.getItem('crs_ini_'+U.id)||0;U.ciclo=Math.min(CFG.MAX,U.sessoes.filter(s=>s.ts>ini).length);
   U.calibrado=!!(session.user.user_metadata&&session.user.user_metadata.crs_calibrado)||localStorage.getItem('crs_ok_'+U.id)==='1';
   renderFifo();if(U.calibrado)U.ciclo=CFG.MAX;layers();
-  if(U.tokens<custo()){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
-  micPronto();iaIntro()
+  if(U.tokens<custo()){aviso('Saldo insuficiente de tokens.');prontoStart();return setMic('Saldo insuficiente',true)}
+  micPronto();prontoStart()
 }
 async function debitar(){
   for(let i=0;i<3;i++){
@@ -136,6 +152,12 @@ function mk(o){
 function demo(){const t=Date.now()/1000,voz=Math.sin(t*.55)>-.3,f0=150+25*Math.sin(t*.9)+8*Math.sin(t*3.1),db=voz?-34+9*Math.sin(t*1.3)+4*Math.sin(t*4):-64,sp=new Uint8Array(64);
   for(let j=0;j<64;j++)sp[j]=Math.max(0,(.45+.4*Math.sin(j*.4+t*2))*(1-j/90)*(voz?1:.12)*255);
   return mk({f0:voz?f0:0,db,jit:.4+.3*Math.sin(t),shim:.3+.2*Math.sin(t*1.7),hnr:16+5*Math.sin(t*.8),cpp:8+2*Math.sin(t),cent:1100+400*Math.sin(t*.7),tilt:-8,voz,flow:.3+.15*Math.sin(t*1.1),cq:.5+.15*Math.sin(t*.6),floor:-68,sp})}
+const IA={on:false,pulse:0};
+function repouso(){const t=Date.now()/1000,sp=new Uint8Array(64);for(let j=0;j<64;j++)sp[j]=Math.max(0,(.12+.05*Math.sin(j*.3+t*.8))*(1-j/80)*90);
+  return mk({f0:0,db:-66+1.2*Math.sin(t*.7),jit:0,shim:0,hnr:6,cpp:2,cent:900+60*Math.sin(t*.5),tilt:-10,voz:false,flow:.2,cq:.5,floor:-70,sp})}
+function vozIA(){const t=Date.now()/1000;IA.pulse*=.82;const env=Math.min(1,.45+.35*Math.sin(t*11)*Math.sin(t*3.3)+.4*IA.pulse+.12*Math.random()),f0=185+35*Math.sin(t*2.1)+25*IA.pulse,sp=new Uint8Array(64),jf=f=>64*Math.log(f/60)/Math.log(8000/60);
+  for(let j=0;j<64;j++){const h1=Math.exp(-Math.pow((j-jf(f0))/2.2,2)),h2=Math.exp(-Math.pow((j-jf(2*f0))/2.2,2)),h3=Math.exp(-Math.pow((j-jf(3*f0))/2.4,2));sp[j]=Math.min(255,(h1+.6*h2+.35*h3+.08)*env*255)}
+  return mk({f0,db:-58+36*env,jit:.35+.2*Math.random(),shim:.25+.15*Math.random(),hnr:17+4*env,cpp:8,cent:1300+500*env,tilt:-7,voz:env>.2,flow:.3+.3*env,cq:.5+.15*Math.sin(t*3),floor:-70,sp})}
 function analisar(){
   const b=R.buf,sr=R.sr;R.an.getFloatTimeDomainData(b);R.an.getFloatFrequencyData(R.fb);
   let e=0;for(let i=0;i<b.length;i++)e+=b[i]*b[i];const rms=Math.sqrt(e/b.length),db=20*Math.log10(rms+1e-6);
@@ -164,7 +186,7 @@ function analisar(){
   return mk({f0,db,jit,shim,hnr,cpp,cent,tilt,voz,flow,cq,floor,sp})
 }
 function tick(){
-  if(R.rep)return;let k;try{k=R.an?analisar():demo()}catch(e){k=demo()}
+  if(R.rep)return;let k;try{k=R.an?analisar():IA.on?vozIA():repouso()}catch(e){k=repouso()}
   H.push(k);if(H.length>600)H.shift();if(rec)rec.tk.push(k)
 }
 setInterval(tick,50);
@@ -221,7 +243,8 @@ function loop(ms){requestAnimationFrame(loop);if(ms-last<33)return;last=ms;tt+=.
   if(++fr%6==0){const L=H.slice(-200),pa=L.filter((k,i)=>i&&k.voz&&!L[i-1].voz).length,S=serie();
     const T=[`${c.voz?Math.round(D.f0):'--'} Hz | jit ${D.jit.toFixed(2)}%`,`${D.db.toFixed(1)} dBFS | shim ${D.shim.toFixed(2)}`,`HNR ${D.hnr.toFixed(1)} | CPP ${D.cpp.toFixed(1)}`,`${pa} retomadas | fon ${Math.round(c.pros*100)}%`,`G${D.G.toFixed(1)} R${D.Rr.toFixed(1)} B${D.B.toFixed(1)} A${D.As.toFixed(1)} S${D.S.toFixed(1)}`,`fluxo ~${D.flow.toFixed(2)}`,`CQ ~${D.cq.toFixed(2)}`,`${D.floor.toFixed(0)} dBFS | SNR ${(D.db-D.floor).toFixed(0)}`,`${Math.round(D.cent)} Hz cent.`,`${Math.round(c.sil*100)}% sil.`,`CRS ${D.n[10].toFixed(2)}`,`${(S.length/20).toFixed(1)}s | ${U.sessoes.length} sess.`];
     T.forEach((s,i)=>$('t'+i).textContent=s);
-    $('modo').textContent=R.rep?'REPRISE':rec?'● GRAVANDO':R.an?'AO VIVO':'DEMO'}}
+    $('modo').textContent=R.rep?'REPRISE':rec?'● GRAVANDO':R.an?'🎙️ MIC ABERTO':IA.on?'🔊 IA FALANDO':'😴 REPOUSO'}}
+
 
 /* ===== Análise da sessão (deriva por segundo, integra por retomada) ===== */
 function analisarSessao(tk){
@@ -255,7 +278,6 @@ function espectroide(tk,sec,ret,dur){
   return c.toDataURL('image/jpeg',.82)
 }
 
-
 /* ===== FIFO visual ===== */
 function renderFifo(){
   $('fifoT').textContent=`Buffer FIFO • ${U.sessoes.length}/3 • ciclo ${U.ciclo}/${CFG.MAX}`;
@@ -263,7 +285,7 @@ function renderFifo(){
 }
 function ver(i){const s=U.sessoes[i];if(!s)return;U.sel=i;const e=$('esp');e.src=s.img;e.style.display='block';renderFifo()}
 let urlA=null;
-function rep(i){const s=U.sessoes[i];if(!s)return;ver(i);R.repS=s;if(urlA)URL.revokeObjectURL(urlA);urlA=URL.createObjectURL(s.blob);const a=$('crsAudio');a.src=urlA;a.play()}
+function rep(i){const s=U.sessoes[i];if(!s)return;ver(i);R.repS=s;if(urlA)URL.revokeObjectURL(urlA);urlA=URL.createObjectURL(s.blob||new Blob([s.ab],{type:s.tipo||'audio/webm'}));const a=$('crsAudio');a.src=urlA;a.play()}
 $('crsAudio').onplay=()=>{R.rep=R.repS};
 ['pause','ended'].forEach(e=>$('crsAudio').addEventListener(e,()=>{R.rep=null;R.repS=null;H=[]}));
 
@@ -275,15 +297,16 @@ async function crsAudio(){
   R.an=R.ctx.createAnalyser();R.an.fftSize=2048;R.an.smoothingTimeConstant=.3;R.sr=R.ctx.sampleRate;
   R.ctx.createMediaStreamSource(R.stream).connect(R.an);R.buf=new Float32Array(2048);R.fb=new Float32Array(1024);H=[]
 }
+function fecharCaptacao(){try{R.stream&&R.stream.getTracks().forEach(t=>t.stop())}catch(e){}try{R.ctx&&R.ctx.close()}catch(e){}R.stream=null;R.ctx=null;R.an=null;R.fl=[];R.P=[];R.A=[];H=[]}   // captação desligada = gráficos em repouso
 let mr=null,chunks=[],t0=0,lim=0,live=null;
 async function crsToggle(){
   if(!U.id)return;
   if(!rec){
     if(U.tokens<custo()){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
     try{await crsAudio()}catch(e){return alert(e&&e.name==='NotReadableError'?'O microfone está em uso por outro app ou aba. Feche-os e tente de novo.':'Microfone indisponível')}
-    try{speechSynthesis.cancel()}catch(e){}
+    try{speechSynthesis.cancel()}catch(e){}IA.on=false;
     rec={tk:[]};chunks=[];mr=new MediaRecorder(R.stream);mr.ondataavailable=e=>chunks.push(e.data);
-    mr.onstop=()=>processar(new Blob(chunks,{type:mr.mimeType||'audio/webm'}));mr.start();t0=Date.now();
+    mr.onstop=()=>{fecharCaptacao();processar(new Blob(chunks,{type:mr.mimeType||'audio/webm'}))};mr.start();t0=Date.now();
     live=chatAdd('user','🎙️ gravando…');setMic(U.calibrado?'⏹️ Parar & Enviar':`⏹️ Parar & Processar Calibração ${U.ciclo+1}`,false);
     lim=setTimeout(()=>rec&&crsToggle(),30000)
   }else{clearTimeout(lim);setMic('⏳ Processando...',true);mr.stop()}
@@ -317,28 +340,38 @@ async function transcrever(blob){
 }
 async function processar(blob){
   const rt=rec;rec=null;const bub=live;bub.textContent='⏳ transcrevendo…';
-  const txt=await transcrever(blob);bub.textContent=txt||'(sem fala detectada)';
-  setMic('📊 Calculando CRS...',true);
-  try{await debitar()}catch(e){bub.remove();if(e.message==='sem_saldo'){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}aviso('Falha ao debitar o token. Tente de novo.');return micPronto()}
-  const {res,sec,ret}=analisarSessao(rt.tk),img=espectroide(rt.tk,sec,ret,Math.max(1,res.dur));
-  const s={k:U.id+':'+Date.now(),uid:U.id,ts:Date.now(),blob,txt,dur:res.dur,tk:rt.tk,res,img};
-  await tx('readwrite',st=>st.put(s));U.sessoes.unshift(s);                       // entra na 1ª caixa, as outras migram
-  while(U.sessoes.length>3){const o=U.sessoes.pop();await tx('readwrite',st=>st.delete(o.k))}   // FIFO: sai a mais antiga
-  const antes=U.calibrado;if(U.ciclo<CFG.MAX)U.ciclo++;U.sel=0;renderFifo();$('esp').src=img;$('esp').style.display='block';
-  sb.from('calibracoes_crs').insert([{user_id:U.id,operador_nome:U.nome,etapa:U.ciclo,transcricao_usuario:txt,audio_url:'idb:'+s.k,tokens_consumidos:custo()}]).then(()=>{},()=>{});
-  document.dispatchEvent(new CustomEvent('crs:sessao',{detail:{res,txt}}));
-  const fim=!antes&&U.ciclo>=CFG.MAX;if(fim)await travar();
-  await iaFalar(txt,res,img,fim);
-  if(U.tokens<custo()){aviso('Saldo insuficiente de tokens.');setMic('Saldo insuficiente',true)}else micPronto()
+  try{
+    const an=analisarSessao(rt.tk),res=an.res,semVoz=rt.tk.length>10&&res.fon<.05;          // análise primeiro (silenciosa)
+    let txt=await transcrever(blob);if(semVoz)txt='';                                        // evita "Obrigado." alucinado em áudio mudo
+    if(semVoz){bub.textContent='(não captei sua voz)';aviso('Não captei sua voz. Chegue mais perto do microfone e tente de novo — nenhum token foi cobrado.');return micPronto()}
+    bub.textContent=txt||'(sem fala detectada)';
+    setMic('📊 Calculando CRS...',true);
+    const img=espectroide(rt.tk,an.sec,an.ret,Math.max(1,res.dur));
+    try{await debitar()}catch(e){bub.remove();if(e.message==='sem_saldo'){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}aviso('Falha ao debitar o token. Tente de novo.');return micPronto()}
+    const s={k:U.id+':'+Date.now(),uid:U.id,ts:Date.now(),blob,txt,dur:res.dur,tk:rt.tk,res,img};
+    try{const ab=await blob.arrayBuffer();await tx('readwrite',st=>st.put(Object.assign({},s,{blob:null,ab,tipo:blob.type})))}   // ArrayBuffer: Safari/WebViews falham com Blob no IndexedDB
+    catch(e){aviso('⚠️ Este navegador não guardou o áudio; a sessão segue só na memória.')}
+    U.sessoes.unshift(s);                                                                    // entra na 1ª caixa, as outras migram
+    while(U.sessoes.length>3){const o=U.sessoes.pop();try{await tx('readwrite',st=>st.delete(o.k))}catch(e){}}   // FIFO: sai a mais antiga
+    const antes=U.calibrado;if(U.ciclo<CFG.MAX)U.ciclo++;U.sel=0;renderFifo();$('esp').src=img;$('esp').style.display='block';
+    sb.from('calibracoes_crs').insert([{user_id:U.id,operador_nome:U.nome,etapa:U.ciclo,transcricao_usuario:txt,audio_url:'idb:'+s.k,tokens_consumidos:custo()}]).then(()=>{},()=>{});
+    document.dispatchEvent(new CustomEvent('crs:sessao',{detail:{res,txt}}));
+    const fim=!antes&&U.ciclo>=CFG.MAX;if(fim)await travar();
+    await iaFalar(txt,res,img,fim);
+    if(U.tokens<custo()){aviso('Saldo insuficiente de tokens.');setMic('Saldo insuficiente',true)}else micPronto()
+  }catch(e){aviso('❌ Erro ao processar a sessão: '+(e&&e.message||e));if(bub)bub.textContent='(erro ao processar)';micPronto()}
 }
 
 /* ===== Chat com a IA do usuário ===== */
 const SYS='Você é o Elayon Core, guia de calibração e acompanhamento vocal do Elayon Space, apoiando um profissional de saúde. Fale em português do Brasil, tom calmo e acolhedor, no máximo 4 frases curtas, sem listas nem emojis. NUNCA dê diagnóstico: descreva achados em linguagem simples, compare com as sessões anteriores, sugira exercícios leves ou autoexame e indique que os valores são estimativas acústicas de microfone de celular, cabendo a avaliação ao profissional. Os blocos [SISTEMA] e os dados CRS são internos: interprete, não recite números crus. Quando houver imagem, é o espectroide da sessão (espectrograma com F0, linhas das dimensões I a XI, faixa voz/silêncio e variação por segundo; linhas tracejadas marcam retomadas sonoras). No encerramento, agradeça e despeça-se.';
 function chatAdd(cls,txt){const d=document.createElement('div');d.className='msg '+cls;d.textContent=txt;$('chat').appendChild(d);$('chat').scrollTop=1e9;return d}
-function falar(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='pt-BR';speechSynthesis.speak(u)}catch(e){}}
+function falar(t){return new Promise(res=>{try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='pt-BR';let f=0;
+  const fim=()=>{if(f)return;f=1;IA.on=false;IA.pulse=0;if(CFG.IA_CAPTA_MIC&&!rec)fecharCaptacao();res()};
+  u.onstart=()=>{IA.on=true};u.onboundary=()=>{IA.pulse=1};u.onend=fim;u.onerror=fim;setTimeout(fim,90000);
+  if(CFG.IA_CAPTA_MIC&&!rec)crsAudio().catch(()=>{});speechSynthesis.speak(u)}catch(e){IA.on=false;res()}})}
 async function ia(prompt,img){
   U.hist.push({r:'user',t:prompt});U.hist=U.hist.slice(-10);let out='';
-  const sys=SYS+(U.proto?' Protocolo definido pelo médico responsável: '+U.proto:'')+(U.relatorio?' Camada Elayon Health: relatório médico validado deste usuário. Use como contexto de cuidado antes de responder, sem diagnosticar: '+U.relatorio:''),im=img?img.split(',')[1]:null,last=U.hist.length-1;
+  const sys=SYS+(U.proto?' Protocolo definido pelo médico responsável: '+U.proto:'')+(U.relatorio?' Camada Elayon Health: relatório médico validado deste usuário. Leve-o em conta antes de responder, use como contexto de cuidado e não diagnostique: '+U.relatorio:''),im=img?img.split(',')[1]:null,last=U.hist.length-1;
   try{if(U.key){
     if(U.prov==='openai'){
       const m=U.hist.map((h,i)=>({role:h.r==='user'?'user':'assistant',content:(i===last&&im)?[{type:'text',text:h.t},{type:'image_url',image_url:{url:img}}]:h.t}));
@@ -350,7 +383,7 @@ async function ia(prompt,img){
 }
 async function iaFalar(txt,res,img,fim){
   const n=U.ciclo,prev=U.sessoes.slice(1).map(s=>({f0:s.res.f0&&s.res.f0.m,db:s.res.db&&s.res.db.m,jit:s.res.jit&&s.res.jit.m,shim:s.res.shim&&s.res.shim.m,hnr:s.res.hnr&&s.res.hnr.m,cpp:s.res.cpp&&s.res.cpp.m,pausas:s.res.pausas}));
-  const p=`[SISTEMA] ${U.calibrado&&!fim?'Interação de cuidado':`Calibração ${n}/${CFG.MAX} concluída`}. Fala transcrita: "${txt||'(nada detectado)'}". Dados CRS internos: ${JSON.stringify({atual:res,anteriores:prev})}. `+(fim?'Esta foi a última calibração: comente os achados em linguagem simples, sem diagnóstico, diga que a calibração foi concluída e que agora o usuário pode conversar normalmente e fazer exercícios vocais guiados.':U.calibrado?'Conversa livre de cuidado: responda ao que o usuário disse, comente brevemente os achados vocais e, se fizer sentido, sugira um exercício vocal leve.':`Comente brevemente e passe a próxima instrução: "${CFG.ETAPAS[n]}"`);
+  const p=`[SISTEMA] ${U.calibrado&&!fim?'Interação de cuidado':`Calibração ${n}/${CFG.MAX} concluída`}. Fala transcrita: "${txt||'(nada detectado)'}". Dados CRS internos: ${JSON.stringify({atual:res,anteriores:prev})}.${U.params?confere(res):''} `+(fim?'Esta foi a última calibração: comente os achados em linguagem simples, sem diagnóstico, diga que a calibração foi concluída e que agora o usuário pode conversar normalmente e fazer exercícios vocais guiados.':U.calibrado?'Conversa livre de cuidado: responda ao que o usuário disse, comente brevemente os achados vocais e, se fizer sentido, sugira um exercício vocal leve.':`Comente brevemente e passe a próxima instrução: "${CFG.ETAPAS[n]}"`);
   const w=chatAdd('ia','…'),r=await ia(p,img);w.remove();
   if(!r&&U.key)aviso('A IA não respondeu. Confira provedor e chave no perfil.');
   const t=r||(fim?`Calibração concluída, ${U.nome}. Agora é só falar comigo normalmente.`:U.calibrado?'Registrado. Pode continuar falando comigo.':`Calibração ${n} registrada. Próxima: ${CFG.ETAPAS[n]}`);chatAdd('ia',t);falar(t)
@@ -363,26 +396,46 @@ async function iaIntro(){
 }
 
 /* ===== Camadas: Health / PsyQ (congelado) / Elayon PC ===== */
-function aplicarHealth(p){const st=(p&&p.health_status)||localStorage.getItem('crs_h_'+U.id)||'nenhum';
+function aplicarHealth(p){const L=lerLocal();if(L){U.health='ok';U.relatorio=L.texto;U.params=L.obj.params;return}const st=(p&&p.health_status)||localStorage.getItem('crs_h_'+U.id)||'nenhum';
   if(p&&(p.health_relatorio||st==='ok')){U.health='ok';U.relatorio=p.health_relatorio||U.relatorio}else U.health=st==='aguardando'?'aguardando':'nenhum'}
 async function lerHealth(){if(!sb||!U.id)return;try{const {data:p}=await sb.from('profiles').select('*').eq('id',U.id).single();if(p)aplicarHealth(p)}catch(e){}}
 function layers(){
   const h=U.health,b=$('bH');
   b.className=h==='ok'?'on':h==='aguardando'?'pend':U.calibrado?'rdy':'';
   b.textContent=h==='ok'?'✅ Health ativo':h==='aguardando'?'⏳ Health aguardando':'🏥 Elayon Health';
-  $('lmsg').textContent=!U.calibrado?`Conclua a calibração (${U.ciclo}/${CFG.MAX}) para liberar a camada Health.`:h==='ok'?'Camada Health ativa • 2 tokens por uso • o relatório médico acompanha cada resposta da IA.':h==='aguardando'?'Consulta enviada. Aguardando o relatório médico do Elayon Triagem…':'Calibrado ✔ Toque em Health para a consulta médica no Elayon Triagem.';
+  $('lmsg').textContent=!U.calibrado?`Conclua a calibração (${U.ciclo}/${CFG.MAX}) para liberar a camada Health.`:h==='ok'?'Camada Health ativa • 2 tokens por uso • o relatório médico acompanha cada resposta da IA.':'Calibrado ✔ Toque em Health e carregue o PDF do laudo do seu médico na aba Conteúdo.';
   if(U.id&&!rec&&!$('crsMic').disabled)micPronto()
 }
+function aba(x){['V','C','T','R'].forEach(k=>{$('p'+k).style.display=k===x?'block':'none';$('b'+k).className=k===x?'on':''});if(x==='C')hStat()}
+function prontoStart(){const b=$('bStart');b.disabled=false;b.textContent='▶ Iniciar Elayon Vibes 8';b.onclick=iniciar}
+function iniciar(){$('start').style.display='none';iaIntro()}          // o toque libera o áudio: a IA fala ao iniciar
 async function camHealth(){
   if(!U.calibrado)return aviso('Conclua as 3 calibrações para liberar a camada Health.');
-  const w=window.open('about:blank','_blank');await lerHealth();
-  if(U.health==='ok'){if(w)w.close();return layers()}
-  U.health='aguardando';localStorage.setItem('crs_h_'+U.id,'aguardando');
-  try{await sb.from('profiles').update({health_status:'aguardando'}).eq('id',U.id)}catch(e){}
-  layers();const {data:{session}}=await sb.auth.getSession();
-  const u=CFG.TRIAGEM+'#'+new URLSearchParams({uid:U.id,token:session?session.access_token:'',nome:U.nome,saldo:U.tokens,origem:'cockpit',camada:'health'});
-  if(w)w.location.href=u;else location.href=u
+  aba('C')
 }
+const sha=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+function textoLaudo(o){const p=o.params||{};return `LAUDO ELAYON HEALTH — ${o.piloto.nome} (${o.piloto.crm}, ${o.piloto.esp}) em ${String(o.emitido).slice(0,10)}. Observações clínicas: ${o.laudo.obs}. Severidade ${o.laudo.sev}/10. Conduta: ${o.laudo.conduta}. Faixas de autoexame: F0 ${p.f0min}-${p.f0max} Hz; jitter até ${p.jitmax}%; shimmer até ${p.shimmax} dB; HNR a partir de ${p.hnrmin} dB; pausas até ${p.pausasmax}; modo ${o.modo}. Exercícios: ${o.exercicios||'—'}. Apoio de IA revisado pelo médico: ${o.ia||'—'}`}
+function lerLocal(){try{const o=JSON.parse(localStorage.getItem('crs_health_'+U.id));return o?{obj:o,texto:textoLaudo(o)}:null}catch(e){return null}}
+function hStat(){const L=lerLocal(),e=$('hStat');e.textContent=L?`✅ Laudo ativo: ${L.obj.piloto.nome} (${L.obj.piloto.crm}) • emitido em ${String(L.obj.emitido).slice(0,10)} • modo ${L.obj.modo}. Camada Health ligada (2 tokens por uso).`:'Nenhum laudo carregado.'}
+function msgC(t){$('hStat').textContent=t}
+async function carregarPDF(inp){
+  const f=inp.files[0];inp.value='';if(!f)return;if(!U.id)return msgC('Entre na sua conta primeiro.');
+  const b=new Uint8Array(await f.arrayBuffer());let s='';for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode.apply(null,b.subarray(i,i+8192));
+  const m=s.match(/ELAYONHEALTH\[([A-Za-z0-9+\/=]+)\]/);if(!m)return msgC('❌ Este PDF não é um laudo Elayon Health.');
+  let o;try{o=JSON.parse(decodeURIComponent(escape(atob(m[1]))))}catch(e){return msgC('❌ Não consegui ler o laudo.')}
+  const {hash,...corpo}=o;if(hash!==await sha(JSON.stringify(corpo)))return msgC('❌ Laudo alterado: a assinatura de integridade não confere.');
+  if(o.paciente.email&&U.email&&o.paciente.email.toLowerCase()!==U.email.toLowerCase())return msgC('❌ Este laudo foi emitido para outro paciente.');
+  localStorage.setItem('crs_health_'+U.id,JSON.stringify(o));U.health='ok';U.relatorio=textoLaudo(o);U.params=o.params;
+  try{await sb.from('profiles').update({health_status:'ok',health_relatorio:U.relatorio}).eq('id',U.id)}catch(e){}
+  layers();hStat();aba('V');const t=`Camada Health ativada com o laudo de ${o.piloto.nome}. Vou considerar o relatório antes de cada resposta.`;chatAdd('ia',t);falar(t)
+}
+async function removerLaudo(){localStorage.removeItem('crs_health_'+U.id);U.health='nenhum';U.relatorio='';U.params=null;try{await sb.from('profiles').update({health_status:'nenhum',health_relatorio:null}).eq('id',U.id)}catch(e){}layers();hStat()}
+function confere(r){const p=U.params,o=[];if(!p)return '';
+  if(r.f0)o.push(`F0 ${r.f0.m} Hz ${r.f0.m>=p.f0min&&r.f0.m<=p.f0max?'dentro':'fora'} da faixa ${p.f0min}-${p.f0max}`);
+  if(r.jit)o.push(`jitter ${r.jit.m}% ${r.jit.m<=p.jitmax?'dentro':'acima'} do limite ${p.jitmax}`);
+  if(r.shim)o.push(`shimmer ${r.shim.m} dB ${r.shim.m<=p.shimmax?'dentro':'acima'} do limite ${p.shimmax}`);
+  if(r.hnr)o.push(`HNR ${r.hnr.m} dB ${r.hnr.m>=p.hnrmin?'dentro':'abaixo'} do mínimo ${p.hnrmin}`);
+  o.push(`pausas ${r.pausas} ${r.pausas<=p.pausasmax?'dentro':'acima'} do limite ${p.pausasmax}`);return ' Conferência com as faixas definidas pelo médico: '+o.join('; ')+'.'}
 function camPsyq(){$('lmsg').textContent='❄️ PsyQ está congelado por enquanto (3 tokens por uso quando ativo). O foco agora é o Elayon Health.'}
 function camPC(){$('lmsg').textContent='💻 Elayon PC — em breve.'}
 setInterval(()=>{if(U.id&&U.health!=='ok')lerHealth().then(layers)},20000);
