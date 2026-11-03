@@ -1,116 +1,265 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Elayon Health • Painel do Piloto</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script><link rel="stylesheet" href="health.css"></head><body><div class="w"><div class="hd"><span>ELAYON HEALTH • PAINEL DO PILOTO • <b id="hs" style="color:#d9534f">SEM CADASTRO</b></span><a href="cockpit.html">⬅️ Cockpit</a></div>
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Elayon Health • Cockpit do Piloto</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script><link rel="stylesheet" href="health.css">
+<style>
+.tabs{position:sticky;top:0;z-index:5;background:#eaf4f6;padding:6px 0}.tabs button{flex:1;min-width:92px}.tabs button.on{background:var(--a);color:#fff;border-color:var(--a)}
+.st{display:none}.st.on{display:grid;gap:14px}
+.how{background:#f0f7f7;border-left:4px solid var(--a);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--ink);line-height:1.5}.how b{color:var(--a)}
+.nav{display:grid;grid-template-columns:1fr 1fr;gap:8px}.it{border:1px solid var(--l);border-radius:12px;padding:8px;display:grid;gap:6px}
+.sm{width:auto;padding:6px 10px;font-size:11px}.rd{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.rd div{background:#0a2a2f;color:#8ff;border-radius:8px;padding:6px;text-align:center;font:700 12px monospace}.rd small{display:block;color:#7aa;font-size:9px}
+canvas.cv{width:100%;border-radius:12px;background:#04060b;display:block}
+#sg{width:100%;border:2px dashed #aab;border-radius:12px;touch-action:none;background:repeating-conic-gradient(#f4f4f4 0 25%,#fff 0 50%) 0 0/20px 20px}#sg.on{border:2px solid #000}
+#prev canvas{width:100%;border:1px solid var(--l);border-radius:8px;margin-bottom:8px;display:block}
+</style></head><body><div class="w">
+<div class="hd"><span>ELAYON HEALTH • COCKPIT DO PILOTO • <b id="hs" style="color:#d9534f">SEM CADASTRO</b></span><a href="cockpit.html">⬅️ Cockpit</a></div>
 <div class="c"><h1 id="nm">Piloto</h1><p id="cr">—</p><div id="av"></div></div>
-<div class="c"><h3>1️⃣ Paciente</h3><div class="g2"><div><label>Nome do paciente</label><input id="pn"></div><div><label>E-mail da conta Elayon do paciente</label><input id="pe" type="email" placeholder="vincula o laudo ao cockpit dele"></div></div><div><label>Contexto / queixa</label><input id="pc" placeholder="Ex.: pós-AVC, afasia, linha de base"></div></div>
-<div class="c"><h3>2️⃣ Captura (clínica / hospital)</h3><div><label>Pergunta feita ao paciente</label><select id="pq"><option>Diga “olá”, de forma natural.</option><option>Conte de 1 a 10, devagar.</option><option>Sustente a vogal “a” por 5 segundos.</option><option>Conte como foi o seu dia.</option><option>Leia a frase: “O sol nasce e a vida segue”.</option></select></div>
-<div class="g2"><button class="b" id="bg" onclick="gravar()">🎙️ Gravar resposta</button><label class="b g" style="cursor:pointer">📂 Carregar áudio externo<input type="file" accept="audio/*" hidden onchange="arquivo(this)"></label></div>
-<div style="height:10px;background:#e2f0ed;border-radius:6px;overflow:hidden"><div id="mt" style="height:100%;width:0;background:#2a9d8f"></div></div><p id="ms">Pronto. Áudio carregado é analisado em tempo real (leva a duração do áudio).</p></div>
-<div class="c"><h3>3️⃣ Sessões (FIFO • até 10)</h3><div id="ses"><p>Nenhuma sessão ainda.</p></div></div>
-<div class="c"><h3>4️⃣ Análise com a sua IA</h3><button class="b g" onclick="analisarIA()">🧠 Analisar as sessões marcadas (até 4)</button><textarea id="iaT" placeholder="A análise da IA aparece aqui. Revise e edite: o texto entra no laudo como apoio revisado por você."></textarea></div>
-<div class="c"><h3>5️⃣ Laudo e assinatura</h3><div><label>Observações clínicas / pré-diagnóstico (sua responsabilidade)</label><textarea id="ob"></textarea></div>
+<div class="tabs" id="tb"><button onclick="tab(1)">1 Paciente</button><button onclick="tab(2)">2 Áudios</button><button onclick="tab(3)">3 Escuta</button><button onclick="tab(4)">4 Síntese</button><button onclick="tab(5)">5 Laudo</button></div>
+
+<section class="st on" id="s1"><div class="c"><h3>Sessão 1 • Paciente</h3>
+<div class="how"><b>O que fazer:</b> identifique o paciente. O <b>e-mail</b> precisa ser o da conta Elayon dele: o PDF só abre no cockpit do paciente se o e-mail bater. Seus dados profissionais vêm do cadastro de piloto.</div>
+<div class="g2"><div><label>Nome do paciente</label><input id="pn"></div><div><label>E-mail da conta Elayon do paciente</label><input id="pe" type="email"></div></div>
+<div><label>Contexto / queixa</label><input id="pc" placeholder="Ex.: pós-AVC, afasia, linha de base"></div>
+<div class="msg" id="m1"></div><button class="b g" onclick="novaConsulta()">🧹 Nova consulta (limpar áudios e campos)</button></div>
+<div class="nav"><span></span><button class="b" onclick="tab(2)">Próximo ➜</button></div></section>
+
+<section class="st" id="s2"><div class="c"><h3>Sessão 2 • Áudios da consulta <span id="cnt" class="tag">0/10</span></h3>
+<div class="how"><b>O que fazer:</b> carregue até <b>10 áudios</b> da consulta já feita (ou grave aqui). Ao entrar o 11º, o mais antigo sai (FIFO). Nada sobe para servidor: ficam só neste aparelho. <b>Aviso:</b> áudios .opus/.ogg do WhatsApp tocam no Chrome/Android, mas o iPhone pode recusar; se ocorrer, converta para .m4a ou .mp3.</div>
+<div class="g2"><label class="b" style="cursor:pointer">📂 Carregar áudios<input type="file" accept="audio/*" multiple hidden onchange="addAudios(this)"></label><button class="b g" id="bg" onclick="gravar()">🎙️ Gravar áudio</button></div>
+<div class="msg" id="m2"></div><div id="lista"></div></div>
+<div class="nav"><button class="b g" onclick="tab(1)">⬅ Voltar</button><button class="b" onclick="tab(3)">Próximo ➜</button></div></section>
+
+<section class="st" id="s3"><div class="c"><h3>Sessão 3 • Escuta com gráfico ao vivo</h3>
+<div class="how"><b>O que fazer:</b> escolha um áudio e toque. O espectrograma (cores), o F0 (amarelo) e a intensidade (ciano) são desenhados <b>enquanto o áudio toca</b>. <b>Pause</b> a qualquer momento, observe e use <b>📌 Marcar momento</b> para anotar o que viu: as marcações vão para a IA e para o laudo. Ao tocar até o fim, o áudio é analisado e fica ✅ para a sessão 4.</div>
+<select id="aSel" onchange="parar()"></select>
+<div class="g2"><button class="b" id="bp" onclick="tocar()">▶ Ouvir e gerar gráfico</button><button class="b g" onclick="parar()">⏮ Recomeçar</button></div>
+<canvas class="cv" id="cv" width="900" height="420"></canvas>
+<p>Legenda: espectrograma 60 Hz–8 kHz (topo) • linha amarela = F0 • linha ciano = intensidade • faixa inferior: azul = voz, vermelho = silêncio.</p>
+<div class="rd" id="rd"></div>
+<div class="g2"><input id="nt" placeholder="Anotação deste instante (opcional)"><button class="b g" onclick="nota()">📌 Marcar momento</button></div>
+<div id="notas"></div><div class="msg" id="m3"></div></div>
+<div class="nav"><button class="b g" onclick="tab(2)">⬅ Voltar</button><button class="b" onclick="tab(4)">Próximo ➜</button></div></section>
+
+<section class="st" id="s4"><div class="c"><h3>Sessão 4 • Síntese e diagnóstico temporal auxiliar</h3>
+<div class="how"><b>O que fazer:</b> marque até <b>4 sessões</b> analisadas. Cole sua síntese (estudos feitos por você fora do Elayon, com ou sem IA, a partir dos seus prints). A IA soma o seu texto às sessões e gera o <b>diagnóstico temporal auxiliar de contexto</b>. Revise e edite: o texto é apoio, a decisão é sua.</div>
+<div id="l4"></div>
+<div><label>Sua síntese / análise própria (texto)</label><textarea id="sin" style="min-height:120px" placeholder="Cole aqui o texto que você considera relevante."></textarea></div>
+<button class="b g" onclick="analisarIA()">🧠 Gerar diagnóstico temporal auxiliar (IA)</button>
+<textarea id="iaT" style="min-height:160px" placeholder="O texto da IA aparece aqui. Edite à vontade."></textarea><div class="msg" id="m4"></div></div>
+<div class="nav"><button class="b g" onclick="tab(3)">⬅ Voltar</button><button class="b" onclick="tab(5)">Próximo ➜</button></div></section>
+
+<section class="st" id="s5"><div class="c"><h3>Sessão 5 • Laudo, assinatura e PDF</h3>
+<div class="how"><b>O que fazer:</b> escreva suas observações e o pré-diagnóstico, preencha as <b>faixas manualmente</b>, habilite o <b>pincel</b> (tinta preta) e assine. O PDF sai com suas credenciais completas no final e a assinatura sobreposta, sem fundo. Depois: visualize, baixe e envie ao paciente para ele carregar no Health.</div>
+<div><label>Observações clínicas / pré-diagnóstico de avaliação (sua responsabilidade)</label><textarea id="ob" style="min-height:110px"></textarea></div>
 <div class="g2"><div><label>Severidade (0–10)</label><input id="sv" type="number" min="0" max="10" value="5"></div><div><label>Conduta</label><input id="cd" value="Fonoaudiologia 2x/semana"></div></div>
-<button class="b g" onclick="preencher()">📐 Preencher faixas com base nas sessões marcadas</button>
+<p id="ref"></p>
 <div class="g2"><div><label>F0 mín (Hz)</label><input id="f1" type="number"></div><div><label>F0 máx (Hz)</label><input id="f2" type="number"></div><div><label>Jitter máx (%)</label><input id="jt" type="number" step=".1"></div><div><label>Shimmer máx (dB)</label><input id="sh" type="number" step=".1"></div><div><label>HNR mín (dB)</label><input id="hn" type="number" step=".1"></div><div><label>Pausas máx</label><input id="ps" type="number"></div></div>
-<div><label>Modo de autoexame</label><select id="md"><option>periódico</option><option>contínuo</option></select></div><div><label>Exercícios para o Vibes 8</label><textarea id="ex" placeholder="Ex.: vogal sustentada /a/ 5s; contagem 1–10; frase curta"></textarea></div>
+<div><label>Modo de autoexame</label><select id="md"><option>periódico</option><option>contínuo</option></select></div>
+<div><label>Exercícios para o Vibes 8</label><textarea id="ex" placeholder="Ex.: vogal sustentada /a/ 5s; contagem 1–10; frase curta"></textarea></div>
+<div><label>Assinatura (tinta preta)</label><canvas id="sg" width="700" height="240"></canvas>
+<div class="g2" style="margin-top:6px"><button class="b g" id="bh" onclick="habPincel()">🖌️ Habilitar pincel</button><button class="b g" onclick="limpaAss()">🧽 Limpar</button></div><button class="b g" style="margin-top:6px" onclick="usaSalva()">♻️ Usar assinatura salva neste aparelho</button></div>
 <p><label style="display:flex;gap:8px;text-transform:none;font-weight:600"><input type="checkbox" id="ok" style="width:auto"> Confirmo os dados e assumo a responsabilidade clínica pelo laudo.</label></p>
-<button class="b" onclick="assinar()">✍️ Assinar e gerar PDF (laudo + certificado)</button><div class="msg" id="m5"></div>
+<button class="b" onclick="assinar()">✍️ Assinar e gerar PDF</button><div class="msg" id="m5"></div>
+<div id="prev"></div>
 <div id="pdfB" style="display:none;gap:8px"><button class="b g" onclick="baixar()">⬇️ Baixar PDF</button><button class="b" onclick="compartilhar()">📲 Enviar ao paciente (WhatsApp)</button></div></div>
-<div class="c"><h3>🗂️ Laudos emitidos (últimos 10)</h3><div id="hist"><p>Nenhum ainda.</p></div></div></div><script src="health-core.js"></script><script src="health-dsp.js"></script><script>
-let U,ME=null,SES=[],rec=null,mr=null,chunks=[],mic=null,ULT=null,el=null;
+<div class="c"><h3>🗂️ Laudos emitidos (últimos 10)</h3><div id="hist"><p>Nenhum ainda.</p></div></div>
+<div class="nav"><button class="b g" onclick="tab(4)">⬅ Voltar</button><span></span></div></section>
+</div><script src="health-core.js"></script><script src="health-dsp.js"></script><script>
+let U,ME=null,PF={},AU=[],PL=null,ST=1,ULT=null,mr=null,mic=null,chunks=[];
+const AC=window.AudioContext||window.webkitAudioContext,OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
 const DBP=new Promise((ok,no)=>{const r=indexedDB.open('piloto_db',1);r.onupgradeneeded=()=>{r.result.createObjectStore('sessoes',{keyPath:'k'});r.result.createObjectStore('laudos',{keyPath:'k'})};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
 const tx=async(st,m,f)=>{const d=await DBP;return new Promise((ok,no)=>{const t=d.transaction(st,m),q=f(t.objectStore(st));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>no(t.error)})};
 const sha=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
-const msg=t=>$('ms').textContent=t;
+const mm=t=>{t=Math.round(t);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
+const M=(n,t)=>{const e=$('m'+n);if(e)e.textContent=t};
+const mv=x=>x?x.m:'—';
+const url=a=>a.u||(a.u=URL.createObjectURL(new Blob([a.ab],{type:a.tipo})));
+const salvar=a=>tx('sessoes','readwrite',s=>s.put({...a,u:undefined})).catch(()=>{});
+const CAMPOS=['pn','pe','pc','sin','iaT','ob','sv','cd','f1','f2','jt','sh','hn','ps','md','ex'];
+function rasc(){try{const o={};CAMPOS.forEach(i=>o[i]=$(i).value);localStorage.setItem('pil_rasc_'+U.id,JSON.stringify(o))}catch(e){}}
+function lerRasc(){try{const o=JSON.parse(localStorage.getItem('pil_rasc_'+U.id));o&&CAMPOS.forEach(i=>{if(o[i]!=null)$(i).value=o[i]})}catch(e){}}
+document.addEventListener('input',()=>{U&&rasc()});
+
 (async()=>{U=await eu();
   const [{data:p},{data:me}]=await Promise.all([sb.from('pilotos_perfil').select('*').eq('id',U.id).maybeSingle(),sb.from('profiles').select('*').eq('id',U.id).maybeSingle()]);
-  ME=p;window.PF=me||{};
+  ME=p;PF=me||{};
   if(p){$('nm').textContent=p.nome_completo;$('cr').textContent=`${p.crm_crfa_crp} • ${p.especialidade}`;$('hs').textContent='REGISTRADO';$('hs').style.color='#2b8a3e'}
   else $('av').innerHTML='<p style="color:#d9534f">Você ainda não é piloto. <a href="cadastro-piloto.html">Faça o cadastro profissional</a>.</p>';
-  SES=((await tx('sessoes','readonly',s=>s.getAll()).catch(()=>[]))||[]).filter(x=>x.uid===U.id).sort((a,b)=>b.ts-a.ts).slice(0,10);render();hist()})();
-setInterval(()=>{if(!R.an||!rec)return;try{const k=analisar();D.jit=k.jit;D.shim=k.shim;rec.tk.push(k);$('mt').style.width=Math.round(rg(k.db,-70,-10)*100)+'%';msg(k.voz?`● voz detectada • F0 ${Math.round(k.f0)} Hz`:'● captando…')}catch(e){}},50);
-function fecharMic(){try{mic&&mic.getTracks().forEach(t=>t.stop())}catch(e){}try{R.ctx&&R.ctx.close()}catch(e){}mic=null;R.an=null;R.ctx=null;R.fl=[];R.P=[];R.A=[];$('mt').style.width='0'}
+  lerRasc();
+  AU=((await tx('sessoes','readonly',s=>s.getAll()).catch(()=>[]))||[]).filter(x=>x.uid===U.id&&x.ab).sort((a,b)=>a.ts-b.ts).slice(-10);
+  renAU();hist();ir(1)})();
+
+/* ---------- navegação ---------- */
+const an=()=>AU.map((a,i)=>({a,i,n:i+1})).filter(x=>x.a.res);
+const sel4=()=>an().filter(x=>x.a.sel).slice(0,4);
+function bloqueio(n){
+  if(n>=2){if(!ME)return [1,'Cadastre-se como piloto primeiro.'];if(!$('pn').value.trim()||!$('pe').value.trim())return [1,'Informe nome e e-mail da conta Elayon do paciente.']}
+  if(n>=3&&!AU.length)return [2,'Carregue ao menos 1 áudio.'];
+  if(n>=4&&!an().length)return [3,'Toque ao menos 1 áudio até o fim para gerar a análise.'];
+  return null}
+function tab(n){const b=n>ST?bloqueio(n):null;if(b){ir(b[0]);M(b[0],b[1]);return}ir(n)}
+function ir(n){ST=n;if(n!==3)parar();document.querySelectorAll('.st').forEach((e,i)=>e.classList.toggle('on',i+1===n));document.querySelectorAll('#tb button').forEach((b,i)=>b.classList.toggle('on',i+1===n));
+  if(n===3)prep3();if(n===4)ren4();if(n===5)ref5();marcas();window.scrollTo(0,0)}
+function marcas(){const t=document.querySelectorAll('#tb button'),N=['Paciente','Áudios','Escuta','Síntese','Laudo'];
+  t.forEach((b,i)=>{let ok=(i===0&&$('pn').value.trim()&&$('pe').value.trim())||(i===1&&AU.length)||(i===2&&an().length)||(i===3&&$('sin').value.trim()&&$('iaT').value.trim()&&!/^[🧠❌]/.test($('iaT').value));b.textContent=(ok?'✅ ':'')+(i+1)+' '+N[i]})}
+async function novaConsulta(){if(!confirm('Apagar os áudios e campos desta consulta?'))return;parar();for(const a of AU)await tx('sessoes','readwrite',s=>s.delete(a.k)).catch(()=>{});AU=[];CAMPOS.forEach(i=>{const e=$(i);if(e.tagName!=='SELECT'&&i!=='sv'&&i!=='cd')e.value=''});rasc();$('prev').innerHTML='';$('pdfB').style.display='none';renAU();ir(1);M(1,'Consulta limpa.')}
+
+/* ---------- sessão 2: áudios ---------- */
+async function addAudios(inp){const fs=[...inp.files];inp.value='';for(const f of fs)await addAudio(f,f.name)}
+async function addAudio(blob,nome){
+  if(!ME)return M(2,'Cadastre-se como piloto primeiro.');
+  try{const ab=await blob.arrayBuffer(),buf=await new OAC(1,1,16000).decodeAudioData(ab.slice(0));
+    const a={k:U.id+':'+Date.now()+Math.random().toString(36).slice(2,5),uid:U.id,ts:Date.now(),nome,ab,tipo:blob.type||'audio/webm',dur:buf.duration,notas:[]};
+    await salvar(a);AU.push(a);let fora=0;
+    while(AU.length>10){const o=AU.shift();fora++;await tx('sessoes','readwrite',s=>s.delete(o.k)).catch(()=>{})}
+    M(2,`✅ "${nome}" carregado.`+(fora?` (o mais antigo saiu: limite de 10)`:''))
+  }catch(e){M(2,`❌ Não consegui ler "${nome}". Se for .opus/.ogg no iPhone, converta para .m4a ou .mp3.`)}
+  renAU()}
 async function gravar(){
-  if(!ME)return msg('Cadastre-se como piloto primeiro.');
-  if(rec){mr.stop();return}
-  try{mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}catch(e){return msg(e&&e.name==='NotReadableError'?'Microfone em uso por outro app ou aba.':'Microfone indisponível.')}
-  ligarAnalise(mic.getAudioTracks()[0]);rec={tk:[]};chunks=[];mr=new MediaRecorder(mic);mr.ondataavailable=e=>chunks.push(e.data);
-  mr.onstop=()=>{const rt=rec;rec=null;const blob=new Blob(chunks,{type:mr.mimeType||'audio/webm'});fecharMic();$('bg').textContent='🎙️ Gravar resposta';fechar(blob,rt.tk)};
-  mr.start();$('bg').textContent='⏹ Parar e analisar'
-}
-async function arquivo(inp){
-  const f=inp.files[0];inp.value='';if(!f||!ME||rec)return msg(ME?'Termine a captura atual.':'Cadastre-se como piloto primeiro.');
-  R.ctx=new (window.AudioContext||window.webkitAudioContext)();await R.ctx.resume();el=new Audio(URL.createObjectURL(f));
-  R.an=R.ctx.createAnalyser();R.an.fftSize=2048;R.an.smoothingTimeConstant=.3;R.sr=R.ctx.sampleRate;R.buf=new Float32Array(2048);R.fb=new Float32Array(1024);R.fl=[];R.P=[];R.A=[];
-  R.ctx.createMediaElementSource(el).connect(R.an);rec={tk:[]};
-  el.onended=()=>{const rt=rec;rec=null;fecharMic();fechar(f,rt.tk)};el.onerror=()=>{rec=null;fecharMic();msg('❌ Não consegui ler este áudio.')};el.play()
-}
+  if(mr&&mr.state==='recording'){mr.stop();return}
+  if(!ME)return M(2,'Cadastre-se como piloto primeiro.');
+  try{mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}catch(e){return M(2,e&&e.name==='NotReadableError'?'Microfone em uso por outro app ou aba.':'Microfone indisponível.')}
+  chunks=[];mr=new MediaRecorder(mic);mr.ondataavailable=e=>chunks.push(e.data);
+  mr.onstop=()=>{const t=mr.mimeType||'audio/webm';mic.getTracks().forEach(x=>x.stop());mic=null;$('bg').textContent='🎙️ Gravar áudio';addAudio(new Blob(chunks,{type:t}),'Gravação '+new Date().toLocaleTimeString('pt-BR'))};
+  mr.start();$('bg').textContent='⏹ Parar gravação'}
+function renAU(){
+  $('lista').innerHTML=AU.length?AU.map((a,i)=>`<div class="it"><div class="row"><b>Áudio ${i+1}</b><span class="tag ${a.res?'ok':''}">${a.res?'analisado':'a ouvir'}</span></div><p>${esc(a.nome||a.perg||'—')} • ${Math.round(a.dur||(a.res&&a.res.dur)||0)} s</p><audio controls preload="none" style="width:100%;height:32px" src="${url(a)}"></audio><button class="b g sm" onclick="apagar(${i})">🗑 Remover</button></div>`).join(''):'<p>Nenhum áudio ainda.</p>';
+  $('cnt').textContent=AU.length+'/10';marcas()}
+async function apagar(i){parar();const o=AU.splice(i,1)[0];await tx('sessoes','readwrite',s=>s.delete(o.k)).catch(()=>{});renAU()}
+
+/* ---------- sessão 3: escuta com gráfico ---------- */
+const cv=$('cv'),cx=cv.getContext('2d'),CW=900;
+function limpaCv(){cx.fillStyle='#04060b';cx.fillRect(0,0,CW,420);cx.fillStyle='#0a1418';cx.fillRect(0,266,CW,118);cx.fillStyle='#94a3b8';cx.font='11px sans-serif';cx.fillText('F0 (amarelo) • intensidade (ciano)',6,280)}
+function prep3(keep){const v=$('aSel').value;$('aSel').innerHTML=AU.map((a,i)=>`<option value="${i}">${a.res?'✅':'⏳'} Áudio ${i+1} • ${esc(a.nome||a.perg||'')} • ${Math.round(a.dur||0)}s</option>`).join('');if(v&&AU[+v])$('aSel').value=v;if(!PL&&!keep)limpaCv();if(!keep)leit(null);renNotas()}
+function setBtn(t){$('bp').textContent=t}
+async function tocar(){
+  if(PL){if(PL.el.paused){await PL.ctx.resume();PL.el.play();setBtn('⏸ Pausar')}else{PL.el.pause();setBtn('▶ Continuar')}return}
+  const a=AU[+$('aSel').value];if(!a)return M(3,'Carregue um áudio na sessão 2.');
+  limpaCv();M(3,'');
+  const ctx=new AC();await ctx.resume();const el=new Audio(url(a));
+  R.ctx=ctx;R.an=ctx.createAnalyser();R.an.fftSize=2048;R.an.smoothingTimeConstant=.3;R.sr=ctx.sampleRate;R.buf=new Float32Array(2048);R.fb=new Float32Array(1024);R.fl=[];R.P=[];R.A=[];R.vz=[];R.prev=.3;D.jit=0;D.shim=0;
+  const src=ctx.createMediaElementSource(el);src.connect(R.an);R.an.connect(ctx.destination);   // destination: o médico ouve o áudio
+  PL={a,el,ctx,tk:[],dur:Math.max(1,a.dur||el.duration||1),pf:null,pd:null};
+  el.onended=fim;el.onerror=()=>{M(3,'❌ Não consegui tocar este áudio.');parar()};
+  try{await el.play();setBtn('⏸ Pausar')}catch(e){M(3,'❌ O navegador bloqueou o áudio. Toque de novo.');parar()}}
+function parar(){if(PL){try{PL.el.pause()}catch(e){}try{PL.ctx.close()}catch(e){}PL=null;R.an=null;R.ctx=null}setBtn('▶ Ouvir e gerar gráfico')}
+setInterval(()=>{if(!PL||PL.el.paused||PL.el.ended||!R.an)return;try{const k=analisar();D.jit=k.jit;D.shim=k.shim;PL.tk.push(k);col(k);leit(k)}catch(e){}},50);
+function col(k){
+  const x=PL.el.currentTime/PL.dur*CW,w=Math.max(2,CW/(PL.dur*20)+1.5);
+  for(let j=0;j<64;j++){const v=k.sp[j]/255;cx.fillStyle=`hsl(${280-v*260},90%,${6+v*58}%)`;cx.fillRect(x,(63-j)*4.05,w,4.6)}
+  cx.fillStyle=k.voz?'#0e7490':'#b91c1c';cx.fillRect(x,392,w,22);
+  const yd=380-rg(k.db,-70,-10)*95;cx.strokeStyle='#22d3ee';cx.lineWidth=1.5;cx.beginPath();PL.pd?cx.moveTo(PL.pd[0],PL.pd[1]):cx.moveTo(x,yd);cx.lineTo(x,yd);cx.stroke();PL.pd=[x,yd];
+  if(k.voz&&k.f0){const y=380-rg(k.f0,70,400)*95;cx.strokeStyle='#fde047';cx.lineWidth=2;cx.beginPath();PL.pf?cx.moveTo(PL.pf[0],PL.pf[1]):cx.moveTo(x,y);cx.lineTo(x,y);cx.stroke();PL.pf=[x,y]}else PL.pf=null}
+function leit(k){const c=(l,v)=>`<div><small>${l}</small>${v}</div>`,f=(v,d=1)=>k&&k.voz?(+v).toFixed(d):'—';
+  $('rd').innerHTML=c('F0 Hz',k&&k.voz?Math.round(k.f0):'—')+c('dBFS',k?k.db.toFixed(0):'—')+c('Jitter %',f(k&&k.jit))+c('Shimmer dB',f(k&&k.shim))+c('HNR dB',f(k&&k.hnr))+c('CPP~',f(k&&k.cpp))+c('GRBAS~ G',k?(+k.G).toFixed(1):'—')+c('Tempo',PL?mm(PL.el.currentTime):'—')}
+function nota(){
+  if(!PL)return M(3,'Toque o áudio e pause no instante que quer marcar.');
+  const k=PL.tk[PL.tk.length-1]||{},t=PL.el.currentTime,x=t/PL.dur*CW,r=n=>+(+n||0).toFixed(n>=100?0:2);
+  PL.a.notas.push({t:+t.toFixed(1),txt:$('nt').value.trim()||'(marcação)',f0:Math.round(k.f0||0),db:r(k.db),jit:r(k.jit),shim:r(k.shim),hnr:r(k.hnr)});
+  cx.save();cx.setLineDash([4,3]);cx.strokeStyle='#fff';cx.lineWidth=1.2;cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,420);cx.stroke();cx.restore();cx.fillStyle='#fff';cx.font='bold 11px sans-serif';cx.fillText('📌'+PL.a.notas.length,x+3,12);
+  $('nt').value='';salvar(PL.a);renNotas()}
+function renNotas(){const a=AU[+$('aSel').value];$('notas').innerHTML=a&&a.notas&&a.notas.length?'<label>Marcações deste áudio</label>'+a.notas.map((n,i)=>`<p>📌 ${mm(n.t)} — ${esc(n.txt)} (F0 ${n.f0} Hz, ${n.db} dB)</p>`).join(''):''}
+async function fim(){
+  const p=PL;if(!p)return;const tk=p.tk,a=p.a;parar();
+  try{if(tk.length<10)throw new Error('áudio muito curto');
+    const {res,sec,ret}=analisarSessao(tk);if(res.fon<.05)throw new Error('não detectei voz neste áudio');
+    a.res=res;a.img=espectroide(tk,sec,ret,Math.max(1,res.dur));await salvar(a);
+    M(3,'✅ Áudio analisado e pronto para a sessão 4.');renAU();prep3(true);
+    if(!a.txt){a.txt=await transcr(a.ab,a.tipo);salvar(a)}
+  }catch(e){M(3,'❌ '+e.message)}}
 async function transcr(ab,tipo){
   if(!PF.ai_key)return '';
   try{const w=await wav(new Blob([ab],{type:tipo}));let t='';
     if((PF.ai_provider||'gemini')==='openai'){const f=new FormData();f.append('file',new Blob([w],{type:'audio/wav'}),'a.wav');f.append('model','whisper-1');f.append('language','pt');t=(await (await fetch('https://api.openai.com/v1/audio/transcriptions',{method:'POST',headers:{Authorization:'Bearer '+PF.ai_key},body:f})).json()).text||''}
     else t=(await (await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${PF.ai_key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:'Transcreva fielmente a fala em português do Brasil. Responda somente com a transcrição. Se não houver fala, responda exatamente: (silêncio)'},{inline_data:{mime_type:'audio/wav',data:b64(w)}}]}]})})).json()).candidates[0].content.parts[0].text;
-    t=t.trim();return t==='(silêncio)'?'':t}catch(e){return ''}
-}
-async function fechar(blob,tk){
-  try{if(tk.length<10)throw new Error('áudio muito curto');
-    const {res,sec,ret}=analisarSessao(tk);if(res.fon<.05)throw new Error('não detectei voz neste áudio');
-    msg('⏳ calculando métricas…');const img=espectroide(tk,sec,ret,Math.max(1,res.dur)),ab=await blob.arrayBuffer(),tipo=blob.type||'audio/webm';
-    const s={k:U.id+':'+Date.now(),uid:U.id,ts:Date.now(),dur:res.dur,res,img,ab,tipo,perg:$('pq').value,txt:'',inc:true};
-    s.txt=await transcr(ab,tipo);
-    try{await tx('sessoes','readwrite',st=>st.put(s))}catch(e){}
-    SES.unshift(s);while(SES.length>10){const o=SES.pop();await tx('sessoes','readwrite',st=>st.delete(o.k)).catch(()=>{})}   // FIFO: até 10
-    msg('✅ sessão analisada.');render()
-  }catch(e){msg('❌ '+e.message)}
-}
-function render(){
-  $('ses').innerHTML=SES.length?SES.map((s,i)=>{const r=s.res,m=x=>x?x.m:'—',g=r.grbas_est;
-    return `<div style="border:1px solid #d8e8eb;border-radius:12px;padding:8px;margin-bottom:8px"><div class="row"><label style="display:flex;gap:6px;align-items:center;text-transform:none"><input type="checkbox" style="width:auto" ${s.inc?'checked':''} onchange="SES[${i}].inc=this.checked"> Sessão ${i+1} • ${new Date(s.ts).toLocaleString('pt-BR')}</label><button class="b g" style="width:auto;padding:6px 10px" onclick="apagar(${i})">🗑</button></div>
-    <p style="margin:4px 0">${esc(s.perg)}</p><img src="${s.img}" style="width:100%;border-radius:8px"><audio controls style="width:100%;height:32px" src="${URL.createObjectURL(new Blob([s.ab],{type:s.tipo}))}"></audio>
-    <p>F0 ${m(r.f0)} Hz · ${m(r.db)} dBFS · jitter ${m(r.jit)}% · shimmer ${m(r.shim)} dB · HNR ${m(r.hnr)} dB · CPP~ ${m(r.cpp)}<br>fonação ${Math.round(r.fon*100)}% · pausas ${r.pausas} · sílabas/s ${r.silabas_s} · GRBAS~ G${g.G} R${g.R} B${g.B} A${g.A} S${g.S}<br><b>Fala:</b> ${esc(s.txt||'—')}</p></div>`}).join(''):'<p>Nenhuma sessão ainda.</p>'
-}
-async function apagar(i){const o=SES.splice(i,1)[0];await tx('sessoes','readwrite',st=>st.delete(o.k)).catch(()=>{});render()}
-const sel=()=>SES.filter(s=>s.inc);
-function preencher(){
-  const S=sel(),m=k=>{const v=S.map(s=>s.res[k]&&s.res[k].m).filter(x=>x!=null);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null};
-  const f=m('f0'),j=m('jit'),sh=m('shim'),h=m('hnr'),ps=S.length?Math.round(S.reduce((a,s)=>a+s.res.pausas,0)/S.length):null;
-  if(f){$('f1').value=Math.round(f*.85);$('f2').value=Math.round(f*1.15)}if(j!=null)$('jt').value=(j*1.3+.1).toFixed(1);if(sh!=null)$('sh').value=(sh*1.3+.1).toFixed(1);if(h!=null)$('hn').value=(h-3).toFixed(1);if(ps!=null)$('ps').value=ps+2}
+    t=t.trim();return t==='(silêncio)'?'':t}catch(e){return ''}}
+
+/* ---------- sessão 4: síntese ---------- */
+function resumo(a){const r=a.res,g=r.grbas_est;return `<p>F0 ${mv(r.f0)} Hz · ${mv(r.db)} dBFS · jitter ${mv(r.jit)}% · shimmer ${mv(r.shim)} dB · HNR ${mv(r.hnr)} dB · fonação ${Math.round(r.fon*100)}% · pausas ${r.pausas} · GRBAS~ G${g.G} R${g.R} B${g.B} A${g.A} S${g.S}</p>`+((a.notas||[]).map(n=>`<p>📌 ${mm(n.t)} — ${esc(n.txt)}</p>`).join(''))+(a.txt?`<p><b>Fala:</b> ${esc(a.txt)}</p>`:'')}
+function ren4(){const L=an();if(!L.some(x=>x.a.sel))L.slice(0,4).forEach(x=>x.a.sel=true);
+  $('l4').innerHTML=L.length?'<label>Sessões que entram na análise (até 4)</label>'+L.map(({a,i,n})=>`<div class="it"><label style="display:flex;gap:6px;text-transform:none;font-size:12px"><input type="checkbox" style="width:auto" ${a.sel?'checked':''} onchange="marcar(${i},this)"> Áudio ${n} • ${esc(a.nome||'')}</label><img src="${a.img}" style="width:100%;border-radius:8px">${resumo(a)}</div>`).join(''):'<p>Nenhum áudio analisado ainda. Volte à sessão 3.</p>'}
+function marcar(i,c){if(c.checked&&AU.filter(x=>x.sel).length>=4){c.checked=false;return M(4,'Máximo de 4 sessões.')}AU[i].sel=c.checked;M(4,'')}
 async function analisarIA(){
-  const S=sel().slice(0,4);if(!S.length)return $('iaT').value='Marque ao menos uma sessão.';$('iaT').value='🧠 IA analisando…';
-  try{$('iaT').value=(await aiCall(PF,`Analise ${S.length} sessão(ões) vocal(is) do paciente "${$('pn').value||'—'}" (contexto: ${$('pc').value||'—'}). Dados: ${JSON.stringify(S.map((s,i)=>({sessao:i+1,pergunta:s.perg,res:s.res,fala:s.txt})))}. As imagens são os espectroides na mesma ordem. Entregue: leitura dos gráficos, comparação entre as sessões, pontos de atenção para o médico avaliar (sem diagnóstico) e sugestão de faixas e exercícios de autoexame.`,S.map(s=>s.img))).trim()}catch(e){$('iaT').value='❌ '+e.message}
-}
-function pdf(txt,payload){
-  const {jsPDF}=window.jspdf,d=new jsPDF({unit:'pt',format:'a4'}),S=sel().slice(0,4);
-  d.setProperties({title:'Laudo Elayon Health',author:ME.nome_completo,subject:'ELAYONHEALTH['+payload+']'});
-  d.setFontSize(15);d.text('Elayon Health • Laudo de Escuta Vocal (CRS)',40,50);d.setFontSize(10);d.text(d.splitTextToSize(txt,515),40,75);
-  for(let i=0;i<S.length;i+=2){d.addPage();d.setFontSize(11);S.slice(i,i+2).forEach((s,j)=>{const y=40+j*390;d.text(`Espectroide • ${s.perg} • ${new Date(s.ts).toLocaleString('pt-BR')}`,40,y);d.addImage(s.img,'JPEG',40,y+8,515,309)})}
-  d.addPage();d.setLineWidth(3);d.rect(30,30,535,780);d.setFontSize(22);d.text('CERTIFICADO DE CALIBRAÇÃO',297,140,{align:'center'});d.text('ELAYON HEALTH',297,175,{align:'center'});d.setFontSize(12);
-  d.text(d.splitTextToSize(`Certifica-se que ${$('pn').value} concluiu a avaliação vocal Elayon Health, com faixas de autoexame definidas e assinadas pelo profissional responsável. Carregue este PDF no cockpit Elayon Vibes 8 (aba Conteúdo) para ativar a camada Health.`,420),297,240,{align:'center'});
-  d.text(`${ME.nome_completo} • ${ME.crm_crfa_crp} • ${ME.especialidade}`,297,440,{align:'center'});d.text(`Assinado eletronicamente em ${new Date().toLocaleString('pt-BR')}`,297,460,{align:'center'});
-  d.setFontSize(8);d.text(d.splitTextToSize('Valores são estimativas acústicas obtidas por microfone de celular. O Elayon Health é um termômetro de sinais vocais e não emite diagnóstico; a interpretação é de responsabilidade do médico signatário.',480),297,760,{align:'center'});
+  const S=sel4();if(!S.length)return M(4,'Marque ao menos uma sessão analisada.');
+  if(!PF.ai_key)return M(4,'Configure a chave de IA no seu perfil (a mesma usada no cockpit).');
+  $('iaT').value='🧠 IA analisando…';M(4,'');
+  const dados=S.map(({a,n})=>({sessao:n,audio:a.nome,res:a.res,marcacoes_do_medico:a.notas||[],fala:a.txt||''}));
+  try{$('iaT').value=(await aiCall(PF,`Paciente "${$('pn').value||'—'}" (contexto: ${$('pc').value||'—'}). Você recebe ${S.length} sessão(ões) vocal(is) da mesma consulta, na ordem cronológica, com métricas acústicas ESTIMADAS por microfone de celular: ${JSON.stringify(dados)}. As imagens são os espectroides, na mesma ordem. Texto/síntese do médico, feito por ele fora do Elayon (com ou sem IA): """${$('sin').value||'(não informado)'}""". Some o texto do médico às sessões e entregue: (1) leitura dos gráficos por sessão; (2) DIAGNÓSTICO TEMPORAL AUXILIAR DE CONTEXTO: como os sinais vocais evoluem ao longo do tempo entre as sessões e dentro de cada uma (início, meio, fim, pausas, retomadas, fadiga), cruzando com o texto do médico; (3) pontos de atenção para o médico avaliar; (4) sugestão de faixas e exercícios de autoexame. É contexto auxiliar: não dê diagnóstico definitivo nem conduta; a decisão e a responsabilidade são do médico.`,S.map(x=>x.a.img))).trim();rasc();marcas()}catch(e){$('iaT').value='❌ '+e.message}}
+
+/* ---------- sessão 5: laudo ---------- */
+function ref5(){const S=sel4(),m=k=>{const v=S.map(x=>x.a.res[k]&&x.a.res[k].m).filter(x=>x!=null);return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'—'};
+  $('ref').innerHTML=S.length?`<b>Referência medida (média de ${S.length} sessão(ões)) — só consulta, as faixas são suas:</b> F0 ${m('f0')} Hz · jitter ${m('jit')}% · shimmer ${m('shim')} dB · HNR ${m('hnr')} dB · pausas ${S.length?Math.round(S.reduce((a,x)=>a+x.a.res.pausas,0)/S.length):'—'}`:'Nenhuma sessão selecionada na sessão 4.'}
+const sg=$('sg'),sc=sg.getContext('2d');let pen=false,ink=false,hab=false,lx=0,ly=0;
+sc.strokeStyle='#000';sc.fillStyle='#000';sc.lineWidth=3.4;sc.lineCap='round';sc.lineJoin='round';
+const pt=e=>{const r=sg.getBoundingClientRect();return [(e.clientX-r.left)*sg.width/r.width,(e.clientY-r.top)*sg.height/r.height]};
+sg.addEventListener('pointerdown',e=>{if(!hab)return;pen=true;ink=true;[lx,ly]=pt(e);sc.beginPath();sc.arc(lx,ly,1.7,0,6.3);sc.fill();try{sg.setPointerCapture(e.pointerId)}catch(x){}e.preventDefault()});
+sg.addEventListener('pointermove',e=>{if(!pen)return;const [x,y]=pt(e);sc.beginPath();sc.moveTo(lx,ly);sc.lineTo(x,y);sc.stroke();lx=x;ly=y;e.preventDefault()});
+['pointerup','pointercancel','pointerleave'].forEach(t=>sg.addEventListener(t,()=>{pen=false}));
+function habPincel(){hab=!hab;sg.classList.toggle('on',hab);$('bh').textContent=hab?'✅ Pincel ativo (tinta preta)':'🖌️ Habilitar pincel'}
+function limpaAss(){sc.clearRect(0,0,sg.width,sg.height);ink=false}
+function usaSalva(){const s=localStorage.getItem('pil_ass_'+U.id);if(!s)return M(5,'Nenhuma assinatura salva ainda.');const im=new Image();im.onload=()=>{sc.clearRect(0,0,sg.width,sg.height);sc.drawImage(im,0,0);ink=true;M(5,'Assinatura salva aplicada.')};im.src=s}
+function assPNG(){const w=sg.width,h=sg.height,d=sc.getImageData(0,0,w,h).data;let x0=w,y0=h,x1=0,y1=0;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>20){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+  if(x1<x0)return null;const W=x1-x0+1,H=y1-y0+1,c=document.createElement('canvas');c.width=W;c.height=H;c.getContext('2d').drawImage(sg,x0,y0,W,H,0,0,W,H);return {url:c.toDataURL('image/png'),w:W,h:H}}
+
+function pdf(o,S,ass,payload){
+  const {jsPDF}=window.jspdf,d=new jsPDF({unit:'pt',format:'a4'}),L=40,Wd=515;let y=95;
+  d.setProperties({title:'Laudo Elayon Health',author:o.piloto.nome,subject:'ELAYONHEALTH['+payload+']'});
+  const need=h=>{if(y+h>800){d.addPage();y=50}};
+  const H=t=>{need(34);y+=4;d.setFont('helvetica','bold');d.setFontSize(11);d.setTextColor(42,157,143);d.text(t,L,y);y+=15};
+  const T=t=>{d.setFont('helvetica','normal');d.setFontSize(9.5);d.setTextColor(20,40,45);for(const ln of d.splitTextToSize(String(t||'-'),Wd)){need(13);d.text(ln,L,y);y+=12.5}y+=4};
+  d.setFillColor(10,42,47);d.rect(0,0,595,70,'F');d.setTextColor(255,255,255);d.setFont('helvetica','bold');d.setFontSize(16);d.text('Elayon Health  |  Laudo de Escuta Vocal (CRS)',L,38);d.setFont('helvetica','normal');d.setFontSize(9);d.text('Emitido em '+new Date(o.emitido).toLocaleString('pt-BR'),L,55);
+  H('Identificação');T(`Paciente: ${o.paciente.nome} (${o.paciente.email})\nContexto: ${o.paciente.contexto||'-'}\nProfissional: ${o.piloto.nome} - ${o.piloto.crm} - ${o.piloto.esp}`);
+  H('Sessões analisadas');S.forEach(s=>T(`Áudio ${s.n} (${new Date(s.ts).toLocaleString('pt-BR')}) - ${s.dur}s - F0 ${s.f0} Hz - jitter ${s.jit}% - shimmer ${s.shim} dB - HNR ${s.hnr} dB - fonação ${Math.round((s.fon||0)*100)}% - pausas ${s.pausas}`));
+  if(o.notas.length){H('Marcações do médico durante a escuta');o.notas.forEach(n=>T(`Áudio ${n.a} em ${mm(n.t)}: ${n.txt} (F0 ${n.f0} Hz, ${n.db} dB)`))}
+  if(o.sintese){H('Síntese do médico');T(o.sintese)}
+  if(o.ia){H('Diagnóstico temporal auxiliar de contexto (apoio de IA, revisado pelo médico)');T(o.ia)}
+  H('Observações clínicas / pré-diagnóstico de avaliação');T(o.laudo.obs);T(`Severidade (0-10): ${o.laudo.sev}   Conduta: ${o.laudo.conduta}`);
+  const p=o.params;H('Faixas de autoexame (definidas pelo médico)');T(`F0 ${p.f0min}-${p.f0max} Hz; jitter até ${p.jitmax}%; shimmer até ${p.shimmax} dB; HNR a partir de ${p.hnrmin} dB; pausas até ${p.pausasmax}; modo ${o.modo}.`);
+  H('Exercícios para o Vibes 8');T(o.exercicios);
+  for(let i=0;i<S.length;i+=2){d.addPage();d.setFont('helvetica','bold');d.setFontSize(11);d.setTextColor(20,40,45);S.slice(i,i+2).forEach((s,j)=>{const yy=40+j*390;d.text(`Espectroide - Áudio ${s.n} - ${new Date(s.ts).toLocaleString('pt-BR')}`,L,yy);d.addImage(s.img,'JPEG',L,yy+8,Wd,309)})}
+  d.addPage();d.setDrawColor(10,42,47);d.setLineWidth(3);d.rect(30,30,535,782);d.setTextColor(10,42,47);d.setFont('helvetica','bold');d.setFontSize(22);d.text('CERTIFICADO DE CALIBRAÇÃO',297,130,{align:'center'});d.text('ELAYON HEALTH',297,162,{align:'center'});
+  d.setFont('helvetica','normal');d.setFontSize(12);d.text(d.splitTextToSize(`Certifica-se que ${o.paciente.nome} concluiu a avaliação vocal Elayon Health, com faixas de autoexame definidas e assinadas pelo profissional responsável. Carregue este PDF no cockpit Elayon Vibes 8 (aba Conteúdo) para ativar a camada Health.`,420),297,215,{align:'center'});
+  d.setFontSize(8);d.setTextColor(90,110,115);d.text(d.splitTextToSize('Valores são estimativas acústicas obtidas por microfone de celular. O Elayon Health é um termômetro de sinais vocais e não emite diagnóstico; a interpretação clínica é de responsabilidade do médico signatário.',470),297,320,{align:'center'});
+  d.setDrawColor(0,0,0);d.setLineWidth(.8);d.line(150,560,445,560);
+  let yy=580;const li=(t,b,sz)=>{d.setFont('helvetica',b?'bold':'normal');d.setFontSize(sz||10);d.setTextColor(10,42,47);d.text(t,297,yy,{align:'center'});yy+=b?16:14};
+  li(o.piloto.nome,1,13);li(`${o.piloto.crm}  |  ${o.piloto.esp}`);if(o.piloto.inst)li(o.piloto.inst);if(o.piloto.tel)li('WhatsApp profissional: '+o.piloto.tel);li('Conta Elayon: '+o.piloto.email);
+  li('Assinado eletronicamente em '+new Date(o.emitido).toLocaleString('pt-BR'),0,9);li('Integridade (SHA-256): '+o.hash.slice(0,32)+'...',0,8);
+  const k=Math.min(230/ass.w,90/ass.h),aw=ass.w*k,ah=ass.h*k;d.addImage(ass.url,'PNG',297-aw/2,568-ah,aw,ah);   // por último = por cima, PNG transparente
   return d.output('blob')}
 async function assinar(){
-  const S=sel(),pe=$('pe').value.trim().toLowerCase(),pn=$('pn').value.trim(),ob=$('ob').value.trim();
-  if(!ME)return $('m5').textContent='Cadastre-se como piloto primeiro.';
-  if(!pn||!pe)return $('m5').textContent='Informe nome e e-mail da conta Elayon do paciente.';
-  if(!S.length)return $('m5').textContent='Marque ao menos uma sessão.';if(!ob)return $('m5').textContent='Preencha as observações clínicas.';if(!$('ok').checked)return $('m5').textContent='Confirme a responsabilidade clínica.';
-  const m=(r,k)=>r[k]?r[k].m:null,corpo={v:1,emitido:new Date().toISOString(),piloto:{nome:ME.nome_completo,crm:ME.crm_crfa_crp,esp:ME.especialidade},paciente:{nome:pn,email:pe,contexto:$('pc').value.trim()},
-    laudo:{obs:ob,sev:+$('sv').value,conduta:$('cd').value},params:{f0min:+$('f1').value,f0max:+$('f2').value,jitmax:+$('jt').value,shimmax:+$('sh').value,hnrmin:+$('hn').value,pausasmax:+$('ps').value},modo:$('md').value,exercicios:$('ex').value.trim(),ia:$('iaT').value.startsWith('❌')||$('iaT').value.startsWith('🧠')?'':$('iaT').value.trim().slice(0,1500),
-    sessoes:S.slice(0,4).map(s=>({ts:s.ts,perg:s.perg,dur:s.res.dur,f0:m(s.res,'f0'),db:m(s.res,'db'),jit:m(s.res,'jit'),shim:m(s.res,'shim'),hnr:m(s.res,'hnr'),cpp:m(s.res,'cpp'),fon:s.res.fon,pausas:s.res.pausas}))};
-  const obj={...corpo,hash:await sha(JSON.stringify(corpo))},p=obj.params;
-  const txt=`LAUDO ELAYON HEALTH — ${ME.nome_completo} (${ME.crm_crfa_crp}, ${ME.especialidade}) em ${new Date().toLocaleDateString('pt-BR')}\nPaciente: ${pn} (${pe})  Contexto: ${obj.paciente.contexto||'—'}\nObservações clínicas / pré-diagnóstico: ${ob}\nSeveridade (0-10): ${obj.laudo.sev}  Conduta: ${obj.laudo.conduta}\nFAIXAS DE AUTOEXAME: F0 ${p.f0min}-${p.f0max} Hz; jitter até ${p.jitmax}%; shimmer até ${p.shimmax} dB; HNR a partir de ${p.hnrmin} dB; pausas até ${p.pausasmax}; modo ${obj.modo}.\nExercícios: ${obj.exercicios||'—'}\nApoio da IA (revisado pelo médico): ${obj.ia||'—'}\nAviso: estimativas acústicas de microfone; interpretação e responsabilidade clínica do médico signatário.`;
-  try{const blob=pdf(txt,btoa(unescape(encodeURIComponent(JSON.stringify(obj)))));ULT={blob,nome:`laudo-elayon-${pn.replace(/\W+/g,'-')}-${new Date().toISOString().slice(0,10)}.pdf`};
+  const S=sel4(),pn=$('pn').value.trim(),pe=$('pe').value.trim().toLowerCase(),ob=$('ob').value.trim();
+  if(!ME)return M(5,'Cadastre-se como piloto primeiro.');
+  if(!pn||!pe){ir(1);return M(1,'Informe nome e e-mail do paciente.')}
+  if(!S.length){ir(4);return M(4,'Marque ao menos uma sessão analisada.')}
+  if(!ob)return M(5,'Preencha as observações clínicas.');
+  if(['f1','f2','jt','sh','hn','ps'].some(i=>$(i).value===''))return M(5,'Preencha todas as faixas manualmente.');
+  if(!ink)return M(5,'Habilite o pincel e assine no quadro.');if(!$('ok').checked)return M(5,'Confirme a responsabilidade clínica.');
+  const ass=assPNG();if(!ass)return M(5,'Assinatura vazia.');
+  try{localStorage.setItem('pil_ass_'+U.id,sg.toDataURL('image/png'))}catch(e){}
+  M(5,'⏳ gerando PDF…');
+  const iaT=$('iaT').value.trim(),ia=/^[🧠❌]/.test(iaT)?'':iaT.slice(0,2000);
+  const corpo={v:2,emitido:new Date().toISOString(),piloto:{nome:ME.nome_completo,crm:ME.crm_crfa_crp,esp:ME.especialidade,inst:ME.instituicao||'',tel:ME.telefone||'',email:U.email},paciente:{nome:pn,email:pe,contexto:$('pc').value.trim()},
+    laudo:{obs:ob,sev:+$('sv').value,conduta:$('cd').value},params:{f0min:+$('f1').value,f0max:+$('f2').value,jitmax:+$('jt').value,shimmax:+$('sh').value,hnrmin:+$('hn').value,pausasmax:+$('ps').value},modo:$('md').value,exercicios:$('ex').value.trim(),
+    sintese:$('sin').value.trim().slice(0,2000),ia,
+    sessoes:S.map(({a,n})=>({n,ts:a.ts,perg:a.nome||'',dur:a.res.dur,f0:mv(a.res.f0),db:mv(a.res.db),jit:mv(a.res.jit),shim:mv(a.res.shim),hnr:mv(a.res.hnr),cpp:mv(a.res.cpp),fon:a.res.fon,pausas:a.res.pausas})),
+    notas:S.flatMap(({a,n})=>(a.notas||[]).map(q=>({a:n,t:q.t,txt:q.txt,f0:q.f0,db:q.db}))).slice(0,20)};
+  const obj={...corpo,hash:await sha(JSON.stringify(corpo))};
+  try{const blob=pdf(obj,S.map(({a,n},i)=>({...corpo.sessoes[i],img:a.img})),ass,btoa(unescape(encodeURIComponent(JSON.stringify(obj)))));
+    ULT={blob,nome:`laudo-elayon-${pn.replace(/\W+/g,'-')}-${new Date().toISOString().slice(0,10)}.pdf`};
     const ab=await blob.arrayBuffer();await tx('laudos','readwrite',st=>st.put({k:U.id+':'+Date.now(),uid:U.id,ts:Date.now(),nome:ULT.nome,pac:pn,ab})).catch(()=>{});
-    $('pdfB').style.display='grid';$('m5').textContent='✅ PDF assinado. Baixe ou envie ao paciente.';hist()}catch(e){$('m5').textContent='❌ '+(e.message||e)}
-}
+    $('pdfB').style.display='grid';M(5,'✅ PDF assinado. Confira a visualização abaixo, baixe ou envie ao paciente.');hist();prever(blob)}catch(e){M(5,'❌ '+(e.message||e))}}
+async function prever(blob){
+  const box=$('prev');box.innerHTML='<p>⏳ montando visualização do PDF…</p>';
+  try{const pj=await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.mjs');pj.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.worker.min.mjs';
+    const doc=await pj.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise;box.innerHTML='<label>Visualização do PDF (a última página é o certificado com a assinatura)</label>';
+    for(let i=1;i<=doc.numPages;i++){const pg=await doc.getPage(i),v0=pg.getViewport({scale:1}),sc2=Math.min(2,(box.clientWidth||340)*2/v0.width),v=pg.getViewport({scale:sc2}),c=document.createElement('canvas');c.width=v.width;c.height=v.height;box.appendChild(c);await pg.render({canvasContext:c.getContext('2d'),viewport:v}).promise}
+  }catch(e){box.innerHTML='<p>Não consegui montar a visualização aqui. <a href="'+URL.createObjectURL(blob)+'" target="_blank">Abrir o PDF</a> para conferir.</p>'}}
 function dl(blob,nome){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;a.click()}
 function baixar(){ULT&&dl(ULT.blob,ULT.nome)}
 async function compartilhar(){
   if(!ULT)return;const f=new File([ULT.blob],ULT.nome,{type:'application/pdf'});
-  if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:'Laudo Elayon Health',text:'Seu laudo e certificado Elayon Health. Salve e carregue no cockpit (aba Conteúdo).'});return}catch(e){}}
-  baixar();window.open('https://wa.me/?text='+encodeURIComponent('Laudo Elayon Health: anexe o PDF baixado e, no cockpit Elayon Vibes 8, use a aba Conteúdo para carregá-lo.'),'_blank')
-}
+  if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:'Laudo Elayon Health',text:'Seu laudo e certificado Elayon Health. Guarde junto aos seus documentos da clínica e carregue no cockpit (aba Conteúdo).'});return}catch(e){}}
+  baixar();window.open('https://wa.me/?text='+encodeURIComponent('Laudo Elayon Health: anexe o PDF baixado. No cockpit Elayon Vibes 8, use a aba Conteúdo para carregá-lo.'),'_blank')}
 async function hist(){
-  let L=((await tx('laudos','readonly',s=>s.getAll()).catch(()=>[]))||[]).filter(x=>x.uid===U.id&&x.ab).sort((a,b)=>b.ts-a.ts);
-  for(const o of L.slice(10))await tx('laudos','readwrite',st=>st.delete(o.k)).catch(()=>{});L=L.slice(0,10);window.LH=L;
-  $('hist').innerHTML=L.length?L.map((x,i)=>`<div class="row" style="border:1px solid #d8e8eb;border-radius:12px;padding:10px;margin-bottom:8px"><div><b style="font-size:12px">${esc(x.pac)}</b><p>${new Date(x.ts).toLocaleString('pt-BR')}</p></div><button class="b g" style="width:auto" onclick="dl(new Blob([LH[${i}].ab],{type:'application/pdf'}),LH[${i}].nome)">⬇️ PDF</button></div>`).join(''):'<p>Nenhum ainda.</p>'
-}
-</script></body></html>
+  let Lh=((await tx('laudos','readonly',s=>s.getAll()).catch(()=>[]))||[]).filter(x=>x.uid===U.id&&x.ab).sort((a,b)=>b.ts-a.ts);
+  for(const o of Lh.slice(10))await tx('laudos','readwrite',st=>st.delete(o.k)).catch(()=>{});Lh=Lh.slice(0,10);window.LH=Lh;
+  $('hist').innerHTML=Lh.length?Lh.map((x,i)=>`<div class="row" style="border:1px solid #d8e8eb;border-radius:12px;padding:10px;margin-bottom:8px"><div><b style="font-size:12px">${esc(x.pac)}</b><p>${new Date(x.ts).toLocaleString('pt-BR')}</p></div><button class="b g" style="width:auto" onclick="dl(new Blob([LH[${i}].ab],{type:'application/pdf'}),LH[${i}].nome)">⬇️ PDF</button></div>`).join(''):'<p>Nenhum ainda.</p>'}
+</script></body></html>1111111111111111111111111
