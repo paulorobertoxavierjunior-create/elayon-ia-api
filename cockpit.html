@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -44,6 +43,12 @@ button,.btn{font-family:inherit}
 #hStat{font-size:12px;line-height:1.5;color:#a7f3d0;background:#052e22;border:1px solid #10b98155;border-radius:10px;padding:10px;margin-top:8px}
 #start{position:fixed;inset:0;z-index:99;background:#04060bf5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center}
 #start img{width:96px;height:96px;border-radius:22px;object-fit:contain;background:#fafaf8;border:2px solid #38bdf8}#start h1{font-size:20px;color:#7dd3fc;margin:0}#start p{font-size:12px;color:#94a3b8;max-width:320px;line-height:1.5;margin:0}
+.gb{display:flex;gap:6px;margin-top:8px}.gb button{flex:1;background:#0b1d33;color:#7dd3fc;border:1px solid #38bdf855;border-radius:8px;padding:6px;font-size:11px}
+.tg{cursor:pointer;margin-left:6px;padding:2px 5px;color:#94a3b8;font-size:13px}.c.foco{grid-column:1/-1}.c.foco canvas{height:260px}
+#diag{font:10px monospace;color:#94a3b8;white-space:pre-wrap;margin:6px 0 0}
+.fs{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid #334155;border-radius:12px;padding:8px 10px;margin-top:8px;background:#050810}.fs b{font-size:12px;color:#e2e8f0}.fs small{display:block;font-size:10px;color:#94a3b8;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fs button{background:#0b1d33;color:#7dd3fc;border:1px solid #38bdf855;border-radius:8px;padding:6px 10px;font-size:11px;margin-left:4px}
+#cst{font-size:11px;color:#fbbf24;margin-top:8px}
 </style></head><body>
 <div id="start"><img src="IMG-20260218-WA0016.jpg" alt="Elayon" onerror="this.style.display='none'"><h1>Elayon Vibes 8</h1><p>Cockpit de calibração e acompanhamento vocal. A IA vai falar com você e os gráficos acompanham a voz dela. O microfone só liga quando você abrir.</p><button class="mic" id="bStart" style="max-width:320px" onclick="iniciar()" disabled>Carregando…</button></div>
 <header class="hud"><img id="hudAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=ElayonUser" alt="">
@@ -51,9 +56,11 @@ button,.btn{font-family:inherit}
 <div class="tk">TOKENS<b id="hudTokens">--</b></div><a href="perfil.html">⚙️</a></header>
 <div class="tabs2"><button id="bV" class="on" onclick="aba('V')">🎙️ Calibração</button><button id="bC" onclick="aba('C')">📥 Conteúdo</button><button id="bT" onclick="aba('T')">🗣️ Testes vocálicos</button><button id="bR" onclick="aba('R')">🏋️ Treino</button></div>
 <div id="av"></div>
+<input type="file" id="pdfIn" accept="application/pdf" hidden onchange="carregarPDF(this)">
 <div class="lay"><button id="bH" onclick="camHealth()">🏥 Elayon Health</button><button id="bP" onclick="camPsyq()">❄️ PsyQ</button><button id="bPC" onclick="camPC()">💻 Elayon PC</button></div><div id="lmsg"></div>
 <div id="pV"><h2>Elayon Vibes 8 • Cockpit do Usuário</h2>
 <div style="text-align:center"><span class="st" id="modo">😴 REPOUSO</span></div>
+<div class="gb"><button onclick="todos(true)">▾ Recolher todos</button><button onclick="todos(false)">▸ Expandir todos</button></div>
 <div class="grid" id="grid"></div>
 <div class="box"><b id="fifoT" style="font-size:11px;color:#7dd3fc;text-transform:uppercase">Buffer FIFO</b>
 <audio id="crsAudio" controls></audio><div class="slots" id="slots"></div>
@@ -61,14 +68,14 @@ button,.btn{font-family:inherit}
 <div class="chat" id="chat"></div>
 <button class="mic" id="crsMic" onclick="crsToggle()" disabled>🎙️ Carregando…</button>
 <button class="ref" onclick="refazer()">↻ Refazer calibração (teste)</button>
+<details class="ref" style="text-align:left"><summary>🔍 Diagnóstico técnico</summary><pre id="diag"></pre></details>
 <div style="height:55vh"></div></div>
-<div id="pC" class="box pn" style="display:none"><b style="color:#7dd3fc">📥 Conteúdo & camada Health</b>
-<p>Peça ao seu médico (piloto) o laudo em PDF. Ele chega pelo WhatsApp: salve no celular e carregue aqui. Com o laudo, a camada Health fica ativa e passa a consumir <b>2 tokens por uso</b> (1 da camada CRS + 1 da Health). A IA lê o laudo antes de responder.</p>
-<label class="up">📄 Carregar PDF do laudo Elayon Health<input type="file" id="pdfIn" accept="application/pdf" onchange="carregarPDF(this)" hidden></label>
-<div id="hStat">Nenhum laudo carregado.</div><button class="ref" onclick="removerLaudo()">Remover laudo deste aparelho</button>
+<div id="pC" class="box pn" style="display:none"><b style="color:#7dd3fc">📥 Conteúdo & camadas</b>
+<p>Cada PDF carregado soma <b>1 token</b> por áudio (além do 1 base da calibração). A IA consulta <b>todas</b> as fontes ao responder e cita o documento usado. Dá para trocar ou remover qualquer PDF.</p>
+<div id="fontes"></div><div id="hStat">Nenhum laudo carregado.</div><div id="cst"></div>
 <a href="cadastro-piloto.html">👨‍⚕️ Sou médico: cadastro profissional de piloto</a><a href="piloto.html">🩺 Painel do piloto (gravar/carregar áudios e emitir laudo)</a></div>
 <div id="pT" class="box pn" style="display:none"><b style="color:#7dd3fc">🗣️ Testes vocálicos de comandos</b><p>Em breve: a IA dá um comando (vogal sustentada, contagem, frase), você responde e o Vibes 8 compara cada medida com as faixas definidas no laudo do seu médico, mostrando nos 12 gráficos o que ficou dentro e fora.</p><p>Pré-requisito: laudo carregado na aba Conteúdo.</p></div>
-<div id="pR" class="box pn" style="display:none"><b style="color:#7dd3fc">🏋️ Treino, orientação e autoconsulta simbólica</b><p>Em breve: exercícios orientados pela IA, periódicos ou contínuos, conforme o modo e os exercícios que o médico definiu no laudo. Cada autoexame entra no acompanhamento (gráfico XII) para comparar com as sessões anteriores.</p><p>Esta aba já aponta para o fluxo; o conteúdo chega na próxima etapa.</p></div>
+<div id="pR" class="box pn" style="display:none"><b style="color:#7dd3fc">🏋️ Treino, orientação e autoconsulta simbólica</b><p>Carregue aqui o PDF de treino (tutorial da ferramenta, exercícios e orientações). Ele soma 1 token por áudio e a IA o consulta ao responder.</p><div id="fTreino"></div><p>Em breve: exercícios guiados pela IA, periódicos ou contínuos, conforme o modo e os exercícios definidos no laudo do médico, com cada autoexame entrando no gráfico XII.</p></div>
 
 <script>
 const CFG={URL:'https://xlktkelumtpugidnecbj.supabase.co',
@@ -78,13 +85,13 @@ GEMINI:'gemini-2.5-flash',OPENAI:'gpt-4o',
 ETAPAS:['Teste de conexão: abra o microfone e diga apenas “olá”, de forma rápida e natural.','Conte de um até dez, devagar e com voz tranquila.','Sustente a vogal “a” por cerca de cinco segundos e, depois, diga a data de hoje.']};
 const sb=window.supabase?supabase.createClient(CFG.URL,CFG.KEY):null;
 const $=id=>document.getElementById(id);
-const U={id:null,nome:'Operador',tokens:0,calibrado:false,ciclo:0,sessoes:[],sel:null,prov:'gemini',key:'',proto:'',hist:[],health:'nenhum',relatorio:'',psyq:false,params:null,email:''};
-const custo=()=>U.psyq?3:U.health==='ok'?2:1;
+const U={id:null,nome:'Operador',tokens:0,calibrado:false,ciclo:0,sessoes:[],sel:null,prov:'gemini',key:'',proto:'',hist:[],health:'nenhum',relatorio:'',psyq:false,params:null,email:'',src:{},falhas:0};
+const custo=()=>1+(U.health==='ok'?1:0)+Object.keys(U.src||{}).length;   // 1 base + 1 por PDF (Health, PsiQ, Treino, 3 conteúdos)
 const R={ctx:null,an:null,stream:null,buf:null,fb:null,sr:48000,fl:[],P:[],A:[],vz:[],rec:null,rep:null,repS:null,prev:.3};
 let rec=null,H=[],D={n:new Array(11).fill(0),sp:new Float32Array(64),f0:150,db:-60,jit:0,shim:0,hnr:10,cpp:5,cent:1000,G:0,Rr:0,B:0,As:0,S:0,flow:.2,cq:.5,floor:-70};
 
 const GR=[['I. Frequência / Tom','F0 & Jitter','#38bdf8'],['II. Intensidade','Rosca & Shimmer','#fb923c'],['III. Timbre','HNR & CPPS','#4ade80'],['IV. Prosódia / Pausas','CRS ritmo e silêncio','#fbbf24'],['V. Perceptivo-Auditivo','GRBAS acústico','#c084fc'],['VI. Aerodinâmica','fluxo (proxy)','#2dd4bf'],['VII. Contato Glótico','EGG (proxy)','#ec4899'],['VIII. Ambiente / Ruído','piso & SNR','#60a5fa'],['IX. Espectro (FFT)','escuta simbólica','#a3e635'],['X. Detecção de Silêncio','escuta simbólica','#f87171'],['XI. Dimensões CRS','8 linhas · escuta simbólica','#22d3ee'],['XII. Acompanhamento IA','1 linha por gráfico · sessão completa','#f8fafc']];
-$('grid').innerHTML=GR.map((g,i)=>`<div class="c ${i>9?'w':''}" style="--c:${g[2]}"><div class="h">${g[0]}<small>${g[1]}</small><i id="t${i}">--</i></div><canvas id="g${i}"></canvas></div>`).join('');
+$('grid').innerHTML=GR.map((g,i)=>`<div class="c ${i>9?'w':''}" id="c${i}" style="--c:${g[2]}"><div class="h">${g[0]}<small>${g[1]}</small><i id="t${i}">--</i><span class="tg" id="k${i}" onclick="colapsar(${i})">▾</span><span class="tg" onclick="foco(${i})">⛶</span></div><canvas id="g${i}"></canvas></div>`).join('');
 const rg=(v,a,b)=>Math.max(0,Math.min(1,(v-a)/(b-a)));
 const cv=[...Array(12).keys()].map(i=>{const c=$('g'+i);return{c,x:c.getContext('2d'),W:0,h:0}});
 function fit(){const r=Math.min(devicePixelRatio||1,1.5);cv.forEach(o=>{o.W=o.c.clientWidth;o.h=o.c.clientHeight;o.c.width=o.W*r;o.c.height=o.h*r;o.x.setTransform(r,0,0,r,0,0)})}
@@ -105,7 +112,7 @@ async function carregar(){
   if(!sb){aviso('Supabase indisponível.');return setMic('Indisponível',true)}
   const {data:{session}}=await sb.auth.getSession();
   if(!session){aviso(`Entre na sua conta para calibrar. <a href="${CFG.LOGIN}">Entrar</a>`);$('hudNome').textContent='Sem login';$('bStart').textContent='Entrar';$('bStart').disabled=false;$('bStart').onclick=()=>location.href=CFG.LOGIN;return setMic('🔒 Faça login para calibrar',true)}
-  U.id=session.user.id;U.email=session.user.email||'';
+  U.id=session.user.id;U.email=session.user.email||'';U.src=lerSrc();
   const {data:p}=await sb.from('profiles').select('*').eq('id',U.id).single();
   U.nome=(p&&p.nome)||(session.user.email||'Operador').split('@')[0];U.tokens=(p&&p.tokens)??0;
   U.prov=(p&&p.ai_provider)||'gemini';U.key=(p&&p.ai_key)||'';U.proto=(p&&(p.protocolo_ia||p.protocolo))||'';
@@ -146,7 +153,7 @@ function mk(o){
   const R_=Math.min(3,o.jit/1),B_=Math.min(3,Math.max(0,(15-o.hnr)/5)),A_=Math.min(3,Math.max(0,(-42-o.db)/6)),S_=Math.min(3,Math.max(0,(o.cent-1800)/700)),G_=Math.min(3,(R_+B_+A_+S_)/4*1.6);
   const k=Object.assign({},o,{G:G_,Rr:R_,B:B_,As:A_,S:S_,pros,sil});
   if(o.voz)R.prev=rg(o.f0,70,400);
-  k.n=[R.prev,rg(o.db,-70,-10),rg(o.hnr,0,30),pros,G_/3,o.flow,o.cq,rg(o.floor,-90,-30),rg(o.cent,200,4000),sil,0];
+  k.n=[R.prev,rg(o.db-o.floor,4,32),rg(o.hnr,0,30),pros,G_/3,o.flow,o.cq,rg(o.floor,-90,-30),rg(o.cent,200,4000),sil,0];
   k.n[10]=med(k.n.slice(0,8));return k
 }
 function demo(){const t=Date.now()/1000,voz=Math.sin(t*.55)>-.3,f0=150+25*Math.sin(t*.9)+8*Math.sin(t*3.1),db=voz?-34+9*Math.sin(t*1.3)+4*Math.sin(t*4):-64,sp=new Uint8Array(64);
@@ -176,7 +183,7 @@ function analisar(){
   let lo=0,hi=0,cs=0,ct=0;
   for(let j=0;j<64;j++){const f1=60*Math.pow(8000/60,j/64),f2=60*Math.pow(8000/60,(j+1)/64);let m=-140;
     for(let k=Math.floor(f1/bh);k<=Math.max(Math.floor(f2/bh),Math.floor(f1/bh));k++)if(fb[k]>m)m=fb[k];
-    sp[j]=Math.max(0,Math.min(255,(m+100)*3.2));const p=Math.pow(10,m/10),fc=Math.sqrt(f1*f2);cs+=fc*p;ct+=p;if(fc<1000)lo+=p;else if(fc<5000)hi+=p}
+    sp[j]=Math.max(0,Math.min(255,(m+96)*4.4));const p=Math.pow(10,m/10),fc=Math.sqrt(f1*f2);cs+=fc*p;ct+=p;if(fc<1000)lo+=p;else if(fc<5000)hi+=p}
   const cent=ct?cs/ct:0,tilt=10*Math.log10((hi+1e-12)/(lo+1e-12));
   const k0=Math.ceil(60/bh),k1=Math.floor(4000/bh);let mL=0;for(let k=k0;k<k1;k++)mL+=Math.max(-140,fb[k]);mL/=(k1-k0);
   let cmax=0,csum=0,cn=0;for(let q=.001;q<.02;q+=.0004){let s=0;for(let k=k0;k<k1;k++)s+=(Math.max(-140,fb[k])-mL)*Math.cos(6.2832*k*bh*q);s=Math.abs(s)/(k1-k0);csum+=s;cn++;if(q>.0025&&q<.014&&s>cmax)cmax=s}
@@ -192,21 +199,22 @@ function tick(){
 setInterval(tick,50);
 
 /* ===== Gráficos ===== */
-const G=[];const serie=()=>rec?rec.tk:(U.sel!=null&&U.sessoes[U.sel]?U.sessoes[U.sel].tk:H);
-G[0]=(x,W,h,t)=>{fade(x,W,h,.28);const L=H.slice(-160),Y=k=>h-8-rg(k.f0,70,400)*(h-16);
-  for(const [lw,al] of [[6,.12],[2.2,.95]]){x.lineWidth=lw;x.strokeStyle=`rgba(56,189,248,${al})`;x.beginPath();let pen=false;L.forEach((k,i)=>{const px=i/159*W;if(k.voz){pen?x.lineTo(px,Y(k)):x.moveTo(px,Y(k));pen=true}else pen=false});x.stroke()}
-  L.forEach((k,i)=>{if(k.voz)for(let q=0;q<3;q++)dot(x,i/159*W+Math.sin(i*7+q*2+t*9)*k.jit*2,Y(k)+Math.cos(i*5+q+t*8)*(2+k.jit*5),1,'rgba(165,243,252,.55)')});
+const lv=(db,fl)=>rg(db-fl,4,32);const G=[];const serie=()=>rec?rec.tk:(U.sel!=null&&U.sessoes[U.sel]?U.sessoes[U.sel].tk:H);
+G[0]=(x,W,h,t)=>{fade(x,W,h,.26);const L=H.slice(-160),Y=k=>h-8-rg(k.f0,70,400)*(h-16),g=x.createLinearGradient(0,0,W,0);g.addColorStop(0,'rgba(56,189,248,.12)');g.addColorStop(.7,'#38bdf8');g.addColorStop(1,'#e0f2fe');
+  x.strokeStyle='rgba(56,189,248,.22)';x.lineWidth=1;x.beginPath();for(let px=0;px<=W;px+=6){const y=h/2+Math.sin(px*.03+t*1.5)*(3+lv(D.db,D.floor)*8);px?x.lineTo(px,y):x.moveTo(px,y)}x.stroke();
+  for(const [lw,al] of [[7,.18],[2.4,1]]){x.globalAlpha=al;x.lineWidth=lw;x.strokeStyle=g;x.beginPath();let pen=false;L.forEach((k,i)=>{const px=i/159*W;if(k.voz){pen?x.lineTo(px,Y(k)):x.moveTo(px,Y(k));pen=true}else pen=false});x.stroke()}x.globalAlpha=1;
+  L.forEach((k,i)=>{if(k.voz)for(let q=0;q<3;q++)dot(x,i/159*W+Math.sin(i*7+q*2+t*9)*k.jit*3,Y(k)+Math.cos(i*5+q+t*8)*(2+k.jit*6),1.1,'rgba(165,243,252,.55)')});
   const py=h-8-rg(D.f0,70,400)*(h-16);for(let r=0;r<3;r++){x.strokeStyle=`rgba(125,211,252,${.6-r*.18})`;x.lineWidth=1;x.beginPath();x.arc(W-4,py,4+((t*30+r*8)%24),0,6.28);x.stroke()}};
-G[1]=(x,W,h,t)=>{fade(x,W,h,.3);const cx=W/2,cy=h/2,q=rg(D.db,-60,-10),R0=h*.25+q*h*.14,th=3+q*9,sh=D.shim*4;
-  for(let p=0;p<3;p++){x.strokeStyle=`rgba(251,146,60,${.9-p*.28})`;x.lineWidth=Math.max(1,th-p*2.4);x.beginPath();
-    for(let i=0;i<=120;i++){const a=i/120*6.2832,r=R0+Math.sin(a*6+t*3+p)*(1+sh)*(1+p*.4)+Math.sin(a*11-t*4)*sh;const px=cx+Math.cos(a)*r*1.5,py=cy+Math.sin(a)*r;i?x.lineTo(px,py):x.moveTo(px,py)}x.closePath();x.stroke()}
-  dot(x,cx,cy,5+q*9,'rgba(254,215,170,.9)')};
-G[2]=(x,W,h,t)=>{fade(x,W,h,.35);const n=48,bw=W/n,q=rg(D.hnr,0,25);
-  for(let i=0;i<n;i++){const v=D.sp[Math.floor(i*64/n)]/255,bh=v*(h-10)*(.88+.12*Math.sin(t*5+i));x.fillStyle=`hsla(${20+q*110},85%,${45+v*20}%,.9)`;x.fillRect(i*bw+1,h-bh,bw-2,bh);x.fillStyle='rgba(255,255,255,.5)';x.fillRect(i*bw+1,h-bh-2,bw-2,2)}};
-G[3]=(x,W,h,t)=>{fade(x,W,h,.4);const L=H.slice(-200),g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(251,191,36,.85)');g.addColorStop(1,'rgba(251,191,36,.02)');
-  L.forEach((k,i)=>{if(!k.voz){x.fillStyle='rgba(239,68,68,.16)';x.fillRect(i/199*W,0,W/199+1,h)}});
-  x.beginPath();L.forEach((k,i)=>{const px=i/199*W,py=h-4-rg(k.db,-70,-10)*(h-14)*(.97+.03*Math.sin(t*6+i));i?x.lineTo(px,py):x.moveTo(px,py)});
-  x.strokeStyle='#fde68a';x.lineWidth=1.5;x.stroke();x.lineTo(W,h);x.lineTo(0,h);x.fillStyle=g;x.fill()};
+G[1]=(x,W,h,t)=>{fade(x,W,h,.3);const cx=W/2,cy=h/2,q=lv(D.db,D.floor),R0=h*.2+q*h*.2+Math.sin(t*1.3)*2,th=3+q*10,sh=D.shim*5+q*2,g=x.createRadialGradient(cx,cy,R0*.4,cx,cy,R0*1.7);g.addColorStop(0,'rgba(254,215,170,.95)');g.addColorStop(.5,'rgba(251,146,60,.9)');g.addColorStop(1,'rgba(244,63,94,.15)');
+  for(let p=0;p<3;p++){x.strokeStyle=g;x.globalAlpha=.95-p*.28;x.lineWidth=Math.max(1,th-p*2.8);x.beginPath();for(let i=0;i<=120;i++){const a=i/120*6.2832,r=R0+Math.sin(a*6+t*3+p)*(1+sh)*(1+p*.4)+Math.sin(a*11-t*4)*sh,px=cx+Math.cos(a)*r*1.5,py=cy+Math.sin(a)*r;i?x.lineTo(px,py):x.moveTo(px,py)}x.closePath();x.stroke()}x.globalAlpha=1;
+  const rr=12+q*18,gg=x.createRadialGradient(cx,cy,1,cx,cy,rr);gg.addColorStop(0,'#fff7ed');gg.addColorStop(1,'rgba(251,146,60,0)');x.fillStyle=gg;x.beginPath();x.arc(cx,cy,rr,0,6.28);x.fill()};
+G[2]=(x,W,h,t)=>{fade(x,W,h,.35);const n=48,bw=W/n,q=rg(D.hnr,0,25),g=x.createLinearGradient(0,h,0,0);g.addColorStop(0,`hsla(${150-q*40},85%,38%,.95)`);g.addColorStop(.55,`hsla(${60-q*20},95%,55%,.95)`);g.addColorStop(1,'hsla(340,90%,62%,.95)');
+  const V=i=>Math.pow(D.sp[Math.floor(i*64/n)]/255,.7);x.fillStyle=g;for(let i=0;i<n;i++){const b=Math.max(2,V(i)*(h-8)*(.9+.1*Math.sin(t*5+i)));x.fillRect(i*bw+1,h-b,bw-2,b)}
+  x.fillStyle='rgba(255,255,255,.5)';for(let i=0;i<n;i++)x.fillRect(i*bw+1,h-Math.max(2,V(i)*(h-8))-2,bw-2,2)};
+G[3]=(x,W,h,t)=>{fade(x,W,h,.4);const L=H.slice(-200),g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(251,191,36,.9)');g.addColorStop(.6,'rgba(249,115,22,.4)');g.addColorStop(1,'rgba(251,191,36,.02)');
+  L.forEach((k,i)=>{if(!k.voz){x.fillStyle='rgba(239,68,68,.14)';x.fillRect(i/199*W,0,W/199+1,h)}});
+  x.beginPath();L.forEach((k,i)=>{const px=i/199*W,py=h-6-lv(k.db,k.floor)*(h-16)*(.97+.03*Math.sin(t*6+i))-(Math.sin(t*1.4+i*.05)+1)*1.5;i?x.lineTo(px,py):x.moveTo(px,py)});
+  x.strokeStyle='#fde68a';x.lineWidth=1.6;x.stroke();x.lineTo(W,h);x.lineTo(0,h);x.fillStyle=g;x.fill()};
 G[4]=(x,W,h,t)=>{fade(x,W,h,.3);const cx=W/2,cy=h/2,L=['G','R','B','A','S'],v=[D.G,D.Rr,D.B,D.As,D.S],cl=['#fbbf24','#f87171','#38bdf8','#a78bfa','#4ade80'];
   v.forEach((s,i)=>{const a=i/5*6.2832-1.57+Math.sin(t*.5+i)*.08,rad=h*.1+Math.min(s,3)/3*h*.32,px=cx+Math.cos(a)*rad*1.5,py=cy+Math.sin(a)*rad;
     x.strokeStyle=cl[i]+'55';x.lineWidth=1;x.beginPath();x.moveTo(cx,cy);x.lineTo(px,py);x.stroke();
@@ -221,12 +229,13 @@ G[6]=(x,W,h,t)=>{fade(x,W,h,.35);const L=H.slice(-120);let p0=h;x.beginPath();x.
 G[7]=(x,W,h,t)=>{fade(x,W,h,.4);const cx=W/2,cy=h*.8,r=h*.62,v=[rg(D.floor,-90,-30),rg(D.db-D.floor,0,50),D.n[3]],cl=['#60a5fa','#4ade80','#fbbf24'];
   v.forEach((q,i)=>{const rr=r-i*12;x.lineWidth=7;x.strokeStyle='#1e293b';x.beginPath();x.arc(cx,cy,rr,Math.PI,6.2832);x.stroke();x.strokeStyle=cl[i];x.beginPath();x.arc(cx,cy,rr,Math.PI,Math.PI+q*Math.PI);x.stroke()});
   const a=Math.PI+((t*.8)%1)*Math.PI;dot(x,cx+Math.cos(a)*r,cy+Math.sin(a)*r,3,'#fff')};
-G[8]=(x,W,h,t)=>{fade(x,W,h,.35);const n=64,bw=W/n;D.pk=D.pk||new Float32Array(n);
-  for(let i=0;i<n;i++){const v=D.sp[i]/255,hh=v*h*.8;D.pk[i]=Math.max(D.pk[i]-.006,v);x.fillStyle=`hsla(${80+i*2},80%,55%,.85)`;x.fillRect(i*bw+1,h-hh,bw-2,hh);x.fillStyle='#fff';x.fillRect(i*bw+1,h-D.pk[i]*h*.8-2,bw-2,2)}};
+G[8]=(x,W,h,t)=>{fade(x,W,h,.35);const n=64,bw=W/n,g=x.createLinearGradient(0,h,0,0);g.addColorStop(0,'#15803d');g.addColorStop(.5,'#a3e635');g.addColorStop(.8,'#facc15');g.addColorStop(1,'#fb7185');D.pk=D.pk||new Float32Array(n);x.fillStyle=g;
+  for(let i=0;i<n;i++){const v=Math.pow(D.sp[i]/255,.7),b=Math.max(2,v*h*.85);D.pk[i]=Math.max(D.pk[i]-.006,v);x.fillRect(i*bw+1,h-b,bw-2,b)}
+  x.fillStyle='#fff';for(let i=0;i<n;i++)x.fillRect(i*bw+1,h-D.pk[i]*h*.85-2,bw-2,2)};
 G[9]=(x,W,h,t)=>{fade(x,W,h,.5);const L=H.slice(-200),bw=W/200;
   L.forEach((k,i)=>{x.fillStyle=k.voz?'rgba(34,211,238,.25)':'rgba(248,113,113,.7)';x.fillRect(i*bw,k.voz?h*.35:0,bw+.5,k.voz?h*.3:h);if(i>5&&k.voz&&!L[i-1].voz)dot(x,i*bw,h/2,3,'#fff')});x.fillStyle='rgba(255,255,255,.2)';x.fillRect((t*60)%W,0,2,h)};
-G[10]=(x,W,h,t)=>{fade(x,W,h,.4);const L=H.slice(-160);
-  for(let m=0;m<8;m++){x.strokeStyle=GR[m][2];x.lineWidth=1.4;x.beginPath();L.forEach((k,i)=>{const px=i/159*W,py=h-6-k.n[m]*(h-12);i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke();if(L.length)dot(x,W-3,h-6-L[L.length-1].n[m]*(h-12),3,GR[m][2])}};
+G[10]=(x,W,h,t)=>{fade(x,W,h,.4);const ses=U.sel!=null&&!R.an&&!IA.on&&U.sessoes[U.sel],L=ses?ses.tk:H.slice(-160),N=Math.max(1,L.length-1);   // sessão carregada quando em repouso
+  for(let m=0;m<8;m++){x.strokeStyle=GR[m][2];x.lineWidth=1.5;x.beginPath();L.forEach((k,i)=>{const px=i/N*W,py=h-6-k.n[m]*(h-12);i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke();if(L.length)dot(x,W-3,h-6-L[L.length-1].n[m]*(h-12),3,GR[m][2])}};
 G[11]=(x,W,h,t)=>{fade(x,W,h,1);const S=serie(),n=S.length;if(n<2)return;
   for(let s=1;s<n/20;s++){x.fillStyle='rgba(255,255,255,.08)';x.fillRect(s*20/n*W,0,1,h)}
   const st=Math.max(1,Math.floor(n/240));
@@ -237,14 +246,13 @@ let last=0,tt=0,fr=0;
 function loop(ms){requestAnimationFrame(loop);if(ms-last<33)return;last=ms;tt+=.033;
   if(R.rep){const i=Math.floor($('crsAudio').currentTime*20),tk=R.rep.tk;H=tk.slice(Math.max(0,i-199),i+1)}
   const c=H[H.length-1];if(!c)return;
-  for(const k of ['f0','db','jit','shim','hnr','cpp','cent','G','Rr','B','As','S','flow','cq','floor'])D[k]+=((c[k]||0)-D[k])*.2;
-  for(let i=0;i<11;i++)D.n[i]+=(c.n[i]-D.n[i])*.2;for(let i=0;i<64;i++)D.sp[i]+=(c.sp[i]-D.sp[i])*.35;
-  cv.forEach((o,i)=>G[i](o.x,o.W,o.h,tt));
+  for(const k of ['f0','db','jit','shim','hnr','cpp','cent','G','Rr','B','As','S','flow','cq','floor'])D[k]+=((c[k]||0)-D[k])*.35;
+  for(let i=0;i<11;i++)D.n[i]+=(c.n[i]-D.n[i])*.35;for(let i=0;i<64;i++)D.sp[i]+=(c.sp[i]-D.sp[i])*.5;
+  cv.forEach((o,i)=>{if(o.c.style.display!=='none')G[i](o.x,o.W,o.h,tt)});
   if(++fr%6==0){const L=H.slice(-200),pa=L.filter((k,i)=>i&&k.voz&&!L[i-1].voz).length,S=serie();
     const T=[`${c.voz?Math.round(D.f0):'--'} Hz | jit ${D.jit.toFixed(2)}%`,`${D.db.toFixed(1)} dBFS | shim ${D.shim.toFixed(2)}`,`HNR ${D.hnr.toFixed(1)} | CPP ${D.cpp.toFixed(1)}`,`${pa} retomadas | fon ${Math.round(c.pros*100)}%`,`G${D.G.toFixed(1)} R${D.Rr.toFixed(1)} B${D.B.toFixed(1)} A${D.As.toFixed(1)} S${D.S.toFixed(1)}`,`fluxo ~${D.flow.toFixed(2)}`,`CQ ~${D.cq.toFixed(2)}`,`${D.floor.toFixed(0)} dBFS | SNR ${(D.db-D.floor).toFixed(0)}`,`${Math.round(D.cent)} Hz cent.`,`${Math.round(c.sil*100)}% sil.`,`CRS ${D.n[10].toFixed(2)}`,`${(S.length/20).toFixed(1)}s | ${U.sessoes.length} sess.`];
     T.forEach((s,i)=>$('t'+i).textContent=s);
     $('modo').textContent=R.rep?'REPRISE':rec?'● GRAVANDO':R.an?'🎙️ MIC ABERTO':IA.on?'🔊 IA FALANDO':'😴 REPOUSO'}}
-
 
 /* ===== Análise da sessão (deriva por segundo, integra por retomada) ===== */
 function analisarSessao(tk){
@@ -306,10 +314,10 @@ async function crsToggle(){
     try{await crsAudio()}catch(e){return alert(e&&e.name==='NotReadableError'?'O microfone está em uso por outro app ou aba. Feche-os e tente de novo.':'Microfone indisponível')}
     try{speechSynthesis.cancel()}catch(e){}IA.on=false;
     rec={tk:[]};chunks=[];mr=new MediaRecorder(R.stream);mr.ondataavailable=e=>chunks.push(e.data);
-    mr.onstop=()=>{fecharCaptacao();processar(new Blob(chunks,{type:mr.mimeType||'audio/webm'}))};mr.start();t0=Date.now();
+    mr.onstop=()=>{fecharCaptacao();processar(new Blob(chunks,{type:mr.mimeType||'audio/webm'}))};mr.start();t0=Date.now();iniciarSR();
     live=chatAdd('user','🎙️ gravando…');setMic(U.calibrado?'⏹️ Parar & Enviar':`⏹️ Parar & Processar Calibração ${U.ciclo+1}`,false);
     lim=setTimeout(()=>rec&&crsToggle(),30000)
-  }else{clearTimeout(lim);setMic('⏳ Processando...',true);mr.stop()}
+  }else{clearTimeout(lim);setMic('⏳ Processando...',true);srOn=false;mr.stop()}
 }
 const b64=u=>{let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)};
 async function wav(blob){
@@ -324,7 +332,7 @@ let WH=null;
 async function whisperLocal(blob){
   const pcm=await pcm16(blob);
   if(!WH){const nb=chatAdd('ia','⬇️ Baixando o modelo de voz interno (só na 1ª vez)…');const m=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2');WH=await m.pipeline('automatic-speech-recognition','Xenova/whisper-tiny');nb.remove()}
-  return ((await WH(pcm,{language:'portuguese',task:'transcribe',chunk_length_s:30})).text||'').trim()
+  return ((await WH(pcm,{language:'portuguese',task:'transcribe',chunk_length_s:30,no_repeat_ngram_size:3,repetition_penalty:1.3})).text||'').trim()
 }
 async function transcrever(blob){
   let t='';
@@ -342,9 +350,10 @@ async function processar(blob){
   const rt=rec;rec=null;const bub=live;bub.textContent='⏳ transcrevendo…';
   try{
     const an=analisarSessao(rt.tk),res=an.res,semVoz=rt.tk.length>10&&res.fon<.05;          // análise primeiro (silenciosa)
-    let txt=await transcrever(blob);if(semVoz)txt='';                                        // evita "Obrigado." alucinado em áudio mudo
+    let txt=semVoz?'':await resolverTexto(blob,bub);                                        // evita "Obrigado." alucinado em áudio mudo
     if(semVoz){bub.textContent='(não captei sua voz)';aviso('Não captei sua voz. Chegue mais perto do microfone e tente de novo — nenhum token foi cobrado.');return micPronto()}
-    bub.textContent=txt||'(sem fala detectada)';
+    if(!txt&&!semVoz){U.falhas=(U.falhas||0)+1;if(U.falhas<2){bub.textContent='(não entendi)';const m='Não consegui entender o que você disse. Pode repetir, um pouco mais devagar?';chatAdd('ia',m);falar(m);aviso('Nenhum token foi cobrado.');return micPronto()}}
+    U.falhas=0;bub.textContent=txt||'(sem transcrição — sessão aceita sem texto)';
     setMic('📊 Calculando CRS...',true);
     const img=espectroide(rt.tk,an.sec,an.ret,Math.max(1,res.dur));
     try{await debitar()}catch(e){bub.remove();if(e.message==='sem_saldo'){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}aviso('Falha ao debitar o token. Tente de novo.');return micPronto()}
@@ -371,7 +380,7 @@ function falar(t){return new Promise(res=>{try{speechSynthesis.cancel();const u=
   if(CFG.IA_CAPTA_MIC&&!rec)crsAudio().catch(()=>{});speechSynthesis.speak(u)}catch(e){IA.on=false;res()}})}
 async function ia(prompt,img){
   U.hist.push({r:'user',t:prompt});U.hist=U.hist.slice(-10);let out='';
-  const sys=SYS+(U.proto?' Protocolo definido pelo médico responsável: '+U.proto:'')+(U.relatorio?' Camada Elayon Health: relatório médico validado deste usuário. Leve-o em conta antes de responder, use como contexto de cuidado e não diagnostique: '+U.relatorio:''),im=img?img.split(',')[1]:null,last=U.hist.length-1;
+  const sys=SYS+(U.proto?' Protocolo definido pelo médico responsável: '+U.proto:'')+(U.relatorio?' Camada Elayon Health: relatório médico validado deste usuário. Leve-o em conta antes de responder, use como contexto de cuidado e não diagnostique: '+U.relatorio:'')+fontesSys(),im=img?img.split(',')[1]:null,last=U.hist.length-1;
   try{if(U.key){
     if(U.prov==='openai'){
       const m=U.hist.map((h,i)=>({role:h.r==='user'?'user':'assistant',content:(i===last&&im)?[{type:'text',text:h.t},{type:'image_url',image_url:{url:img}}]:h.t}));
@@ -383,7 +392,7 @@ async function ia(prompt,img){
 }
 async function iaFalar(txt,res,img,fim){
   const n=U.ciclo,prev=U.sessoes.slice(1).map(s=>({f0:s.res.f0&&s.res.f0.m,db:s.res.db&&s.res.db.m,jit:s.res.jit&&s.res.jit.m,shim:s.res.shim&&s.res.shim.m,hnr:s.res.hnr&&s.res.hnr.m,cpp:s.res.cpp&&s.res.cpp.m,pausas:s.res.pausas}));
-  const p=`[SISTEMA] ${U.calibrado&&!fim?'Interação de cuidado':`Calibração ${n}/${CFG.MAX} concluída`}. Fala transcrita: "${txt||'(nada detectado)'}". Dados CRS internos: ${JSON.stringify({atual:res,anteriores:prev})}.${U.params?confere(res):''} `+(fim?'Esta foi a última calibração: comente os achados em linguagem simples, sem diagnóstico, diga que a calibração foi concluída e que agora o usuário pode conversar normalmente e fazer exercícios vocais guiados.':U.calibrado?'Conversa livre de cuidado: responda ao que o usuário disse, comente brevemente os achados vocais e, se fizer sentido, sugira um exercício vocal leve.':`Comente brevemente e passe a próxima instrução: "${CFG.ETAPAS[n]}"`);
+  const p=`[SISTEMA] ${U.calibrado&&!fim?'Interação de cuidado':`Calibração ${n}/${CFG.MAX} concluída`}. Fala transcrita: "${txt||'(nada detectado)'}". Modo: ${U.health==='ok'?'COM camada Health (compare com as faixas e o laudo do médico)':'SEM camada Health (compare só com as sessões anteriores)'}. Dados CRS internos: ${JSON.stringify({atual:res,anteriores:prev})}.${U.params?confere(res):''} `+(fim?'Esta foi a última calibração: comente os achados em linguagem simples, sem diagnóstico, diga que a calibração foi concluída e que agora o usuário pode conversar normalmente e fazer exercícios vocais guiados.':U.calibrado?'Conversa livre de cuidado: responda ao que o usuário disse, comente brevemente os achados vocais e, se fizer sentido, sugira um exercício vocal leve.':`Comente brevemente e passe a próxima instrução: "${CFG.ETAPAS[n]}"`);
   const w=chatAdd('ia','…'),r=await ia(p,img);w.remove();
   if(!r&&U.key)aviso('A IA não respondeu. Confira provedor e chave no perfil.');
   const t=r||(fim?`Calibração concluída, ${U.nome}. Agora é só falar comigo normalmente.`:U.calibrado?'Registrado. Pode continuar falando comigo.':`Calibração ${n} registrada. Próxima: ${CFG.ETAPAS[n]}`);chatAdd('ia',t);falar(t)
@@ -399,14 +408,14 @@ async function iaIntro(){
 function aplicarHealth(p){const L=lerLocal();if(L){U.health='ok';U.relatorio=L.texto;U.params=L.obj.params;return}const st=(p&&p.health_status)||localStorage.getItem('crs_h_'+U.id)||'nenhum';
   if(p&&(p.health_relatorio||st==='ok')){U.health='ok';U.relatorio=p.health_relatorio||U.relatorio}else U.health=st==='aguardando'?'aguardando':'nenhum'}
 async function lerHealth(){if(!sb||!U.id)return;try{const {data:p}=await sb.from('profiles').select('*').eq('id',U.id).single();if(p)aplicarHealth(p)}catch(e){}}
-function layers(){
+function layers(){setTimeout(layersExtra,0);
   const h=U.health,b=$('bH');
   b.className=h==='ok'?'on':h==='aguardando'?'pend':U.calibrado?'rdy':'';
   b.textContent=h==='ok'?'✅ Health ativo':h==='aguardando'?'⏳ Health aguardando':'🏥 Elayon Health';
-  $('lmsg').textContent=!U.calibrado?`Conclua a calibração (${U.ciclo}/${CFG.MAX}) para liberar a camada Health.`:h==='ok'?'Camada Health ativa • 2 tokens por uso • o relatório médico acompanha cada resposta da IA.':'Calibrado ✔ Toque em Health e carregue o PDF do laudo do seu médico na aba Conteúdo.';
+  $('lmsg').textContent=!U.calibrado?`Conclua a calibração (${U.ciclo}/${CFG.MAX}) para liberar a camada Health.`:h==='ok'?'Camada Health ativa • o laudo médico acompanha cada resposta da IA.':'Calibrado ✔ Toque em Health e carregue o PDF do laudo do seu médico na aba Conteúdo.';
   if(U.id&&!rec&&!$('crsMic').disabled)micPronto()
 }
-function aba(x){['V','C','T','R'].forEach(k=>{$('p'+k).style.display=k===x?'block':'none';$('b'+k).className=k===x?'on':''});if(x==='C')hStat()}
+function aba(x){['V','C','T','R'].forEach(k=>{$('p'+k).style.display=k===x?'block':'none';$('b'+k).className=k===x?'on':''});if(x==='C'||x==='R')hStat()}
 function prontoStart(){const b=$('bStart');b.disabled=false;b.textContent='▶ Iniciar Elayon Vibes 8';b.onclick=iniciar}
 function iniciar(){$('start').style.display='none';iaIntro()}          // o toque libera o áudio: a IA fala ao iniciar
 async function camHealth(){
@@ -416,12 +425,17 @@ async function camHealth(){
 const sha=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
 function textoLaudo(o){const p=o.params||{};return `LAUDO ELAYON HEALTH — ${o.piloto.nome} (${o.piloto.crm}, ${o.piloto.esp}) em ${String(o.emitido).slice(0,10)}. Observações clínicas: ${o.laudo.obs}. Severidade ${o.laudo.sev}/10. Conduta: ${o.laudo.conduta}. Faixas de autoexame: F0 ${p.f0min}-${p.f0max} Hz; jitter até ${p.jitmax}%; shimmer até ${p.shimmax} dB; HNR a partir de ${p.hnrmin} dB; pausas até ${p.pausasmax}; modo ${o.modo}. Exercícios: ${o.exercicios||'—'}. Apoio de IA revisado pelo médico: ${o.ia||'—'}`}
 function lerLocal(){try{const o=JSON.parse(localStorage.getItem('crs_health_'+U.id));return o?{obj:o,texto:textoLaudo(o)}:null}catch(e){return null}}
-function hStat(){const L=lerLocal(),e=$('hStat');e.textContent=L?`✅ Laudo ativo: ${L.obj.piloto.nome} (${L.obj.piloto.crm}) • emitido em ${String(L.obj.emitido).slice(0,10)} • modo ${L.obj.modo}. Camada Health ligada (2 tokens por uso).`:'Nenhum laudo carregado.'}
+function hStat(){fontesUI();const L=lerLocal(),e=$('hStat');e.textContent=L?`✅ Laudo ativo: ${L.obj.piloto.nome} (${L.obj.piloto.crm}) • emitido em ${String(L.obj.emitido).slice(0,10)} • modo ${L.obj.modo}. Camada Health ligada (2 tokens por uso).`:'Nenhum laudo carregado.'}
 function msgC(t){$('hStat').textContent=t}
 async function carregarPDF(inp){
-  const f=inp.files[0];inp.value='';if(!f)return;if(!U.id)return msgC('Entre na sua conta primeiro.');
+  const f=inp.files[0],slot=inp.dataset.slot||'c1';inp.value='';if(!f)return;if(!U.id)return msgC('Entre na sua conta primeiro.');
   const b=new Uint8Array(await f.arrayBuffer());let s='';for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode.apply(null,b.subarray(i,i+8192));
-  const m=s.match(/ELAYONHEALTH\[([A-Za-z0-9+\/=]+)\]/);if(!m)return msgC('❌ Este PDF não é um laudo Elayon Health.');
+  const m=s.match(/ELAYONHEALTH\[([A-Za-z0-9+\/=]+)\]/);
+  if(slot!=='health'){
+    if(m)return msgC('❌ Este é um laudo Elayon Health: carregue-o no cartão 🏥 Laudo Health.');
+    msgC('⏳ lendo o PDF…');const t=await textoPDF(b);if(t==null)return;
+    U.src[slot]={nome:f.name,txt:t.slice(0,8000),ts:Date.now()};salvarSrc();return msgC(`✅ ${SLOTS[slot][0]}: "${f.name}" carregado (+1 token por áudio).`)}
+  if(!m)return msgC('❌ Este PDF não é um laudo Elayon Health.');
   let o;try{o=JSON.parse(decodeURIComponent(escape(atob(m[1]))))}catch(e){return msgC('❌ Não consegui ler o laudo.')}
   const {hash,...corpo}=o;if(hash!==await sha(JSON.stringify(corpo)))return msgC('❌ Laudo alterado: a assinatura de integridade não confere.');
   if(o.paciente.email&&U.email&&o.paciente.email.toLowerCase()!==U.email.toLowerCase())return msgC('❌ Este laudo foi emitido para outro paciente.');
@@ -436,10 +450,71 @@ function confere(r){const p=U.params,o=[];if(!p)return '';
   if(r.shim)o.push(`shimmer ${r.shim.m} dB ${r.shim.m<=p.shimmax?'dentro':'acima'} do limite ${p.shimmax}`);
   if(r.hnr)o.push(`HNR ${r.hnr.m} dB ${r.hnr.m>=p.hnrmin?'dentro':'abaixo'} do mínimo ${p.hnrmin}`);
   o.push(`pausas ${r.pausas} ${r.pausas<=p.pausasmax?'dentro':'acima'} do limite ${p.pausasmax}`);return ' Conferência com as faixas definidas pelo médico: '+o.join('; ')+'.'}
-function camPsyq(){$('lmsg').textContent='❄️ PsyQ está congelado por enquanto (3 tokens por uso quando ativo). O foco agora é o Elayon Health.'}
+function camPsyq(){aba('C');msgC('Carregue o PDF do PsiQ no cartão 🧠 PsiQ.')}
 function camPC(){$('lmsg').textContent='💻 Elayon PC — em breve.'}
 setInterval(()=>{if(U.id&&U.health!=='ok')lerHealth().then(layers)},20000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&U.id)lerHealth().then(layers)});
 
-addEventListener('DOMContentLoaded',()=>{fit();requestAnimationFrame(loop);layers();carregar()});
+/* ===== Fontes em PDF: Health, PsiQ, Treino e 3 de conteúdo • cada PDF = +1 token por áudio ===== */
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const SLOTS={psyq:['🧠 PsiQ','relatório / orientação psicológica'],treino:['🏋️ Treino','tutorial da ferramenta e exercícios'],c1:['📚 Conteúdo 1','exercícios, procedimentos, autoavaliação…'],c2:['📚 Conteúdo 2','livre'],c3:['📚 Conteúdo 3','livre']};
+const lerSrc=()=>{try{return JSON.parse(localStorage.getItem('crs_src_'+U.id))||{}}catch(e){return{}}};
+function salvarSrc(){try{localStorage.setItem('crs_src_'+U.id,JSON.stringify(U.src))}catch(e){msgC('⚠️ Sem espaço para guardar este PDF.')}layers();fontesUI()}
+function pick(k){$('pdfIn').dataset.slot=k;$('pdfIn').click()}
+function rm(k){if(k==='health')return removerLaudo();delete U.src[k];salvarSrc()}
+function fontesUI(){
+  const card=(k,t,d,x)=>`<div class="fs"><div><b>${t}</b><small>${x?esc(x):d}</small></div><div><button onclick="pick('${k}')">${x?'Trocar':'Carregar'}</button>${x?`<button onclick="rm('${k}')">✕</button>`:''}</div></div>`;
+  const L=lerLocal(),S=U.src||{};
+  $('fontes').innerHTML=card('health','🏥 Laudo Health','PDF assinado pelo médico',L?`${L.obj.piloto.nome} • ${String(L.obj.emitido).slice(0,10)}`:'')+['psyq','c1','c2','c3'].map(k=>card(k,SLOTS[k][0],SLOTS[k][1],S[k]&&S[k].nome)).join('');
+  $('fTreino').innerHTML=card('treino',SLOTS.treino[0],SLOTS.treino[1],S.treino&&S.treino.nome)
+}
+function layersExtra(){
+  const S=U.src||{},n=Object.keys(S).length,h=U.health==='ok'?1:0,b=$('bP');
+  b.className=S.psyq?'on':U.calibrado?'rdy':'';b.textContent=S.psyq?'✅ PsiQ ativo':'🧠 PsiQ';
+  const t=`Custo por áudio: ${custo()} token${custo()>1?'s':''} (1 calibração${h?' + 1 Health':''}${n?` + ${n} PDF${n>1?'s':''}`:''}).`;
+  $('cst').textContent=t;$('lmsg').textContent+=' • '+t
+}
+function fontesSys(){
+  const o=U.src||{},n={psyq:'PsiQ (orientação psicológica)',treino:'Treino / tutorial da ferramenta',c1:'Conteúdo 1',c2:'Conteúdo 2',c3:'Conteúdo 3'},a=Object.keys(o).map(k=>`[${n[k]} — arquivo "${o[k].nome}"]: ${o[k].txt}`);
+  return a.length?' FONTES DE CONTEÚDO inseridas pelo usuário (consulte todas antes de responder e cite o documento usado; se a resposta não estiver nas fontes, diga isso e responda com cautela): '+a.join(' || '):''
+}
+async function textoPDF(b){
+  try{const pj=await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.mjs');pj.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.worker.min.mjs';
+    const d=await pj.getDocument({data:b}).promise;let t='';for(let i=1;i<=Math.min(d.numPages,40);i++){const p=await d.getPage(i),x=await p.getTextContent();t+=x.items.map(y=>y.str).join(' ')+'\n'}
+    t=t.replace(/\s+/g,' ').trim();if(t.length<40){msgC('❌ PDF sem texto legível (talvez escaneado).');return null}return t
+  }catch(e){msgC('❌ Não consegui ler este PDF: '+(e&&e.message||e));return null}
+}
+
+/* ===== Gráficos: recolher / focar ===== */
+let COL=[],FOCO=-1;try{COL=JSON.parse(localStorage.getItem('crs_col')||'[]')}catch(e){}
+function aplicaCol(){GR.forEach((g,i)=>{const col=!!COL[i]||(FOCO>=0&&i!==FOCO);$('g'+i).style.display=col?'none':'block';$('c'+i).classList.toggle('foco',i===FOCO);$('k'+i).textContent=col?'▸':'▾'});try{localStorage.setItem('crs_col',JSON.stringify(COL))}catch(e){}fit()}
+function colapsar(i){COL[i]=!COL[i];if(FOCO===i)FOCO=-1;aplicaCol()}
+function foco(i){FOCO=FOCO===i?-1:i;if(FOCO>=0)COL[i]=false;aplicaCol()}
+function todos(v){COL=GR.map(()=>v);FOCO=-1;aplicaCol()}
+
+
+/* ===== Transcrição: navegador (SpeechRecognition) → API do usuário → modelo interno; se não entendeu, pede para repetir ===== */
+const DG=[];function diag(t){DG.push(new Date().toLocaleTimeString('pt-BR')+' '+t);if(DG.length>12)DG.shift();const e=$('diag');if(e)e.textContent=DG.join('\n')}
+const SRC=window.SpeechRecognition||window.webkitSpeechRecognition;let sr=null,srF='',srP='',srAc='',srN=0,srOn=false;
+function iniciarSR(){
+  srF='';srP='';srAc='';srN=0;if(!SRC)return diag('SpeechRecognition indisponível neste navegador');
+  try{sr=new SRC();sr.lang='pt-BR';sr.interimResults=true;sr.continuous=true;srOn=true;
+    sr.onresult=e=>{srN++;let f='',p='';for(let i=0;i<e.results.length;i++)(e.results[i].isFinal?(f+=e.results[i][0].transcript+' '):(p+=e.results[i][0].transcript+' '));srF=srAc+f;srP=p;if(live&&rec)live.textContent=(srF+srP).trim()||'🎙️ gravando…'};
+    sr.onerror=e=>diag('SR erro: '+e.error);
+    sr.onend=()=>{if(srOn&&rec){srAc=srF;try{sr.start()}catch(x){}}};
+    sr.start();diag('SR iniciado')}catch(e){diag('SR falhou: '+e.message)}
+}
+async function pararSR(){srOn=false;try{sr&&sr.stop()}catch(e){}await new Promise(r=>setTimeout(r,700))}
+function repetindo(t){const w=t.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,' ').split(/\s+/).filter(Boolean);if(w.length<6)return false;let run=1,mx=1;for(let i=1;i<w.length;i++){run=w[i]===w[i-1]?run+1:1;mx=Math.max(mx,run)}return mx>=5||new Set(w).size/w.length<.25}
+function inteligivel(t){t=(t||'').replace(/\s+/g,' ').trim();return t.length>=2&&!repetindo(t)&&!/amara\.org|legendas pela|inscreva-se|obrigado por assistir/i.test(t)}
+async function resolverTexto(blob,bub){
+  await pararSR();let t=(srF+' '+srP).replace(/\s+/g,' ').trim();diag(`SR: ${t?'texto':'vazio'} (${srN} eventos)`);
+  if(inteligivel(t))return t;
+  bub.textContent='⏳ transcrevendo…';t=(await transcrever(blob)).replace(/\s+/g,' ').trim();diag(`fallback ${U.key?'API':'modelo interno'}: ${t?t.slice(0,50):'vazio'}${repetindo(t)?' (repetição descartada)':''}`);
+  return inteligivel(t)?t:''
+}
+
+addEventListener('DOMContentLoaded',()=>{fit();requestAnimationFrame(loop);aplicaCol();layers();carregar()});
 </script></body></html>
+
+
