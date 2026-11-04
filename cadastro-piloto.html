@@ -1,28 +1,44 @@
 <!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Elayon Health • Cadastro de Piloto</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="health.css"></head><body><div class="w"><div class="hd"><span>ELAYON HEALTH • CADASTRO PROFISSIONAL</span><a href="cockpit.html">⬅️ Cockpit</a></div>
-<div class="c" style="text-align:center;justify-items:center"><img class="logo" src="IMG-20260218-WA0016.jpg" alt="Elayon" onerror="this.style.display='none'"><h1>Cadastro de Piloto (Médico)</h1><p>Seus dados de usuário são vinculados automaticamente. Depois do cadastro você usa o painel do piloto para gravar ou carregar áudios, analisar e emitir o laudo em PDF.</p></div>
+<div class="c" style="text-align:center;justify-items:center"><img class="logo" src="IMG-20260218-WA0016.jpg" alt="Elayon" onerror="this.style.display='none'"><h1>Cadastro de Piloto (Médico)</h1><p>Seus dados de usuário são vinculados automaticamente. Depois do cadastro você usa o cockpit do piloto para carregar os áudios da consulta, ver os gráficos, assinar e emitir o PDF.</p></div>
 <div class="c" id="semlogin" style="display:none"><h3>Entre ou crie sua conta primeiro</h3><p>O cadastro profissional é vinculado à sua conta Elayon.</p><a class="b" href="login.html">Entrar</a><a class="b g" href="cadastro.html">Criar conta</a></div>
 <div class="c" id="form" style="display:none"><h3>🔗 Conta vinculada</h3><p id="conta"></p>
-<div><label>Nome completo (como no registro)</label><input id="nm"></div>
-<div class="g2"><div><label>Registro (CRM / CRFa / CRP …)</label><input id="rc" placeholder="CRM 123456"></div><div><label>UF</label><input id="uf" maxlength="2" placeholder="AM"></div></div>
+<div><label>Nome completo (como no registro)</label><input id="nm" autocomplete="name"></div>
+<div class="g2"><div><label>Registro (CRM / CRFa / CRP …)</label><input id="rc" placeholder="CRM 123456"></div><div><label>UF</label><input id="uf" maxlength="2" placeholder="AM" autocapitalize="characters"></div></div>
 <div><label>Especialidade</label><select id="re"><option>Neurologia</option><option>Fonoaudiologia</option><option>Psicologia</option><option>Neurofisiologia</option><option>Geriatria</option><option>Outras</option></select></div>
-<div><label>Clínica / Hospital</label><input id="ins"></div><div><label>WhatsApp profissional (opcional)</label><input id="tel" placeholder="(92) 9 0000-0000"></div>
+<div><label>Clínica / Hospital</label><input id="ins"></div><div><label>WhatsApp profissional (aparece no certificado)</label><input id="tel" inputmode="tel" placeholder="(92) 9 0000-0000"></div>
 <p><label style="display:flex;gap:8px;align-items:flex-start;text-transform:none;font-weight:600"><input type="checkbox" id="k1" style="width:auto"> Declaro que os dados são verdadeiros e que sou o profissional responsável pelos laudos que emitir.</label></p>
 <p><label style="display:flex;gap:8px;align-items:flex-start;text-transform:none;font-weight:600"><input type="checkbox" id="k2" style="width:auto"> Estou ciente de que o Elayon Health é um termômetro de sinais vocais (estimativas acústicas) e não emite diagnóstico; a interpretação clínica é minha.</label></p>
-<button class="b" onclick="salvar()">💾 Cadastrar como piloto</button><div class="msg" id="msg"></div><a class="b g" id="ir" href="piloto.html" style="display:none">🩺 Abrir painel do piloto</a></div></div><script src="health-core.js"></script><script>
+<button class="b" id="bs" onclick="salvar()">💾 Cadastrar como piloto</button><div class="msg" id="msg"></div><a class="b g" id="ir" href="piloto.html" style="display:none">🩺 Abrir cockpit do piloto</a></div></div><script src="health-core.js"></script><script>
 let U;
+const semUF=v=>String(v||'').replace(/\/[A-Za-z]{2}$/,'');          // o banco guarda "CRM 123/AM"; o campo mostra só "CRM 123"
+const dig=v=>String(v||'').replace(/\D/g,'');
+function mascara(v){const d=dig(v).slice(0,11);if(d.length<=2)return d;if(d.length<=6)return `(${d.slice(0,2)}) ${d.slice(2)}`;if(d.length<=10)return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;return `(${d.slice(0,2)}) ${d.slice(2,3)} ${d.slice(3,7)}-${d.slice(7)}`}
+$('tel').addEventListener('input',e=>{e.target.value=mascara(e.target.value)});
+$('uf').addEventListener('input',e=>{e.target.value=e.target.value.replace(/[^A-Za-z]/g,'').toUpperCase()});
 (async()=>{
   const {data:{session}}=await sb.auth.getSession();if(!session){$('semlogin').style.display='grid';return}
   U=session.user;$('form').style.display='grid';
   const [{data:p},{data:pil}]=await Promise.all([sb.from('profiles').select('nome,email').eq('id',U.id).maybeSingle(),sb.from('pilotos_perfil').select('*').eq('id',U.id).maybeSingle()]);
   $('conta').textContent=`${(p&&p.nome)||''} • ${U.email}`;$('nm').value=(pil&&pil.nome_completo)||(p&&p.nome)||'';
-  if(pil){$('rc').value=pil.crm_crfa_crp||'';$('uf').value=pil.uf||'';$('re').value=pil.especialidade||'Neurologia';$('ins').value=pil.instituicao||'';$('tel').value=pil.telefone||'';$('ir').style.display='block';$('msg').textContent='✅ Você já é piloto. Pode atualizar seus dados.'}
+  if(pil){$('rc').value=semUF(pil.crm_crfa_crp);$('uf').value=pil.uf||((String(pil.crm_crfa_crp||'').match(/\/([A-Za-z]{2})$/)||[])[1]||'').toUpperCase();$('re').value=pil.especialidade||'Neurologia';$('ins').value=pil.instituicao||'';$('tel').value=pil.telefone||'';$('ir').style.display='block';$('msg').textContent='✅ Você já é piloto. Pode atualizar seus dados.'}
 })();
+function erroTxt(e){const t=(e&&e.message)||String(e);
+  if(/row-level security|permission|42501/i.test(t))return 'Permissão negada no Supabase: rode o SQL das políticas da tabela pilotos_perfil.';
+  if(/does not exist|42P01|schema cache/i.test(t))return 'Tabela ou coluna não encontrada: rode o SQL de criação da pilotos_perfil.';
+  return t}
 async function salvar(){
-  if(!$('k1').checked||!$('k2').checked)return $('msg').textContent='Aceite os dois termos para continuar.';
-  const nm=$('nm').value.trim(),rc=$('rc').value.trim();if(!nm||!rc)return $('msg').textContent='Preencha nome e registro profissional.';
-  const base={id:U.id,nome_completo:nm,crm_crfa_crp:rc+($('uf').value?'/'+$('uf').value.toUpperCase():''),especialidade:$('re').value,termo_responsabilidade_aceito:true};
-  let {error}=await sb.from('pilotos_perfil').upsert({...base,uf:$('uf').value.toUpperCase(),instituicao:$('ins').value.trim(),telefone:$('tel').value.trim()});
-  if(error)({error}=await sb.from('pilotos_perfil').upsert(base));          // tabela sem as colunas extras: grava o essencial
-  $('msg').textContent=error?'❌ '+error.message:'✅ Cadastro profissional salvo.';if(!error)$('ir').style.display='block'
+  const m=$('msg');m.style.color='';
+  if(!$('k1').checked||!$('k2').checked)return m.textContent='Aceite os dois termos para continuar.';
+  const nm=$('nm').value.trim(),rc=$('rc').value.trim(),uf=$('uf').value.trim().toUpperCase();
+  if(!nm||!rc)return m.textContent='Preencha nome e registro profissional.';
+  if(!/\d{3,}/.test(rc))return m.textContent='O registro precisa ter o número (ex.: CRM 123456).';
+  if(uf&&uf.length!==2)return m.textContent='UF com 2 letras (ex.: AM).';
+  const tel=$('tel').value.trim();if(tel&&dig(tel).length<10)return m.textContent='WhatsApp incompleto (DDD + número).';
+  $('bs').disabled=true;m.textContent='⏳ salvando…';
+  const base={id:U.id,nome_completo:nm,crm_crfa_crp:semUF(rc)+(uf?'/'+uf:''),especialidade:$('re').value,termo_responsabilidade_aceito:true};
+  let {error}=await sb.from('pilotos_perfil').upsert({...base,uf,instituicao:$('ins').value.trim(),telefone:tel}),aviso='';
+  if(error){const r2=await sb.from('pilotos_perfil').upsert(base);if(!r2.error){error=null;aviso=' Atenção: UF, clínica e WhatsApp não foram gravados (rode o SQL das colunas extras).'}else error=r2.error}   // tabela sem as colunas extras: grava o essencial
+  $('bs').disabled=false;
+  m.textContent=error?'❌ '+erroTxt(error):'✅ Cadastro profissional salvo.'+aviso;if(!error)$('ir').style.display='block'
 }
 </script></body></html>
