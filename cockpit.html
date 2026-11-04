@@ -2,7 +2,7 @@
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Elayon Vibes • Cockpit do Usuário (CRS v5)</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="elayon-legal.js"></script>
 <style>
 body{margin:0;background:#04060b;color:#f8fafc;font-family:system-ui;padding:10px}
 .hud{display:flex;align-items:center;gap:10px;background:#070c16;border:1px solid #38bdf833;border-radius:14px;padding:10px 12px}
@@ -98,6 +98,10 @@ const GR=[['I. Frequência / Tom','F0 & Jitter','#38bdf8'],['II. Intensidade','R
 const cardG=(g,i)=>`<div class="c ${i>9?'w':''}" id="c${i}" style="--c:${g[2]}"><div class="h">${g[0]}<small>${g[1]}</small><i id="t${i}">--</i><span class="tg" id="k${i}" onclick="colapsar(${i})">▾</span><span class="tg" onclick="foco(${i})">⛶</span></div><canvas id="g${i}"></canvas></div>`;
 $('grid').innerHTML=GR.slice(0,10).map(cardG).join('');$('grid2').innerHTML=GR.slice(10).map((g,j)=>cardG(g,j+10)).join('');
 const rg=(v,a,b)=>Math.max(0,Math.min(1,(v-a)/(b-a)));
+/* Escalas pela referência do médico: lo→4% e hi→96% da altura, então o gráfico usa quase toda a expressão entre mínimo e máximo do PDF; fora da faixa satura na borda. */
+let ESC={};const rgx=(v,k,a,b)=>{const e=ESC[k];return e?rg(v,e[0],e[1]):rg(v,a,b)};
+function escalas(o){ESC={};if(!o)return;const p=o.params||{},q=o.ref||{},mk=(lo,hi)=>{lo=+lo;hi=+hi;if(!isFinite(lo)||!isFinite(hi)||hi<=lo)return null;const w=hi-lo;return [lo-w*.04/.92,hi+w*.04/.92]};
+  const f=q.f0?mk(q.f0.lo,q.f0.hi):mk(p.f0min,p.f0max);if(f)ESC.f0=f;const h=q.hnr?mk(q.hnr.lo,q.hnr.hi):null;if(h)ESC.hnr=h}
 const cv=[...Array(12).keys()].map(i=>{const c=$('g'+i);return{c,x:c.getContext('2d'),W:0,h:0}});
 function fit(){const r=Math.min(devicePixelRatio||1,1.5);cv.forEach(o=>{o.W=o.c.clientWidth;o.h=o.c.clientHeight;o.c.width=o.W*r;o.c.height=o.h*r;o.x.setTransform(r,0,0,r,0,0)})}
 addEventListener('resize',fit);
@@ -120,6 +124,7 @@ async function carregar(){
   const {data:{session}}=gs;
   if(!session){aviso(`Entre na sua conta para calibrar. <a href="${CFG.LOGIN}">Entrar</a>`);$('hudNome').textContent='Sem login';$('bStart').textContent='Entrar';$('bStart').disabled=false;$('bStart').onclick=()=>location.href=CFG.LOGIN;return setMic('🔒 Faça login para calibrar',true)}
   U.id=session.user.id;U.email=session.user.email||'';U.src=lerSrc();
+  try{await legalGate(sb,session.user,'usuario')}catch(e){}
   const {data:p}=await tout(sb.from('profiles').select('*').eq('id',U.id).single(),8000,{data:null});
   U.nome=(p&&p.nome)||(session.user.email||'Operador').split('@')[0];U.tokens=(p&&p.tokens)??0;
   U.prov=(p&&p.ai_provider)||'gemini';U.key=(p&&p.ai_key)||'';U.pr=p||{};U.proto=(p&&(p.protocolo_ia||p.protocolo))||'';
@@ -159,8 +164,8 @@ function mk(o){
   const pros=med(R.vz),sil=1-med(R.vz.slice(-10));
   const R_=Math.min(3,o.jit/1),B_=Math.min(3,Math.max(0,(15-o.hnr)/5)),A_=Math.min(3,Math.max(0,(-42-o.db)/6)),S_=Math.min(3,Math.max(0,(o.cent-1800)/700)),G_=Math.min(3,(R_+B_+A_+S_)/4*1.6);
   const k=Object.assign({},o,{G:G_,Rr:R_,B:B_,As:A_,S:S_,pros,sil});
-  if(o.voz)R.prev=rg(o.f0,70,400);
-  k.n=[R.prev,rg(o.db-o.floor,4,32),rg(o.hnr,0,30),pros,G_/3,o.flow,o.cq,rg(o.floor,-90,-30),rg(o.cent,200,4000),sil,0];
+  if(o.voz)R.prev=rgx(o.f0,'f0',70,400);
+  k.n=[R.prev,rg(o.db-o.floor,4,32),rgx(o.hnr,'hnr',0,30),pros,G_/3,o.flow,o.cq,rg(o.floor,-90,-30),rg(o.cent,200,4000),sil,0];
   k.n[10]=med(k.n.slice(0,8));return k
 }
 function demo(){const t=Date.now()/1000,voz=Math.sin(t*.55)>-.3,f0=150+25*Math.sin(t*.9)+8*Math.sin(t*3.1),db=voz?-34+9*Math.sin(t*1.3)+4*Math.sin(t*4):-64,sp=new Uint8Array(64);
@@ -207,15 +212,15 @@ setInterval(tick,50);
 
 /* ===== Gráficos ===== */
 const lv=(db,fl)=>rg(db-fl,4,32);const G=[];const serie=()=>rec?rec.tk:(U.sel!=null&&U.sessoes[U.sel]?U.sessoes[U.sel].tk:H);
-G[0]=(x,W,h,t)=>{fade(x,W,h,.26);const L=H.slice(-160),Y=k=>h-8-rg(k.f0,70,400)*(h-16),g=x.createLinearGradient(0,0,W,0);g.addColorStop(0,'rgba(56,189,248,.12)');g.addColorStop(.7,'#38bdf8');g.addColorStop(1,'#e0f2fe');
+G[0]=(x,W,h,t)=>{fade(x,W,h,.26);const L=H.slice(-160),Y=k=>h-8-rgx(k.f0,'f0',70,400)*(h-16),g=x.createLinearGradient(0,0,W,0);g.addColorStop(0,'rgba(56,189,248,.12)');g.addColorStop(.7,'#38bdf8');g.addColorStop(1,'#e0f2fe');
   x.strokeStyle='rgba(56,189,248,.22)';x.lineWidth=1;x.beginPath();for(let px=0;px<=W;px+=6){const y=h/2+Math.sin(px*.03+t*1.5)*(3+lv(D.db,D.floor)*8);px?x.lineTo(px,y):x.moveTo(px,y)}x.stroke();
   for(const [lw,al] of [[7,.18],[2.4,1]]){x.globalAlpha=al;x.lineWidth=lw;x.strokeStyle=g;x.beginPath();let pen=false;L.forEach((k,i)=>{const px=i/159*W;if(k.voz){pen?x.lineTo(px,Y(k)):x.moveTo(px,Y(k));pen=true}else pen=false});x.stroke()}x.globalAlpha=1;
   L.forEach((k,i)=>{if(k.voz)for(let q=0;q<3;q++)dot(x,i/159*W+Math.sin(i*7+q*2+t*9)*k.jit*3,Y(k)+Math.cos(i*5+q+t*8)*(2+k.jit*6),1.1,'rgba(165,243,252,.55)')});
-  const py=h-8-rg(D.f0,70,400)*(h-16);for(let r=0;r<3;r++){x.strokeStyle=`rgba(125,211,252,${.6-r*.18})`;x.lineWidth=1;x.beginPath();x.arc(W-4,py,4+((t*30+r*8)%24),0,6.28);x.stroke()}};
+  const py=h-8-rgx(D.f0,'f0',70,400)*(h-16);for(let r=0;r<3;r++){x.strokeStyle=`rgba(125,211,252,${.6-r*.18})`;x.lineWidth=1;x.beginPath();x.arc(W-4,py,4+((t*30+r*8)%24),0,6.28);x.stroke()}};
 G[1]=(x,W,h,t)=>{fade(x,W,h,.3);const cx=W/2,cy=h/2,q=lv(D.db,D.floor),R0=h*.2+q*h*.2+Math.sin(t*1.3)*2,th=3+q*10,sh=D.shim*5+q*2,g=x.createRadialGradient(cx,cy,R0*.4,cx,cy,R0*1.7);g.addColorStop(0,'rgba(254,215,170,.95)');g.addColorStop(.5,'rgba(251,146,60,.9)');g.addColorStop(1,'rgba(244,63,94,.15)');
   for(let p=0;p<3;p++){x.strokeStyle=g;x.globalAlpha=.95-p*.28;x.lineWidth=Math.max(1,th-p*2.8);x.beginPath();for(let i=0;i<=120;i++){const a=i/120*6.2832,r=R0+Math.sin(a*6+t*3+p)*(1+sh)*(1+p*.4)+Math.sin(a*11-t*4)*sh,px=cx+Math.cos(a)*r*1.5,py=cy+Math.sin(a)*r;i?x.lineTo(px,py):x.moveTo(px,py)}x.closePath();x.stroke()}x.globalAlpha=1;
   const rr=12+q*18,gg=x.createRadialGradient(cx,cy,1,cx,cy,rr);gg.addColorStop(0,'#fff7ed');gg.addColorStop(1,'rgba(251,146,60,0)');x.fillStyle=gg;x.beginPath();x.arc(cx,cy,rr,0,6.28);x.fill()};
-G[2]=(x,W,h,t)=>{fade(x,W,h,.35);const n=48,bw=W/n,q=rg(D.hnr,0,25),g=x.createLinearGradient(0,h,0,0);g.addColorStop(0,`hsla(${150-q*40},85%,38%,.95)`);g.addColorStop(.55,`hsla(${60-q*20},95%,55%,.95)`);g.addColorStop(1,'hsla(340,90%,62%,.95)');
+G[2]=(x,W,h,t)=>{fade(x,W,h,.35);const n=48,bw=W/n,q=rgx(D.hnr,'hnr',0,25),g=x.createLinearGradient(0,h,0,0);g.addColorStop(0,`hsla(${150-q*40},85%,38%,.95)`);g.addColorStop(.55,`hsla(${60-q*20},95%,55%,.95)`);g.addColorStop(1,'hsla(340,90%,62%,.95)');
   const V=i=>Math.pow(D.sp[Math.floor(i*64/n)]/255,.7);x.fillStyle=g;for(let i=0;i<n;i++){const b=Math.max(2,V(i)*(h-8)*(.9+.1*Math.sin(t*5+i)));x.fillRect(i*bw+1,h-b,bw-2,b)}
   x.fillStyle='rgba(255,255,255,.5)';for(let i=0;i<n;i++)x.fillRect(i*bw+1,h-Math.max(2,V(i)*(h-8))-2,bw-2,2)};
 G[3]=(x,W,h,t)=>{fade(x,W,h,.4);const L=H.slice(-200),g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(251,191,36,.9)');g.addColorStop(.6,'rgba(249,115,22,.4)');g.addColorStop(1,'rgba(251,191,36,.02)');
@@ -381,13 +386,13 @@ async function processar(blob){
 }
 
 /* ===== Chat com a IA do usuário ===== */
-const SYS='Você é o Elayon Core, guia de calibração e acompanhamento vocal do Elayon Space, apoiando um profissional de saúde. Fale em português do Brasil, tom calmo e acolhedor, no máximo 4 frases curtas, sem listas nem emojis. NUNCA dê diagnóstico: descreva achados em linguagem simples, compare com as sessões anteriores, sugira exercícios leves ou autoexame e indique que os valores são estimativas acústicas de microfone de celular, cabendo a avaliação ao profissional. Os blocos [SISTEMA] e os dados CRS são internos: interprete, não recite números crus. Quando houver imagem, é o espectroide da sessão (espectrograma com F0, linhas das dimensões I a XI, faixa voz/silêncio e variação por segundo; linhas tracejadas marcam retomadas sonoras). No encerramento, agradeça e despeça-se.';
+const SYS='Você é o Elayon Core, guia de calibração e acompanhamento vocal do Elayon Space, apoiando um profissional de saúde. Fale em português do Brasil, tom calmo e acolhedor, no máximo 4 frases curtas, sem listas nem emojis. NUNCA dê diagnóstico: descreva achados em linguagem simples, compare com as sessões anteriores, sugira exercícios leves ou autoexame e indique que os valores são estimativas acústicas de microfone de celular, cabendo a avaliação ao profissional. REGRAS DE SEGURANÇA: nunca diga que o usuário "melhorou" ou "piorou" como juízo clínico, diga que a medida "mudou em relação à referência"; não prometa cuidado, tratamento nem resultado; lembre, quando fizer sentido, que quem interpreta é o médico. Se o usuário relatar fala que piorou de repente, fraqueza num lado do corpo, boca torta, confusão, dor de cabeça forte e súbita, ou pensamentos de se machucar, a PRIMEIRA coisa a dizer é para ligar para o SAMU (192) ou procurar emergência agora (em sofrimento emocional, CVV 188), antes de qualquer análise. Os blocos [SISTEMA] e os dados CRS são internos: interprete, não recite números crus. Quando houver imagem, é o espectroide da sessão (espectrograma com F0, linhas das dimensões I a XI, faixa voz/silêncio e variação por segundo; linhas tracejadas marcam retomadas sonoras). No encerramento, agradeça e despeça-se.';
 function chatAdd(cls,txt){const d=document.createElement('div');d.className='msg '+cls;d.textContent=txt;$('chat').appendChild(d);$('chat').scrollTop=1e9;return d}
 function falar(t){return new Promise(res=>{try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='pt-BR';let f=0;
   const fim=()=>{if(f)return;f=1;IA.on=false;IA.pulse=0;if(CFG.IA_CAPTA_MIC&&!rec)fecharCaptacao();res()};
   u.onstart=()=>{IA.on=true};u.onboundary=()=>{IA.pulse=1};u.onend=fim;u.onerror=fim;setTimeout(fim,90000);
   if(CFG.IA_CAPTA_MIC&&!rec)crsAudio().catch(()=>{});speechSynthesis.speak(u)}catch(e){IA.on=false;res()}})}
-const PROV={gemini:{modelo:'gemini-2.5-flash',vis:true},groq:{url:'https://api.groq.com/openai/v1/chat/completions',modelo:'meta-llama/llama-4-scout-17b-16e-instruct',vis:true},mistral:{url:'https://api.mistral.ai/v1/chat/completions',modelo:'mistral-small-latest',vis:true},openrouter:{url:'https://openrouter.ai/api/v1/chat/completions',modelo:'meta-llama/llama-3.3-70b-instruct:free',vis:false},openai:{url:'https://api.openai.com/v1/chat/completions',modelo:'gpt-4o',vis:true},custom:{modelo:'',vis:false}};
+const PROV={gemini:{modelo:'gemini-2.5-flash',vis:true},groq:{url:'https://api.groq.com/openai/v1/chat/completions',modelo:'meta-llama/llama-4-scout-17b-16e-instruct',vis:true},mistral:{url:'https://api.mistral.ai/v1/chat/completions',modelo:'mistral-small-latest',vis:true},openrouter:{url:'https://openrouter.ai/api/v1/chat/completions',modelo:'meta-llama/llama-3.3-70b-instruct:free',vis:false},nvidia:{url:'https://integrate.api.nvidia.com/v1/chat/completions',modelo:'meta/llama-3.3-70b-instruct',vis:false},openai:{url:'https://api.openai.com/v1/chat/completions',modelo:'gpt-4o',vis:true},custom:{modelo:'',vis:false}};
 function provLista(){const p=U.pr||{},cfg=p.ai_cfg||{},act=U.prov||'gemini',L=[];const add=id=>{const c=cfg[id]||{},key=id===act?(U.key||c.key):c.key;if(key)L.push({p:id,key,model:c.model||'',url:c.url||'',vis:!!c.vis})};add(act);if(cfg._fb!==false)Object.keys(PROV).filter(x=>x!==act).forEach(add);return L}
 async function iaUm(c,sys,hist,ims){const P=PROV[c.p]||PROV.custom,model=c.model||(c.p==='gemini'?CFG.GEMINI:P.modelo),vis=P.vis||c.vis,last=hist.length-1;
   if(c.p==='gemini'){const m=hist.map((h,i)=>({role:h.r==='user'?'user':'model',parts:(i===last&&ims.length)?[{text:h.t},...ims.map(b=>({inline_data:{mime_type:'image/jpeg',data:b}}))]:[{text:h.t}]}));
@@ -402,6 +407,7 @@ async function ia(prompt,img){
   out=(out||'').trim();if(out)U.hist.push({r:'ia',t:out});else U.hist.pop();return out
 }
 async function iaFalar(txt,res,img,fim){
+  try{const ae=avisoEmergencia(txt);if(ae)aviso(ae)}catch(e){}
   const n=U.ciclo,prev=U.sessoes.slice(1).map(s=>({f0:s.res.f0&&s.res.f0.m,db:s.res.db&&s.res.db.m,jit:s.res.jit&&s.res.jit.m,shim:s.res.shim&&s.res.shim.m,hnr:s.res.hnr&&s.res.hnr.m,cpp:s.res.cpp&&s.res.cpp.m,pausas:s.res.pausas}));
   const p=`[SISTEMA] ${U.calibrado&&!fim?'Interação de cuidado':`Calibração ${n}/${CFG.MAX} concluída`}. Fala transcrita: "${txt||'(nada detectado)'}". Modo: ${U.health==='ok'?'COM camada Health (compare com as faixas e o laudo do médico)':'SEM camada Health (compare só com as sessões anteriores)'}. Dados CRS internos: ${JSON.stringify({atual:res,anteriores:prev})}.${U.params?confere(res):''} `+(fim?'Esta foi a última calibração: comente os achados em linguagem simples, sem diagnóstico, diga que a calibração foi concluída e que agora o usuário pode conversar normalmente e fazer exercícios vocais guiados.':U.calibrado?'Conversa livre de cuidado: responda ao que o usuário disse, comente brevemente os achados vocais e, se fizer sentido, sugira um exercício vocal leve.':`Comente brevemente e passe a próxima instrução: "${CFG.ETAPAS[n]}"`);
   const w=chatAdd('ia','…'),r=await ia(p,img);w.remove();
@@ -416,7 +422,7 @@ async function iaIntro(){
 }
 
 /* ===== Camadas: Health / PsyQ (congelado) / Elayon PC ===== */
-function aplicarHealth(p){const L=lerLocal();if(L){U.health='ok';U.relatorio=L.texto;U.params=L.obj.params;return}const st=(p&&p.health_status)||localStorage.getItem('crs_h_'+U.id)||'nenhum';
+function aplicarHealth(p){const L=lerLocal();if(L){U.health='ok';U.relatorio=L.texto;U.params=L.obj.params;U.ref=L.obj.ref||null;escalas(L.obj);return}ESC={};U.ref=null;const st=(p&&p.health_status)||localStorage.getItem('crs_h_'+U.id)||'nenhum';
   if(p&&(p.health_relatorio||st==='ok')){U.health='ok';U.relatorio=p.health_relatorio||U.relatorio}else U.health=st==='aguardando'?'aguardando':'nenhum'}
 async function lerHealth(){if(!sb||!U.id)return;try{const {data:p}=await sb.from('profiles').select('*').eq('id',U.id).single();if(p)aplicarHealth(p)}catch(e){}}
 function layers(){setTimeout(layersExtra,0);
@@ -434,7 +440,7 @@ async function camHealth(){
   aba('C')
 }
 const sha=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
-function textoLaudo(o){const p=o.params||{};return `LAUDO ELAYON HEALTH — ${o.piloto.nome} (${o.piloto.crm}, ${o.piloto.esp}) em ${String(o.emitido).slice(0,10)}. Observações clínicas: ${o.laudo.obs}. Severidade ${o.laudo.sev}/10. Conduta: ${o.laudo.conduta}. Faixas de autoexame: F0 ${p.f0min}-${p.f0max} Hz; jitter até ${p.jitmax}%; shimmer até ${p.shimmax} dB; HNR a partir de ${p.hnrmin} dB; pausas até ${p.pausasmax}; modo ${o.modo}. Exercícios: ${o.exercicios||'—'}. Apoio de IA revisado pelo médico: ${o.ia||'—'}.${o.sessoes&&o.sessoes.length?' Sessões analisadas pelo médico: '+o.sessoes.map(x=>`áudio ${x.n} F0 ${x.f0} Hz, jitter ${x.jit}%, shimmer ${x.shim} dB, HNR ${x.hnr} dB, pausas ${x.pausas}`).join(' | ')+'.':''}${o.notas&&o.notas.length?' Marcações do médico: '+o.notas.map(x=>`áudio ${x.a} em ${x.t}s: ${x.txt}`).join(' | ')+'.':''}${o.sessoes&&o.sessoes.some(x=>x.crs)?' CRS temporal (ritmo de pausas; hipótese descritiva do método, sem validação clínica, interpretar só contra o próprio paciente): '+o.sessoes.filter(x=>x.crs).map(x=>`áudio ${x.n} (${x.tarefa||'tarefa não informada'}, qualidade ${x.qual||'-'}): ${x.crs.pausas} pausas, ${x.crs.pm}/min, média ${x.crs.mu}s, maior ${x.crs.tmax}s, fala ${Math.round(x.crs.ptr*100)}%`).join(' | ')+'.':''}${o.instrumentos&&o.instrumentos.length?' Instrumentos aplicados pelo médico: '+o.instrumentos.map(x=>x.n+' '+x.r).join(' | ')+'.':''}${o.sintese?' Síntese do médico: '+o.sintese:''}${o.recortes&&o.recortes.length?' Recortes de gráfico marcados pelo médico (imagens anexas, na ordem): '+o.recortes.map((x,i)=>`${i+1}) áudio ${x.a} de ${x.t0}s a ${x.t1}s${x.txt?' - '+x.txt:''}`).join(' | ')+'.':''}`}
+function textoLaudo(o){const p=o.params||{};return `LAUDO ELAYON HEALTH — ${o.piloto.nome} (${o.piloto.crm}, ${o.piloto.esp}) em ${String(o.emitido).slice(0,10)}. Observações clínicas: ${o.laudo.obs}. Severidade ${o.laudo.sev}/10. Conduta: ${o.laudo.conduta}. Faixas de autoexame: F0 ${p.f0min}-${p.f0max} Hz; jitter até ${p.jitmax}%; shimmer até ${p.shimmax} dB; HNR a partir de ${p.hnrmin} dB; pausas até ${p.pausasmax}; modo ${o.modo}. Exercícios: ${o.exercicios||'—'}. Apoio de IA revisado pelo médico: ${o.ia||'—'}.${o.sessoes&&o.sessoes.length?' Sessões analisadas pelo médico: '+o.sessoes.map(x=>`áudio ${x.n} F0 ${x.f0} Hz, jitter ${x.jit}%, shimmer ${x.shim} dB, HNR ${x.hnr} dB, pausas ${x.pausas}`).join(' | ')+'.':''}${o.notas&&o.notas.length?' Marcações do médico: '+o.notas.map(x=>`áudio ${x.a} em ${x.t}s: ${x.txt}`).join(' | ')+'.':''}${o.sessoes&&o.sessoes.some(x=>x.crs)?' CRS temporal (ritmo de pausas; hipótese descritiva do método, sem validação clínica, interpretar só contra o próprio paciente): '+o.sessoes.filter(x=>x.crs).map(x=>`áudio ${x.n} (${x.tarefa||'tarefa não informada'}, qualidade ${x.qual||'-'}): ${x.crs.pausas} pausas, ${x.crs.pm}/min, média ${x.crs.mu}s, maior ${x.crs.tmax}s, fala ${Math.round(x.crs.ptr*100)}%`).join(' | ')+'.':''}${o.instrumentos&&o.instrumentos.length?' Instrumentos aplicados pelo médico: '+o.instrumentos.map(x=>x.n+' '+x.r).join(' | ')+'.':''}${o.ref&&o.ref.n?' A referência do médico vem de '+o.ref.n+' sessão(ões) medida(s) na consulta; compare o paciente com o PRÓPRIO intervalo de referência, não com normas.':''}${o.sintese?' Síntese do médico: '+o.sintese:''}${o.recortes&&o.recortes.length?' Recortes de gráfico marcados pelo médico (imagens anexas, na ordem): '+o.recortes.map((x,i)=>`${i+1}) áudio ${x.a} de ${x.t0}s a ${x.t1}s${x.txt?' - '+x.txt:''}`).join(' | ')+'.':''}`}
 function lerLocal(){try{const o=JSON.parse(localStorage.getItem('crs_health_'+U.id));return o?{obj:o,texto:textoLaudo(o)}:null}catch(e){return null}}
 function hStat(){fontesUI();const L=lerLocal(),e=$('hStat');e.textContent=L?`✅ Laudo ativo: ${L.obj.piloto.nome} (${L.obj.piloto.crm}) • emitido em ${String(L.obj.emitido).slice(0,10)} • modo ${L.obj.modo}. Camada Health ligada (2 tokens por uso).`:'Nenhum laudo carregado.'}
 function msgC(t){$('hStat').textContent=t}
@@ -450,7 +456,7 @@ async function carregarPDF(inp){
   let o;try{o=JSON.parse(decodeURIComponent(escape(atob(m[1]))))}catch(e){return msgC('❌ Não consegui ler o laudo.')}
   const {hash,...corpo}=o;if(hash!==await sha(JSON.stringify(corpo)))return msgC('❌ Laudo alterado: a assinatura de integridade não confere.');
   if(o.paciente.email&&U.email&&o.paciente.email.toLowerCase()!==U.email.toLowerCase())return msgC('❌ Este laudo foi emitido para outro paciente.');
-  localStorage.setItem('crs_health_'+U.id,JSON.stringify(o));U.health='ok';U.relatorio=textoLaudo(o);U.params=o.params;
+  localStorage.setItem('crs_health_'+U.id,JSON.stringify(o));U.health='ok';U.relatorio=textoLaudo(o);U.params=o.params;U.ref=o.ref||null;escalas(o);
   try{await sb.from('profiles').update({health_status:'ok',health_relatorio:U.relatorio}).eq('id',U.id)}catch(e){}
   layers();hStat();aba('V');const t=`Camada Health ativada com o laudo de ${o.piloto.nome}. Vou considerar o relatório antes de cada resposta.`;chatAdd('ia',t);falar(t)
 }
@@ -460,7 +466,9 @@ function confere(r){const p=U.params,o=[];if(!p)return '';
   if(r.jit)o.push(`jitter ${r.jit.m}% ${r.jit.m<=p.jitmax?'dentro':'acima'} do limite ${p.jitmax}`);
   if(r.shim)o.push(`shimmer ${r.shim.m} dB ${r.shim.m<=p.shimmax?'dentro':'acima'} do limite ${p.shimmax}`);
   if(r.hnr)o.push(`HNR ${r.hnr.m} dB ${r.hnr.m>=p.hnrmin?'dentro':'abaixo'} do mínimo ${p.hnrmin}`);
-  o.push(`pausas ${r.pausas} ${r.pausas<=p.pausasmax?'dentro':'acima'} do limite ${p.pausasmax}`);return ' Conferência com as faixas definidas pelo médico: '+o.join('; ')+'.'}
+  o.push(`pausas ${r.pausas} ${r.pausas<=p.pausasmax?'dentro':'acima'} do limite ${p.pausasmax}`);
+  const q=U.ref,pos=(v,e)=>e&&e.hi>e.lo?Math.round((v-e.lo)/(e.hi-e.lo)*100)+'% do intervalo de referência (0% = mínimo, 100% = máximo)':'';
+  if(q){if(r.f0&&q.f0)o.push(`F0 na posição ${pos(r.f0.m,q.f0)}${q.f0.med!=null?', mediana de referência '+q.f0.med+' Hz':''}`);if(r.hnr&&q.hnr)o.push(`HNR na posição ${pos(r.hnr.m,q.hnr)}${q.hnr.med!=null?', mediana de referência '+q.hnr.med+' dB':''}`)}return ' Conferência com as faixas definidas pelo médico: '+o.join('; ')+'.'}
 function camPsyq(){aba('C');msgC('Carregue o PDF do PsiQ no cartão 🧠 PsiQ.')}
 function camPC(){$('lmsg').textContent='💻 Elayon PC — em breve.'}
 setInterval(()=>{if(U.id&&U.health!=='ok')lerHealth().then(layers)},20000);
