@@ -58,6 +58,10 @@
     .input-group { margin-bottom: 10px; text-align: left; }
     label { display: block; font-size: 10px; font-weight: 700; margin-bottom: 4px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
     input, select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 12px; outline: none; background: #fafcfc; color: var(--ink); }
+    .hint { font-size: 11px; color: var(--muted); margin-bottom: 8px; line-height: 1.5; }
+    .hint a { color: var(--accent); font-weight: 700; }
+    .chip { display:inline-flex; gap:6px; align-items:center; background:#eaf4f6; border:1px solid var(--line); border-radius:20px; padding:3px 10px; margin:2px 4px 2px 0; font-size:11px; font-weight:700 }
+    .chip button { border:0; background:none; cursor:pointer; color:var(--danger); font-size:12px }
     .msg { margin-top: 12px; font-size: 11px; min-height: 16px; text-align: center; font-weight: 600; }
     .msg-error { color: var(--danger); }
     .msg-success { color: var(--success); }
@@ -102,26 +106,42 @@
       </div>
     </section>
 
-    <!-- Configuração da IA Ad -->
+    <!-- Configuração da IA: vários provedores, com reserva automática -->
     <section class="ai-setup-box">
-      <h3>
-        🧠 Calibração da IA Ad
-        <span id="aiStatusBadge" class="ai-status-badge">NÃO CONFIGURADA</span>
-      </h3>
+      <h3>🧠 Calibração da IA <span id="aiStatusBadge" class="ai-status-badge">NÃO CONFIGURADA</span></h3>
       <div class="input-group">
-        <label for="selectAiProvider">Provedor</label>
+        <label for="selectAiProvider">Provedor (o que você escolher aqui é o principal)</label>
         <select id="selectAiProvider">
-          <option value="gemini" selected>Google Gemini (1.5 Pro)</option>
-          <option value="openai">OpenAI (GPT-4o)</option>
+          <option value="gemini">Google Gemini (gratuito, com limite diário)</option>
+          <option value="groq">Groq (gratuito, rápido, lê imagens)</option>
+          <option value="mistral">Mistral (plano gratuito, lê imagens)</option>
+          <option value="openrouter">OpenRouter (modelos gratuitos ":free")</option>
+          <option value="openai">OpenAI (pago)</option>
+          <option value="custom">Personalizado (compatível com OpenAI)</option>
         </select>
       </div>
-      <div class="input-group" style="margin-bottom: 8px;">
-        <label for="inputApiKey">Chave de API</label>
-        <input type="password" id="inputApiKey" placeholder="Cole sua chave de API..." autocomplete="off" />
+      <p class="hint" id="aiLink"></p>
+      <div class="input-group" style="margin-bottom:8px">
+        <label for="inputApiKey">Chave de API deste provedor</label>
+        <input type="password" id="inputApiKey" placeholder="Cole a chave..." autocomplete="off" />
       </div>
-      <button class="btn primary" id="btnSalvarAiConfig" style="padding: 10px; font-size: 11px;" type="button">
-        Salvar Calibração da IA
-      </button>
+      <div class="input-group">
+        <label for="inputModel">Modelo (os gratuitos mudam; se der erro, troque aqui)</label>
+        <input type="text" id="inputModel" autocomplete="off" />
+      </div>
+      <div class="input-group" id="grpUrl" style="display:none">
+        <label for="inputUrl">Endereço da API (termina em /chat/completions)</label>
+        <input type="text" id="inputUrl" placeholder="https://.../v1/chat/completions" autocomplete="off" />
+        <label style="display:flex;gap:6px;align-items:center;text-transform:none;margin-top:6px"><input type="checkbox" id="chkVis" style="width:auto"> este modelo lê imagens</label>
+      </div>
+      <label style="display:flex;gap:6px;align-items:center;text-transform:none;margin:8px 0"><input type="checkbox" id="chkFb" style="width:auto" checked> Se a cota do principal acabar, tentar automaticamente os outros provedores com chave</label>
+      <div class="actions" style="grid-template-columns:1fr 1fr;margin-top:8px">
+        <button class="btn primary" id="btnSalvarAiConfig" style="padding:10px;font-size:11px" type="button">Salvar IA</button>
+        <button class="btn logout" id="btnTestAi" style="padding:10px;font-size:11px" type="button">Testar este provedor</button>
+      </div>
+      <div class="msg" id="aiMsg" style="margin-top:8px"></div>
+      <label style="margin-top:10px">Provedores com chave guardada</label>
+      <div id="aiList" class="hint">Nenhum.</div>
     </section>
 
     <!-- Ações e Transição ao Cockpit -->
@@ -149,7 +169,7 @@
     }
 
     async function initAuth() {
-      const { data: { session }, error } = await supabaseClient.auth.getSession();
+const { data: { session }, error } = await supabaseClient.auth.getSession();
       if (error || !session) {
         window.location.href = 'login.html';
         return;
@@ -177,12 +197,7 @@
           if (profile.avatar_url) document.getElementById('avatarImage').src = profile.avatar_url;
           else document.getElementById('avatarImage').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id}`;
 
-          if (profile.ai_provider) document.getElementById('selectAiProvider').value = profile.ai_provider;
-          if (profile.ai_key) {
-            document.getElementById('inputApiKey').value = profile.ai_key;
-            document.getElementById('aiStatusBadge').textContent = 'CONFIGURADA';
-            document.getElementById('aiStatusBadge').className = 'ai-status-badge ativo';
-          }
+          aiCarrega(profile);
         }
       } catch (e) {
         document.getElementById('userTokens').textContent = currentTokens;
@@ -227,18 +242,7 @@
       showMsg('✅ Foto atualizada com sucesso!');
     });
 
-    document.getElementById('btnSalvarAiConfig').addEventListener('click', async () => {
-      const provider = document.getElementById('selectAiProvider').value;
-      const apiKey = document.getElementById('inputApiKey').value.trim();
-      if (!apiKey) { showMsg('Insira uma chave de API válida.', true); return; }
-
-      if (currentUser) {
-        await supabaseClient.from('profiles').update({ ai_provider: provider, ai_key: apiKey }).eq('id', currentUser.id);
-      }
-      document.getElementById('aiStatusBadge').textContent = 'CONFIGURADA';
-      document.getElementById('aiStatusBadge').className = 'ai-status-badge ativo';
-      showMsg('✅ Calibração da IA salva com sucesso!');
-    });
+    document.getElementById('btnSalvarAiConfig').addEventListener('click', async () => { if (await salvarAi()) showMsg('✅ Calibração da IA salva.'); });
 
     document.getElementById('btnAddToken').addEventListener('click', () => {
       currentTokens += 1;
@@ -249,12 +253,11 @@
     document.getElementById('btnSaveChanges').addEventListener('click', async () => {
       if (!currentUser) return;
       const finalName = document.getElementById('userName').textContent;
-      const provider = document.getElementById('selectAiProvider').value;
-      const apiKey = document.getElementById('inputApiKey').value.trim();
+      aiGuardaForm();
 
       const { error } = await supabaseClient.from('profiles').upsert({
-        id: currentUser.id, email: currentUser.email, nome: finalName, tokens: currentTokens, ai_provider: provider, ai_key: apiKey
-      });
+        id: currentUser.id, email: currentUser.email, nome: finalName, tokens: currentTokens, ...aiPayload()
+      }).then(async (r1) => (r1.error && /ai_cfg/.test(r1.error.message)) ? supabaseClient.from('profiles').upsert({ id: currentUser.id, email: currentUser.email, nome: finalName, tokens: currentTokens, ai_provider: aiPayload().ai_provider, ai_key: aiPayload().ai_key }) : r1);
 
       if (!error) showMsg('✅ Perfil gravado com sucesso!');
       else showMsg('Erro ao gravar: ' + error.message, true);
@@ -264,6 +267,82 @@
       await supabaseClient.auth.signOut();
       window.location.href = 'login.html';
     });
+
+    /* ---- IA: vários provedores (mesma tabela do cockpit e do piloto) ---- */
+    const PROV = {
+      gemini:{nome:'Google Gemini',modelo:'gemini-2.5-flash',vis:true,link:'https://aistudio.google.com/apikey',dica:'Crie a chave no Google AI Studio. O plano gratuito tem limite diário.'},
+      groq:{nome:'Groq',url:'https://api.groq.com/openai/v1/chat/completions',modelo:'meta-llama/llama-4-scout-17b-16e-instruct',vis:true,link:'https://console.groq.com/keys',dica:'Chave grátis no console da Groq. Também transcreve voz (Whisper) no cockpit.'},
+      mistral:{nome:'Mistral',url:'https://api.mistral.ai/v1/chat/completions',modelo:'mistral-small-latest',vis:true,link:'https://console.mistral.ai/api-keys',dica:'Plano gratuito exige criar conta e chave no console da Mistral.'},
+      openrouter:{nome:'OpenRouter',url:'https://openrouter.ai/api/v1/chat/completions',modelo:'meta-llama/llama-3.3-70b-instruct:free',vis:false,link:'https://openrouter.ai/keys',dica:'Modelos com final ":free" não cobram, mas têm limite por minuto e por dia. O padrão aqui não lê imagens.'},
+      openai:{nome:'OpenAI',url:'https://api.openai.com/v1/chat/completions',modelo:'gpt-4o',vis:true,link:'https://platform.openai.com/api-keys',dica:'Pago.'},
+      custom:{nome:'Personalizado',modelo:'',vis:false,link:'',dica:'Qualquer serviço com API compatível com OpenAI (Cerebras, GitHub Models etc.): informe endereço e modelo.'}
+    };
+    let aiCfg = {}, aiAtual = 'gemini';
+    const $id = (i) => document.getElementById(i);
+    function aiGuardaForm() {
+      const k = $id('inputApiKey').value.trim();
+      if (!k) { delete aiCfg[aiAtual]; return; }
+      aiCfg[aiAtual] = { key: k, model: $id('inputModel').value.trim(), url: $id('inputUrl').value.trim(), vis: $id('chkVis').checked };
+    }
+    function aiMostra(id) {
+      aiAtual = id; const c = aiCfg[id] || {}, P = PROV[id];
+      $id('selectAiProvider').value = id; $id('inputApiKey').value = c.key || ''; $id('inputModel').value = c.model || '';
+      $id('inputModel').placeholder = P.modelo ? 'padrão: ' + P.modelo : 'nome do modelo';
+      $id('inputUrl').value = c.url || ''; $id('chkVis').checked = !!c.vis; $id('grpUrl').style.display = id === 'custom' ? 'block' : 'none';
+      $id('aiLink').innerHTML = P.dica + (P.link ? ' <a href="' + P.link + '" target="_blank" rel="noopener">Obter chave ↗</a>' : '');
+      aiLista();
+    }
+    function aiLista() {
+      const ids = Object.keys(aiCfg).filter(k => k[0] !== '_' && aiCfg[k].key);
+      $id('aiList').innerHTML = ids.length ? ids.map(k => '<span class="chip">' + (k === $id('selectAiProvider').value ? '⭐ ' : '') + PROV[k].nome + ' <button type="button" onclick="aiRemove(\'' + k + '\')" title="Remover">✕</button></span>').join('') : 'Nenhum.';
+      const ok = ids.length > 0; $id('aiStatusBadge').textContent = ok ? 'CONFIGURADA' : 'NÃO CONFIGURADA'; $id('aiStatusBadge').className = 'ai-status-badge' + (ok ? ' ativo' : '');
+    }
+    function aiRemove(k) { aiGuardaForm(); delete aiCfg[k]; aiMostra(aiAtual); showMsg('Removido. Clique em Salvar IA para gravar.'); }
+    function aiCarrega(p) {
+      aiCfg = (p.ai_cfg && typeof p.ai_cfg === 'object') ? JSON.parse(JSON.stringify(p.ai_cfg)) : {};
+      const act = p.ai_provider || 'gemini';
+      if (p.ai_key && !(aiCfg[act] && aiCfg[act].key)) aiCfg[act] = Object.assign({}, aiCfg[act], { key: p.ai_key });
+      $id('chkFb').checked = aiCfg._fb !== false;
+      aiMostra(PROV[act] ? act : 'gemini');
+    }
+    function aiPayload() {
+      aiGuardaForm(); const act = aiAtual, cfg = JSON.parse(JSON.stringify(aiCfg)); cfg._fb = $id('chkFb').checked;
+      return { ai_provider: act, ai_key: (aiCfg[act] && aiCfg[act].key) || '', ai_cfg: cfg };
+    }
+    async function salvarAi() {
+      if (!currentUser) return false;
+      const pl = aiPayload(); if (!pl.ai_key) { showMsg('Cole a chave do provedor principal.', true); return false; }
+      let { error } = await supabaseClient.from('profiles').update(pl).eq('id', currentUser.id);
+      if (error && /ai_cfg/.test(error.message)) {
+        ({ error } = await supabaseClient.from('profiles').update({ ai_provider: pl.ai_provider, ai_key: pl.ai_key }).eq('id', currentUser.id));
+        if (!error) { showMsg('Salvo só o provedor principal. Para guardar vários e usar a reserva automática, rode no Supabase: alter table profiles add column if not exists ai_cfg jsonb;', true); aiLista(); return false; }
+      }
+      if (error) { showMsg('Erro ao salvar: ' + error.message, true); return false; }
+      aiLista(); return true;
+    }
+    async function testarAi() {
+      const id = aiAtual, key = $id('inputApiKey').value.trim(), P = PROV[id], model = $id('inputModel').value.trim() || P.modelo, url = $id('inputUrl').value.trim() || P.url, m = $id('aiMsg');
+      if (!key) { m.textContent = 'Cole a chave primeiro.'; m.className = 'msg msg-error'; return; }
+      m.textContent = '⏳ testando…'; m.className = 'msg';
+      const c = new AbortController(), t = setTimeout(() => c.abort(), 30000);
+      try {
+        let r, j;
+        if (id === 'gemini') {
+          r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + key, { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: c.signal, body: JSON.stringify({ contents: [{ parts: [{ text: 'Responda somente: OK' }] }] }) });
+        } else {
+          if (!url || !model) throw new Error('Informe endereço e modelo.');
+          r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key }, signal: c.signal, body: JSON.stringify({ model, messages: [{ role: 'user', content: 'Responda somente: OK' }], max_tokens: 8 }) });
+        }
+        j = await r.json().catch(() => ({}));
+        if (!r.ok || j.error) throw new Error((j.error && (j.error.message || j.error)) || ('Erro ' + r.status));
+        m.textContent = '✅ ' + P.nome + ' respondeu (modelo ' + model + '). Lembre de clicar em Salvar IA.'; m.className = 'msg msg-success';
+      } catch (e) {
+        m.textContent = '❌ ' + (e.name === 'AbortError' ? 'sem resposta em 30 s' : (e.message === 'Failed to fetch' ? 'o navegador bloqueou ou não alcançou o provedor (CORS/rede)' : e.message)); m.className = 'msg msg-error';
+      } finally { clearTimeout(t); }
+    }
+    $id('selectAiProvider').addEventListener('change', (e) => { aiGuardaForm(); aiMostra(e.target.value); $id('aiMsg').textContent = ''; });
+    $id('btnTestAi').addEventListener('click', testarAi);
+    aiMostra('gemini');
 
     initAuth();
   </script>
