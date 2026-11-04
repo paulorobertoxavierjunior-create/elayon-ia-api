@@ -18,6 +18,7 @@ const PROV={gemini:{nome:'Google Gemini',modelo:'gemini-2.5-flash',vis:true},
  groq:{nome:'Groq',url:'https://api.groq.com/openai/v1/chat/completions',modelo:'meta-llama/llama-4-scout-17b-16e-instruct',vis:true},
  mistral:{nome:'Mistral',url:'https://api.mistral.ai/v1/chat/completions',modelo:'mistral-small-latest',vis:true},
  openrouter:{nome:'OpenRouter',url:'https://openrouter.ai/api/v1/chat/completions',modelo:'meta-llama/llama-3.3-70b-instruct:free',vis:false},
+ nvidia:{nome:'NVIDIA NIM',url:'https://integrate.api.nvidia.com/v1/chat/completions',modelo:'meta/llama-3.3-70b-instruct',vis:false},
  openai:{nome:'OpenAI',url:'https://api.openai.com/v1/chat/completions',modelo:'gpt-4o',vis:true},
  custom:{nome:'Personalizado (compatível OpenAI)',modelo:'',vis:false}};
 function provLista(p){const cfg=(p&&p.ai_cfg)||{},act=(p&&p.ai_provider)||'gemini',L=[];
@@ -48,6 +49,7 @@ const KB=[
  {id:'CAPEV-BR',ref:'Borges et al. (2022), Distúrbios da Comunicação, que cita Behlau et al. (2020) e Nemr et al. (2012).',txt:'O CAPE-V tem adaptação brasileira e o GRBASI é usado no Brasil; são escalas perceptivo-auditivas aplicadas pelo profissional. As estimativas GRBAS~ do Elayon NÃO substituem a avaliação perceptiva.'},
  {id:'WAB-BR',ref:'Adaptação do WAB-R (rastreio) ao português do Brasil, CoDAS.',txt:'Houve tradução e adaptação transcultural do rastreio do WAB-R; o trabalho não traz dados de validade nem confiabilidade.'},
  {id:'LAST-BR',ref:'Adaptação e validação do Language Screening Test (LAST) para o português do Brasil, JSLHR (2023).',txt:'O LAST, rastreio de linguagem em pacientes pós-AVC, foi adaptado e validado para o português do Brasil.'},
+ {id:'GLOSSARIO',ref:'Definições gerais de acústica da voz (interno).',txt:'F0: frequência fundamental, altura da voz em Hz. Jitter: variação ciclo a ciclo do período da F0, em %. Shimmer: variação ciclo a ciclo da amplitude. HNR: razão harmônico-ruído em dB. CPP: Cepstral Peak Prominence (proeminência do pico cepstral), medida clínica em dB. O campo CPP do Elayon é uma estimativa interna, sem a escala em dB do CPP clínico, e não deve ser comparado a valores publicados. GRBAS~: estimativas automáticas dos eixos G, R, B, A, S, não equivalem à escala perceptiva.'},
  {id:'LIM-ELAYON',ref:'Limites do método (interno).',txt:'Medidas vêm de microfone de celular. A voz sonora é detectada por periodicidade (consoantes surdas não contam); as pausas usam energia com resolução de 50 ms, então pausas abaixo de 100 ms não são confiáveis. Não há normas populacionais: interpretar sempre contra a linha de base do próprio paciente.'}
 ];
 const kbTxt=()=>KB.map(k=>`[${k.id}] ${k.txt}`).join('\n');
