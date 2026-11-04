@@ -57,7 +57,7 @@
 <div><label>Assinatura (tinta preta)</label><canvas id="sg" width="700" height="240"></canvas>
 <div class="g2" style="margin-top:6px"><button class="b g" id="bh" onclick="habPincel()">🖌️ Habilitar pincel</button><button class="b g" onclick="limpaAss()">🧽 Limpar</button></div><button class="b g" style="margin-top:6px" onclick="usaSalva()">♻️ Usar assinatura salva neste aparelho</button></div>
 <div><label>Instrumentos/testes já aplicados por você (opcional, autodeclarado: nome e resultado)</label><datalist id="dl"><option>GRBASI</option><option>CAPE-V (versão brasileira)</option><option>WAB-R (rastreio)</option><option>LAST</option><option>MoCA</option><option>Boston</option><option>BDAE</option><option>MAC</option></datalist><div class="row"><input id="i1n" list="dl" placeholder="Instrumento"><input id="i1r" placeholder="Resultado/data"></div><div class="row"><input id="i2n" list="dl" placeholder="Instrumento"><input id="i2r" placeholder="Resultado/data"></div><div class="row"><input id="i3n" list="dl" placeholder="Instrumento"><input id="i3r" placeholder="Resultado/data"></div></div>
-<p><label style="display:flex;gap:8px;text-transform:none;font-weight:600"><input type="checkbox" id="tcle" style="width:auto"> O paciente foi informado e consentiu com o uso destes áudios e dados neste laudo.</label></p>
+<p><label style="display:flex;gap:8px;text-transform:none;font-weight:600"><input type="checkbox" id="tcle" style="width:auto"> (opcional) O paciente foi informado sobre o uso destes áudios e dados neste laudo.</label></p>
 <p><label style="display:flex;gap:8px;text-transform:none;font-weight:600"><input type="checkbox" id="ok" style="width:auto"> Confirmo os dados e assumo a responsabilidade clínica pelo laudo.</label></p>
 <button class="b" onclick="assinar()">✍️ Assinar e gerar PDF</button><div class="msg" id="m5"></div>
 <div id="prev"></div>
@@ -77,7 +77,9 @@
 <div><label>Referência da nova fonte (autor, ano, título, revista)</label><input id="kbRef" placeholder="Ex.: Behlau et al., 2020, CAPE-V versão brasileira, CoDAS"></div>
 <div class="g2"><label class="b" style="cursor:pointer">📂 Adicionar PDF/TXT/MD<input type="file" accept=".pdf,.txt,.md,text/plain,application/pdf" hidden onchange="kbAdd(this)"></label><button class="b g" onclick="kbExp()">⬇️ Exportar base (JSON)</button></div>
 <label class="b g" style="cursor:pointer">⬆️ Importar base (JSON)<input type="file" accept=".json" hidden onchange="kbImp(this)"></label>
-<div class="msg" id="m7"></div></div></section>
+<div class="msg" id="m7"></div></div>
+<div class="c"><h3>Instrumentos e métodos (catálogo de consulta)</h3><div class="how">Resumo de <b>como cada instrumento costuma ser aplicado</b> e do que eu consegui <b>confirmar</b> sobre a versão em português do Brasil. Os testes são aplicados e pontuados pelo profissional, <b>não pelo Elayon</b>. Onde está "não verifiquei", confirme a versão brasileira e as notas de corte no manual oficial antes de citar.</div><div id="cat"></div></div>
+</section>
 
 <section class="st" id="s8"><div class="c"><h3>Sessão 8 • IA do piloto</h3>
 <div class="how"><b>Converse com a IA sobre esta consulta.</b> Ela recebe as métricas, o CRS temporal, a linha do tempo, a leitura do núcleo (se você rodou), sua síntese, seu perfil profissional (Config) e os trechos mais relevantes da base. Respostas citam [ID] de fonte; o que não estiver na base vem marcado. Use "↪ síntese" para levar uma resposta ao texto da sessão 4. A decisão clínica é sua.</div>
@@ -91,7 +93,6 @@
 <div class="msg" id="m9"></div><div id="nuR"></div>
 <details><summary>Mapeamento das medidas para o núcleo (provisório)</summary><p style="font-size:12px">duration_sec = tempo; silence_pct = 100 − fala%; pause_count/mean_pause_ms = pausas; continuity_pct = % do tempo de fala em trechos contínuos ≥1 s; oscillation_pct = variação (dp/média) do nível acima do ruído; energy_pct = nível médio acima do ruído / 40 dB; noise_pct = 100 − 5×SNR; snapshot = energia espectral em 3 faixas. Estas definições são minhas e precisam ser alinhadas com o método original.</p></details></div></section>
 
-
 <section class="st" id="s10"><div class="c"><h3>Sessão 10 • Configuração</h3>
 <div class="how">Ajustes valem para <b>novas escutas</b> (áudios já analisados mantêm os valores com que foram calculados). Os padrões são provisórios e devem ser confirmados com o método original e, depois, calibrados em amostra real.</div>
 <div class="g2"><div><label>Limiar de atividade (dB acima do ruído)</label><input id="cfL" type="number" step="1"></div><div><label>Pausa mínima (ms)</label><input id="cfM" type="number" step="10"></div></div>
@@ -99,7 +100,7 @@
 <div class="g2"><div><label>média→longa (s)</label><input id="cfB3" type="number" step="0.05"></div><div><label>Janela da linha do tempo (s)</label><input id="cfJ" type="number" step="1"></div></div>
 <div><label>Perfil profissional (orienta o foco da IA)</label><select id="cfP"><option>Neurologista</option><option>Fonoaudiólogo</option><option>Psicólogo</option><option>Pedagogo / psicopedagogo</option><option>Outro</option></select></div>
 <div class="g2"><button class="b" onclick="cfgSalvar()">💾 Salvar</button><button class="b g" onclick="cfgReset()">↩ Padrões</button></div><div class="msg" id="m10"></div></div></section>
-</div><script src="health-core.js"></script><script src="health-dsp.js"></script><script>
+</div><script src="elayon-legal.js"></script><script src="health-core.js"></script><script src="health-dsp.js"></script><script>
 let U,ME=null,PF={},AU=[],PL=null,ST=1,ULT=null,mr=null,mic=null,chunks=[];
 const AC=window.AudioContext||window.webkitAudioContext,OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
 const DBP=new Promise((ok,no)=>{const r=indexedDB.open('piloto_db',2);r.onupgradeneeded=()=>{const d=r.result;['sessoes','laudos','base'].forEach(n=>{if(!d.objectStoreNames.contains(n))d.createObjectStore(n,{keyPath:'k'})})};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
@@ -113,7 +114,7 @@ function rasc(){try{const o={};CAMPOS.forEach(i=>o[i]=$(i).value);localStorage.s
 function lerRasc(){try{const o=JSON.parse(localStorage.getItem('pil_rasc_'+U.id));o&&CAMPOS.forEach(i=>{if(o[i]!=null)$(i).value=o[i]})}catch(e){}}
 document.addEventListener('input',()=>{U&&rasc()});
 
-(async()=>{U=await eu();
+(async()=>{U=await eu();try{await legalGate(sb,U,'piloto')}catch(e){}
   const [{data:p},{data:me}]=await Promise.all([sb.from('pilotos_perfil').select('*').eq('id',U.id).maybeSingle(),sb.from('profiles').select('*').eq('id',U.id).maybeSingle()]);
   ME=p;PF=me||{};
   if(p){$('nm').textContent=p.nome_completo;$('cr').textContent=`${p.crm_crfa_crp} • ${p.especialidade}`;$('hs').textContent='REGISTRADO';$('hs').style.color='#2b8a3e'}
@@ -121,6 +122,7 @@ document.addEventListener('input',()=>{U&&rasc()});
   lerRasc();
   const raw=((await tx('sessoes','readonly',s=>s.getAll()).catch(()=>[]))||[]).filter(x=>x.uid===U.id);const rr=raw.find(x=>x.k===U.id+':recortes');RC=rr&&rr.rc||[];AU=raw.filter(x=>x.ab).sort((a,b)=>a.ts-b.ts).slice(-10);
   renAU();renRC();hist();ir(1)})();
+
 
 /* ---------- navegação ---------- */
 const an=()=>AU.map((a,i)=>({a,i,n:i+1})).filter(x=>x.a.res);
@@ -164,7 +166,6 @@ function renAU(){
   $('lista').innerHTML=AU.length?AU.map((a,i)=>`<div class="it"><div class="row"><b>Áudio ${i+1}</b><span class="tag ${a.res?'ok':''}">${a.res?'analisado':'a ouvir'}</span></div><p>${esc(a.nome||a.perg||'—')} • ${Math.round(a.dur||(a.res&&a.res.dur)||0)} s</p><select onchange="AU[${i}].tarefa=this.value;salvar(AU[${i}])" style="margin:4px 0">${TAREFAS.map(t=>`<option ${a.tarefa===t?'selected':''}>${t}</option>`).join('')}</select><audio controls preload="none" style="width:100%;height:32px" src="${url(a)}"></audio><button class="b g sm" onclick="apagar(${i})">🗑 Remover</button></div>`).join(''):'<p>Nenhum áudio ainda.</p>';
   $('cnt').textContent=AU.length+'/10';marcas()}
 async function apagar(i){parar();const o=AU.splice(i,1)[0];await tx('sessoes','readwrite',s=>s.delete(o.k)).catch(()=>{});renAU()}
-
 
 /* ---------- sessão 3: escuta com gráfico ---------- */
 const cv=$('cv'),cx=cv.getContext('2d'),CW=900;
@@ -256,18 +257,28 @@ async function analisarIA(){
   if(!provLista(PF).length)return M(4,'Configure a chave de IA no seu perfil (a mesma usada no cockpit).');
   $('iaT').value='🧠 IA analisando…';M(4,'');
   const dados=S.map(({a,n})=>({sessao:n,audio:a.nome,tarefa:a.tarefa||'não informada',qualidade:(a.res.qual||{}).nivel,crs_temporal:a.res.crs,res:{...a.res,crs:undefined,qual:undefined,jan:undefined,nucp:undefined},marcacoes_do_medico:a.notas||[],fala:a.txt||''}));
-  try{$('iaT').value=(await aiCall(PF,`Paciente (nome omitido por privacidade) (contexto: ${$('pc').value||'—'}). Você recebe ${S.length} sessão(ões) vocal(is) da mesma consulta, na ordem cronológica, com métricas acústicas ESTIMADAS por microfone de celular: ${JSON.stringify(dados)}. As imagens são os espectroides, na mesma ordem. Recortes marcados pelo médico (início/fim do ocorrido; são as ÚLTIMAS ${RC.length} imagens, nesta ordem): ${JSON.stringify(RC.map(r=>({audio:r.a,de_s:r.t0,ate_s:r.t1,legenda:r.txt,met:r.met})))}. Texto/síntese do médico, feito por ele fora do Elayon (com ou sem IA): """${$('sin').value||'(não informado)'}""". Instrumentos já aplicados pelo médico (autodeclarados): ${JSON.stringify(instr())}. BASE DE CONHECIMENTO (única fonte permitida para afirmações da literatura; cite o [ID]):\n${kbAll(($('sin').value||'')+' '+($('pc').value||''))}\n${perfilTxt()}\nRegras: (a) separe MEDIDA, INTERPRETAÇÃO e LIMITAÇÃO; (b) o campo crs_temporal descreve o ritmo de pausas e só pode ser lido como hipótese [CRS-HIP], nunca como achado clínico; (c) se a qualidade for 'atenção' ou 'insuficiente', diga isso primeiro e reduza a confiança; (d) tarefas diferentes não são comparáveis entre si; (e) compare cada sessão com as outras do mesmo paciente, não com normas, pois não há normas na base; (f) o que não estiver na base: escreva 'sem base na literatura carregada'; (g) não cite números de corte nem nomes de doenças como conclusão. Some o texto do médico às sessões e entregue: (1) leitura dos gráficos por sessão; (2) DIAGNÓSTICO TEMPORAL AUXILIAR DE CONTEXTO: como os sinais vocais evoluem ao longo do tempo entre as sessões e dentro de cada uma (início, meio, fim, pausas, retomadas, fadiga), cruzando com o texto do médico; (3) pontos de atenção para o médico avaliar; (4) sugestão de faixas e exercícios de autoexame. É contexto auxiliar: não dê diagnóstico definitivo nem conduta; a decisão e a responsabilidade são do médico.`,[...S.map(x=>x.a.img),...RC.map(r=>r.img)])).trim();rasc();marcas()}catch(e){$('iaT').value='❌ '+e.message}}
+  try{$('iaT').value=(await aiCall(PF,`Paciente (nome omitido por privacidade) (contexto: ${$('pc').value||'—'}). Você recebe ${S.length} sessão(ões) vocal(is) da mesma consulta, na ordem cronológica, com métricas acústicas ESTIMADAS por microfone de celular: ${JSON.stringify(dados)}. As imagens são os espectroides, na mesma ordem. Recortes marcados pelo médico (início/fim do ocorrido; são as ÚLTIMAS ${RC.length} imagens, nesta ordem): ${JSON.stringify(RC.map(r=>({audio:r.a,de_s:r.t0,ate_s:r.t1,legenda:r.txt,met:r.met})))}. Texto/síntese do médico, feito por ele fora do Elayon (com ou sem IA): """${$('sin').value||'(não informado)'}""". Instrumentos já aplicados pelo médico (autodeclarados): ${JSON.stringify(instr())}. BASE DE CONHECIMENTO (única fonte permitida para afirmações da literatura; cite o [ID]):\n${kbAll(($('sin').value||'')+' '+($('pc').value||''))}\n${perfilTxt()}\nRegras: (a) separe MEDIDA, INTERPRETAÇÃO e LIMITAÇÃO; (b) o campo crs_temporal descreve o ritmo de pausas e só pode ser lido como hipótese [CRS-HIP], nunca como achado clínico; (c) se a qualidade for 'atenção' ou 'insuficiente', diga isso primeiro e reduza a confiança; (d) tarefas diferentes não são comparáveis entre si; (e) compare cada sessão com as outras do mesmo paciente, não com normas, pois não há normas na base; (f) o que não estiver na base: escreva 'sem base na literatura carregada'; (g) não cite números de corte nem nomes de doenças como conclusão; (h) nunca diga que o paciente melhorou ou piorou como juízo clínico: diga que a medida mudou em relação à referência. Some o texto do médico às sessões e entregue: (1) leitura dos gráficos por sessão; (2) DIAGNÓSTICO TEMPORAL AUXILIAR DE CONTEXTO: como os sinais vocais evoluem ao longo do tempo entre as sessões e dentro de cada uma (início, meio, fim, pausas, retomadas, fadiga), cruzando com o texto do médico; (3) pontos de atenção para o médico avaliar; (4) sugestão de faixas e exercícios de autoexame. É contexto auxiliar: não dê diagnóstico definitivo nem conduta; a decisão e a responsabilidade são do médico.`,[...S.map(x=>x.a.img),...RC.map(r=>r.img)])).trim();rasc();marcas()}catch(e){$('iaT').value='❌ '+e.message}}
 
 /* ---------- sessão 5: laudo ---------- */
 function instr(){return [1,2,3].map(i=>({n:($('i'+i+'n')||{}).value||'',r:($('i'+i+'r')||{}).value||''})).filter(x=>x.n.trim()).map(x=>({n:x.n.trim().slice(0,60),r:x.r.trim().slice(0,80)}))}
-function sugerirFaixas(){const S=sel4();if(!S.length)return M(5,'Marque ao menos uma sessão analisada na sessão 4.');
-  const g=(k,f)=>S.map(x=>x.a.res[k]&&x.a.res[k][f]).filter(v=>v!=null&&isFinite(v)),mn=a=>Math.min(...a),mx=a=>Math.max(...a),me=a=>a.reduce((s,v)=>s+v,0)/a.length;
-  const fm=g('f0','m'),fd=g('f0','dp');if(!fm.length)return M(5,'As sessões não têm voz sonora suficiente para sugerir.');
-  const mg=Math.max(me(fd)*2,me(fm)*.1);
-  $('f1').value=Math.max(50,Math.round(mn(fm)-mg));$('f2').value=Math.min(600,Math.round(mx(fm)+mg));
-  const j=g('jit','m'),sh=g('shim','m'),hn=g('hnr','m'),ps=S.map(x=>x.a.res.pausas);
-  if(j.length)$('jt').value=(Math.round(mx(j)*1.25*10)/10).toFixed(1);if(sh.length)$('sh').value=(Math.round(mx(sh)*1.25*10)/10).toFixed(1);if(hn.length)$('hn').value=(Math.round(mn(hn)*.75*10)/10).toFixed(1);
-  $('ps').value=Math.ceil(mx(ps)*1.25)+1;rasc();M(5,'Faixas sugeridas: F0 pela média das sessões ±2 desvios (mínimo ±10%); jitter/shimmer = maior valor medido +25%; HNR = menor medido −25%; pausas = maior contagem +25%. Revise e ajuste com seu critério.')}
+let REF=null;
+const mediana=a=>{const b=[...a].sort((x,y)=>x-y),m=b.length>>1;return b.length%2?b[m]:(b[m-1]+b[m])/2};
+function envelope(S,k){/* intervalo seguro: de (média − dp) da sessão mais baixa até (média + dp) da mais alta, limitado ao mín/máx observados */
+  const E=S.map(x=>x.a.res[k]).filter(e=>e&&e.m!=null);if(!E.length)return null;
+  return{lo:Math.min(...E.map(e=>Math.max(e.min,e.m-e.dp))),hi:Math.max(...E.map(e=>Math.min(e.max,e.m+e.dp))),med:mediana(E.map(e=>e.m))}}
+function envCrs(S,f){const v=S.map(x=>x.a.res.crs&&f(x.a.res.crs)).filter(x=>x!=null&&isFinite(x));return v.length?{lo:Math.min(...v),hi:Math.max(...v),med:mediana(v)}:null}
+function sugerirFaixas(){const S0=an().filter(x=>x.a.sel),S=S0.length?S0:sel4();if(!S.length)return M(5,'Marque ao menos uma sessão analisada na sessão 4.');
+  const f0=envelope(S,'f0');if(!f0)return M(5,'As sessões não têm voz sonora suficiente para sugerir.');
+  const hn=envelope(S,'hnr'),jt=envelope(S,'jit'),sh=envelope(S,'shim'),db=envelope(S,'db'),pm=envCrs(S,c=>c.pausas_min),pt=envCrs(S,c=>c.ptr),mu=envCrs(S,c=>c.mu),pa=S.map(x=>x.a.res.pausas);
+  REF={n:S.length,f0,hnr:hn,jit:jt,shim:sh,pm,ptr:pt,mu};
+  $('f1').value=Math.max(50,Math.floor(f0.lo));$('f2').value=Math.min(600,Math.ceil(f0.hi));
+  if(jt)$('jt').value=(Math.ceil(jt.hi*10)/10).toFixed(1);if(sh)$('sh').value=(Math.ceil(sh.hi*10)/10).toFixed(1);if(hn)$('hn').value=(Math.floor(hn.lo*10)/10).toFixed(1);
+  $('ps').value=Math.max(...pa);rasc();
+  M(5,`Faixas montadas com ${S.length} sessão(ões) marcada(s): intervalo entre o menor e o maior valor seguro medido (média ± desvio de cada sessão, limitado ao mínimo e máximo observados). A mediana de cada medida também vai no PDF para o cockpit centralizar os gráficos.`+(S.length<3?' Com menos de 3 sessões o intervalo fica estreito: repita a mesma tarefa mais vezes.':'')+' Revise com seu critério.')}
+function refPayload(){const R0=REF||{n:0},o={n:R0.n||0},f1=+$('f1').value,f2=+$('f2').value,hn=+$('hn').value;
+  o.f0={lo:f1,hi:f2,med:R0.f0?+R0.f0.med.toFixed(1):null};
+  if(R0.hnr)o.hnr={lo:hn,hi:Math.max(hn+1,+R0.hnr.hi.toFixed(1)),med:+R0.hnr.med.toFixed(1)};
+  [['pm','pm'],['ptr','ptr'],['mu','mu']].forEach(([a,b])=>{if(R0[a])o[b]={lo:+R0[a].lo.toFixed(2),hi:+R0[a].hi.toFixed(2),med:+R0[a].med.toFixed(2)}});return o}
 function ref5(){const S=sel4(),m=k=>{const v=S.map(x=>x.a.res[k]&&x.a.res[k].m).filter(x=>x!=null);return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'—'};
   $('ref').innerHTML=S.length?`<b>Referência medida (média de ${S.length} sessão(ões)) — só consulta, as faixas são suas:</b> F0 ${m('f0')} Hz · jitter ${m('jit')}% · shimmer ${m('shim')} dB · HNR ${m('hnr')} dB · pausas ${S.length?Math.round(S.reduce((a,x)=>a+x.a.res.pausas,0)/S.length):'—'}`:'Nenhuma sessão selecionada na sessão 4.'}
 const sg=$('sg'),sc=sg.getContext('2d');let pen=false,ink=false,hab=false,lx=0,ly=0;
@@ -284,7 +295,8 @@ function assPNG(){const w=sg.width,h=sg.height,d=sc.getImageData(0,0,w,h).data;l
   if(x1<x0)return null;const W=x1-x0+1,H=y1-y0+1,c=document.createElement('canvas');c.width=W;c.height=H;c.getContext('2d').drawImage(sg,x0,y0,W,H,0,0,W,H);return {url:c.toDataURL('image/png'),w:W,h:H}}
 
 function pdf(o,S,ass,payload,rcs){
-  const {jsPDF}=window.jspdf,d=new jsPDF({unit:'pt',format:'a4'}),L=40,Wd=515;let y=95;
+
+ const {jsPDF}=window.jspdf,d=new jsPDF({unit:'pt',format:'a4'}),L=40,Wd=515;let y=95;
   d.setProperties({title:'Laudo Elayon Health',author:o.piloto.nome,subject:'ELAYONHEALTH['+payload+']'});
   const need=h=>{if(y+h>800){d.addPage();y=50}};
   const H=t=>{need(34);y+=4;d.setFont('helvetica','bold');d.setFontSize(11);d.setTextColor(42,157,143);d.text(t,L,y);y+=15};
@@ -305,7 +317,7 @@ function pdf(o,S,ass,payload,rcs){
   for(let i=0;i<S.length;i+=2){d.addPage();d.setFont('helvetica','bold');d.setFontSize(11);d.setTextColor(20,40,45);S.slice(i,i+2).forEach((s,j)=>{const yy=40+j*390;d.text(`Espectroide - Áudio ${s.n} - ${new Date(s.ts).toLocaleString('pt-BR')}`,L,yy);d.addImage(s.img,'JPEG',L,yy+8,Wd,309)})}
   d.addPage();d.setDrawColor(10,42,47);d.setLineWidth(3);d.rect(30,30,535,782);d.setTextColor(10,42,47);d.setFont('helvetica','bold');d.setFontSize(22);d.text('CERTIFICADO DE CALIBRAÇÃO',297,130,{align:'center'});d.text('ELAYON HEALTH',297,162,{align:'center'});
   d.setFont('helvetica','normal');d.setFontSize(12);d.text(d.splitTextToSize(`Certifica-se que ${o.paciente.nome} concluiu a avaliação vocal Elayon Health, com faixas de autoexame definidas e assinadas pelo profissional responsável. Carregue este PDF no cockpit Elayon Vibes 8 (aba Conteúdo) para ativar a camada Health.`,420),297,215,{align:'center'});
-  d.setFontSize(8);d.setTextColor(90,110,115);d.text(d.splitTextToSize('Fontes de referência no sistema: '+o.fontes.join(', ')+'. Valores são estimativas acústicas obtidas por microfone de celular. O Elayon Health é um termômetro de sinais vocais e não emite diagnóstico; a interpretação clínica é de responsabilidade do médico signatário.',470),297,320,{align:'center'});
+  d.setFontSize(8);d.setTextColor(90,110,115);d.text(d.splitTextToSize('Fontes de referência no sistema: '+o.fontes.join(', ')+'. Em caso de piora súbita da fala, fraqueza num lado do corpo, boca torta ou confusão, ligue 192 (SAMU). Valores são estimativas acústicas obtidas por microfone de celular. O Elayon Health é um termômetro de sinais vocais e não emite diagnóstico; a interpretação clínica é de responsabilidade do médico signatário.',470),297,320,{align:'center'});
   d.setDrawColor(0,0,0);d.setLineWidth(.8);d.line(150,560,445,560);
   let yy=580;const li=(t,b,sz)=>{d.setFont('helvetica',b?'bold':'normal');d.setFontSize(sz||10);d.setTextColor(10,42,47);d.text(t,297,yy,{align:'center'});yy+=b?16:14};
   li(o.piloto.nome,1,13);li(`${o.piloto.crm}  |  ${o.piloto.esp}`);if(o.piloto.inst)li(o.piloto.inst);if(o.piloto.tel)li('WhatsApp profissional: '+o.piloto.tel);li('Conta Elayon: '+o.piloto.email);
@@ -321,16 +333,16 @@ async function assinar(){
   if(['f1','f2','jt','sh','hn','ps'].some(i=>$(i).value===''))return M(5,'Preencha as faixas (ou use "Sugerir faixas" e revise).');
   if(!(+$('f1').value>=50&&+$('f2').value<=600&&+$('f1').value<+$('f2').value))return M(5,'F0 inconsistente: o mínimo deve ser menor que o máximo, entre 50 e 600 Hz (voz humana).');
   if(+$('jt').value<=0||+$('sh').value<=0||+$('hn').value<0||+$('ps').value<0)return M(5,'Confira jitter, shimmer, HNR e pausas: valores impossíveis.');
-  if(!$('tcle').checked)return M(5,'Confirme o consentimento do paciente.');if(!ink)return M(5,'Habilite o pincel e assine no quadro.');if(!$('ok').checked)return M(5,'Confirme a responsabilidade clínica.');
+  if(!ink)return M(5,'Habilite o pincel e assine no quadro.');if(!$('ok').checked)return M(5,'Confirme a responsabilidade clínica.');
   const ass=assPNG();if(!ass)return M(5,'Assinatura vazia.');
   try{localStorage.setItem('pil_ass_'+U.id,sg.toDataURL('image/png'))}catch(e){}
   M(5,'⏳ gerando PDF…');
-const iaT=$('iaT').value.trim(),ia=/^[🧠❌]/.test(iaT)?'':iaT.slice(0,2000);
+  const iaT=$('iaT').value.trim(),ia=/^[🧠❌]/.test(iaT)?'':iaT.slice(0,2000);
   const corpo={v:2,emitido:new Date().toISOString(),piloto:{nome:ME.nome_completo,crm:ME.crm_crfa_crp,esp:ME.especialidade,inst:ME.instituicao||'',tel:ME.telefone||'',email:U.email},paciente:{nome:pn,email:pe,contexto:$('pc').value.trim()},
     laudo:{obs:ob,sev:+$('sv').value,conduta:$('cd').value},params:{f0min:+$('f1').value,f0max:+$('f2').value,jitmax:+$('jt').value,shimmax:+$('sh').value,hnrmin:+$('hn').value,pausasmax:+$('ps').value},modo:$('md').value,exercicios:$('ex').value.trim(),
     sintese:$('sin').value.trim().slice(0,2000),ia,
     recortes:RC.map(r=>({a:r.a,nome:r.nome,t0:r.t0,t1:r.t1,txt:r.txt,met:r.met,img:r.th})),
-    instrumentos:instr(),consentimento:true,fontes:KB.map(k=>k.id),
+    ref:refPayload(),instrumentos:instr(),fontes:KB.map(k=>k.id),
     sessoes:S.map(({a,n})=>({n,tarefa:a.tarefa||'',qual:(a.res.qual||{}).nivel||'',crs:a.res.crs?{tempo:a.res.crs.tempo,ptr:a.res.crs.ptr,pausas:a.res.crs.pausas,pm:a.res.crs.pausas_min,mu:a.res.crs.mu,sd:a.res.crs.sd,H:a.res.crs.H,tmax:a.res.crs.tmax,fx:a.res.crs.faixas}:null,ts:a.ts,perg:a.nome||'',dur:a.res.dur,f0:mv(a.res.f0),db:mv(a.res.db),jit:mv(a.res.jit),shim:mv(a.res.shim),hnr:mv(a.res.hnr),cpp:mv(a.res.cpp),fon:a.res.fon,pausas:a.res.pausas})),
     notas:S.flatMap(({a,n})=>(a.notas||[]).map(q=>({a:n,t:q.t,txt:q.txt,f0:q.f0,db:q.db}))).slice(0,20)};
   const obj={...corpo,hash:await sha(JSON.stringify(corpo))};
@@ -388,7 +400,17 @@ function tlSintese(){const a=tlA();if(!a||!a.res.jan)return M(6,'Nada para inser
 /* base de conhecimento */
 const baseSalva=()=>Promise.all(BASE.map(b=>tx('base','readwrite',s=>s.put({...b,uid:U.id,k:U.id+':'+b.id})).catch(()=>{})));
 async function baseCarrega(){BASE=((await tx('base','readonly',s=>s.getAll()).catch(()=>[]))||[]).filter(x=>x.uid===U.id).sort((a,b)=>a.ts-b.ts)}
-function renBase(){$('kbF').innerHTML=KB.map(k=>`<div class="it"><b>[${k.id}]</b> <span style="font-size:12px">${esc(k.ref)}</span></div>`).join('');
+const INSTR=[
+ {n:'GRBASI',a:'Voz',m:'Escala perceptivo-auditiva de seis eixos: grau geral, rugosidade, soprosidade, astenia, tensão e instabilidade (nota de 0 a 3 em cada).',c:'O fonoaudiólogo ouve vogal sustentada e fala encadeada e pontua cada eixo.',s:'Usado no Brasil (citado em Borges et al., 2022). Validação: não verifiquei.',ok:1},
+ {n:'CAPE-V (versão brasileira)',a:'Voz',m:'Gravidade global, rugosidade, soprosidade, tensão, altura e intensidade em escala visual-analógica.',c:'Vogais sustentadas, frases-padrão e fala espontânea, julgadas por profissional treinado.',s:'Adaptação brasileira publicada (Behlau et al., 2020, citada em Borges et al., 2022).',ok:1},
+ {n:'LAST (Language Screening Test)',a:'Linguagem pós-AVC',m:'Rastreio rápido de linguagem.',c:'Aplicação breve à beira do leito, com roteiro padronizado.',s:'Adaptado e validado para o português do Brasil em pacientes pós-AVC (JSLHR, 2023).',ok:1},
+ {n:'WAB-R (rastreio)',a:'Linguagem / afasia',m:'Rastreio de linguagem em afasia: fala espontânea, compreensão, repetição e nomeação.',c:'Aplicação presencial guiada, com materiais do teste.',s:'Houve tradução e adaptação transcultural; o trabalho não traz dados de validade nem de confiabilidade.',ok:1},
+ {n:'MoCA',a:'Cognição (rastreio)',m:'Rastreio cognitivo breve: atenção, memória, linguagem, função executiva, visuoespacial e orientação.',c:'Cerca de 10 minutos, pontuação de 0 a 30; o corte depende da versão e da escolaridade.',s:'Existe versão brasileira; não verifiquei a validação nem os cortes.',ok:0},
+ {n:'Teste de Nomeação de Boston',a:'Linguagem',m:'Nomeação de figuras por confrontação visual.',c:'O paciente nomeia figuras apresentadas; o examinador registra acertos e pistas.',s:'Existe versão brasileira; não verifiquei a validação.',ok:0},
+ {n:'BDAE (Boston Diagnostic Aphasia Examination)',a:'Afasia',m:'Bateria ampla de avaliação da afasia.',c:'Aplicação longa por especialista.',s:'Não verifiquei a adaptação brasileira.',ok:0},
+ {n:'Protocolo MAC',a:'Comunicação (hemisfério direito)',m:'Avaliação da comunicação após lesão de hemisfério direito: discurso, prosódia e pragmática, entre outros.',c:'Aplicação por fonoaudiólogo, com tarefas de discurso e compreensão.',s:'Não verifiquei a versão brasileira.',ok:0}];
+function renCat(){$('cat').innerHTML=INSTR.map(i=>`<div class="it"><b>${esc(i.n)}</b> <span class="tag ${i.ok?'ok':''}">${esc(i.a)}</span><p style="font-size:12px"><b>Mede:</b> ${esc(i.m)}<br><b>Como:</b> ${esc(i.c)}<br><b>PT-BR:</b> ${esc(i.s)}</p></div>`).join('')}
+function renBase(){renCat();$('kbF').innerHTML=KB.map(k=>`<div class="it"><b>[${k.id}]</b> <span style="font-size:12px">${esc(k.ref)}</span></div>`).join('');
   $('kbL').innerHTML=BASE.length?BASE.map((b,i)=>`<div class="it"><label style="display:flex;gap:6px;text-transform:none;font-size:12px"><input type="checkbox" style="width:auto" ${b.on?'checked':''} onchange="BASE[${i}].on=this.checked;baseSalva()"> <b>[${b.id}]</b> ${esc(b.ref)} • ${Math.round(b.txt.length/1000)}k caracteres</label><button class="b g sm" onclick="kbDel(${i})">🗑 Remover</button></div>`).join(''):'<p>Nenhuma ainda.</p>'}
 async function kbDel(i){const b=BASE.splice(i,1)[0];await tx('base','readwrite',s=>s.delete(U.id+':'+b.id)).catch(()=>{});renBase()}
 async function kbAdd(inp){const f=inp.files[0];inp.value='';if(!f)return;const ref=$('kbRef').value.trim();if(ref.length<8)return M(7,'Escreva primeiro a referência completa da fonte (autor, ano, título).');
@@ -431,3 +453,5 @@ async function nucRodar(){const L=an().filter(x=>x.a.res.nucp);if(!L.length)retu
     M(9,'✅ Leitura recebida. Ela entra no chat da IA (sessão 8).');renNuc()}catch(e){M(9,'❌ '+e.message)}}
 (async()=>{for(let i=0;i<50&&!U;i++)await new Promise(r=>setTimeout(r,200));if(U)await baseCarrega()})();
 </script></body></html>
+
+  
