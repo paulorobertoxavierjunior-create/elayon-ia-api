@@ -13,16 +13,31 @@ async function jfetch(url,opt,ms=90000){
     if(!r.ok||j.error)throw new Error((j.error&&(j.error.message||j.error))||('Erro '+r.status));return j}
   catch(e){throw new Error(e.name==='AbortError'?'A IA demorou demais. Tente de novo.':e.message)}finally{clearTimeout(t)}}
 const SYS_MEDICO='Você é a IA do cockpit de um médico do Elayon Health (termômetro vocal CRS). Não emita diagnóstico: descreva achados acústicos estimados (microfone de celular), compare sessões, aponte pontos de atenção para o médico avaliar e sugira parâmetros e exercícios de autoexame. Como ler as imagens: fundo branco; espectrograma com cor de azul (pouca energia) a vermelho (muita energia); linha preta = F0; painéis XI e XII = dimensões CRS normalizadas (I–XI); faixa azul-petróleo = voz, rosa = silêncio. Use SOMENTE a base de conhecimento fornecida no pedido para afirmar algo da literatura, citando o [ID]; o que não estiver nela deve ser marcado como "sem base na literatura carregada". Separe medida, interpretação e limitação. Linguagem clara, em português do Brasil, objetiva.';
-async function aiCall(ME,prompt,imgs=[],sys=SYS_MEDICO){try{return await aiCall0(ME,prompt,imgs,sys)}catch(e){if(/quota|429|exhausted|rate/i.test(e.message))throw new Error('Cota da IA esgotada (o plano gratuito do Gemini permite ~20 pedidos por dia). Tente mais tarde ou troque a chave no perfil.');throw e}}
-async function aiCall0(ME,prompt,imgs,sys){
-  const k=ME&&ME.ai_key,pv=(ME&&ME.ai_provider)||'gemini';
-  if(!k)throw new Error('Configure a chave de IA no seu perfil (a mesma do cockpit).');
-  if(pv==='openai'){const c=[{type:'text',text:prompt},...imgs.map(u=>({type:'image_url',image_url:{url:u}}))];
-    const j=await jfetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+k},body:JSON.stringify({model:'gpt-4o',temperature:.2,messages:[{role:'system',content:sys},{role:'user',content:c}]})});
-    const t=j.choices&&j.choices[0]&&j.choices[0].message.content;if(!t)throw new Error('A IA não devolveu texto.');return t}
-  const parts=[{text:prompt},...imgs.map(u=>({inline_data:{mime_type:'image/jpeg',data:u.split(',')[1]}}))];
-  const j=await jfetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${k}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({generationConfig:{temperature:.2},systemInstruction:{parts:[{text:sys}]},contents:[{role:'user',parts}]})});
-  const t=j.candidates&&j.candidates[0]&&j.candidates[0].content&&j.candidates[0].content.parts&&j.candidates[0].content.parts[0].text;if(!t)throw new Error('A IA não devolveu texto (conteúdo bloqueado ou vazio).');return t}
+/* ---- provedores de IA (mesma tabela do perfil.html). Modelos e limites gratuitos mudam: o campo modelo é editável no perfil. ---- */
+const PROV={gemini:{nome:'Google Gemini',modelo:'gemini-2.5-flash',vis:true},
+ groq:{nome:'Groq',url:'https://api.groq.com/openai/v1/chat/completions',modelo:'meta-llama/llama-4-scout-17b-16e-instruct',vis:true},
+ mistral:{nome:'Mistral',url:'https://api.mistral.ai/v1/chat/completions',modelo:'mistral-small-latest',vis:true},
+ openrouter:{nome:'OpenRouter',url:'https://openrouter.ai/api/v1/chat/completions',modelo:'meta-llama/llama-3.3-70b-instruct:free',vis:false},
+ openai:{nome:'OpenAI',url:'https://api.openai.com/v1/chat/completions',modelo:'gpt-4o',vis:true},
+ custom:{nome:'Personalizado (compatível OpenAI)',modelo:'',vis:false}};
+function provLista(p){const cfg=(p&&p.ai_cfg)||{},act=(p&&p.ai_provider)||'gemini',L=[];
+  const add=id=>{const c=cfg[id]||{},key=id===act?(p.ai_key||c.key):c.key;if(key)L.push({p:id,key,model:c.model||'',url:c.url||'',vis:!!c.vis})};
+  add(act);if(cfg._fb!==false)Object.keys(PROV).filter(k=>k!==act).forEach(add);return L}
+const RUIM=/quota|429|exhausted|rate|limit|overload|503|capacity|unavailable/i;
+async function aiCall(ME,prompt,imgs=[],sys=SYS_MEDICO){
+  const L=provLista(ME);if(!L.length)throw new Error('Configure a chave de IA no seu perfil (a mesma do cockpit).');let ult=null;
+  for(const c of L){try{const t=await aiUm(c,prompt,imgs,sys);aiCall.ultimo=c.p;return t}catch(e){ult=e;if(!RUIM.test(e.message))throw e}}
+  throw new Error('Cota ou limite da IA esgotado em todos os provedores configurados ('+L.map(c=>PROV[c.p].nome).join(', ')+'). Tente mais tarde ou adicione outro provedor gratuito no perfil.')}
+async function aiUm(c,prompt,imgs,sys){
+  const P=PROV[c.p]||PROV.custom,model=c.model||P.modelo,vis=P.vis||c.vis,im=vis?imgs:[];
+  if(c.p==='gemini'){
+    const parts=[{text:prompt},...im.map(u=>({inline_data:{mime_type:'image/jpeg',data:u.split(',')[1]}}))];
+    const j=await jfetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${c.key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({generationConfig:{temperature:.2},systemInstruction:{parts:[{text:sys}]},contents:[{role:'user',parts}]})});
+    const t=j.candidates&&j.candidates[0]&&j.candidates[0].content&&j.candidates[0].content.parts&&j.candidates[0].content.parts[0].text;if(!t)throw new Error('A IA não devolveu texto (conteúdo bloqueado ou vazio).');return t}
+  const url=c.url||P.url;if(!url)throw new Error('Informe o endereço (URL) do provedor personalizado no perfil.');if(!model)throw new Error('Informe o modelo no perfil.');
+  const txt=(imgs.length&&!im.length?'[As imagens não foram enviadas: o modelo escolhido não lê imagens.]\n':'')+prompt,cont=im.length?[{type:'text',text:txt},...im.map(u=>({type:'image_url',image_url:{url:u}}))]:txt;
+  const j=await jfetch(url,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+c.key},body:JSON.stringify({model,temperature:.2,messages:[{role:'system',content:sys},{role:'user',content:cont}]})});
+  const t=j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content;if(!t)throw new Error('A IA não devolveu texto.');return t}
 
 /* Base de conhecimento do piloto: só entra o que foi conferido na fonte. Acrescentar item novo = abrir a fonte antes. */
 const KB=[
