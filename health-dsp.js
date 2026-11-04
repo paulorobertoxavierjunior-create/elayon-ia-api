@@ -88,3 +88,59 @@ async function wav(blob){
 async function pcm16(blob){const ab=await blob.arrayBuffer(),AC=window.OfflineAudioContext||window.webkitOfflineAudioContext,buf=await new AC(1,1,16000).decodeAudioData(ab),oc=new AC(1,Math.ceil(buf.duration*16000),16000),s=oc.createBufferSource();s.buffer=buf;s.connect(oc.destination);s.start();return (await oc.startRendering()).getChannelData(0)}
 
 function ligarAnalise(track){R.ctx=new (window.AudioContext||window.webkitAudioContext)();R.ctx.resume();R.an=R.ctx.createAnalyser();R.an.fftSize=2048;R.an.smoothingTimeConstant=.3;R.sr=R.ctx.sampleRate;R.ctx.createMediaStreamSource(new MediaStream([track])).connect(R.an);R.buf=new Float32Array(2048);R.fb=new Float32Array(1024)}
+
+/* ===== CRS temporal (artigo CRS: e_i=(t_i,a_i); Δt; μ, σ, entropia, densidade, extremos) =====
+   Pausa = inatividade de ENERGIA (limiar adaptativo sobre o piso de ruído), não ausência de voz sonora:
+   assim consoantes surdas (s, f, t) não contam como pausa. Resolução: 50 ms. */
+const CRS_CFG={dt:.05,limiar_db:9,min_pausa:.10,faixas:[['micro',.10,.20],['curta',.20,.60],['media',.60,1.20],['longa',1.20,1e9]],
+  origem:'faixas alinhadas ao núcleo CRS (config.json: 2/6/12 quadros de 100 ms); micro = 100–200 ms; valores a confirmar pelo autor'};
+function crsTemporal(tk){
+  const C=CRS_CFG,n=tk.length;if(n<20)return null;
+  const tm=i=>{const k=tk[Math.min(i,n-1)];return k.ct!=null?k.ct:i*C.dt};
+  const a0=tk.map(k=>k.db>k.floor+C.limiar_db),at=a0.map((v,i)=>((a0[i-1]?1:0)+(v?1:0)+(a0[i+1]?1:0))>=2);   // suaviza oscilações de 1 quadro
+  let runs=[];for(let i=0;i<n;){let j=i;while(j<n&&at[j]===at[i])j++;runs.push({a:at[i],i,j,t0:tm(i),d:(j<n?tm(j):tm(n-1)+C.dt)-tm(i)});i=j}
+  while(runs.length&&!runs[0].a)runs.shift();while(runs.length&&!runs[runs.length-1].a)runs.pop();
+  if(!runs.length)return null;
+  const T0=runs[0].t0,total=runs.reduce((s,r)=>s+r.d,0);if(total<=0)return null;
+  const fala=runs.filter(r=>r.a),pau=runs.filter(r=>!r.a&&r.d>=C.min_pausa),pd=pau.map(r=>r.d),m=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0,r2=x=>+(+x).toFixed(2);
+  const mu=m(pd),sd=Math.sqrt(m(pd.map(x=>(x-mu)**2)));
+  const bins=new Array(6).fill(0);pd.forEach(x=>{bins[Math.max(0,Math.min(5,Math.floor(Math.log2(x/C.min_pausa))))]++});
+  const H=pd.length>=3?-bins.filter(b=>b).reduce((s,b)=>s+(b/pd.length)*Math.log2(b/pd.length),0)/Math.log2(6):null;
+  const fx={};C.faixas.forEach(([nm,a,b])=>{fx[nm]=pd.filter(x=>x>=a&&x<b).length});
+  const tercos=[0,1,2].map(q=>{const w0=T0+q*total/3,w1=T0+(q+1)*total/3;let ac=0;fala.forEach(r=>{ac+=Math.max(0,Math.min(r.t0+r.d,w1)-Math.max(r.t0,w0))});
+    const np=pau.filter(r=>r.t0>=w0&&r.t0<w1).length;return{ptr:r2(ac/(total/3)),pm:r2(np/(total/3)*60)}});
+  return{tempo:r2(total),ptr:r2(fala.reduce((s,r)=>s+r.d,0)/total),pausas:pd.length,pausas_min:r2(pd.length/total*60),mu:r2(mu),sd:r2(sd),H:H==null?null:r2(H),
+    tmax:pd.length?r2(Math.max(...pd)):0,tmin:pd.length?r2(Math.min(...pd)):0,cont:r2(fala.reduce((s,x)=>s+(x.d>=1?x.d:0),0)/Math.max(1e-9,fala.reduce((s,x)=>s+x.d,0))*100),faixas:fx,tempo_pausa_pct:r2(pd.reduce((s,x)=>s+x,0)/total*100),fala_media:r2(m(fala.map(r=>r.d))),tercos,res_ms:Math.round(C.dt*1000)}
+}
+function qualidade(tk){
+  const C=CRS_CFG,n=tk.length,dur=n*C.dt,at=tk.filter(k=>k.db>k.floor+C.limiar_db),sn=at.length?med(at.map(k=>k.db-k.floor)):0,clip=n?tk.filter(k=>k.pk>=.99).length/n:0,mot=[];let nv=0;
+  const up=(l,t)=>{if(l>nv)nv=l;mot.push(t)};
+  if(dur<10)up(1,'áudio curto (<10 s): medidas de tempo pouco estáveis');
+  if(sn<10)up(2,`relação sinal-ruído baixa (~${sn.toFixed(0)} dB)`);else if(sn<15)up(1,`ruído moderado (SNR~ ${sn.toFixed(0)} dB)`);
+  if(clip>.02)up(1,`saturação do microfone em ${(clip*100).toFixed(0)}% do tempo`);
+  if(n&&at.length/n<.2)up(2,'pouca fala detectada');
+  return{nivel:['boa','atenção','insuficiente'][nv],snr:+sn.toFixed(1),clip:+(clip*100).toFixed(1),motivos:mot,criterio:'critérios internos do Elayon, ainda sem validação publicada'}
+}
+
+/* Linha do tempo: janelas de w s, comparadas com o PRÓPRIO áudio (mediana e MAD). Sinalizações são hipóteses de observação, não achados. */
+function crsJanelas(tk,w){
+  const C=CRS_CFG;w=w||C.janela||3;const n=tk.length,per=Math.round(w/C.dt);if(n<per*4)return null;
+  const a0=tk.map(k=>k.db>k.floor+C.limiar_db),at=a0.map((v,i)=>((a0[i-1]?1:0)+(v?1:0)+(a0[i+1]?1:0))>=2);
+  let i0=at.indexOf(true),i1=at.lastIndexOf(true);if(i0<0)return null;const nj=Math.floor((i1-i0+1)/per);if(nj<4)return null;
+  const tm=i=>{const k=tk[Math.min(i,n-1)];return k.ct!=null?k.ct:i*C.dt},mp=Math.round(C.min_pausa/C.dt),J=[];
+  for(let q=0;q<nj;q++){const s=i0+q*per,e=s+per;let act=0,ons=0,run=0,mx=0,pz=0,np=0;
+    const fl=()=>{if(run>=mp){pz+=run;np++;if(run>mx)mx=run}run=0};
+    for(let i=s;i<e;i++){if(at[i]){act++;if(i>0&&!at[i-1])ons++;fl()}else run++}fl();
+    J.push({t0:+tm(s).toFixed(1),t1:+tm(e-1).toFixed(1),ptr:+(act/per).toFixed(2),pausas:np,tmax:+(mx*C.dt).toFixed(2),pp:+(pz/per).toFixed(2),ritmo:+(ons/w).toFixed(2),flag:[]})}
+  const md=a=>{const b=[...a].sort((x,y)=>x-y),m=b.length>>1;return b.length%2?b[m]:(b[m-1]+b[m])/2};
+  const mp_=md(J.map(x=>x.pp)),mr_=md(J.map(x=>x.ritmo)),sp=1.4826*Math.max(.05,md(J.map(x=>Math.abs(x.pp-mp_)))),sr=1.4826*Math.max(.3,md(J.map(x=>Math.abs(x.ritmo-mr_))));
+  J.forEach(x=>{const zp=(x.pp-mp_)/sp,zr=(x.ritmo-mr_)/sr;x.zp=+zp.toFixed(1);x.zr=+zr.toFixed(1);
+    if(zp>=1.5&&x.tmax>=.6)x.flag.push('hesitação');if(zr>=1.5)x.flag.push('aceleração');if(zr<=-1.5)x.flag.push('desaceleração')});
+  return{w,med:{pp:+mp_.toFixed(2),ritmo:+mr_.toFixed(2)},jan:J,nota:'z robusto (mediana/MAD) contra o próprio áudio; |z|≥1,5 sinaliza. Hipóteses de observação do método, sem validação clínica.'}
+}
+/* Mapeamento PROVISÓRIO das medidas para o payload do núcleo CRS (Render) */
+function nucPayload(tk,c,q,ctx){
+  const C=CRS_CFG,at=tk.filter(k=>k.db>k.floor+C.limiar_db),lv=at.map(k=>k.db-k.floor),m=lv.length?lv.reduce((s,x)=>s+x,0)/lv.length:0,sd=Math.sqrt(lv.length?lv.reduce((s,x)=>s+(x-m)**2,0)/lv.length:0),cl=x=>Math.max(0,Math.min(100,x));
+  let sp=null;const fr=at.filter(k=>k.sp&&k.sp.length>=9);if(fr.length){const L=fr[0].sp.length,t=[0,0,0];fr.forEach(k=>{for(let i=0;i<L;i++)t[Math.min(2,Math.floor(i*3/L))]+=Math.max(0,+k.sp[i]||0)});const S=t[0]+t[1]+t[2]||1;sp={graves:t[0]/S*100,medios:t[1]/S*100,agudos:t[2]/S*100}}
+  return{duration_sec:c.tempo,silence_pct:100-c.ptr*100,pause_count:c.pausas,mean_pause_ms:c.mu*1000,continuity_pct:c.cont,oscillation_pct:cl(m?sd/m*100:0),energy_pct:cl(m/40*100),noise_pct:cl(100-q.snr*5),spectrum_snapshot:sp||{},context:ctx||''}
+}
