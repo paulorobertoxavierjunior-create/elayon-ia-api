@@ -116,6 +116,7 @@
           <option value="groq">Groq (gratuito, rápido, lê imagens)</option>
           <option value="mistral">Mistral (plano gratuito, lê imagens)</option>
           <option value="openrouter">OpenRouter (modelos gratuitos ":free")</option>
+          <option value="nvidia">NVIDIA NIM (build.nvidia.com, endpoint gratuito)</option>
           <option value="openai">OpenAI (pago)</option>
           <option value="custom">Personalizado (compatível com OpenAI)</option>
         </select>
@@ -132,8 +133,8 @@
       <div class="input-group" id="grpUrl" style="display:none">
         <label for="inputUrl">Endereço da API (termina em /chat/completions)</label>
         <input type="text" id="inputUrl" placeholder="https://.../v1/chat/completions" autocomplete="off" />
-        <label style="display:flex;gap:6px;align-items:center;text-transform:none;margin-top:6px"><input type="checkbox" id="chkVis" style="width:auto"> este modelo lê imagens</label>
       </div>
+      <div id="grpVis" style="display:none"><label style="display:flex;gap:6px;align-items:center;text-transform:none;margin-bottom:8px"><input type="checkbox" id="chkVis" style="width:auto"> este modelo lê imagens (os recortes dos gráficos só são enviados se marcado)</label></div>
       <label style="display:flex;gap:6px;align-items:center;text-transform:none;margin:8px 0"><input type="checkbox" id="chkFb" style="width:auto" checked> Se a cota do principal acabar, tentar automaticamente os outros provedores com chave</label>
       <div class="actions" style="grid-template-columns:1fr 1fr;margin-top:8px">
         <button class="btn primary" id="btnSalvarAiConfig" style="padding:10px;font-size:11px" type="button">Salvar IA</button>
@@ -152,6 +153,7 @@
     </div>
 
     <div class="msg" id="msg"></div>
+    <p class="hint" style="text-align:center;margin-top:10px"><a href="termos.html">Termos de Uso</a> · <a href="privacidade.html">Política de Privacidade</a></p>
   </main>
 
   <script>
@@ -169,7 +171,7 @@
     }
 
     async function initAuth() {
-const { data: { session }, error } = await supabaseClient.auth.getSession();
+      const { data: { session }, error } = await supabaseClient.auth.getSession();
       if (error || !session) {
         window.location.href = 'login.html';
         return;
@@ -274,21 +276,22 @@ const { data: { session }, error } = await supabaseClient.auth.getSession();
       groq:{nome:'Groq',url:'https://api.groq.com/openai/v1/chat/completions',modelo:'meta-llama/llama-4-scout-17b-16e-instruct',vis:true,link:'https://console.groq.com/keys',dica:'Chave grátis no console da Groq. Também transcreve voz (Whisper) no cockpit.'},
       mistral:{nome:'Mistral',url:'https://api.mistral.ai/v1/chat/completions',modelo:'mistral-small-latest',vis:true,link:'https://console.mistral.ai/api-keys',dica:'Plano gratuito exige criar conta e chave no console da Mistral.'},
       openrouter:{nome:'OpenRouter',url:'https://openrouter.ai/api/v1/chat/completions',modelo:'meta-llama/llama-3.3-70b-instruct:free',vis:false,link:'https://openrouter.ai/keys',dica:'Modelos com final ":free" não cobram, mas têm limite por minuto e por dia. O padrão aqui não lê imagens.'},
+      nvidia:{nome:'NVIDIA NIM',url:'https://integrate.api.nvidia.com/v1/chat/completions',modelo:'meta/llama-3.3-70b-instruct',vis:false,link:'https://build.nvidia.com/models',dica:'No catálogo, filtre "Free Endpoint", abra o modelo, gere a chave (começa com nvapi-). Cada modelo tem uma página com o nome exato. Para ler imagens, troque o modelo por um multimodal (ex.: google/gemma-3-27b-it) e marque a caixa de imagens.'},
       openai:{nome:'OpenAI',url:'https://api.openai.com/v1/chat/completions',modelo:'gpt-4o',vis:true,link:'https://platform.openai.com/api-keys',dica:'Pago.'},
       custom:{nome:'Personalizado',modelo:'',vis:false,link:'',dica:'Qualquer serviço com API compatível com OpenAI (Cerebras, GitHub Models etc.): informe endereço e modelo.'}
     };
     let aiCfg = {}, aiAtual = 'gemini';
     const $id = (i) => document.getElementById(i);
     function aiGuardaForm() {
-      const k = $id('inputApiKey').value.trim();
+      const ex = aiCfg[aiAtual] && aiCfg[aiAtual].key, k = $id('inputApiKey').value.trim() || ex;
       if (!k) { delete aiCfg[aiAtual]; return; }
       aiCfg[aiAtual] = { key: k, model: $id('inputModel').value.trim(), url: $id('inputUrl').value.trim(), vis: $id('chkVis').checked };
     }
     function aiMostra(id) {
       aiAtual = id; const c = aiCfg[id] || {}, P = PROV[id];
-      $id('selectAiProvider').value = id; $id('inputApiKey').value = c.key || ''; $id('inputModel').value = c.model || '';
+      $id('selectAiProvider').value = id; $id('inputApiKey').value = ''; $id('inputApiKey').placeholder = c.key ? '•••• chave guardada (cole outra só para trocar)' : 'Cole a chave...'; $id('inputModel').value = c.model || '';
       $id('inputModel').placeholder = P.modelo ? 'padrão: ' + P.modelo : 'nome do modelo';
-      $id('inputUrl').value = c.url || ''; $id('chkVis').checked = !!c.vis; $id('grpUrl').style.display = id === 'custom' ? 'block' : 'none';
+      $id('inputUrl').value = c.url || ''; $id('chkVis').checked = !!c.vis; $id('grpUrl').style.display = id === 'custom' ? 'block' : 'none'; $id('grpVis').style.display = ['custom','nvidia','openrouter'].includes(id) ? 'block' : 'none';
       $id('aiLink').innerHTML = P.dica + (P.link ? ' <a href="' + P.link + '" target="_blank" rel="noopener">Obter chave ↗</a>' : '');
       aiLista();
     }
@@ -321,7 +324,7 @@ const { data: { session }, error } = await supabaseClient.auth.getSession();
       aiLista(); return true;
     }
     async function testarAi() {
-      const id = aiAtual, key = $id('inputApiKey').value.trim(), P = PROV[id], model = $id('inputModel').value.trim() || P.modelo, url = $id('inputUrl').value.trim() || P.url, m = $id('aiMsg');
+      const id = aiAtual, key = $id('inputApiKey').value.trim() || (aiCfg[id] && aiCfg[id].key) || '', P = PROV[id], model = $id('inputModel').value.trim() || P.modelo, url = $id('inputUrl').value.trim() || P.url, m = $id('aiMsg');
       if (!key) { m.textContent = 'Cole a chave primeiro.'; m.className = 'msg msg-error'; return; }
       m.textContent = '⏳ testando…'; m.className = 'msg';
       const c = new AbortController(), t = setTimeout(() => c.abort(), 30000);
