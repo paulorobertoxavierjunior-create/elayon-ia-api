@@ -122,7 +122,7 @@ async function carregar(){
   U.id=session.user.id;U.email=session.user.email||'';U.src=lerSrc();
   const {data:p}=await tout(sb.from('profiles').select('*').eq('id',U.id).single(),8000,{data:null});
   U.nome=(p&&p.nome)||(session.user.email||'Operador').split('@')[0];U.tokens=(p&&p.tokens)??0;
-  U.prov=(p&&p.ai_provider)||'gemini';U.key=(p&&p.ai_key)||'';U.proto=(p&&(p.protocolo_ia||p.protocolo))||'';
+  U.prov=(p&&p.ai_provider)||'gemini';U.key=(p&&p.ai_key)||'';U.pr=p||{};U.proto=(p&&(p.protocolo_ia||p.protocolo))||'';
   aplicarHealth(p);if(p&&p.avatar_url)$('hudAvatar').src=p.avatar_url;hud();
   const todas=(await tout(tx('readonly',s=>s.getAll()).catch(()=>[]),3000,[]))||[];
   for(const s of todas)if(s.uid===U.id&&!s.tk)await tx('readwrite',st=>st.delete(s.k)).catch(()=>{});
@@ -250,7 +250,6 @@ G[11]=(x,W,h,t)=>{fade(x,W,h,1);const S=serie(),n=S.length;if(n<2)return;
   if(R.rep){x.fillStyle='#fff';x.fillRect(Math.min(1,$('crsAudio').currentTime*20/n)*W,0,2,h)}};
 
 let last=0,tt=0,fr=0;
-
 function loop(ms){requestAnimationFrame(loop);if(ms-last<33)return;last=ms;tt+=.033;
   if(R.rep){const i=Math.floor($('crsAudio').currentTime*20),tk=R.rep.tk;H=tk.slice(Math.max(0,i-199),i+1)}
   const c=H[H.length-1];if(!c)return;
@@ -345,9 +344,11 @@ async function whisperLocal(blob){
 async function transcrever(blob){
   let t='';
   if(U.key){try{const w=await wav(blob);
-    if(U.prov==='openai'){const f=new FormData();f.append('file',new Blob([w],{type:'audio/wav'}),'a.wav');f.append('model','whisper-1');f.append('language','pt');
+    if(U.prov==='groq'){const f=new FormData();f.append('file',new Blob([w],{type:'audio/wav'}),'a.wav');f.append('model','whisper-large-v3-turbo');f.append('language','pt');
+      t=(await (await fetch('https://api.groq.com/openai/v1/audio/transcriptions',{method:'POST',headers:{Authorization:'Bearer '+U.key},body:f})).json()).text||''}
+    else if(U.prov==='openai'){const f=new FormData();f.append('file',new Blob([w],{type:'audio/wav'}),'a.wav');f.append('model','whisper-1');f.append('file',new Blob([w],{type:'audio/wav'}),'a.wav');f.append('model','whisper-1');f.append('language','pt');
       t=(await (await fetch('https://api.openai.com/v1/audio/transcriptions',{method:'POST',headers:{Authorization:'Bearer '+U.key},body:f})).json()).text||''}
-    else{const j=await (await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CFG.GEMINI}:generateContent?key=${U.key}`,{method:'POST',headers:{'Content-Type':'application/json'},
+    else if(U.prov==='gemini'||!U.prov){const j=await (await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CFG.GEMINI}:generateContent?key=${U.key}`,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({contents:[{parts:[{text:'Transcreva fielmente a fala em português do Brasil. Responda somente com a transcrição. Se não houver fala, responda exatamente: (silêncio)'},{inline_data:{mime_type:'audio/wav',data:b64(w)}}]}]})})).json();
       t=j.candidates[0].content.parts[0].text}
     t=t.trim();if(t==='(silêncio)')return ''}catch(e){t=''}}
@@ -386,16 +387,18 @@ function falar(t){return new Promise(res=>{try{speechSynthesis.cancel();const u=
   const fim=()=>{if(f)return;f=1;IA.on=false;IA.pulse=0;if(CFG.IA_CAPTA_MIC&&!rec)fecharCaptacao();res()};
   u.onstart=()=>{IA.on=true};u.onboundary=()=>{IA.pulse=1};u.onend=fim;u.onerror=fim;setTimeout(fim,90000);
   if(CFG.IA_CAPTA_MIC&&!rec)crsAudio().catch(()=>{});speechSynthesis.speak(u)}catch(e){IA.on=false;res()}})}
+const PROV={gemini:{modelo:'gemini-2.5-flash',vis:true},groq:{url:'https://api.groq.com/openai/v1/chat/completions',modelo:'meta-llama/llama-4-scout-17b-16e-instruct',vis:true},mistral:{url:'https://api.mistral.ai/v1/chat/completions',modelo:'mistral-small-latest',vis:true},openrouter:{url:'https://openrouter.ai/api/v1/chat/completions',modelo:'meta-llama/llama-3.3-70b-instruct:free',vis:false},openai:{url:'https://api.openai.com/v1/chat/completions',modelo:'gpt-4o',vis:true},custom:{modelo:'',vis:false}};
+function provLista(){const p=U.pr||{},cfg=p.ai_cfg||{},act=U.prov||'gemini',L=[];const add=id=>{const c=cfg[id]||{},key=id===act?(U.key||c.key):c.key;if(key)L.push({p:id,key,model:c.model||'',url:c.url||'',vis:!!c.vis})};add(act);if(cfg._fb!==false)Object.keys(PROV).filter(x=>x!==act).forEach(add);return L}
+async function iaUm(c,sys,hist,ims){const P=PROV[c.p]||PROV.custom,model=c.model||(c.p==='gemini'?CFG.GEMINI:P.modelo),vis=P.vis||c.vis,last=hist.length-1;
+  if(c.p==='gemini'){const m=hist.map((h,i)=>({role:h.r==='user'?'user':'model',parts:(i===last&&ims.length)?[{text:h.t},...ims.map(b=>({inline_data:{mime_type:'image/jpeg',data:b}}))]:[{text:h.t}]}));
+    const j=await (await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${c.key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:m})})).json();return j.candidates[0].content.parts[0].text}
+  const url=c.url||P.url;if(!url||!model)throw new Error('config');
+  const m=hist.map((h,i)=>({role:h.r==='user'?'user':'assistant',content:(i===last&&ims.length&&vis)?[{type:'text',text:h.t},...ims.map(b=>({type:'image_url',image_url:{url:'data:image/jpeg;base64,'+b}}))]:h.t}));
+  const j=await (await fetch(url,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+c.key},body:JSON.stringify({model,messages:[{role:'system',content:sys},...m]})})).json();return j.choices[0].message.content}
 async function ia(prompt,img){
   U.hist.push({r:'user',t:prompt});U.hist=U.hist.slice(-10);let out='';
   const sys=SYS+(U.proto?' Protocolo definido pelo médico responsável: '+U.proto:'')+(U.relatorio?' Camada Elayon Health: relatório médico validado deste usuário. Leve-o em conta antes de responder, use como contexto de cuidado e não diagnostique: '+U.relatorio:'')+fontesSys(),im=img?img.split(',')[1]:null,rcI=(U.health==='ok'&&(lerLocal()||{obj:{}}).obj.recortes||[]).slice(0,6).map(r=>r.img.split(',')[1]),ims=[...(im?[im]:[]),...rcI],last=U.hist.length-1;
-  try{if(U.key){
-    if(U.prov==='openai'){
-      const m=U.hist.map((h,i)=>({role:h.r==='user'?'user':'assistant',content:(i===last&&ims.length)?[{type:'text',text:h.t},...ims.map(b=>({type:'image_url',image_url:{url:'data:image/jpeg;base64,'+b}}))]:h.t}));
-      out=(await (await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+U.key},body:JSON.stringify({model:CFG.OPENAI,messages:[{role:'system',content:sys},...m]})})).json()).choices[0].message.content
-    }else{
-      const m=U.hist.map((h,i)=>({role:h.r==='user'?'user':'model',parts:(i===last&&ims.length)?[{text:h.t},...ims.map(b=>({inline_data:{mime_type:'image/jpeg',data:b}}))]:[{text:h.t}]}));
-      out=(await (await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CFG.GEMINI}:generateContent?key=${U.key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:m})})).json()).candidates[0].content.parts[0].text}}}catch(e){out=''}
+  try{for(const c of provLista()){try{out=await iaUm(c,sys,U.hist,ims);if(out)break}catch(e){}}}catch(e){out=''}
   out=(out||'').trim();if(out)U.hist.push({r:'ia',t:out});else U.hist.pop();return out
 }
 async function iaFalar(txt,res,img,fim){
@@ -523,4 +526,3 @@ async function resolverTexto(blob,bub){
 
 addEventListener('DOMContentLoaded',()=>{fit();requestAnimationFrame(loop);aplicaCol();layers();carregar().catch(e=>{falha('Falha ao carregar: '+(e.message||e));try{if(U.id)micPronto();prontoStart()}catch(x){}})});
 </script></body></html>
-
