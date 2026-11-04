@@ -2,7 +2,7 @@
 </head><body><div class="w">
 <div class="hd"><span>ELAYON HEALTH • COCKPIT DO PILOTO • <b id="hs" style="color:#d9534f">SEM CADASTRO</b></span><a href="cockpit.html">⬅️ Cockpit</a></div>
 <div class="c"><h1 id="nm">Piloto</h1><p id="cr">—</p><div id="av"></div></div>
-<div class="tabs" id="tb"><button onclick="tab(1)">1 Paciente</button><button onclick="tab(2)">2 Áudios</button><button onclick="tab(3)">3 Escuta</button><button onclick="tab(4)">4 Síntese</button><button onclick="tab(5)">5 Laudo</button><button onclick="tab(6)">6 Linha do tempo</button><button onclick="tab(7)">7 Base</button><button onclick="tab(8)">8 IA</button><button onclick="tab(9)">9 Núcleo CRS</button><button onclick="tab(10)">10 Config</button></div>
+<div class="tabs" id="tb"><button onclick="tab(1)">1 Paciente</button><button onclick="tab(2)">2 Áudios</button><button onclick="tab(3)">3 Escuta</button><button onclick="tab(4)">4 Síntese</button><button onclick="tab(5)">5 Laudo</button><button onclick="tab(6)">6 Linha do tempo</button><button onclick="tab(7)">7 Base</button><button onclick="tab(8)">8 IA</button><button onclick="tab(9)">9 Núcleo CRS</button><button onclick="tab(10)">10 Config</button><button onclick="tab(11)" style="order:-1">⚡ Atendimento</button></div>
 
 <section class="st on" id="s1"><div class="c"><h3>Sessão 1 • Paciente</h3>
 <div class="how"><b>O que fazer:</b> identifique o paciente. O <b>e-mail</b> precisa ser o da conta Elayon dele: o PDF só abre no cockpit do paciente se o e-mail bater. Seus dados profissionais vêm do cadastro de piloto.</div>
@@ -45,6 +45,7 @@
 <div class="nav"><button class="b g" onclick="tab(3)">⬅ Voltar</button><button class="b" onclick="tab(5)">Próximo ➜</button></div></section>
 
 <section class="st" id="s5"><div class="c"><h3>Sessão 5 • Laudo, assinatura e PDF</h3>
+<div id="rel5"></div>
 <div class="how"><b>O que fazer:</b> escreva suas observações e o pré-diagnóstico, preencha as <b>faixas manualmente</b>, habilite o <b>pincel</b> (tinta preta) e assine. O PDF sai com suas credenciais completas no final e a assinatura sobreposta, sem fundo. Depois: visualize, baixe e envie ao paciente para ele carregar no Health.</div>
 <div><label>Observações clínicas / pré-diagnóstico de avaliação (sua responsabilidade)</label><textarea id="ob" style="min-height:110px"></textarea></div>
 <div class="g2"><div><label>Severidade (0–10)</label><input id="sv" type="number" min="0" max="10" value="5"></div><div><label>Conduta</label><input id="cd" value="Fonoaudiologia 2x/semana"></div></div>
@@ -69,6 +70,7 @@
 <div class="how"><b>O que é:</b> o áudio é dividido em janelas (ver Config). Em cada janela medimos <b>proporção de pausa</b> (barras) e <b>surtos de energia por segundo</b> (linha, proxy do ritmo). Cada janela é comparada com a <b>mediana do próprio áudio</b>: pausa muito acima = <span style="color:#c0392b">possível hesitação</span>; ritmo muito acima/abaixo = <span style="color:#d9822b">aceleração</span> / <span style="color:#2a6fb0">desaceleração</span>. São <b>hipóteses de observação</b> do método CRS (sem validação clínica): confirme ouvindo o trecho. Precisa de áudio com 4 janelas ou mais; áudios analisados antes desta versão precisam ser ouvidos de novo.</div>
 <select id="tlSel" onchange="renTL()"></select><canvas id="tlc" class="cv" width="900" height="240"></canvas><div id="tlt"></div>
 <button class="b g" onclick="tlSintese()">➕ Inserir resumo da linha do tempo na síntese</button><div class="msg" id="m6"></div></div></section>
+
 
 <section class="st" id="s7"><div class="c"><h3>Sessão 7 • Base de conhecimento da IA</h3>
 <div class="how"><b>Como funciona:</b> a IA só afirma o que está na base. Abaixo, as <b>fontes internas</b> (conferidas). Você pode <b>adicionar PDFs ou textos</b> (artigos, protocolos, manuais). O texto é extraído <b>neste aparelho</b>, dividido em trechos, e a cada pergunta os trechos mais parecidos entram no pedido à IA, citados como [DOC-n]. <b>Só adicione fonte que você leu e confere</b>: informe a referência completa, pois é ela que o médico verá. A base fica salva só neste navegador; use Exportar para guardar cópia.</div>
@@ -100,6 +102,35 @@
 <div class="g2"><div><label>média→longa (s)</label><input id="cfB3" type="number" step="0.05"></div><div><label>Janela da linha do tempo (s)</label><input id="cfJ" type="number" step="1"></div></div>
 <div><label>Perfil profissional (orienta o foco da IA)</label><select id="cfP"><option>Neurologista</option><option>Fonoaudiólogo</option><option>Psicólogo</option><option>Pedagogo / psicopedagogo</option><option>Outro</option></select></div>
 <div class="g2"><button class="b" onclick="cfgSalvar()">💾 Salvar</button><button class="b g" onclick="cfgReset()">↩ Padrões</button></div><div class="msg" id="m10"></div></div></section>
+<section class="st" id="s11"><div class="c"><h3>⚡ Atendimento rápido</h3>
+<div class="how"><b>Como funciona:</b> preencha a ficha do paciente de cima até o diagnóstico, carregue <b>até 4 áudios</b>, informe a tarefa de cada um e toque em <b>Analisar tudo</b>. O piloto mede os áudios, monta as faixas, pede o texto à IA e leva você ao <b>relatório pronto na sessão 5</b>, onde falta só revisar e assinar. Tudo fica neste aparelho até você gerar o PDF. Para o próximo paciente, toque em <b>Novo paciente</b>.</div>
+<div class="msg" id="m11"></div></div>
+<div class="c"><h3>1 • Paciente</h3>
+<div class="g2"><div><label>Nome</label><input id="a_nome"></div><div><label>E-mail da conta Elayon</label><input id="a_email" type="email"></div>
+<div><label>Idade (anos)</label><input id="a_idade" type="number" min="0" max="120"></div><div><label>Sexo</label><select id="a_sexo"><option value="">—</option><option>feminino</option><option>masculino</option><option>outro</option></select></div>
+<div><label>Escolaridade (anos de estudo)</label><input id="a_esc" type="number" min="0" max="40"></div><div><label>Lateralidade</label><select id="a_lat"><option value="">—</option><option>destro</option><option>canhoto</option><option>ambidestro</option></select></div></div>
+<div><label>Língua materna e outras que fala</label><input id="a_lingua" placeholder="Ex.: português"></div></div>
+<div class="c"><h3>2 • Quadro clínico</h3>
+<div><label>Queixa / motivo da consulta</label><input id="a_queixa" placeholder="Ex.: dificuldade para encontrar palavras"></div>
+<div class="g2"><div><label>Diagnóstico clínico</label><input id="a_dx" placeholder="Ex.: afasia pós-AVC"></div><div><label>Data do diagnóstico</label><input id="a_dxdata" placeholder="mês/ano"></div>
+<div><label>Tempo desde o evento</label><input id="a_tempo" placeholder="Ex.: 4 meses"></div><div><label>Local e lado da lesão</label><input id="a_lesao" placeholder="se conhecido"></div></div>
+<div><label>Tratamentos em curso</label><input id="a_trat" placeholder="Fonoaudiologia, medicações"></div>
+<div class="g2"><div><label>Medicação do dia</label><input id="a_med" placeholder="qual e quando"></div><div><label>Estado no dia</label><input id="a_estado" placeholder="sono, cansaço, humor, rouquidão"></div></div>
+<div><label>Próteses</label><input id="a_prot" placeholder="dentária, aparelho auditivo"></div></div>
+<div class="c"><h3>3 • Instrumentos já aplicados e sua impressão</h3>
+<div class="row"><input id="a_i1n" list="dl" placeholder="Instrumento"><input id="a_i1r" placeholder="Resultado/data"></div><div class="row"><input id="a_i2n" list="dl" placeholder="Instrumento"><input id="a_i2r" placeholder="Resultado/data"></div><div class="row"><input id="a_i3n" list="dl" placeholder="Instrumento"><input id="a_i3r" placeholder="Resultado/data"></div>
+<div class="g2"><div><label>Sua nota para a fala (0–10)</label><input id="a_nota" type="number" min="0" max="10"></div><div><label>Em uma frase</label><input id="a_julg" placeholder="Registre antes de ver os gráficos"></div></div></div>
+<div class="c"><h3>4 • Gravação</h3>
+<div class="g2"><div><label>Celular e ambiente</label><input id="a_cel" placeholder="Modelo, sala, ruído"></div><div><label>Intercorrências</label><input id="a_inter" placeholder="barulho, cansaço, ajuda, tarefa pulada"></div></div>
+<p><label style="display:flex;gap:8px;text-transform:none;font-weight:600"><input type="checkbox" id="a_cons" style="width:auto"> O paciente foi informado sobre o uso dos áudios e dados neste laudo.</label></p>
+<div class="g2"><label class="b" style="cursor:pointer">📂 Carregar áudios<input type="file" accept="audio/*" multiple hidden onchange="atAdd(this)"></label><button class="b g" id="bg2" onclick="atGravar()">🎙️ Gravar</button></div>
+<p style="font-size:12px"><b>Até 4 áudios.</b> Informe a tarefa de cada um: a IA só compara tarefas iguais. <span id="atcnt" class="tag">0/4</span></p><div id="atl"></div></div>
+<div class="c"><h3>5 • Diagnóstico e conduta (sua responsabilidade)</h3>
+<div><label>Observações clínicas / pré-diagnóstico</label><textarea id="a_obs" style="min-height:110px"></textarea></div>
+<div class="g2"><div><label>Severidade (0–10)</label><input id="a_sev" type="number" min="0" max="10" value="5"></div><div><label>Conduta</label><input id="a_cd" value="Fonoaudiologia 2x/semana"></div></div>
+<button class="b" id="atgo" onclick="atAnalisar()">⚡ Analisar tudo e montar o relatório</button>
+<div class="g2" style="margin-top:6px"><button class="b g" onclick="novaConsulta(11)">🧹 Novo paciente</button><button class="b g" onclick="tab(5)">Ir ao relatório ➜</button></div></div></section>
+
 </div><script src="elayon-legal.js"></script><script src="health-core.js"></script><script src="health-dsp.js"></script><script>
 let U,ME=null,PF={},AU=[],PL=null,ST=1,ULT=null,mr=null,mic=null,chunks=[];
 const AC=window.AudioContext||window.webkitAudioContext,OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
@@ -121,24 +152,23 @@ document.addEventListener('input',()=>{U&&rasc()});
   else $('av').innerHTML='<p style="color:#d9534f">Você ainda não é piloto. <a href="cadastro-piloto.html">Faça o cadastro profissional</a>.</p>';
   lerRasc();
   const raw=((await tx('sessoes','readonly',s=>s.getAll()).catch(()=>[]))||[]).filter(x=>x.uid===U.id);const rr=raw.find(x=>x.k===U.id+':recortes');RC=rr&&rr.rc||[];AU=raw.filter(x=>x.ab).sort((a,b)=>a.ts-b.ts).slice(-10);
-  renAU();renRC();hist();ir(1)})();
-
+  atLer();renAU();renRC();hist();ir(11)})();
 
 /* ---------- navegação ---------- */
 const an=()=>AU.map((a,i)=>({a,i,n:i+1})).filter(x=>x.a.res);
 const sel4=()=>an().filter(x=>x.a.sel).slice(0,4);
 function bloqueio(n){
-  if(n===7||n===10)return null;
+  if(n===7||n===10||n===11)return null;
   if(n>=2){if(!ME)return [1,'Cadastre-se como piloto primeiro.'];if(!$('pn').value.trim()||!$('pe').value.trim())return [1,'Informe nome e e-mail da conta Elayon do paciente.']}
   if(n>=3&&!AU.length)return [2,'Carregue ao menos 1 áudio.'];
   if(n>=4&&!an().length)return [3,'Toque ao menos 1 áudio até o fim para gerar a análise.'];
   return null}
-function tab(n){const b=n>ST?bloqueio(n):null;if(b){ir(b[0]);M(b[0],b[1]);return}ir(n)}
+function tab(n){const b=(n>ST||ST===11)?bloqueio(n):null;if(b){ir(b[0]);M(b[0],b[1]);return}ir(n)}
 function ir(n){ST=n;if(n!==3)parar();document.querySelectorAll('.st').forEach((e,i)=>e.classList.toggle('on',i+1===n));document.querySelectorAll('#tb button').forEach((b,i)=>b.classList.toggle('on',i+1===n));
-  if(n===3)prep3();if(n===4)ren4();if(n===5)ref5();if(n===6)renTL();if(n===7)renBase();if(n===8)renChat();if(n===9)renNuc();if(n===10)cfgMostra();marcas();window.scrollTo(0,0)}
-function marcas(){const t=document.querySelectorAll('#tb button'),N=['Paciente','Áudios','Escuta','Síntese','Laudo','Linha do tempo','Base','IA','Núcleo CRS','Config'];
-  t.forEach((b,i)=>{let ok=(i===0&&$('pn').value.trim()&&$('pe').value.trim())||(i===1&&AU.length)||(i===2&&an().length)||(i===3&&$('sin').value.trim()&&$('iaT').value.trim()&&!/^[🧠❌]/.test($('iaT').value));b.textContent=(ok?'✅ ':'')+(i+1)+' '+N[i]})}
-async function novaConsulta(){if(!confirm('Apagar os áudios e campos desta consulta?'))return;parar();for(const a of AU)await tx('sessoes','readwrite',s=>s.delete(a.k)).catch(()=>{});AU=[];CAMPOS.forEach(i=>{const e=$(i);if(e.tagName!=='SELECT'&&i!=='sv'&&i!=='cd')e.value=''});RC=[];salvarRC();renRC();rasc();$('prev').innerHTML='';$('pdfB').style.display='none';renAU();ir(1);M(1,'Consulta limpa.')}
+  if(n===3)prep3();if(n===4)ren4();if(n===5){ref5();relRen()}if(n===11)atRen();if(n===6)renTL();if(n===7)renBase();if(n===8)renChat();if(n===9)renNuc();if(n===10)cfgMostra();marcas();window.scrollTo(0,0)}
+function marcas(){const t=document.querySelectorAll('#tb button'),N=['Paciente','Áudios','Escuta','Síntese','Laudo','Linha do tempo','Base','IA','Núcleo CRS','Config','⚡ Atendimento'];
+  t.forEach((b,i)=>{let ok=(i===0&&$('pn').value.trim()&&$('pe').value.trim())||(i===1&&AU.length)||(i===2&&an().length)||(i===3&&$('sin').value.trim()&&$('iaT').value.trim()&&!/^[🧠❌]/.test($('iaT').value));b.textContent=i===10?N[i]:(ok?'✅ ':'')+(i+1)+' '+N[i]})}
+async function novaConsulta(dest){if(!confirm('Apagar os áudios e campos desta consulta?'))return;parar();for(const a of AU)await tx('sessoes','readwrite',s=>s.delete(a.k)).catch(()=>{});AU=[];CAMPOS.forEach(i=>{const e=$(i);if(e.tagName!=='SELECT'&&i!=='sv'&&i!=='cd')e.value=''});RC=[];salvarRC();renRC();rasc();$('prev').innerHTML='';$('pdfB').style.display='none';renAU();atLimpa();ir(+dest||1);M(+dest||1,'Consulta limpa.')}
 
 /* ---------- sessão 2: áudios ---------- */
 async function addAudios(inp){const fs=[...inp.files];inp.value='';for(const f of fs)await addAudio(f,f.name)}
@@ -156,15 +186,15 @@ async function gravar(){
   if(!ME)return M(2,'Cadastre-se como piloto primeiro.');
   try{mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}catch(e){return M(2,e&&e.name==='NotReadableError'?'Microfone em uso por outro app ou aba.':'Microfone indisponível.')}
   chunks=[];mr=new MediaRecorder(mic);mr.ondataavailable=e=>chunks.push(e.data);
-  mr.onstop=()=>{const t=mr.mimeType||'audio/webm';mic.getTracks().forEach(x=>x.stop());mic=null;$('bg').textContent='🎙️ Gravar áudio';addAudio(new Blob(chunks,{type:t}),'Gravação '+new Date().toLocaleTimeString('pt-BR'))};
-  mr.start();$('bg').textContent='⏹ Parar gravação'}
+  mr.onstop=()=>{const t=mr.mimeType||'audio/webm';mic.getTracks().forEach(x=>x.stop());mic=null;$('bg').textContent='🎙️ Gravar áudio';if($('bg2'))$('bg2').textContent='🎙️ Gravar';addAudio(new Blob(chunks,{type:t}),'Gravação '+new Date().toLocaleTimeString('pt-BR'))};
+  mr.start();$('bg').textContent='⏹ Parar gravação';if($('bg2'))$('bg2').textContent='⏹ Parar'}
 const TAREFAS=['Tarefa não informada','Vogal sustentada','Fala espontânea','Leitura em voz alta','Descrição de figura/cena','Contagem ou sequência automática','Repetição de frases','Outra'];
 function crsLin(c){return c?`tempo ${c.tempo}s · fala ${Math.round(c.ptr*100)}% · ${c.pausas} pausas (${c.pausas_min}/min) · pausa média ${c.mu}s (dp ${c.sd}) · maior ${c.tmax}s · entropia ${c.H==null?'—':c.H} · micro/curta/média/longa ${c.faixas.micro}/${c.faixas.curta}/${c.faixas.media}/${c.faixas.longa} · fala/terço ${c.tercos.map(q=>Math.round(q.ptr*100)+'%').join('→')}`:'CRS temporal indisponível (áudio curto ou sem fala)'}
 function crsPanel(){const a=AU[+$('aSel').value],b=$('crs3');if(!b)return;if(!a||!a.res){b.innerHTML='';return}const q=a.res.qual||{nivel:'—',motivos:[]};
   b.innerHTML=`<div class="it"><b>CRS temporal</b> <span class="tag ${q.nivel==='boa'?'ok':''}">qualidade: ${q.nivel}</span><p>${crsLin(a.res.crs)}</p>${q.motivos&&q.motivos.length?'<p>⚠ '+q.motivos.map(esc).join('; ')+'</p>':''}<p style="font-size:11px;opacity:.75">Pausa = queda de energia ≥100 ms (resolução 50 ms). Indicadores descritivos do ritmo, sem validação clínica; compare com o próprio paciente.</p></div>`}
 function renAU(){
   $('lista').innerHTML=AU.length?AU.map((a,i)=>`<div class="it"><div class="row"><b>Áudio ${i+1}</b><span class="tag ${a.res?'ok':''}">${a.res?'analisado':'a ouvir'}</span></div><p>${esc(a.nome||a.perg||'—')} • ${Math.round(a.dur||(a.res&&a.res.dur)||0)} s</p><select onchange="AU[${i}].tarefa=this.value;salvar(AU[${i}])" style="margin:4px 0">${TAREFAS.map(t=>`<option ${a.tarefa===t?'selected':''}>${t}</option>`).join('')}</select><audio controls preload="none" style="width:100%;height:32px" src="${url(a)}"></audio><button class="b g sm" onclick="apagar(${i})">🗑 Remover</button></div>`).join(''):'<p>Nenhum áudio ainda.</p>';
-  $('cnt').textContent=AU.length+'/10';marcas()}
+  $('cnt').textContent=AU.length+'/10';atLista();marcas()}
 async function apagar(i){parar();const o=AU.splice(i,1)[0];await tx('sessoes','readwrite',s=>s.delete(o.k)).catch(()=>{});renAU()}
 
 /* ---------- sessão 3: escuta com gráfico ---------- */
@@ -295,8 +325,7 @@ function assPNG(){const w=sg.width,h=sg.height,d=sc.getImageData(0,0,w,h).data;l
   if(x1<x0)return null;const W=x1-x0+1,H=y1-y0+1,c=document.createElement('canvas');c.width=W;c.height=H;c.getContext('2d').drawImage(sg,x0,y0,W,H,0,0,W,H);return {url:c.toDataURL('image/png'),w:W,h:H}}
 
 function pdf(o,S,ass,payload,rcs){
-
- const {jsPDF}=window.jspdf,d=new jsPDF({unit:'pt',format:'a4'}),L=40,Wd=515;let y=95;
+  const {jsPDF}=window.jspdf,d=new jsPDF({unit:'pt',format:'a4'}),L=40,Wd=515;let y=95;
   d.setProperties({title:'Laudo Elayon Health',author:o.piloto.nome,subject:'ELAYONHEALTH['+payload+']'});
   const need=h=>{if(y+h>800){d.addPage();y=50}};
   const H=t=>{need(34);y+=4;d.setFont('helvetica','bold');d.setFontSize(11);d.setTextColor(42,157,143);d.text(t,L,y);y+=15};
@@ -441,6 +470,87 @@ async function chatEnviar(){const q=$('cq').value.trim();if(!q)return;if(!provLi
     const t=await aiCall(PF,`${perfilTxt()}\nPaciente (nome omitido por privacidade) (contexto: ${$('pc').value||'—'}). Dados das sessões: ${ctx}\nInstrumentos informados: ${JSON.stringify(instr())}\nSíntese do médico: """${$('sin').value||'(vazia)'}"""\nBASE:\n${kbAll(q+' '+($('pc').value||''))}\nConversa até aqui:\n${hist}\nPergunta do médico: ${q}`,[],SYS_CHAT);CH.push({r:'a',t:t.trim()});M(8,'')}
   catch(e){CH.push({r:'a',t:'❌ '+e.message});M(8,'')}$('cb').disabled=false;renChat()}
 
+/* ---------- atendimento rápido ---------- */
+const ATC=['a_nome','a_email','a_idade','a_sexo','a_esc','a_lat','a_lingua','a_queixa','a_dx','a_dxdata','a_tempo','a_lesao','a_trat','a_med','a_estado','a_prot','a_i1n','a_i1r','a_i2n','a_i2r','a_i3n','a_i3r','a_nota','a_julg','a_cel','a_inter','a_obs','a_sev','a_cd'];
+const ATD={a_sev:'5',a_cd:'Fonoaudiologia 2x/semana'};
+function atSalva(){try{const o={};ATC.forEach(i=>o[i]=$(i).value);o.a_cons=$('a_cons').checked;localStorage.setItem('pil_at_'+U.id,JSON.stringify(o))}catch(e){}}
+function atLer(){try{const o=JSON.parse(localStorage.getItem('pil_at_'+U.id));if(o){ATC.forEach(i=>{if(o[i]!=null)$(i).value=o[i]});$('a_cons').checked=!!o.a_cons}}catch(e){}}
+function atLimpa(){ATC.forEach(i=>{$(i).value=ATD[i]||''});$('a_cons').checked=false;['i1n','i1r','i2n','i2r','i3n','i3r'].forEach(i=>$(i).value='');$('tcle').checked=false;$('ok').checked=false;REF=null;try{atSalva()}catch(e){}if($('rel5'))$('rel5').innerHTML='';atLista()}
+document.addEventListener('input',e=>{if(U&&e.target&&/^a_/.test(e.target.id||''))atSalva()});
+document.addEventListener('change',e=>{if(U&&e.target&&/^a_/.test(e.target.id||''))atSalva()});
+function atRen(){atLista()}
+function atLista(){const e=$('atl');if(!e)return;
+  e.innerHTML=AU.length?AU.map((a,i)=>`<div class="it"><div class="row"><b>Áudio ${i+1}</b><span class="tag ${a.res?'ok':''}">${a.res?'analisado':'pendente'}</span></div><p>${esc(a.nome||'—')} • ${Math.round(a.dur||(a.res&&a.res.dur)||0)} s</p><select onchange="AU[${i}].tarefa=this.value;salvar(AU[${i}])" style="margin:4px 0">${TAREFAS.map(t=>`<option ${a.tarefa===t?'selected':''}>${t}</option>`).join('')}</select><audio controls preload="none" style="width:100%;height:32px" src="${url(a)}"></audio><button class="b g sm" onclick="apagar(${i})">🗑 Remover</button></div>`).join(''):'<p>Nenhum áudio ainda.</p>';
+  const c=$('atcnt');if(c)c.textContent=AU.length+'/4'}
+async function atAdd(inp){const fs=[...inp.files];inp.value='';
+  if(AU.length+fs.length>4)return M(11,'Este atendimento aceita até 4 áudios. Remova algum ou escolha menos arquivos.');
+  M(11,'⏳ lendo áudios…');for(const f of fs)await addAudio(f,f.name);M(11,'')}
+async function atGravar(){if(!(mr&&mr.state==='recording')&&AU.length>=4)return M(11,'Já há 4 áudios. Remova algum para gravar outro.');await gravar()}
+/* análise em lote: mesma medição da escuta ao vivo, rodada mais rápido que o tempo real (OfflineAudioContext) */
+async function atMede(a){
+  const SR=44100,buf=await new OAC(1,1,SR).decodeAudioData(a.ab.slice(0)),dur=buf.duration;
+  if(dur<1)throw new Error('áudio muito curto');
+  const oc=new OAC(1,Math.ceil(dur*SR),SR),src=oc.createBufferSource();src.buffer=buf;
+  const an_=oc.createAnalyser();an_.fftSize=2048;an_.smoothingTimeConstant=.3;src.connect(an_);an_.connect(oc.destination);
+  R.ctx=oc;R.an=an_;R.sr=SR;R.buf=new Float32Array(2048);R.fb=new Float32Array(1024);R.fl=[];R.P=[];R.A=[];R.vz=[];R.prev=.3;D.jit=0;D.shim=0;
+  const tk=[];
+  try{
+    for(let t=.05;t<dur-.02;t+=.05){const tt=t;oc.suspend(tt).then(()=>{try{const k=analisar();D.jit=k.jit;D.shim=k.shim;k.ct=tt;{let p=0;for(const v of R.buf){const q=v<0?-v:v;if(q>p)p=q}k.pk=p}tk.push(k)}catch(e){}oc.resume()})}
+    src.start();await oc.startRendering();
+  }finally{R.an=null;R.ctx=null}
+  if(tk.length<10)throw new Error('áudio muito curto');
+  const {res,sec,ret}=analisarSessao(tk);if(res.fon<.05)throw new Error('não detectei voz neste áudio');
+  res.crs=crsTemporal(tk);res.qual=qualidade(tk);res.jan=crsJanelas(tk);res.nucp=res.crs?nucPayload(tk,res.crs,res.qual,''):null;
+  a.tkm=tk;a.res=res;a.img=espectroide(tk,sec,ret,Math.max(1,res.dur));await salvar(a)}
+function atCtx(){const v=i=>($(i).value||'').trim(),L=[];
+  if(v('a_queixa'))L.push(v('a_queixa'));
+  if(v('a_dx'))L.push('Dx: '+v('a_dx')+(v('a_dxdata')?' ('+v('a_dxdata')+')':''));
+  const d=[v('a_idade')&&v('a_idade')+' anos',v('a_sexo'),v('a_lat'),v('a_esc')&&'escolaridade '+v('a_esc')+' anos',v('a_lingua')&&'língua: '+v('a_lingua')].filter(Boolean).join(', ');if(d)L.push(d);
+  [['a_tempo','evento há '],['a_lesao','lesão: '],['a_trat','tratamentos: '],['a_med','medicação do dia: '],['a_estado','estado no dia: '],['a_prot','próteses: '],['a_inter','intercorrências: '],['a_cel','gravação: ']].forEach(([i,t])=>{if(v(i))L.push(t+v(i))});
+  if(v('a_nota')!==''||v('a_julg'))L.push('impressão do médico sobre a fala (registrada antes dos gráficos): '+(v('a_nota')!==''?v('a_nota')+'/10':'')+(v('a_julg')?' — '+v('a_julg'):''));
+  return L.join('; ').slice(0,900)}
+async function atAnalisar(){
+  parar();const b=$('atgo');
+  if(!ME)return M(11,'Cadastre-se como piloto primeiro.');
+  const nome=$('a_nome').value.trim(),em=$('a_email').value.trim();
+  if(!nome||!em)return M(11,'Informe nome e e-mail da conta Elayon do paciente (o PDF só abre no cockpit dele se o e-mail bater).');
+  if(!AU.length)return M(11,'Carregue ao menos 1 áudio.');
+  if(AU.length>4)return M(11,'Este atendimento aceita até 4 áudios. Remova os excedentes.');
+  const sem=AU.map((a,i)=>[a,i+1]).filter(([a])=>!a.tarefa||a.tarefa===TAREFAS[0]).map(x=>x[1]);
+  if(sem.length)return M(11,'Informe a tarefa do(s) áudio(s) '+sem.join(', ')+'.');
+  if(!$('a_obs').value.trim())return M(11,'Escreva suas observações clínicas (diagnóstico) antes de analisar: o relatório sai com o seu texto.');
+  b.disabled=true;
+  try{
+    $('pn').value=nome;$('pe').value=em;$('pc').value=atCtx();$('ob').value=$('a_obs').value.trim();$('sv').value=$('a_sev').value||'5';$('cd').value=$('a_cd').value;
+    [1,2,3].forEach(i=>{$('i'+i+'n').value=$('a_i'+i+'n').value;$('i'+i+'r').value=$('a_i'+i+'r').value});$('tcle').checked=$('a_cons').checked;
+    const falhas=[];let k=0;
+    for(const a of AU){k++;
+      if(a.res){M(11,`⏳ áudio ${k}/${AU.length} já analisado`);continue}
+      M(11,`⏳ medindo o áudio ${k}/${AU.length}…`);
+      try{await atMede(a)}catch(e){falhas.push(`áudio ${k}: ${e.message}`)}}
+    const ok=AU.filter(a=>a.res);if(!ok.length){renAU();return M(11,'❌ Nenhum áudio pôde ser analisado. '+falhas.join('; '))}
+    AU.forEach(a=>{a.sel=!!a.res});
+    M(11,'⏳ montando as faixas de referência…');sugerirFaixas();
+    if(provLista(PF).length){
+      M(11,'⏳ transcrevendo a fala…');await Promise.all(ok.map(async a=>{if(!a.txt){a.txt=await transcr(a.ab,a.tipo);salvar(a)}}));
+      M(11,'⏳ a IA está lendo as sessões e redigindo o texto (pode levar cerca de 1 minuto)…');await analisarIA();
+    }else{$('iaT').value='';M(5,'IA sem chave: o relatório segue só com as medidas e o seu texto. Configure a chave no perfil para incluir o texto da IA.')}
+    rasc();renAU();ir(5);
+    const ia=$('iaT').value.trim(),iaErro=!provLista(PF).length?'':(/^[🧠❌]/.test(ia)?' A IA não respondeu; veja a sessão 4 e tente de novo.':'');
+    M(5,'✅ Relatório montado. Revise e assine.'+iaErro+(falhas.length?' Atenção: '+falhas.join('; ')+'.':''));
+  }catch(e){M(11,'❌ '+e.message)}finally{b.disabled=false}}
+function relRen(){const e=$('rel5');if(!e)return;const S=sel4();if(!S.length){e.innerHTML='';return}
+  const f=(x,d=1)=>x&&x.m!=null?(+x.m).toFixed(d):'—',q=a=>(a.res.qual||{}).nivel||'—',ia=$('iaT').value.trim(),iaOk=ia&&!/^[🧠❌]/.test(ia);
+  const lin=S.map(({a,n})=>`<tr><td>${n}</td><td>${esc(a.tarefa||'—')}</td><td>${Math.round(a.res.dur)} s</td><td>${q(a)}</td><td>${f(a.res.f0,0)}</td><td>${f(a.res.hnr)}</td><td>${f(a.res.jit,2)}</td><td>${f(a.res.shim,2)}</td><td>${a.res.pausas}</td></tr>`).join('');
+  const atenc=S.filter(({a})=>q(a)!=='boa').map(({n,a})=>`áudio ${n}: qualidade ${q(a)}`);
+  e.innerHTML=`<div class="it"><b>📋 Relatório para sua revisão</b><p><b>Paciente:</b> ${esc($('pn').value||'—')} • ${esc($('pe').value||'—')}</p><p style="font-size:12px">${esc($('pc').value||'')}</p>
+  <div style="overflow-x:auto"><table style="width:100%;font-size:11px;border-collapse:collapse"><tr><th>Nº</th><th>Tarefa</th><th>Tempo</th><th>Qualidade</th><th>F0 Hz</th><th>HNR dB</th><th>Jitter %</th><th>Shimmer dB</th><th>Pausas</th></tr>${lin}</table></div>
+  ${atenc.length?`<p>⚠ ${atenc.map(esc).join('; ')}. Ouça esses áudios antes de assinar.</p>`:''}
+  <p><b>Faixas (editáveis abaixo):</b> F0 ${esc($('f1').value)}–${esc($('f2').value)} Hz • jitter ≤ ${esc($('jt').value)}% • shimmer ≤ ${esc($('sh').value)} dB • HNR ≥ ${esc($('hn').value)} dB • pausas ≤ ${esc($('ps').value)}</p>
+  <p><b>Suas observações:</b> ${esc($('ob').value||'—')}</p>
+  <p><b>Texto da IA (contexto auxiliar, editável na sessão 4):</b> ${iaOk?esc(ia.slice(0,500))+(ia.length>500?'…':''):'não gerado'}</p>
+  <p style="font-size:12px">Falta só: confirmar a responsabilidade clínica, habilitar o pincel, assinar e gerar o PDF.</p></div>`}
+
 /* núcleo CRS */
 function renNuc(){const L=an();$('nuR').innerHTML=L.map(({a,n})=>{const j=NUC[a.k];return `<div class="it"><b>Áudio ${n}</b> • ${esc(a.nome||'')}${j?`<p><b>${esc(j.estado_detectado.nome)}</b> (modo ${esc(j.estado_detectado.modo)}, confiança ${j.estado_detectado.confianca}) — leitura experimental</p><p style="font-size:12px">${esc(j.sugestao_interacao&&(j.sugestao_interacao.mensagem||j.sugestao_interacao.texto||JSON.stringify(j.sugestao_interacao)))}</p><p style="font-size:11px;opacity:.7">Relatório do núcleo: pausas ${j.relatorio.total_pausas}, média ${j.relatorio.media_pausa_ms} ms, silêncio ${j.relatorio.porcentagem_silencio}%, continuidade ${j.relatorio.continuidade_pct}%</p>`:'<p>Ainda não enviado.</p>'}</div>`}).join('')||'<p>Analise ao menos um áudio na sessão 3.</p>'}
 const nuF=async(p,opt,ms=70000)=>{const u=($('nuUrl').value||'').trim().replace(/\/$/,'');if(!/^https:\/\//.test(u))throw new Error('Informe o endereço https do núcleo.');const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);
@@ -453,5 +563,3 @@ async function nucRodar(){const L=an().filter(x=>x.a.res.nucp);if(!L.length)retu
     M(9,'✅ Leitura recebida. Ela entra no chat da IA (sessão 8).');renNuc()}catch(e){M(9,'❌ '+e.message)}}
 (async()=>{for(let i=0;i<50&&!U;i++)await new Promise(r=>setTimeout(r,200));if(U)await baseCarrega()})();
 </script></body></html>
-
-  
