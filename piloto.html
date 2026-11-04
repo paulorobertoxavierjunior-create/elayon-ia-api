@@ -1,14 +1,5 @@
 <!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Elayon Health • Cockpit do Piloto</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script><link rel="stylesheet" href="health.css">
-<style>
-.tabs{position:sticky;top:0;z-index:5;background:#eaf4f6;padding:6px 0}.tabs button{flex:1;min-width:92px}.tabs button.on{background:var(--a);color:#fff;border-color:var(--a)}
-.st{display:none}.st.on{display:grid;gap:14px}
-.how{background:#f0f7f7;border-left:4px solid var(--a);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--ink);line-height:1.5}.how b{color:var(--a)}
-.nav{display:grid;grid-template-columns:1fr 1fr;gap:8px}.it{border:1px solid var(--l);border-radius:12px;padding:8px;display:grid;gap:6px}
-.sm{width:auto;padding:6px 10px;font-size:11px}.rd{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.rd div{background:#0a2a2f;color:#8ff;border-radius:8px;padding:6px;text-align:center;font:700 12px monospace}.rd small{display:block;color:#7aa;font-size:9px}
-canvas.cv{width:100%;border-radius:12px;background:#04060b;display:block}
-#sg{width:100%;border:2px dashed #aab;border-radius:12px;touch-action:none;background:repeating-conic-gradient(#f4f4f4 0 25%,#fff 0 50%) 0 0/20px 20px}#sg.on{border:2px solid #000}
-#prev canvas{width:100%;border:1px solid var(--l);border-radius:8px;margin-bottom:8px;display:block}
-</style></head><body><div class="w">
+</head><body><div class="w">
 <div class="hd"><span>ELAYON HEALTH • COCKPIT DO PILOTO • <b id="hs" style="color:#d9534f">SEM CADASTRO</b></span><a href="cockpit.html">⬅️ Cockpit</a></div>
 <div class="c"><h1 id="nm">Piloto</h1><p id="cr">—</p><div id="av"></div></div>
 <div class="tabs" id="tb"><button onclick="tab(1)">1 Paciente</button><button onclick="tab(2)">2 Áudios</button><button onclick="tab(3)">3 Escuta</button><button onclick="tab(4)">4 Síntese</button><button onclick="tab(5)">5 Laudo</button></div>
@@ -27,11 +18,11 @@ canvas.cv{width:100%;border-radius:12px;background:#04060b;display:block}
 <div class="nav"><button class="b g" onclick="tab(1)">⬅ Voltar</button><button class="b" onclick="tab(3)">Próximo ➜</button></div></section>
 
 <section class="st" id="s3"><div class="c"><h3>Sessão 3 • Escuta com gráfico ao vivo</h3>
-<div class="how"><b>O que fazer:</b> escolha um áudio e toque. O espectrograma (cores), o F0 (amarelo) e a intensidade (ciano) são desenhados <b>enquanto o áudio toca</b>. <b>Pause</b> a qualquer momento, observe e use <b>📌 Marcar momento</b> para anotar o que viu: as marcações vão para a IA e para o laudo. Ao tocar até o fim, o áudio é analisado e fica ✅ para a sessão 4.</div>
+<div class="how"><b>O que fazer:</b> escolha um áudio e toque. O espectrograma (cores), o F0 (linha preta) e a intensidade (azul-petróleo) são desenhados <b>enquanto o áudio toca</b>. <b>Pause</b> a qualquer momento, observe e use <b>📌 Marcar momento</b> para anotar o que viu: as marcações vão para a IA e para o laudo. Ao tocar até o fim, o áudio é analisado e fica ✅ para a sessão 4.</div>
 <select id="aSel" onchange="parar()"></select>
 <div class="g2"><button class="b" id="bp" onclick="tocar()">▶ Ouvir e gerar gráfico</button><button class="b g" onclick="parar()">⏮ Recomeçar</button></div>
 <canvas class="cv" id="cv" width="900" height="420"></canvas>
-<p>Legenda: espectrograma 60 Hz–8 kHz (topo) • linha amarela = F0 • linha ciano = intensidade • faixa inferior: azul = voz, vermelho = silêncio.</p>
+<p>Legenda: espectrograma 60 Hz–8 kHz (topo) • linha preta = F0 • linha azul-petróleo = intensidade • cores do espectrograma: azul (pouca energia) a vermelho (muita) • faixa inferior: azul-petróleo = voz, rosa = silêncio.</p>
 <canvas class="cv" id="cx1" width="900" height="170"></canvas><canvas class="cv" id="cx2" width="900" height="170"></canvas>
 <p>Os dois gráficos acima são os <b>XI (Dimensões CRS)</b> e <b>XII (Acompanhamento IA, sessão completa)</b> do cockpit de calibração: a IA do paciente enxerga o mesmo mapa que você.</p>
 <div class="rd" id="rd"></div>
@@ -73,8 +64,6 @@ let U,ME=null,PF={},AU=[],PL=null,ST=1,ULT=null,mr=null,mic=null,chunks=[];
 const AC=window.AudioContext||window.webkitAudioContext,OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
 const DBP=new Promise((ok,no)=>{const r=indexedDB.open('piloto_db',1);r.onupgradeneeded=()=>{r.result.createObjectStore('sessoes',{keyPath:'k'});r.result.createObjectStore('laudos',{keyPath:'k'})};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
 const tx=async(st,m,f)=>{const d=await DBP;return new Promise((ok,no)=>{const t=d.transaction(st,m),q=f(t.objectStore(st));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>no(t.error)})};
-const sha=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
-const mm=t=>{t=Math.round(t);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')};
 const M=(n,t)=>{const e=$('m'+n);if(e)e.textContent=t};
 const mv=x=>x?x.m:'—';
 const url=a=>a.u||(a.u=URL.createObjectURL(new Blob([a.ab],{type:a.tipo})));
@@ -133,7 +122,7 @@ async function apagar(i){parar();const o=AU.splice(i,1)[0];await tx('sessoes','r
 
 /* ---------- sessão 3: escuta com gráfico ---------- */
 const cv=$('cv'),cx=cv.getContext('2d'),CW=900;
-function limpaCv(){limpaXI();cx.fillStyle='#04060b';cx.fillRect(0,0,CW,420);cx.fillStyle='#0a1418';cx.fillRect(0,266,CW,118);cx.fillStyle='#94a3b8';cx.font='11px sans-serif';cx.fillText('F0 (amarelo) • intensidade (ciano)',6,280)}
+function limpaCv(){limpaXI();cx.fillStyle=HC.bg;cx.fillRect(0,0,CW,420);cx.fillStyle=HC.pan;cx.fillRect(0,266,CW,118);cx.fillStyle=HC.tx;cx.font='11px sans-serif';cx.fillText('F0 (preto) • intensidade (azul-petróleo)',6,280)}
 function prep3(keep){const v=$('aSel').value;$('aSel').innerHTML=AU.map((a,i)=>`<option value="${i}">${a.res?'✅':'⏳'} Áudio ${i+1} • ${esc(a.nome||a.perg||'')} • ${Math.round(a.dur||0)}s</option>`).join('');if(v&&AU[+v])$('aSel').value=v;if(!PL&&!keep)limpaCv();if(!keep)leit(null);renNotas()}
 function setBtn(t){$('bp').textContent=t}
 async function tocar(){
@@ -151,17 +140,17 @@ setInterval(()=>{if(!PL||PL.el.paused||PL.el.ended||!R.an)return;try{const k=ana
 function col(k){
   const x=PL.el.currentTime/PL.dur*CW,w=Math.max(2,CW/(PL.dur*20)+1.5);
   linhas(cxA,PL.pa,k,8,x,170);linhas(cxB,PL.pb,k,11,x,170);
-  for(let j=0;j<64;j++){const v=k.sp[j]/255;cx.fillStyle=`hsl(${280-v*260},90%,${6+v*58}%)`;cx.fillRect(x,(63-j)*4.05,w,4.6)}
-  cx.fillStyle=k.voz?'#0e7490':'#b91c1c';cx.fillRect(x,392,w,22);
-  const yd=380-rg(k.db,-70,-10)*95;cx.strokeStyle='#22d3ee';cx.lineWidth=1.5;cx.beginPath();PL.pd?cx.moveTo(PL.pd[0],PL.pd[1]):cx.moveTo(x,yd);cx.lineTo(x,yd);cx.stroke();PL.pd=[x,yd];
-  if(k.voz&&k.f0){const y=380-rg(k.f0,70,400)*95;cx.strokeStyle='#fde047';cx.lineWidth=2;cx.beginPath();PL.pf?cx.moveTo(PL.pf[0],PL.pf[1]):cx.moveTo(x,y);cx.lineTo(x,y);cx.stroke();PL.pf=[x,y]}else PL.pf=null}
+  for(let j=0;j<64;j++){const v=k.sp[j]/255;cx.fillStyle=corEsp(v);cx.fillRect(x,(63-j)*4.05,w,4.6)}
+  cx.fillStyle=k.voz?HC.voz:HC.sil;cx.fillRect(x,392,w,22);
+  const yd=380-rg(k.db,-70,-10)*95;cx.strokeStyle=HC.db;cx.lineWidth=1.5;cx.beginPath();PL.pd?cx.moveTo(PL.pd[0],PL.pd[1]):cx.moveTo(x,yd);cx.lineTo(x,yd);cx.stroke();PL.pd=[x,yd];
+  if(k.voz&&k.f0){const y=380-rg(k.f0,70,400)*95;cx.strokeStyle=HC.f0;cx.lineWidth=2;cx.beginPath();PL.pf?cx.moveTo(PL.pf[0],PL.pf[1]):cx.moveTo(x,y);cx.lineTo(x,y);cx.stroke();PL.pf=[x,y]}else PL.pf=null}
 function leit(k){const c=(l,v)=>`<div><small>${l}</small>${v}</div>`,f=(v,d=1)=>k&&k.voz?(+v).toFixed(d):'—';
   $('rd').innerHTML=c('F0 Hz',k&&k.voz?Math.round(k.f0):'—')+c('dBFS',k?k.db.toFixed(0):'—')+c('Jitter %',f(k&&k.jit))+c('Shimmer dB',f(k&&k.shim))+c('HNR dB',f(k&&k.hnr))+c('CPP~',f(k&&k.cpp))+c('GRBAS~ G',k?(+k.G).toFixed(1):'—')+c('Tempo',PL?mm(PL.el.currentTime):'—')}
 function nota(){
   if(!PL)return M(3,'Toque o áudio e pause no instante que quer marcar.');
   const k=PL.tk[PL.tk.length-1]||{},t=PL.el.currentTime,x=t/PL.dur*CW,r=n=>+(+n||0).toFixed(n>=100?0:2);
   PL.a.notas.push({t:+t.toFixed(1),txt:$('nt').value.trim()||'(marcação)',f0:Math.round(k.f0||0),db:r(k.db),jit:r(k.jit),shim:r(k.shim),hnr:r(k.hnr)});
-  cx.save();cx.setLineDash([4,3]);cx.strokeStyle='#fff';cx.lineWidth=1.2;cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,420);cx.stroke();cx.restore();cx.fillStyle='#fff';cx.font='bold 11px sans-serif';cx.fillText('📌'+PL.a.notas.length,x+3,12);
+  cx.save();cx.setLineDash([4,3]);cx.strokeStyle='#111827';cx.lineWidth=1.2;cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,420);cx.stroke();cx.restore();cx.fillStyle='#111827';cx.font='bold 11px sans-serif';cx.fillText('📌'+PL.a.notas.length,x+3,12);
   $('nt').value='';salvar(PL.a);renNotas()}
 function renNotas(){const a=AU[+$('aSel').value];$('notas').innerHTML=a&&a.notas&&a.notas.length?'<label>Marcações deste áudio</label>'+a.notas.map((n,i)=>`<p>📌 ${mm(n.t)} — ${esc(n.txt)} (F0 ${n.f0} Hz, ${n.db} dB)</p>`).join(''):''}
 async function fim(){
@@ -181,20 +170,20 @@ async function transcr(ab,tipo){
 
 /* ---------- gráficos XI e XII do cockpit + recortes ---------- */
 const cxA=$('cx1').getContext('2d'),cxB=$('cx2').getContext('2d');let RC=[];
-function limpaXI(){[[cxA,'XI. Dimensões CRS (8 linhas)'],[cxB,'XII. Acompanhamento IA (11 linhas • sessão completa)']].forEach(([c,t])=>{c.fillStyle='#020408';c.fillRect(0,0,CW,170);c.fillStyle='#94a3b8';c.font='11px sans-serif';c.fillText(t,6,13)})}
+function limpaXI(){[[cxA,'XI. Dimensões CRS (8 linhas)'],[cxB,'XII. Acompanhamento IA (11 linhas • sessão completa)']].forEach(([c,t])=>{c.fillStyle=HC.pan;c.fillRect(0,0,CW,170);c.fillStyle=HC.tx;c.font='11px sans-serif';c.fillText(t,6,13)})}
 function linhas(c,prev,k,n,x,h){for(let m=0;m<n;m++){const y=h-6-k.n[m]*(h-12);if(prev[m]){c.strokeStyle=GR[m][2];c.lineWidth=1.3;c.beginPath();c.moveTo(prev[m][0],prev[m][1]);c.lineTo(x,y);c.stroke()}prev[m]=[x,y]}}
 function marcaT(w){if(!PL)return M(3,'Toque o áudio e marque durante a reprodução (ou digite os segundos).');const t=PL.el.currentTime,x=t/PL.dur*CW;$(w?'t1':'t0').value=t.toFixed(1);M(3,'');
   [[cx,420],[cxA,170],[cxB,170]].forEach(([c,h])=>{c.save();c.setLineDash([4,3]);c.strokeStyle=w?'#ef4444':'#22c55e';c.lineWidth=1.6;c.beginPath();c.moveTo(x,0);c.lineTo(x,h);c.stroke();c.restore()})}
 function desenhaRec(seg,a,t0,t1,leg){
   const W=900,H=600,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d'),n=seg.length,w=W/n+1;
-  x.fillStyle='#04060b';x.fillRect(0,0,W,H);
-  seg.forEach((k,i)=>{for(let j=0;j<64;j++){const v=k.sp[j]/255;x.fillStyle=`hsl(${280-v*260},90%,${6+v*58}%)`;x.fillRect(i/n*W,32+(63-j)*3.4,w,3.9)}});
-  x.strokeStyle='#fde047';x.lineWidth=2;x.beginPath();let pn=false;seg.forEach((k,i)=>{if(k.voz&&k.f0){const y=32+218-218*Math.log(k.f0/60)/Math.log(8000/60);pn?x.lineTo(i/n*W,y):x.moveTo(i/n*W,y);pn=true}else pn=false});x.stroke();
-  const painel=(y0,h,t,nl)=>{x.fillStyle='#020408';x.fillRect(0,y0,W,h);for(let m=0;m<nl;m++){x.strokeStyle=GR[m][2];x.lineWidth=1.4;x.beginPath();seg.forEach((k,i)=>{const y=y0+h-6-k.n[m]*(h-12);i?x.lineTo(i/n*W,y):x.moveTo(i/n*W,y)});x.stroke()}x.fillStyle='#94a3b8';x.font='11px sans-serif';x.fillText(t,6,y0+13)};
+  x.fillStyle=HC.bg;x.fillRect(0,0,W,H);
+  seg.forEach((k,i)=>{for(let j=0;j<64;j++){const v=k.sp[j]/255;x.fillStyle=corEsp(v);x.fillRect(i/n*W,32+(63-j)*3.4,w,3.9)}});
+  x.strokeStyle=HC.f0;x.lineWidth=2;x.beginPath();let pn=false;seg.forEach((k,i)=>{if(k.voz&&k.f0){const y=32+218-218*Math.log(k.f0/60)/Math.log(8000/60);pn?x.lineTo(i/n*W,y):x.moveTo(i/n*W,y);pn=true}else pn=false});x.stroke();
+  const painel=(y0,h,t,nl)=>{x.fillStyle=HC.pan;x.fillRect(0,y0,W,h);for(let m=0;m<nl;m++){x.strokeStyle=GR[m][2];x.lineWidth=1.4;x.beginPath();seg.forEach((k,i)=>{const y=y0+h-6-k.n[m]*(h-12);i?x.lineTo(i/n*W,y):x.moveTo(i/n*W,y)});x.stroke()}x.fillStyle=HC.tx;x.font='11px sans-serif';x.fillText(t,6,y0+13)};
   painel(256,160,'XI. Dimensões CRS (8 linhas)',8);painel(422,160,'XII. Acompanhamento IA (11 linhas)',11);
-  seg.forEach((k,i)=>{x.fillStyle=k.voz?'#0e7490':'#b91c1c';x.fillRect(i/n*W,586,w,12)});
-  x.fillStyle='#0a2a2f';x.fillRect(0,0,W,28);x.fillStyle='#e2e8f0';x.font='bold 13px sans-serif';x.fillText(`Áudio ${AU.indexOf(a)+1} • ${mm(t0)}–${mm(t1)} (${(t1-t0).toFixed(1)} s)${leg?' • '+leg.slice(0,60):''}`,8,19);
-  x.font='11px sans-serif';x.fillText('Espectrograma 60Hz–8kHz + F0 (amarelo)',6,44);
+  seg.forEach((k,i)=>{x.fillStyle=k.voz?HC.voz:HC.sil;x.fillRect(i/n*W,586,w,12)});
+  x.fillStyle='#eaf4f6';x.fillRect(0,0,W,28);x.fillStyle='#0a2a2f';x.font='bold 13px sans-serif';x.fillText(`Áudio ${AU.indexOf(a)+1} • ${mm(t0)}–${mm(t1)} (${(t1-t0).toFixed(1)} s)${leg?' • '+leg.slice(0,60):''}`,8,19);
+  x.font='11px sans-serif';x.fillText('Espectrograma 60Hz–8kHz + F0 (linha preta)',6,44);
   const th=document.createElement('canvas');th.width=400;th.height=267;th.getContext('2d').drawImage(c,0,0,400,267);
   return {img:c.toDataURL('image/jpeg',.82),th:th.toDataURL('image/jpeg',.6)}}
 function recorte(){
@@ -266,8 +255,7 @@ function pdf(o,S,ass,payload,rcs){
   const k=Math.min(230/ass.w,90/ass.h),aw=ass.w*k,ah=ass.h*k;d.addImage(ass.url,'PNG',297-aw/2,568-ah,aw,ah);   // por último = por cima, PNG transparente
   return d.output('blob')}
 async function assinar(){
-
-const S=sel4(),pn=$('pn').value.trim(),pe=$('pe').value.trim().toLowerCase(),ob=$('ob').value.trim();
+  const S=sel4(),pn=$('pn').value.trim(),pe=$('pe').value.trim().toLowerCase(),ob=$('ob').value.trim();
   if(!ME)return M(5,'Cadastre-se como piloto primeiro.');
   if(!pn||!pe){ir(1);return M(1,'Informe nome e e-mail do paciente.')}
   if(!S.length){ir(4);return M(4,'Marque ao menos uma sessão analisada.')}
@@ -295,7 +283,6 @@ async function prever(blob){
     const doc=await pj.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise;box.innerHTML='<label>Visualização do PDF (a última página é o certificado com a assinatura)</label>';
     for(let i=1;i<=doc.numPages;i++){const pg=await doc.getPage(i),v0=pg.getViewport({scale:1}),sc2=Math.min(2,(box.clientWidth||340)*2/v0.width),v=pg.getViewport({scale:sc2}),c=document.createElement('canvas');c.width=v.width;c.height=v.height;box.appendChild(c);await pg.render({canvasContext:c.getContext('2d'),viewport:v}).promise}
   }catch(e){box.innerHTML='<p>Não consegui montar a visualização aqui. <a href="'+URL.createObjectURL(blob)+'" target="_blank">Abrir o PDF</a> para conferir.</p>'}}
-function dl(blob,nome){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;a.click()}
 function baixar(){ULT&&dl(ULT.blob,ULT.nome)}
 async function compartilhar(){
   if(!ULT)return;const f=new File([ULT.blob],ULT.nome,{type:'application/pdf'});
