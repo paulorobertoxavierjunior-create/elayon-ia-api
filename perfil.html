@@ -140,6 +140,7 @@
         <button class="btn primary" id="btnSalvarAiConfig" style="padding:10px;font-size:11px" type="button">Salvar IA</button>
         <button class="btn logout" id="btnTestAi" style="padding:10px;font-size:11px" type="button">Testar este provedor</button>
       </div>
+      <button class="btn logout" id="btnLimpaAi" style="padding:10px;font-size:11px;margin-top:8px;width:100%" type="button">🧹 Limpar toda a calibração de IA</button>
       <div class="msg" id="aiMsg" style="margin-top:8px"></div>
       <label style="margin-top:10px">Provedores com chave guardada</label>
       <div id="aiList" class="hint">Nenhum.</div>
@@ -280,6 +281,10 @@
       openai:{nome:'OpenAI',url:'https://api.openai.com/v1/chat/completions',modelo:'gpt-4o',vis:true,link:'https://platform.openai.com/api-keys',dica:'Pago.'},
       custom:{nome:'Personalizado',modelo:'',vis:false,link:'',dica:'Qualquer serviço com API compatível com OpenAI (Cerebras, GitHub Models etc.): informe endereço e modelo.'}
     };
+function aiErroAmigavel(m){m=String(m||'');
+  if(!/quota|429|exhausted|rate.?limit/i.test(m))return m;
+  const lim=(m.match(/limit:\s*(\d+)/)||[])[1],mod=(m.match(/model:\s*([\w.\-]+)/)||[])[1],re=(m.match(/retry in\s*(?:(\d+)h)?(?:(\d+)m)?/i)||[]),volta=re[1]||re[2]?` Volta em cerca de ${re[1]?re[1]+' h ':''}${re[2]?re[2]+' min':''}.`:'';
+  return `Cota diária do plano gratuito esgotada${mod?' no modelo '+mod:''}${lim?' (limite de '+lim+' pedidos por dia)':''}.${volta} O limite vale por projeto do Google, então uma chave nova só ajuda se for criada em OUTRO projeto no AI Studio. Alternativas: trocar o modelo no perfil (cada modelo tem a sua contagem) ou adicionar outro provedor gratuito, como a Groq.`}
     let aiCfg = {}, aiAtual = 'gemini';
     const $id = (i) => document.getElementById(i);
     function aiGuardaForm() {
@@ -340,14 +345,23 @@
         if (!r.ok || j.error) throw new Error((j.error && (j.error.message || j.error)) || ('Erro ' + r.status));
         m.textContent = '✅ ' + P.nome + ' respondeu (modelo ' + model + '). Lembre de clicar em Salvar IA.'; m.className = 'msg msg-success';
       } catch (e) {
-        m.textContent = '❌ ' + (e.name === 'AbortError' ? 'sem resposta em 30 s' : (e.message === 'Failed to fetch' ? 'o navegador bloqueou ou não alcançou o provedor (CORS/rede)' : e.message)); m.className = 'msg msg-error';
+        m.textContent = '❌ ' + (e.name === 'AbortError' ? 'sem resposta em 30 s' : (e.message === 'Failed to fetch' ? 'o navegador bloqueou ou não alcançou o provedor (CORS/rede)' : aiErroAmigavel(e.message))); m.className = 'msg msg-error';
       } finally { clearTimeout(t); }
     }
     $id('selectAiProvider').addEventListener('change', (e) => { aiGuardaForm(); aiMostra(e.target.value); $id('aiMsg').textContent = ''; });
     $id('btnTestAi').addEventListener('click', testarAi);
+    $id('btnLimpaAi').addEventListener('click', async () => {
+      if (!currentUser || !confirm('Apagar todas as chaves e configurações de IA deste perfil?')) return;
+      let { error } = await supabaseClient.from('profiles').update({ ai_provider: 'gemini', ai_key: '', ai_cfg: {} }).eq('id', currentUser.id);
+      if (error && /ai_cfg/.test(error.message)) ({ error } = await supabaseClient.from('profiles').update({ ai_provider: 'gemini', ai_key: '' }).eq('id', currentUser.id));
+      if (error) { showMsg('Erro ao limpar: ' + error.message, true); return; }
+      aiCfg = {}; $id('chkFb').checked = true; aiMostra('gemini'); $id('aiMsg').textContent = '';
+      showMsg('Calibração de IA limpa. Escolha o provedor, cole a chave nova e clique em Salvar IA.');
+    });
     aiMostra('gemini');
 
     initAuth();
   </script>
 </body>
 </html>
+
