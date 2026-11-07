@@ -385,13 +385,97 @@ async function processar(blob){
   }catch(e){aviso('❌ Erro ao processar a sessão: '+(e&&e.message||e));if(bub)bub.textContent='(erro ao processar)';micPronto()}
 }
 
+/* ===== Áudio / gravação / transcrição pela API do usuário ===== */
+async function crsAudio(){
+  if(R.stream)return;
+  R.ctx=new (window.AudioContext||window.webkitAudioContext)();await R.ctx.resume();
+  R.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+  R.an=R.ctx.createAnalyser();R.an.fftSize=2048;R.an.smoothingTimeConstant=.3;R.sr=R.ctx.sampleRate;
+  R.ctx.createMediaStreamSource(R.stream).connect(R.an);R.buf=new Float32Array(2048);R.fb=new Float32Array(1024);H=[]
+}
+function fecharCaptacao(){try{R.stream&&R.stream.getTracks().forEach(t=>t.stop())}catch(e){}try{R.ctx&&R.ctx.close()}catch(e){}R.stream=null;R.ctx=null;R.an=null;R.fl=[];R.P=[];R.A=[];H=[]}   // captação desligada = gráficos em repouso
+let mr=null,chunks=[],t0=0,lim=0,live=null;
+async function crsToggle(){
+  if(!U.id)return;
+  if(!rec){
+    if(U.tokens<custo()){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
+    try{await crsAudio()}catch(e){return alert(e&&e.name==='NotReadableError'?'O microfone está em uso por outro app ou aba. Feche-os e tente de novo.':'Microfone indisponível')}
+    try{speechSynthesis.cancel()}catch(e){}IA.on=false;
+    rec={tk:[]};chunks=[];mr=new MediaRecorder(R.stream);mr.ondataavailable=e=>chunks.push(e.data);
+    mr.onstop=()=>{fecharCaptacao();processar(new Blob(chunks,{type:mr.mimeType||'audio/webm'}))};mr.start();t0=Date.now();iniciarSR();
+    live=chatAdd('user','🎙️ gravando…');setMic(U.calibrado?'⏹️ Parar & Enviar':`⏹️ Parar & Processar Calibração ${U.ciclo+1}`,false);
+    lim=setTimeout(()=>rec&&crsToggle(),30000)
+  }else{clearTimeout(lim);setMic('⏳ Processando...',true);srOn=false;mr.stop()}
+}
+const b64=u=>{let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)};
+async function wav(blob){
+  const ab=await blob.arrayBuffer(),AC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+  const buf=await new AC(1,1,16000).decodeAudioData(ab),oc=new AC(1,Math.ceil(buf.duration*16000),16000),s=oc.createBufferSource();s.buffer=buf;s.connect(oc.destination);s.start();
+  const o=(await oc.startRendering()).getChannelData(0),v=new DataView(new ArrayBuffer(44+o.length*2)),w=(p,t)=>[...t].forEach((c,i)=>v.setUint8(p+i,c.charCodeAt(0)));
+  w(0,'RIFF');v.setUint32(4,36+o.length*2,true);w(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,16000,true);v.setUint32(28,32000,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,o.length*2,true);
+  for(let i=0;i<o.length;i++)v.setInt16(44+i*2,Math.max(-1,Math.min(1,o[i]))*32767,true);return new Uint8Array(v.buffer)
+}
+async function pcm16(blob){const ab=await blob.arrayBuffer(),AC=window.OfflineAudioContext||window.webkitOfflineAudioContext,buf=await new AC(1,1,16000).decodeAudioData(ab),oc=new AC(1,Math.ceil(buf.duration*16000),16000),s=oc.createBufferSource();s.buffer=buf;s.connect(oc.destination);s.start();return (await oc.startRendering()).getChannelData(0)}
+let WH=null;
+async function whisperLocal(blob){
+  const pcm=await pcm16(blob);
+  if(!WH){const nb=chatAdd('ia','⬇️ Baixando o modelo de voz interno (só na 1ª vez)…');const m=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2');WH=await m.pipeline('automatic-speech-recognition','Xenova/whisper-tiny');nb.remove()}
+  return ((await WH(pcm,{language:'portuguese',task:'transcribe',chunk_length_s:30,no_repeat_ngram_size:3,repetition_penalty:1.3})).text||'').trim()
+}
+async function transcrever(blob){
+  let t='';
+  if(U.key){try{const w=await wav(blob);
+    if(U.prov==='groq'){const f=new FormData();f.append('file',new Blob([w],{type:'audio/wav'}),'a.wav');f.append('model','whisper-large-v3-turbo');f.append('language','pt');
+      t=(await (await fetch('https://api.groq.com/openai/v1/audio/transcriptions',{method:'POST',headers:{Authorization:'Bearer '+U.key},body:f})).json()).text||''}
+    else if(U.prov==='openai'){const f=new FormData();f.append('file',new Blob([w],{type:'audio/wav'}),'a.wav');f.append('model','whisper-1');f.append('file',new Blob([w],{type:'audio/wav'}),'a.wav');f.append('model','whisper-1');f.append('language','pt');
+      t=(await (await fetch('https://api.openai.com/v1/audio/transcriptions',{method:'POST',headers:{Authorization:'Bearer '+U.key},body:f})).json()).text||''}
+    else if(U.prov==='gemini'||!U.prov){const j=await (await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CFG.GEMINI}:generateContent?key=${U.key}`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:'Transcreva fielmente a fala em português do Brasil. Responda somente com a transcrição. Se não houver fala, responda exatamente: (silêncio)'},{inline_data:{mime_type:'audio/wav',data:b64(w)}}]}]})})).json();
+      t=j.candidates[0].content.parts[0].text}
+    t=t.trim();if(t==='(silêncio)')return ''}catch(e){t=''}}
+  if(!t){try{t=await whisperLocal(blob)}catch(e){t=''}}
+  return t
+}
+async function processar(blob){
+  const rt=rec;rec=null;const bub=live;bub.textContent='⏳ transcrevendo…';
+  try{
+    const an=analisarSessao(rt.tk),res=an.res,semVoz=rt.tk.length>10&&res.fon<.05;          // análise primeiro (silenciosa)
+    let txt=semVoz?'':await resolverTexto(blob,bub);                                        // evita "Obrigado." alucinado em áudio mudo
+    if(semVoz){bub.textContent='(não captei sua voz)';aviso('Não captei sua voz. Chegue mais perto do microfone e tente de novo — nenhum token foi cobrado.');return micPronto()}
+    if(!txt&&!semVoz){U.falhas=(U.falhas||0)+1;if(U.falhas<2){bub.textContent='(não entendi)';const m='Não consegui entender o que você disse. Pode repetir, um pouco mais devagar?';chatAdd('ia',m);falar(m);aviso('Nenhum token foi cobrado.');return micPronto()}}
+    U.falhas=0;bub.textContent=txt||'(sem transcrição — sessão aceita sem texto)';
+    setMic('📊 Calculando CRS...',true);
+    const img=espectroide(rt.tk,an.sec,an.ret,Math.max(1,res.dur));
+    try{await debitar()}catch(e){bub.remove();if(e.message==='sem_saldo'){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}aviso('Falha ao debitar o token. Tente de novo.');return micPronto()}
+    const s={k:U.id+':'+Date.now(),uid:U.id,ts:Date.now(),blob,txt,dur:res.dur,tk:rt.tk,res,img};
+    try{const ab=await blob.arrayBuffer();await tx('readwrite',st=>st.put(Object.assign({},s,{blob:null,ab,tipo:blob.type})))}   // ArrayBuffer: Safari/WebViews falham com Blob no IndexedDB
+    catch(e){aviso('⚠️ Este navegador não guardou o áudio; a sessão segue só na memória.')}
+    U.sessoes.unshift(s);                                                                    // entra na 1ª caixa, as outras migram
+    while(U.sessoes.length>3){const o=U.sessoes.pop();try{await tx('readwrite',st=>st.delete(o.k))}catch(e){}}   // FIFO: sai a mais antiga
+    const antes=U.calibrado;if(U.ciclo<CFG.MAX)U.ciclo++;U.sel=0;renderFifo();$('esp').src=img;$('esp').style.display='block';
+    sb.from('calibracoes_crs').insert([{user_id:U.id,operador_nome:U.nome,etapa:U.ciclo,transcricao_usuario:txt,audio_url:'idb:'+s.k,tokens_consumidos:custo()}]).then(()=>{},()=>{});
+    document.dispatchEvent(new CustomEvent('crs:sessao',{detail:{res,txt}}));
+    const fim=!antes&&U.ciclo>=CFG.MAX;if(fim)await travar();
+    await iaFalar(txt,res,img,fim);
+    if(U.tokens<custo()){aviso('Saldo insuficiente de tokens.');setMic('Saldo insuficiente',true)}else micPronto()
+  }catch(e){aviso('❌ Erro ao processar a sessão: '+(e&&e.message||e));if(bub)bub.textContent='(erro ao processar)';micPronto()}
+}
+
 /* ===== Chat com a IA do usuário ===== */
 const SYS='Você é o Elayon Core, guia de calibração e acompanhamento vocal do Elayon Space, apoiando um profissional de saúde. Fale em português do Brasil, tom calmo e acolhedor, no máximo 4 frases curtas, sem listas nem emojis. NUNCA dê diagnóstico: descreva achados em linguagem simples, compare com as sessões anteriores, sugira exercícios leves ou autoexame e indique que os valores são estimativas acústicas de microfone de celular, cabendo a avaliação ao profissional. REGRAS DE SEGURANÇA: nunca diga que o usuário "melhorou" ou "piorou" como juízo clínico, diga que a medida "mudou em relação à referência"; não prometa cuidado, tratamento nem resultado; lembre, quando fizer sentido, que quem interpreta é o médico. Se o usuário relatar fala que piorou de repente, fraqueza num lado do corpo, boca torta, confusão, dor de cabeça forte e súbita, ou pensamentos de se machucar, a PRIMEIRA coisa a dizer é para ligar para o SAMU (192) ou procurar emergência agora (em sofrimento emocional, CVV 188), antes de qualquer análise. Os blocos [SISTEMA] e os dados CRS são internos: interprete, não recite números crus. Quando houver imagem, é o espectroide da sessão (espectrograma com F0, linhas das dimensões I a XI, faixa voz/silêncio e variação por segundo; linhas tracejadas marcam retomadas sonoras). No encerramento, agradeça e despeça-se.';
 function chatAdd(cls,txt){const d=document.createElement('div');d.className='msg '+cls;d.textContent=txt;$('chat').appendChild(d);$('chat').scrollTop=1e9;return d}
-function falar(t){return new Promise(res=>{try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='pt-BR';let f=0;
+function escolheVoz(){const V=speechSynthesis.getVoices().filter(v=>/^pt[-_]BR/i.test(v.lang));if(!V.length)return null;
+  const m=/felipe|ant[oô]nio|daniel|ricardo|thiago|rafael|male|masc/i,n=/natural|neural|online|enhanced|premium/i,f=/luciana|francisca|maria|helena|female|fem/i;
+  const pts=v=>(m.test(v.name)?4:0)+(n.test(v.name)?2:0)-(f.test(v.name)?5:0)+(v.localService?0:1);
+  return V.sort((a,b)=>pts(b)-pts(a))[0]}
+try{speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>{}}catch(e){}
+function falar(t){return new Promise(res=>{try{speechSynthesis.cancel();
+  const partes=String(t).replace(/\s+/g,' ').match(/[^.!?;:]+[.!?;:]?/g)||[String(t)],vz=escolheVoz();let i=0,f=0;
   const fim=()=>{if(f)return;f=1;IA.on=false;IA.pulse=0;if(CFG.IA_CAPTA_MIC&&!rec)fecharCaptacao();res()};
-  u.onstart=()=>{IA.on=true};u.onboundary=()=>{IA.pulse=1};u.onend=fim;u.onerror=fim;setTimeout(fim,90000);
-  if(CFG.IA_CAPTA_MIC&&!rec)crsAudio().catch(()=>{});speechSynthesis.speak(u)}catch(e){IA.on=false;res()}})}
+  const prox=()=>{if(f)return;if(i>=partes.length)return fim();const s=partes[i++].trim();if(!s)return prox();
+    const u=new SpeechSynthesisUtterance(s);u.lang='pt-BR';if(vz)u.voice=vz;u.rate=.92;u.pitch=.85;u.volume=.95;
+    u.onstart=()=>{IA.on=true};u.onboundary=()=>{IA.pulse=1};u.onend=()=>setTimeout(prox,/[.!?]$/.test(s)?260:120);u.onerror=fim;speechSynthesis.speak(u)};
+  setTimeout(fim,90000);if(CFG.IA_CAPTA_MIC&&!rec)crsAudio().catch(()=>{});prox()}catch(e){IA.on=false;res()}})}
 const PROV={gemini:{modelo:'gemini-2.5-flash',vis:true},groq:{url:'https://api.groq.com/openai/v1/chat/completions',modelo:'meta-llama/llama-4-scout-17b-16e-instruct',vis:true},mistral:{url:'https://api.mistral.ai/v1/chat/completions',modelo:'mistral-small-latest',vis:true},openrouter:{url:'https://openrouter.ai/api/v1/chat/completions',modelo:'meta-llama/llama-3.3-70b-instruct:free',vis:false},nvidia:{url:'https://integrate.api.nvidia.com/v1/chat/completions',modelo:'meta/llama-3.3-70b-instruct',vis:false},openai:{url:'https://api.openai.com/v1/chat/completions',modelo:'gpt-4o',vis:true},custom:{modelo:'',vis:false}};
 function provLista(){const p=U.pr||{},cfg=p.ai_cfg||{},act=U.prov||'gemini',L=[];const add=id=>{const c=cfg[id]||{},key=id===act?(U.key||c.key):c.key;if(key)L.push({p:id,key,model:c.model||'',url:c.url||'',vis:!!c.vis})};add(act);if(cfg._fb!==false)Object.keys(PROV).filter(x=>x!==act).forEach(add);return L}
 async function iaUm(c,sys,hist,ims){const P=PROV[c.p]||PROV.custom,model=c.model||(c.p==='gemini'?CFG.GEMINI:P.modelo),vis=P.vis||c.vis,last=hist.length-1;
