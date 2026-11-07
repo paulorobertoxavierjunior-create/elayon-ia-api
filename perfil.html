@@ -46,6 +46,11 @@
 
     .ai-setup-box { background: #f8fbfa; border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 16px; text-align: left; }
     .ai-setup-box h3 { font-size: 12px; color: var(--ink); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; }
+    .ai-setup-box summary { font-size: 12px; color: var(--ink); display: flex; justify-content: space-between; align-items: center; font-weight: 800; cursor: pointer; list-style: none; }
+    .ai-setup-box summary::-webkit-details-marker { display: none; }
+    .ai-setup-box summary::after { content: "▾"; margin-left: 8px; color: var(--muted); }
+    .ai-setup-box[open] summary { margin-bottom: 10px; }
+    .ai-setup-box[open] summary::after { content: "▴"; }
     .ai-status-badge { font-size: 9px; padding: 3px 8px; border-radius: 6px; font-weight: 800; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
     .ai-status-badge.ativo { background: #d4edda; color: #155724; border-color: #c3e6cb; }
 
@@ -71,7 +76,7 @@
   <main class="card">
     
     <div class="top-logo-container">
-      <img src="elayon_logo.png" alt="Elayon Logo" class="logo-img-small" onerror="this.style.display='none'" />
+      <img src="elayon-logo.png" alt="Elayon" class="logo-img-small" onerror="if(!this.dataset.t){this.dataset.t=1;this.src='elayon_logo.png'}else this.style.display='none'" />
     </div>
 
     <div class="avatar-wrapper">
@@ -107,8 +112,8 @@
     </section>
 
     <!-- Configuração da IA: vários provedores, com reserva automática -->
-    <section class="ai-setup-box">
-      <h3>🧠 Calibração da IA <span id="aiStatusBadge" class="ai-status-badge">NÃO CONFIGURADA</span></h3>
+    <details class="ai-setup-box" id="aiBox">
+      <summary>🧠 Calibração da IA <span id="aiStatusBadge" class="ai-status-badge">NÃO CONFIGURADA</span></summary>
       <div class="input-group">
         <label for="selectAiProvider">Provedor (o que você escolher aqui é o principal)</label>
         <select id="selectAiProvider">
@@ -144,12 +149,14 @@
       <div class="msg" id="aiMsg" style="margin-top:8px"></div>
       <label style="margin-top:10px">Provedores com chave guardada</label>
       <div id="aiList" class="hint">Nenhum.</div>
-    </section>
+    </details>
 
     <!-- Ações e Transição ao Cockpit -->
     <div class="actions">
       <button class="btn primary" id="btnSaveChanges" style="background: #f0f7f7; color: var(--accent); border: 1px solid var(--accent);">💾 Salvar Alterações</button>
-      <a class="btn primary" id="btnStartAvaliacao" href="cockpit.html" style="font-size: 14px; padding: 14px;">Continuar para o Cockpit 🚀</a>
+      <a class="btn primary" id="btnMeuEspaco" href="meu-espaco.html" style="font-size: 14px; padding: 14px;">🌿 Bem-vindo ao Elayon Space<br><span style="font-size:11px;font-weight:700;opacity:.92">Meu Espaço · Auto Escuta Simbólica</span></a>
+      <a class="btn logout" id="btnStartAvaliacao" href="cockpit.html" style="border-color:var(--accent);color:var(--ink)">🎛️ Cockpit — Demo para investidores<br><span style="font-size:10px;font-weight:700;color:var(--muted)">Mostra a calibração completa</span></a>
+      <a class="btn logout" id="btnPilotosOficiais" href="pilotos-oficiais.html" style="border-color:var(--accent);color:var(--ink);line-height:1.4">🩺 Pilotos Oficiais Elayon Health / Serviços de Saúde<br><span style="font-size:10px;font-weight:700;color:#856404">Aguardando Chave Codex ESH-V8</span></a>
       <button class="btn logout" id="btnLogout" type="button">Sair da Sessão</button>
     </div>
 
@@ -229,20 +236,35 @@
       document.getElementById('nameDisplayContainer').style.display = 'flex';
     });
 
+    function redimensiona(file, max = 384) {
+      return new Promise((ok, no) => {
+        const im = new Image(), u = URL.createObjectURL(file);
+        im.onload = () => {
+          const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas');
+          c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+          c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u);
+          c.toBlob(bl => bl ? ok({ blob: bl, url: c.toDataURL('image/jpeg', .8) }) : no(new Error('imagem inválida')), 'image/jpeg', .85);
+        };
+        im.onerror = () => no(new Error('não consegui ler a imagem (tente JPG ou PNG)'));
+        im.src = u;
+      });
+    }
     document.getElementById('fileInput').addEventListener('change', async (e) => {
-      const file = e.target.files[0];
+      const file = e.target.files[0]; e.target.value = '';
       if (!file || !currentUser) return;
-      showMsg('A carregar nova foto...');
-      const filePath = `avatars/${currentUser.id}_${Date.now()}`;
-      const { error: uploadError } = await supabaseClient.storage.from('avatars').upload(filePath, file);
-      if (uploadError) {
-        showMsg('Erro ao enviar foto: ' + uploadError.message, true);
-        return;
-      }
-      const { data: { publicUrl } } = supabaseClient.storage.from('avatars').getPublicUrl(filePath);
-      document.getElementById('avatarImage').src = publicUrl;
-      await supabaseClient.from('profiles').upsert({ id: currentUser.id, avatar_url: publicUrl });
-      showMsg('✅ Foto atualizada com sucesso!');
+      showMsg('A processar a foto...');
+      let img; try { img = await redimensiona(file); } catch (err) { return showMsg('Foto: ' + err.message, true); }
+      let url, aviso = '';
+      const filePath = `avatars/${currentUser.id}_${Date.now()}.jpg`;
+      const up = await supabaseClient.storage.from('avatars').upload(filePath, img.blob, { contentType: 'image/jpeg', upsert: true });
+      if (!up.error) url = supabaseClient.storage.from('avatars').getPublicUrl(filePath).data.publicUrl;
+      else { url = img.url; aviso = ' (guardada no perfil: o armazenamento recusou: ' + up.error.message + ')'; }
+      let r = await supabaseClient.from('profiles').update({ avatar_url: url }).eq('id', currentUser.id).select('id');
+      if (!r.error && (!r.data || !r.data.length))
+        r = await supabaseClient.from('profiles').upsert({ id: currentUser.id, email: currentUser.email, nome: document.getElementById('userName').textContent, avatar_url: url }).select('id');
+      if (r.error || !r.data || !r.data.length) return showMsg('A foto NÃO foi gravada no servidor: ' + (r.error ? r.error.message : 'nenhuma linha atualizada (permissão da tabela profiles).'), true);
+      document.getElementById('avatarImage').src = url;
+      showMsg('✅ Foto atualizada.' + aviso);
     });
 
     document.getElementById('btnSalvarAiConfig').addEventListener('click', async () => { if (await salvarAi()) showMsg('✅ Calibração da IA salva.'); });
@@ -364,4 +386,3 @@ function aiErroAmigavel(m){m=String(m||'');
   </script>
 </body>
 </html>
-
