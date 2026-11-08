@@ -198,7 +198,7 @@ $('bEnvia').onclick=async()=>{
     if(!L.length)throw new Error('Nenhum exercício gravado para enviar.');
     const ts=Date.now(),itens=[];let ord=0;
     for(const l of L){const path=`${U.id}/${ts}_${ord}_${l.ex.id}.elayon`;const up=await sb.storage.from('envios').upload(path,await laudoExporta(l),{contentType:'application/json'});if(up.error)throw up.error;
-      itens.push({path,exercicio:l.ex.nome,exId:l.ex.id,ts:l.ts,tipo:l.m&&l.m.cal?'calibracao':'exercicio',ordem:ord++})}
+      itens.push({path,exercicio:l.ex.nome,exId:l.ex.id,ts:l.ts,tipo:l.m&&l.m.cal?'calibracao':'exercicio',ordem:ord++,res:{f0:l.res.f0&&l.res.f0.m,jit:l.res.jit&&l.res.jit.m,shim:l.res.shim&&l.res.shim.m,hnr:l.res.hnr&&l.res.hnr.m,fon:l.res.fon,dur:l.res.dur,qual:l.q&&l.q.nivel,ok:(l.check||[]).filter(k=>k.t==='ok'||k.t==='y').length,total:(l.check||[]).length}})}
     const resumo={itens,exercicios:itens.filter(x=>x.tipo==='exercicio').length,calibracao:itens.filter(x=>x.tipo==='calibracao').length,sequencia:'exercícios e depois calibração'};
     for(const t of P){const {error}=await sb.from('envios').insert({user_id:U.id,codigo:t.codigo,pacote_path:itens[0].path,resumo});if(error)throw error;t.enviado=Date.now()}
     for(const l of L){if(l.m&&l.m.cal&&!l.m.env){l.m.env=ts;await laudoSalva(l)}}
@@ -219,3 +219,4 @@ $('bEnvia').onclick=async()=>{
   else chatAdd('ia',`Olá, ${nome()}. Este é o seu espaço. Você pode carregar o treino do seu médico, escolher um exercício ou simplesmente falar comigo. Sem pressa.`)
 })();
 </script></body></html>
+
