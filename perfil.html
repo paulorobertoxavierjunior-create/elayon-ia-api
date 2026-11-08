@@ -111,6 +111,17 @@
       </div>
     </section>
 
+    <!-- Como a pessoa usa o Elayon: usuário, médico ou clínica -->
+    <section class="box" id="papelBox">
+      <div class="row"><span class="label">Como você usa o Elayon</span></div>
+      <select id="selPapel" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:13px;background:#fff;color:var(--ink);margin-top:6px">
+        <option value="usuario">Sou usuário</option>
+        <option value="medico">Sou médico ou profissional de saúde</option>
+        <option value="clinica">Represento uma clínica</option>
+      </select>
+      <div id="papelInfo" class="hint" style="margin-top:8px;line-height:1.5"></div>
+    </section>
+
     <!-- Configuração da IA: vários provedores, com reserva automática -->
     <details class="ai-setup-box" id="aiBox">
       <summary>🧠 Calibração da IA <span id="aiStatusBadge" class="ai-status-badge">NÃO CONFIGURADA</span></summary>
@@ -154,9 +165,15 @@
     <!-- Ações e Transição ao Cockpit -->
     <div class="actions">
       <button class="btn primary" id="btnSaveChanges" style="background: #f0f7f7; color: var(--accent); border: 1px solid var(--accent);">💾 Salvar Alterações</button>
-      <a class="btn primary" id="btnMeuEspaco" href="meu-espaco.html" style="font-size: 14px; padding: 14px;">🌿 Bem-vindo ao Elayon Space<br><span style="font-size:11px;font-weight:700;opacity:.92">Meu Espaço · Auto Escuta Simbólica</span></a>
-      <a class="btn logout" id="btnStartAvaliacao" href="cockpit.html" style="border-color:var(--accent);color:var(--ink)">🎛️ Cockpit — Demo para investidores<br><span style="font-size:10px;font-weight:700;color:var(--muted)">Mostra a calibração completa</span></a>
-      <a class="btn logout" id="btnPilotosOficiais" href="pilotos-oficiais.html" style="border-color:var(--accent);color:var(--ink);line-height:1.4">🩺 Pilotos Oficiais Elayon Health / Serviços de Saúde<br><span style="font-size:10px;font-weight:700;color:#856404">Aguardando Chave Codex ESH-V8</span></a>
+      <a class="btn primary" id="btnMeuEspaco" data-p="usuario,medico" href="meu-espaco.html" style="font-size: 14px; padding: 14px;">🌿 Bem-vindo ao Elayon Space<br><span style="font-size:11px;font-weight:700;opacity:.92">Meu Espaço · Auto Escuta Simbólica</span></a>
+      <a class="btn primary" id="btnCockpitUsuario" data-p="usuario" href="cockpit.html" style="font-size:13px;padding:13px">🎛️ Cockpit Vibes 8<br><span style="font-size:10px;font-weight:700;opacity:.92">Calibração e acompanhamento vocal</span></a>
+      <a class="btn primary" id="btnCockpitPiloto" data-p="medico" href="piloto-guiado.html?modo=real" style="font-size:13px;padding:13px">🩺 Cockpit do piloto<br><span id="subCockpitPiloto" style="font-size:10px;font-weight:700;opacity:.92">Atendimento real · libera depois do treinamento</span></a>
+      <a class="btn logout" id="btnTreinoMedico" data-p="medico" href="piloto-guiado.html?modo=treino" style="border-color:var(--accent);color:var(--ink)">🎓 Calibração do médico (treinamento)<br><span style="font-size:10px;font-weight:700;color:var(--muted)">Você faz o papel do usuário e aprende a ler os gráficos com a IA</span></a>
+      <a class="btn logout" id="btnEspacoPiloto" data-p="medico" href="espaco-piloto.html" style="border-color:var(--accent);color:var(--ink)">📋 Espaço do piloto: treinos dos usuários</a>
+      <a class="btn logout" id="btnCadMedico" data-p="medico" href="cadastro-piloto.html" style="border-color:var(--accent);color:var(--ink)">🪪 Cadastro profissional</a>
+      <a class="btn primary" id="btnClinica" data-p="clinica" href="clinica.html" style="font-size:13px;padding:13px">🏛️ Central da clínica<br><span style="font-size:10px;font-weight:700;opacity:.92">Validar médicos e certificar laudos</span></a>
+      <a class="btn logout" id="btnStartAvaliacao" href="piloto-guiado.html?modo=treino" style="border-color:var(--accent);color:var(--ink)">🎛️ Demo para investidores<br><span style="font-size:10px;font-weight:700;color:var(--muted)">Calibração do médico, análise guiada e laudo assinado</span></a>
+      <a class="btn logout" id="btnPilotosOficiais" data-p="clinica,medico,usuario" href="pilotos-oficiais.html" style="border-color:var(--accent);color:var(--ink);line-height:1.4">🩺 Pilotos Oficiais Elayon Health / Serviços de Saúde<br><span style="font-size:10px;font-weight:700;color:#856404">Aguardando Chave Codex ESH-V8</span></a>
       <button class="btn logout" id="btnLogout" type="button">Sair da Sessão</button>
     </div>
 
@@ -201,19 +218,51 @@
           .from('profiles').select('*').eq('id', user.id).single();
 
         if (profile) {
-          currentTokens = profile.tokens ?? 100;
+currentTokens = profile.tokens ?? 100;
           document.getElementById('userTokens').textContent = currentTokens;
           if (profile.nome) document.getElementById('userName').textContent = profile.nome;
           if (profile.avatar_url) document.getElementById('avatarImage').src = profile.avatar_url;
           else document.getElementById('avatarImage').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id}`;
 
           aiCarrega(profile);
+          aplicaPapel(profile.papel || 'usuario', profile);
         }
       } catch (e) {
         document.getElementById('userTokens').textContent = currentTokens;
         document.getElementById('avatarImage').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id}`;
       }
     }
+
+    // Papel: usuário, médico ou clínica. Mostra só os botões que servem a cada um.
+    const PAPEL_TXT = {
+      usuario: 'Você faz os exercícios no Meu Espaço, recebe treinos do seu médico e ativa o laudo certificado no cockpit.',
+      medico: 'Você passa pela calibração do médico (treinamento), depois atende no cockpit do piloto e envia o laudo assinado à sua clínica. Complete o cadastro profissional. Psicólogos usam o PsyQ, que está em breve.',
+      clinica: 'A clínica é a central: aprova os médicos vinculados, valida e certifica os laudos, e os libera aos usuários.'
+    };
+    function aplicaPapel(papel, profile) {
+      if (!PAPEL_TXT[papel]) papel = 'usuario';
+      document.getElementById('selPapel').value = papel;
+      document.getElementById('papelInfo').textContent = PAPEL_TXT[papel];
+      document.querySelectorAll('.actions [data-p]').forEach(el => {
+        el.style.display = el.dataset.p.split(',').includes(papel) ? '' : 'none';
+      });
+      const ok = profile && profile.medico_aprovado_em;
+      const sub = document.getElementById('subCockpitPiloto');
+      if (sub) sub.textContent = ok ? 'Atendimento real · treinamento aprovado ✔' : 'Atendimento real · libera depois do treinamento';
+    }
+    document.getElementById('selPapel').addEventListener('change', async (e) => {
+      const papel = e.target.value;
+      aplicaPapel(papel, null);
+      try {
+        const { data, error } = await supabaseClient.from('profiles').update({ papel }).eq('id', currentUser.id).select('id');
+        if (error || !data || !data.length) throw (error || new Error('nenhuma linha atualizada'));
+        showMsg('Perfil de uso salvo.');
+      } catch (err) {
+        showMsg('Não consegui salvar o papel: ' + (err.message || err) + ' (rode o clinica.sql no Supabase).', true);
+      }
+    });
+
+    aplicaPapel('usuario', null);
 
     // Edição Inline de Nome
     document.getElementById('btnEditName').addEventListener('click', () => {
