@@ -1,0 +1,54 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Instrução • Elayon Health</title>
+<link rel="stylesheet" href="health.css">
+<style>
+.hero{background:linear-gradient(135deg,#0a2a2f,#0e4f63 55%,#0b6b57);border:0}.hero h1{color:#fff}.hero p{color:#bfe3e0}
+.dica{border-left:4px solid #06b6d4;background:linear-gradient(90deg,#e6fafd,#fff);border-radius:12px;padding:12px;font-size:13px;line-height:1.55}
+.m{border:1px solid var(--l);border-radius:12px;padding:12px;background:#fff;display:grid;gap:4px;scroll-margin-top:12px}
+.m:target{border-color:#06b6d4;box-shadow:0 0 0 3px #06b6d433}
+.m h4{margin:0;font-size:14px;display:flex;justify-content:space-between;gap:8px;align-items:baseline}.m h4 small{font-weight:700;color:var(--m);font-size:10px}
+.m p{margin:0;font-size:12.5px;line-height:1.55}.m .f{color:#0e7490;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:12px}td,th{border-bottom:1px solid var(--l);padding:6px 4px;text-align:left}th{color:var(--m);font-size:10px;text-transform:uppercase}
+pre{white-space:pre-wrap;font:12px/1.55 inherit;background:#f1fcfe;border:1px solid var(--l);border-radius:12px;padding:10px;margin:0}
+</style></head><body><div class="w">
+<div class="c hero"><h1>💡 Instrução</h1><p>O essencial para ler os gráficos, sem enrolação. Feito para fonoaudiólogos e neurologistas refrescarem a memória.</p></div>
+
+<div class="c"><div class="dica"><b>Dica da sessão.</b> O Elayon é um termômetro vocal: mede e mostra, não diagnostica. Quem interpreta e assina é o profissional. Leia cada ponto contra a <b>faixa do próprio usuário</b>, que sai da calibração dele, e não contra uma média da população.</div></div>
+
+<div class="c"><h3>As medidas</h3><div style="display:grid;gap:8px">
+<div class="m" id="f0"><h4>F0 · tom <small>Hz</small></h4><p>Frequência fundamental: quantas vezes por segundo as pregas vocais vibram. É o "agudo ou grave" da voz.</p><p class="f">Fora da faixa dele: tom muito instável, mais grave ou mais agudo que o habitual pode sugerir tensão, fadiga vocal, variação hormonal ou emocional.</p></div>
+<div class="m" id="jitter"><h4>Jitter · instabilidade do tom <small>%</small></h4><p>Quanto o tom varia de uma vibração para a seguinte. Voz saudável é estável; a vibração irregular aparece como tremor ou aspereza.</p><p class="f">Valor alto: vibração irregular das pregas. Pode vir de rouquidão, lesão, fadiga, e também de ruído do ambiente.</p></div>
+<div class="m" id="shimmer"><h4>Shimmer · instabilidade do volume <small>dB</small></h4><p>O mesmo conceito do jitter, mas para a intensidade: quanto o volume oscila entre uma vibração e a seguinte.</p><p class="f">Valor alto: volume irregular, comum em voz soprosa ou com fechamento incompleto das pregas.</p></div>
+<div class="m" id="hnr"><h4>HNR · timbre limpo <small>dB</small></h4><p>Proporção entre som harmônico (a voz) e ruído (ar que escapa). Quanto maior, mais limpa a voz.</p><p class="f">Valor baixo: voz rouca ou soprosa. Fica mais baixo também com microfone ruim ou barulho ao fundo.</p></div>
+<div class="m" id="tempo"><h4>Tempo de fonação <small>s</small></h4><p>Quanto tempo a pessoa sustenta uma vogal ("aaa") em uma só respiração. Mostra controle respiratório e fechamento das pregas.</p><p class="f">Tempo curto: pouco suporte de ar ou escape de ar pela glote. Compare com as tentativas anteriores dele.</p></div>
+<div class="m" id="pausas"><h4>Pausas e fluência <small>fala encadeada</small></h4><p>Em leitura ou fala livre, o número e a duração das pausas e a regularidade do ritmo.</p><p class="f">Muitas pausas longas ou ritmo irregular merecem atenção em contexto neurológico (cansaço, esforço, alterações de planejamento da fala).</p></div>
+<div class="m" id="intens"><h4>Intensidade <small>dB</small></h4><p>O volume da fala. No celular o número absoluto depende da distância do microfone, então vale só dentro da mesma sessão.</p></div>
+</div></div>
+
+<div class="c"><h3>Como ler o medidor</h3><p>A barra verde-azulada é a <b>faixa individual</b> do usuário. O quadrado azul-claro é a calibração dele. Bolinha verde: o exercício ficou dentro da faixa. Bolinha azul-escura: fora da faixa, vale olhar com mais atenção. Uma bolinha fora da faixa sozinha não quer dizer nada: procure repetição, tendência ao longo dos dias e se bate com o que o paciente relata.</p></div>
+
+<div class="c"><h3>Valores citados na literatura</h3><p>São referências de laboratório. Variam por autor, programa e microfone. No celular, confie na faixa do usuário.</p>
+<table><tr><th>Medida</th><th>Referência comum</th></tr>
+<tr><td>F0 homem adulto</td><td>cerca de 85 a 180 Hz</td></tr><tr><td>F0 mulher adulta</td><td>cerca de 165 a 255 Hz</td></tr>
+<tr><td>Jitter</td><td>abaixo de cerca de 1%</td></tr><tr><td>Shimmer</td><td>abaixo de cerca de 3,8% (ou 0,35 dB)</td></tr>
+<tr><td>HNR</td><td>acima de cerca de 20 dB</td></tr></table></div>
+
+<div class="c"><h3>Anamnese rápida</h3><p>Perguntas que costumam orientar a leitura dos gráficos. Copie e adapte.</p>
+<pre id="anam">1. Queixa principal, e o que mudou na voz (rouquidão, cansaço, falha, tremor, voz fraca).
+2. Quando começou, se vai e volta, e se piora ao longo do dia.
+3. Uso profissional da voz (professor, call center, canto, vendas) e horas de fala por dia.
+4. Hábitos: tabaco, álcool, hidratação, café, pigarro frequente.
+5. Saúde geral: refluxo, alergia ou sinusite, tireoide, medicamentos em uso.
+6. Sono, estresse e ansiedade nas últimas semanas.
+7. Audição: usa aparelho, percebe que fala mais alto?
+8. Neurológico: AVC, Parkinson, traumatismo de crânio, dificuldade para engolir, fraqueza na fala.
+9. Cirurgias ou intubação recentes na região do pescoço.
+10. O que já tentou ou tratou, e com quem.</pre>
+<button class="b g" id="bCp" style="margin-top:8px">Copiar modelo</button></div>
+
+<div class="c"><h3>Boas práticas de gravação</h3><p>Ambiente silencioso, microfone do celular a cerca de 15 a 20 cm da boca e sempre na mesma posição, sem fone com cancelamento de ruído, sem cobrir o microfone com a mão. Peça ao usuário para repetir se houver barulho: o ruído piora jitter e HNR e engana a leitura.</p></div>
+
+<p style="text-align:center"><a href="perfil.html" style="color:var(--a);font-weight:700;font-size:11px">⬅ Voltar ao perfil</a></p>
+</div>
+<script>
+document.getElementById('bCp').onclick=async()=>{const b=document.getElementById('bCp');try{await navigator.clipboard.writeText(document.getElementById('anam').textContent);b.textContent='Copiado ✔'}catch(e){b.textContent='Selecione o texto e copie'}};
+</script></body></html>
