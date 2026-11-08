@@ -3,9 +3,9 @@
 const R={ctx:null,an:null,buf:null,fb:null,sr:48000,fl:[],P:[],A:[],vz:[],prev:.3};let D={jit:0,shim:0};
 const rg=(v,a,b)=>Math.max(0,Math.min(1,(v-a)/(b-a)));
 /* tema claro: fundo branco nos gráficos, tons escuros para contraste */
-const GR=['#0369a1','#c2410c','#15803d','#a16207','#7e22ce','#0f766e','#be185d','#1d4ed8','#4d7c0f','#b91c1c','#0e7490'].map(c=>['','',c]);
-const HC={bg:'#ffffff',pan:'#f8fafc',tx:'#334155',f0:'#111827',db:'#0891b2',voz:'#0e7490',sil:'#fca5a5',grade:'#cbd5e1'};
-const corEsp=v=>v<.06?'#ffffff':`hsl(${235-v*235},85%,${95-v*52}%)`;   // branco = sem energia; azul > verde > vermelho = mais energia
+const GR=['#0891b2','#0284c7','#059669','#0e7490','#1d4ed8','#0d9488','#2563eb','#10b981','#06b6d4','#0369a1','#047857'].map(c=>['','',c]);   // paleta única: ciano, azul e verde intensos
+const HC={bg:'#ffffff',pan:'#f3fcfd',tx:'#334155',f0:'#0b3b66',db:'#0891b2',voz:'#0e7490',sil:'#cbd5e1',grade:'#cbd5e1'};
+const corEsp=v=>v<.06?'#ffffff':`hsl(${215-v*95},85%,${95-v*55}%)`;   // branco = sem energia; azul > ciano > verde = mais energia
 const med=a=>a.length?a.reduce((p,q)=>p+q,0)/a.length:0;
 function mk(o){
   R.vz.push(o.voz?1:0);if(R.vz.length>40)R.vz.shift();
@@ -70,9 +70,9 @@ function espectroide(tk,sec,ret,dur){
   for(let m=0;m<11;m++){x.strokeStyle=GR[m][2];x.lineWidth=1.3;x.beginPath();tk.forEach((k,i)=>{const y=392-k.n[m]*128;i?x.lineTo(i/n*W,y):x.moveTo(i/n*W,y)});x.stroke()}
   tk.forEach((k,i)=>{x.fillStyle=k.voz?HC.voz:HC.sil;x.fillRect(i/n*W,402,w,22)});
   x.fillStyle=HC.pan;x.fillRect(0,430,W,100);const sw=W/Math.max(1,dur);
-  sec.forEach((s,i)=>{const d=i?s.db-sec[i-1].db:0,hh=Math.max(-30,Math.min(30,d*3));x.fillStyle=d>=0?'#16a34a':'#dc2626';x.fillRect(i*sw+2,470-Math.max(hh,0),sw-4,Math.abs(hh)||1);x.fillStyle=HC.tx;x.font='11px monospace';x.fillText(i+'s',i*sw+3,525)});
-  x.setLineDash([5,4]);x.strokeStyle='#111827';x.lineWidth=1;ret.slice(1).forEach(s=>{const px=s.t/dur*W;x.beginPath();x.moveTo(px,0);x.lineTo(px,440);x.stroke();x.fillStyle='#111827';x.font='bold 11px sans-serif';x.fillText('↻∫'+s.area,px+3,12)});x.setLineDash([]);
-  x.fillStyle=HC.tx;x.font='11px sans-serif';x.fillText('Espectrograma 60Hz–8kHz + F0 (linha preta)',6,246);x.fillText('Dimensões I–XI (normalizadas)',6,272);x.fillText('Voz (azul) / Silêncio (vermelho)',6,420);x.fillText('Δ intensidade por segundo (verde sobe, vermelho cai) · ↻ = retomada sonora, ∫ = área da fala',6,448);
+  sec.forEach((s,i)=>{const d=i?s.db-sec[i-1].db:0,hh=Math.max(-30,Math.min(30,d*3));x.fillStyle=d>=0?'#059669':'#1d4ed8';x.fillRect(i*sw+2,470-Math.max(hh,0),sw-4,Math.abs(hh)||1);x.fillStyle=HC.tx;x.font='11px monospace';x.fillText(i+'s',i*sw+3,525)});
+  x.setLineDash([5,4]);x.strokeStyle='#0b3b66';x.lineWidth=1;ret.slice(1).forEach(s=>{const px=s.t/dur*W;x.beginPath();x.moveTo(px,0);x.lineTo(px,440);x.stroke();x.fillStyle='#0b3b66';x.font='bold 11px sans-serif';x.fillText('↻∫'+s.area,px+3,12)});x.setLineDash([]);
+  x.fillStyle=HC.tx;x.font='11px sans-serif';x.fillText('Espectrograma 60Hz–8kHz + F0 (linha azul-marinho)',6,246);x.fillText('Dimensões I–XI (normalizadas)',6,272);x.fillText('Voz (ciano) / Silêncio (cinza)',6,420);x.fillText('Δ intensidade por segundo (verde sobe, azul cai) · ↻ = retomada sonora, ∫ = área da fala',6,448);
   return c.toDataURL('image/jpeg',.82)
 }
 
