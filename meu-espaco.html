@@ -1,0 +1,221 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Meu Espaço • Elayon Space</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script><link rel="stylesheet" href="health.css">
+<style>
+.top{display:flex;align-items:center;gap:12px}.lg{width:46px;height:46px;border-radius:50%;object-fit:cover;border:1.5px solid var(--a);background:#fff;flex:none}
+.top h1{font-size:17px;line-height:1.2}.top p{font-size:11px}.av{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid var(--a);margin-left:auto;background:#e2f1f1}
+details.c>summary{cursor:pointer;font-size:13px;font-weight:800;color:var(--a);list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.c>summary::-webkit-details-marker{display:none}details.c>summary::after{content:"▾";color:var(--m)}details.c[open]>summary::after{content:"▴"}
+details.c[open]>summary{margin-bottom:6px}
+.cur{background:#f0f7f7;border-left:4px solid var(--a);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.5}.cur b{color:var(--a)}
+.mic{padding:16px;font-size:14px;background:linear-gradient(135deg,#b91c1c,#ef4444)}.mic.on{background:linear-gradient(135deg,#0f766e,#14b8a6)}
+.ex{display:flex;gap:8px;align-items:center;justify-content:space-between;border:1px solid var(--l);border-radius:12px;padding:8px 10px;background:#fff}.ex b{font-size:12px}.ex small{display:block}
+.ex.ok{border-color:#2b8a3e66;background:#f1faf3}.ex button{width:auto;padding:7px 12px;font-size:11px}
+.ch{height:230px;overflow-y:auto;padding:10px;background:#f8fbfa;border:1px solid var(--l);border-radius:14px;display:flex;flex-direction:column;gap:6px}
+.m2{padding:7px 10px;border-radius:10px;font-size:12px;line-height:1.45;max-width:90%;white-space:pre-wrap}.m2.ia{background:#e8f6f1;border:1px solid #2a9d8f55;align-self:flex-start}.m2.u{background:#e6f0fa;border:1px solid #38bdf866;align-self:flex-end}
+.m2 button{border:0;background:none;cursor:pointer;font-size:12px;margin-left:6px}
+.ck{display:grid;gap:6px}.ck div{font-size:12px;line-height:1.45;padding:8px 10px;border-radius:10px;border:1px solid var(--l)}.ck .ok{background:#f1faf3}.ck .at{background:#fff8e6;border-color:#f59e0b66}.ck .ex{background:#fdecea;border-color:#d9534f66;display:block}
+.lz{border:1px solid var(--l);border-radius:12px;padding:10px;display:grid;gap:6px;background:#fff}.lz.rev{border-color:var(--a);box-shadow:0 0 0 1px var(--a)}
+.lz .bt{display:flex;flex-wrap:wrap;gap:6px}.lz .bt button{width:auto;padding:6px 10px;font-size:11px}
+#av2{font-size:12px;line-height:1.5}#av2 b{color:#b91c1c}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+[hidden]{display:none!important}
+</style></head><body><div class="w">
+<div class="c"><div class="top"><img class="lg" src="elayon-logo.png" alt="Elayon" onerror="if(!this.dataset.t){this.dataset.t=1;this.src='elayon_logo.png'}else this.style.display='none'">
+<div><h1>Bem-vindo ao Elayon Space</h1><p>Meu Espaço · Auto Escuta Simbólica</p></div><img class="av" id="avt" alt="" src=""></div>
+<div class="hd"><span id="quem">…</span><a href="perfil.html">⬅ Perfil</a></div><div id="av2"></div></div>
+
+<div class="c" id="miss" hidden style="border:1px solid #06b6d4;box-shadow:0 0 0 3px #06b6d422"><h3>🎯 Sua missão de hoje</h3><p id="missTxt"></p>
+<div style="height:6px;background:#e2f1f1;border-radius:6px;overflow:hidden"><i id="missPb" style="display:block;height:100%;width:0;background:linear-gradient(90deg,#06b6d4,#059669);transition:width .3s"></i></div>
+<div id="missLista" style="display:grid;gap:6px"></div>
+<button class="b" id="bMiss">Começar a missão ▶</button><button class="b" id="bEnvia" hidden>📤 Enviar ao meu médico</button><button class="b g sm" id="bAdia" style="width:auto;justify-self:start">Agora não</button><div class="msg" id="mMi"></div></div>
+
+<details class="c" id="dT" open><summary>🧭 Treino do seu médico</summary>
+<p>Digite o código que o médico passou. O treino fica salvo aqui, como lista de tarefas, e você só precisa tocar em "Fazer".</p>
+<div class="row2" style="grid-template-columns:1fr auto"><input id="cod" placeholder="ESH-XXXXXXXX" autocapitalize="characters" autocomplete="off"><button class="b sm" id="bCod">Carregar</button></div>
+<div class="msg" id="mT"></div><div id="tr" style="display:grid;gap:10px"></div></details>
+
+<details class="c" id="dP"><summary>📚 Exercícios padrão</summary><div id="pad" style="display:grid;gap:8px"></div></details>
+
+<div class="c"><h3>🎙️ Escuta</h3><div class="cur" id="cur"></div>
+<button class="b mic" id="bMic">🎙️ Gravar</button>
+<div class="row2"><button class="b g" id="bPausa">⏸ Pausar gráficos</button><button class="b g" id="bLivre">💬 Falar livremente</button></div>
+<div class="msg" id="mM"></div></div>
+
+<div class="c"><div class="row"><h3>🌌 Meus 8 gráficos</h3><span><button class="b g sm" id="bRec">▾ Recolher</button> <button class="b g sm" id="bExp">▸ Expandir</button></span></div>
+<div id="grid"></div><audio id="aud" controls style="width:100%;display:none"></audio></div>
+
+<div class="c" id="cCk" style="display:none"><h3>✅ Check-up de conformidade</h3><div class="ck" id="ck"></div></div>
+
+<div class="c" id="cChat"><div class="row"><h3>💬 Conversa livre</h3><label style="display:flex;gap:6px;align-items:center;text-transform:none;margin:0"><input type="checkbox" id="chV" style="width:auto"> ouvir respostas</label></div>
+<div class="ch" id="chat"></div>
+<div class="row2" style="grid-template-columns:1fr auto"><input id="txt" placeholder="Escreva aqui, ou use o microfone acima"><button class="b sm" id="env">Enviar</button></div>
+<button class="b g" id="bFim" style="display:none">✅ Encerrar sessão e gerar laudo</button></div>
+
+<div class="c"><div class="row"><h3 id="hL">📁 Meus laudos</h3><label class="b g sm" style="cursor:pointer;margin:0">Abrir .elayon<input type="file" id="fImp" accept=".elayon,.json,application/json" style="display:none"></label></div>
+<p>Ficam só neste aparelho (até 10). Cada laudo guarda as medidas e o áudio; ao tocar o áudio, os gráficos se movem como na gravação.</p>
+<div id="lz" style="display:grid;gap:8px"></div></div>
+<p style="text-align:center"><a href="termos.html" style="color:var(--a);font-weight:700;font-size:11px">Termos</a> · <a href="privacidade.html" style="color:var(--a);font-weight:700;font-size:11px">Privacidade</a></p>
+</div>
+<script src="elayon-legal.js"></script><script src="health-core.js"></script><script src="health-dsp.js"></script><script src="vibes8.js"></script><script src="espaco-comum.js"></script>
+<script>
+let U=null,ME={},V=null,rec=null,cur=EX[0],treinos=[],ativo=null,modo='live',ultimo=null,hist=[],timer=0,TK='';
+const MAXS=90,fm=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(Math.floor(s%60)).padStart(2,'0');
+const msg=(id,t,e)=>{const m=$(id);m.textContent=t||'';m.style.color=e?'#b91c1c':''};
+const av2=h=>{$('av2').innerHTML=h||''};
+const salvaT=()=>{try{localStorage.setItem(TK,JSON.stringify(treinos))}catch(e){}};
+
+/* ---------- treino do médico ---------- */
+function renderTreinos(){
+  $('tr').innerHTML=treinos.length?treinos.map((t,ti)=>`<div class="c" style="box-shadow:none"><div class="row"><b style="font-size:13px">${esc(t.titulo)}</b><button class="b g sm" onclick="rmTreino(${ti})">remover</button></div>
+   <small>${esc(t.codigo)}${t.paciente_nome?' · '+esc(t.paciente_nome):''}</small>${t.orientacao?`<p>${esc(t.orientacao)}</p>`:''}
+   ${t.exercicios.map((e,ei)=>`<div class="ex ${t.feitos&&t.feitos[e.id]?'ok':''}"><div><b>${t.feitos&&t.feitos[e.id]?'✔ ':'☐ '}${esc(e.nome)}</b><small>${esc(e.bloco||'')}${e.min?' · '+e.min+' s de voz':''}</small></div><button class="b sm" onclick="escolher(${ti},${ei})">Fazer</button></div>`).join('')}</div>`).join(''):'<p>Nenhum treino carregado.</p>';
+}
+async function carregaCodigo(){
+  const c=$('cod').value.trim().toUpperCase();if(!c)return msg('mT','Digite o código.',1);msg('mT','Buscando…');
+  const {data,error}=await sb.rpc('treino_por_codigo',{cod:c});
+  if(error)return msg('mT',/function|schema|not exist|find/i.test(error.message)?'Os treinos ainda não foram ativados no servidor. Avise o responsável (arquivo espaco.sql).':'Erro: '+error.message,1);
+  if(!data)return msg('mT','Código não encontrado, desativado ou emitido para outro e-mail.',1);
+  const t=mescla(data);delete t.enviado;salvaT();renderTreinos();$('cod').value='';msg('mT','✅ Treino carregado: '+t.titulo);montaMissao();missaoUI()}
+function rmTreino(i){if(ativo===treinos[i])ativo=null;treinos.splice(i,1);salvaT();renderTreinos()}
+function escolher(ti,ei){ativo=treinos[ti];setEx(ativo.exercicios[ei]);scrollTo({top:$('bMic').offsetTop-120,behavior:'smooth'})}
+function setEx(e,t){if(rec)return;cur=e;if(t!==undefined)ativo=t;showCur()}
+function showCur(){$('cur').innerHTML=`<b>${esc(cur.nome)}</b>${ativo?` · treino ${esc(ativo.titulo)}`:''}<br>${esc(cur.instr)}`;if(!rec)$('bMic').textContent='🎙️ Gravar: '+cur.nome}
+$('pad').innerHTML=EX.map(e=>`<div class="ex"><div><b>${esc(e.nome)}</b><small>${esc(e.bloco)}${e.min?' · '+e.min+' s de voz':''}</small></div><button class="b sm" data-ex="${e.id}">Fazer</button></div>`).join('');
+$('pad').onclick=e=>{const id=e.target.dataset&&e.target.dataset.ex;if(id){setEx(EX.find(x=>x.id===id),null);scrollTo({top:$('bMic').offsetTop-120,behavior:'smooth'})}};
+$('bLivre').onclick=()=>setEx(EX[0],null);$('bCod').onclick=carregaCodigo;$('cod').onkeydown=e=>{if(e.key==='Enter')carregaCodigo()};
+
+/* ---------- gravação ao vivo ---------- */
+setInterval(()=>{if(!V||modo==='replay')return;let k;try{k=R.an?analisar():V.idle()}catch(e){k=V.idle()}
+  k.ct=rec?(performance.now()-rec.t0)/1000:0;k.pk=0;if(R.an){let m=0;for(let i=0;i<R.buf.length;i++){const a=Math.abs(R.buf[i]);if(a>m)m=a}k.pk=m}
+  V.push(k);if(rec)rec.tk.push(k)},50);
+function iniciarSR(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
+  const r=new SR();r.lang='pt-BR';r.continuous=true;r.interimResults=false;
+  r.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)rec.txt+=(rec.txt?' ':'')+e.results[i][0].transcript.trim()};
+  r.onend=()=>{if(rec&&rec.srOn){try{r.start()}catch(e){}}};rec.sr=r;rec.srOn=true;try{r.start()}catch(e){}}
+async function gravar(){
+  if(rec){clearTimeout(rec.lim);return rec.mr.stop()}
+  let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}
+  catch(e){return msg('mM',e&&e.name==='NotReadableError'?'O microfone está em uso por outro app ou aba.':'Microfone indisponível ou sem permissão.',1)}
+  sairReplay();try{speechSynthesis.cancel()}catch(e){}
+  R.fl=[];R.P=[];R.A=[];R.vz=[];try{R.ctx&&R.ctx.close().catch(()=>{})}catch(e){}ligarAnalise(stream.getAudioTracks()[0]);
+  const chunks=[],mr=new MediaRecorder(stream);mr.ondataavailable=e=>e.data&&e.data.size&&chunks.push(e.data);mr.onstop=finalizar;
+  rec={tk:[],t0:performance.now(),stream,mr,chunks,txt:'',srOn:false};mr.start(1000);iniciarSR();
+  $('bMic').classList.add('on');msg('mM','');
+  timer=setInterval(()=>{$('bMic').textContent='⏹ Parar e gerar laudo · '+fm((performance.now()-rec.t0)/1000)},300);
+  rec.lim=setTimeout(()=>rec&&rec.mr.state!=='inactive'&&rec.mr.stop(),MAXS*1000)}
+$('bMic').onclick=gravar;
+async function finalizar(){
+  const r=rec;clearInterval(timer);r.srOn=false;try{r.sr&&r.sr.stop()}catch(e){}
+  r.stream.getTracks().forEach(t=>t.stop());try{R.ctx.close().catch(()=>{})}catch(e){}R.an=null;R.fl=[];R.P=[];R.A=[];rec=null;
+  $('bMic').classList.remove('on');showCur();
+  const tk=r.tk;if(tk.length<20)return msg('mM','Gravação curta demais. Tente de novo.',1);
+  const an=analisarSessao(tk),res=an.res;
+  if(res.fon<.05){chatAdd('ia','Não captei a sua voz. Chegue um pouco mais perto do microfone e tente de novo.');return msg('mM','Sem voz detectada.',1)}
+  const crs=crsTemporal(tk),q=qualidade(tk),blob=new Blob(r.chunks,{type:r.mr.mimeType||'audio/webm'}),ab=await blob.arrayBuffer();
+  const prev=(await laudosLista(U.id)).find(x=>x.ex&&x.ex.id===cur.id);
+  const l={id:U.id.slice(0,8)+'-'+Date.now().toString(36),uid:U.id,ts:Date.now(),ex:{id:cur.id,nome:cur.nome},cod:ativo?ativo.codigo:'',titulo:ativo?ativo.titulo:'',orientacao:ativo?ativo.orientacao:'',
+    res,crs,q,sec:an.sec,ret:an.ret,tk,ab,tipo:blob.type,txt:r.txt,ia:'',check:checkup(cur,res,crs,q,prev),
+    meta:metaCaptacao({laudo:null,frames:tk.length,duracao_s:res.dur,mime:blob.type,exercicio:cur.id,transcricao_navegador:!!r.txt})};
+  l.meta.laudo=l.id;
+  const rem=await laudoSalva(l);ultimo=l;
+  if(ativo&&ativo.exercicios.some(e=>e.id===cur.id)){ativo.feitos=ativo.feitos||{};ativo.feitos[cur.id]=l.ts;salvaT();renderTreinos()}
+  mostraCheck(l);await renderLaudos();$('bFim').style.display='block';
+  if(rem)msg('mM',`Limite de ${LAUDO_MAX} laudos: o mais antigo foi removido para guardar este.`);else msg('mM','✅ Laudo guardado neste aparelho.');
+  const fala=r.txt?`A pessoa disse: "${r.txt}". `:'';
+  const t=await iaResponde(`[SESSÃO CONCLUÍDA] ${fala}Dados internos: ${resumoIA(l)}. Comente em linguagem simples, sem recitar números crus, e convide a pessoa a continuar a conversa se quiser.`,l);
+  if(t){l.ia=t;await laudoSalva(l)}await missaoAvanca(l)}
+function mostraCheck(l){$('cCk').style.display='block';$('ck').innerHTML=(l.check||[]).map(k=>`<div class="${k.t}">${k.t==='ex'?'🔁 ':k.t==='at'?'⚠️ ':'✔ '}${esc(k.x)}</div>`).join('')+'<div style="background:#f8fbfa">Este check-up confere o método (qualidade, tempo de voz e repetibilidade). Não é avaliação clínica.</div>'}
+
+/* ---------- IA: conversa livre ---------- */
+function chatAdd(c,t){const d=document.createElement('div');d.className='m2 '+c;d.textContent=t;if(c==='ia'&&t!=='…'){const b=document.createElement('button');b.textContent='🔊';b.title='ouvir';b.onclick=()=>falar(t);d.appendChild(b)}$('chat').appendChild(d);$('chat').scrollTop=1e9;return d}
+function fontesSys(){if(!ativo)return'';let s=` Treino do médico em andamento: "${ativo.titulo}".`;if(ativo.orientacao)s+=' Orientação do médico: '+ativo.orientacao+'.';if(ativo.fontes)s+=' FONTES DO MÉDICO (cite pelo nome): '+ativo.fontes.slice(0,12000);return s}
+async function iaResponde(texto,l){
+  hist.push({r:'u',t:texto});hist=hist.slice(-10);
+  const prompt=hist.map(h=>(h.r==='u'?'Pessoa: ':'IA: ')+h.t).join('\n')+'\nIA:',w=chatAdd('ia','…');let t='';
+  try{t=limpaTxt(await aiCall(ME,prompt,[],SYS_ESPACO+` A pessoa se chama ${nome()}.`+fontesSys()));hist.push({r:'i',t})}
+  catch(e){hist.pop();w.remove();chatAdd('ia',/Configure a chave/.test(e.message)?'A IA ainda não está configurada. Configure a chave no seu perfil (Calibração da IA). O laudo e os gráficos funcionam sem ela.':'Não consegui falar com a IA agora. '+aiErroAmigavel(e.message));return''}
+  w.remove();chatAdd('ia',t);if($('chV').checked)falar(t);return t}
+const nome=()=>(ME&&ME.nome)||(U&&U.email||'').split('@')[0]||'amigo';
+async function conversa(t){chatAdd('u',t);const a=avisoEmergencia(t);if(a)av2(a);await iaResponde(t)}
+$('env').onclick=()=>{const t=$('txt').value.trim();if(!t)return;$('txt').value='';conversa(t)};$('txt').onkeydown=e=>{if(e.key==='Enter')$('env').click()};
+$('bFim').onclick=async()=>{
+  if(!ultimo)return;$('bFim').style.display='none';
+  const t=await iaResponde(`[SESSÃO ENCERRADA] Agradeça de verdade pela escuta de hoje, diga que o laudo foi guardado neste aparelho e despeça-se com uma frase curta. Dados internos: ${resumoIA(ultimo)}.`,ultimo);
+  if(!t)chatAdd('ia',`Obrigado por esta escuta, ${nome()}. Seu laudo foi guardado neste aparelho. Até a próxima.`);
+  $('lz').scrollIntoView({behavior:'smooth'})};
+
+/* ---------- laudos ---------- */
+async function renderLaudos(){
+  const L=await laudosLista(U.id);$('hL').textContent=`📁 Meus laudos (${L.length}/${LAUDO_MAX})`;
+  $('lz').innerHTML=L.length?L.map(l=>`<div class="lz ${modo==='replay'&&ultimoRev&&ultimoRev.id===l.id?'rev':''}"><div class="row"><b style="font-size:12px">${esc(l.ex.nome)}</b><small>${new Date(l.ts).toLocaleString('pt-BR')}</small></div>
+   <small>${l.res.dur} s · qualidade ${esc(l.q.nivel)}${l.cod?' · treino '+esc(l.cod):''}${l.txt?' · com transcrição':''}</small>
+   <div class="bt"><button class="b sm" data-a="ver" data-i="${l.id}">▶ Rever</button><button class="b g sm" data-a="pdf" data-i="${l.id}">📄 PDF</button><button class="b g sm" data-a="pdfv" data-i="${l.id}">👁 PDF</button><button class="b g sm" data-a="el" data-i="${l.id}">💾 .elayon</button><button class="b g sm" data-a="del" data-i="${l.id}">🗑</button></div></div>`).join(''):'<p>Nenhum laudo ainda.</p>'}
+let ultimoRev=null;
+$('lz').onclick=async e=>{const a=e.target.dataset&&e.target.dataset.a;if(!a)return;const L=await laudosLista(U.id),l=L.find(x=>x.id===e.target.dataset.i);if(!l)return;
+  const quem={nome:nome(),email:U.email};
+  if(a==='ver')return rever(l);
+  if(a==='pdf')return laudoPdf(l,quem).save(`laudo-elayon-${new Date(l.ts).toISOString().slice(0,10)}-${l.ex.id}.pdf`);
+  if(a==='pdfv'){const u=laudoPdf(l,quem).output('bloburl');return void window.open(u,'_blank')}
+  if(a==='el')return dl(await laudoExporta(l),`laudo-${l.id}.elayon`);
+  if(a==='del'){await laudoApaga(l.id);if(ultimoRev&&ultimoRev.id===l.id)sairReplay();return renderLaudos()}};
+function rever(l){modo='replay';ultimoRev=l;const a=$('aud');a.src=URL.createObjectURL(new Blob([l.ab],{type:l.tipo||'audio/webm'}));a.style.display='block';
+  V.replay(l.tk,()=>a.currentTime);V.pause(false);$('bPausa').textContent='⏸ Pausar gráficos';mostraCheck(l);
+  msg('mM','Revendo o laudo de '+new Date(l.ts).toLocaleString('pt-BR')+'. Toque no play do áudio. Só visualização.');$('bMic').textContent='↩ Voltar ao vivo';$('bMic').onclick=()=>{sairReplay();$('bMic').onclick=gravar;showCur()};
+  $('grid').scrollIntoView({behavior:'smooth'});renderLaudos()}
+function sairReplay(){if(modo!=='replay')return;modo='live';ultimoRev=null;const a=$('aud');a.pause();a.style.display='none';V.live();msg('mM','');$('bMic').onclick=gravar;renderLaudos()}
+$('fImp').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const l=await laudoImporta(f);rever(l)}catch(err){msg('mM',err.message,1)}};
+$('bPausa').onclick=()=>{const p=!V.isPaused();V.pause(p);if(modo==='replay'){const a=$('aud');p?a.pause():a.play().catch(()=>{})}$('bPausa').textContent=p?'▶ Retomar gráficos':'⏸ Pausar gráficos';if(p&&rec)msg('mM','Gráficos congelados. A gravação continua.')};
+$('bRec').onclick=()=>V.collapseAll(true);$('bExp').onclick=()=>V.collapseAll(false);
+
+/* ---------- missão: pendências primeiro, depois calibração, envio e só então a conversa livre ---------- */
+const CAL_ET=[{id:'cal1',nome:'Calibração 1 · Olá',bloco:'Calibração',min:2,instr:'Teste de conexão: abra o microfone e diga apenas “olá”, de forma rápida e natural.'},
+ {id:'cal2',nome:'Calibração 2 · Contar até dez',bloco:'Calibração',min:6,instr:'Conte de um até dez, devagar e com voz tranquila.'},
+ {id:'cal3',nome:'Calibração 3 · Vogal A e data',bloco:'Calibração',min:8,instr:'Sustente a vogal “a” por cerca de cinco segundos e, depois, diga a data de hoje.'}];
+let MISSAO={itens:[],i:0,ativa:false},ADIOU=false;
+const pend=()=>treinos.filter(t=>!t.enviado);
+function mescla(d){const t={codigo:d.codigo,titulo:d.titulo,orientacao:d.orientacao||'',fontes:d.fontes||'',paciente_nome:d.paciente_nome||'',exercicios:(d.exercicios||[]).map(exResolve),feitos:{}};
+  const i=treinos.findIndex(x=>x.codigo===t.codigo);if(i>=0){t.feitos=treinos[i].feitos||{};t.enviado=treinos[i].enviado;treinos[i]=t}else treinos.unshift(t);return t}
+async function buscaPendentes(){try{const {data,error}=await sb.rpc('treinos_pendentes');if(error||!data)return;data.forEach(mescla);salvaT()}catch(e){}}
+function montaMissao(){const it=[];pend().forEach(t=>t.exercicios.forEach(e=>{if(!(t.feitos&&t.feitos[e.id]))it.push({t,e,tipo:'exercicio'})}));
+  if(pend().length)CAL_ET.forEach(e=>it.push({t:null,e,tipo:'cal'}));MISSAO.itens=it;MISSAO.i=0}
+function missaoUI(){const P=pend(),tem=P.length>0&&!ADIOU,it=MISSAO.itens,fim=tem&&MISSAO.i>=it.length&&it.length>0||(tem&&!it.length);
+  $('miss').hidden=!tem;$('cChat').hidden=P.length>0&&!ADIOU;if(!tem)return;
+  $('missTxt').textContent=`${P.length===1?'Um treino':P.length+' treinos'} do seu médico: ${P.map(t=>t.titulo).join(', ')}. Primeiro os exercícios, depois a calibração. No fim, tudo vai para o seu médico e a conversa livre se abre.`;
+  $('missLista').innerHTML=it.map((x,k)=>`<div class="ex ${k<MISSAO.i?'ok':''}"><div><b>${k<MISSAO.i?'✔ ':k===MISSAO.i&&MISSAO.ativa?'▶ ':'☐ '}${esc(x.e.nome)}</b><small>${esc(x.e.bloco||'')}</small></div></div>`).join('');
+  $('missPb').style.width=(it.length?Math.round(MISSAO.i/it.length*100):100)+'%';
+  $('bMiss').hidden=fim||MISSAO.ativa;$('bEnvia').hidden=!fim}
+function missaoProximo(){const n=MISSAO.itens[MISSAO.i];if(!n)return;setEx(n.e,n.t);ativo=n.t||null;showCur();scrollTo({top:$('bMic').offsetTop-120,behavior:'smooth'})}
+$('bMiss').onclick=()=>{if(!MISSAO.itens.length)return;MISSAO.ativa=true;missaoUI();const n=MISSAO.itens[MISSAO.i];chatAdd('ia',`Vamos lá. Primeiro: ${n.e.nome}. ${n.e.instr} Toque em Gravar quando estiver pronto.`);missaoProximo()};
+$('bAdia').onclick=()=>{ADIOU=true;missaoUI();chatAdd('ia','Tudo bem, a missão fica esperando. Você pode falar comigo agora. Quando quiser, recarregue a página para retomar.')};
+async function missaoAvanca(l){if(!MISSAO.ativa)return;const it=MISSAO.itens[MISSAO.i];if(!it||it.e.id!==l.ex.id)return;
+  l.m={cod:it.t?it.t.codigo:'',cal:it.tipo==='cal',ordem:MISSAO.i};await laudoSalva(l);MISSAO.i++;missaoUI();
+  if(MISSAO.i>=MISSAO.itens.length){MISSAO.ativa=false;missaoUI();chatAdd('ia','Missão cumprida. Obrigado pela dedicação. Toque em "Enviar ao meu médico" para mandar os áudios e as medidas. Depois disso, o espaço é seu para conversar.');return}
+  const n=MISSAO.itens[MISSAO.i];chatAdd('ia',`Registrado. Próximo: ${n.e.nome}. ${n.e.instr}`);missaoProximo()}
+$('bEnvia').onclick=async()=>{
+  if(!confirm('Ao enviar, o seu médico recebe o áudio e as medidas destes exercícios e da calibração. Enviar agora?'))return;
+  $('bEnvia').disabled=true;msg('mMi','⏳ enviando…');
+  try{const P=pend(),cods=P.map(t=>t.codigo),L=(await laudosLista(U.id)).filter(l=>cods.includes(l.cod)||(l.m&&l.m.cal&&!l.m.env)).sort((a,b)=>a.ts-b.ts);
+    if(!L.length)throw new Error('Nenhum exercício gravado para enviar.');
+    const ts=Date.now(),itens=[];let ord=0;
+    for(const l of L){const path=`${U.id}/${ts}_${ord}_${l.ex.id}.elayon`;const up=await sb.storage.from('envios').upload(path,await laudoExporta(l),{contentType:'application/json'});if(up.error)throw up.error;
+      itens.push({path,exercicio:l.ex.nome,exId:l.ex.id,ts:l.ts,tipo:l.m&&l.m.cal?'calibracao':'exercicio',ordem:ord++})}
+    const resumo={itens,exercicios:itens.filter(x=>x.tipo==='exercicio').length,calibracao:itens.filter(x=>x.tipo==='calibracao').length,sequencia:'exercícios e depois calibração'};
+    for(const t of P){const {error}=await sb.from('envios').insert({user_id:U.id,codigo:t.codigo,pacote_path:itens[0].path,resumo});if(error)throw error;t.enviado=Date.now()}
+    for(const l of L){if(l.m&&l.m.cal&&!l.m.env){l.m.env=ts;await laudoSalva(l)}}
+    salvaT();renderTreinos();MISSAO={itens:[],i:0,ativa:false};missaoUI();
+    chatAdd('ia','Enviado ao seu médico. Obrigado por esta missão. Agora o espaço é seu: pode falar livremente comigo, sobre os gráficos ou não.')}
+  catch(e){msg('mMi','❌ '+(e.message||e)+' (confira se o clinica.sql foi rodado no servidor)',1)}finally{$('bEnvia').disabled=false}};
+
+/* ---------- início ---------- */
+(async()=>{
+  try{U=await eu()}catch(e){return}
+  try{await legalGate(sb,U,'usuario')}catch(e){}
+  try{const {data}=await sb.from('profiles').select('*').eq('id',U.id).maybeSingle();ME=data||{}}catch(e){ME={}}
+  $('quem').textContent=nome()+' · '+(U.email||'');$('avt').src=ME.avatar_url||('https://api.dicebear.com/7.x/bottts/svg?seed='+U.id);
+  TK='esp_treinos_'+U.id;try{treinos=JSON.parse(localStorage.getItem(TK)||'[]')}catch(e){treinos=[]}
+  V=Vibes8.mount($('grid'));await buscaPendentes();showCur();renderTreinos();await renderLaudos();montaMissao();missaoUI();
+  if(pend().length){const P=pend(),n=MISSAO.itens.filter(x=>x.tipo==='exercicio').length;
+    chatAdd('ia',`Olá, ${nome()}. Eu sou a IA do Elayon Space e vou acompanhar você. Seu médico deixou ${n===1?'1 exercício':n+' exercícios'} para você${P.length===1?' no treino "'+P[0].titulo+'"':''}. Depois deles, faremos uma calibração rápida de voz e eu envio tudo para o seu médico. Quando quiser, toque em "Começar a missão".`)}
+  else chatAdd('ia',`Olá, ${nome()}. Este é o seu espaço. Você pode carregar o treino do seu médico, escolher um exercício ou simplesmente falar comigo. Sem pressa.`)
+})();
+</script></body></html>
