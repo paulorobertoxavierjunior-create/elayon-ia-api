@@ -106,9 +106,12 @@
         <span class="label">Tokens</span>
         <div class="tokens-group" style="display: flex; align-items: center; gap: 8px;">
           <span class="value" id="userTokens" style="color: var(--accent);">100</span>
-          <button style="background:var(--accent); color:#fff; border:none; width:22px; height:22px; border-radius:50%; font-weight:800; cursor:pointer;" id="btnAddToken">+</button>
+          <button style="background:var(--accent); color:#fff; border:none; width:22px; height:22px; border-radius:50%; font-weight:800; cursor:pointer;" id="btnAddToken" title="Somar 100 tokens">+</button>
+          <small style="color:var(--muted);font-weight:700;font-size:10px">de 100 em 100</small>
         </div>
       </div>
+      <div class="row"><span class="label">Nível de piloto</span><span class="value" id="userNivel" style="font-size:12px">—</span></div>
+      <div id="tokLog" class="hint" style="margin-top:6px;line-height:1.5"></div>
     </section>
 
     <!-- Como a pessoa usa o Elayon: usuário, médico ou clínica -->
@@ -162,13 +165,16 @@
       <div id="aiList" class="hint">Nenhum.</div>
     </details>
 
-    <!-- Ações e Transição ao Cockpit -->
+ <!-- Ações e Transição ao Cockpit -->
     <div class="actions">
       <button class="btn primary" id="btnSaveChanges" style="background: #f0f7f7; color: var(--accent); border: 1px solid var(--accent);">💾 Salvar Alterações</button>
       <a class="btn primary" id="btnMeuEspaco" data-p="usuario,medico" href="meu-espaco.html" style="font-size: 14px; padding: 14px;">🌿 Bem-vindo ao Elayon Space<br><span style="font-size:11px;font-weight:700;opacity:.92">Meu Espaço · Auto Escuta Simbólica</span></a>
       <a class="btn primary" id="btnCockpitUsuario" data-p="usuario" href="cockpit.html" style="font-size:13px;padding:13px">🎛️ Cockpit Vibes 8<br><span style="font-size:10px;font-weight:700;opacity:.92">Calibração e acompanhamento vocal</span></a>
       <a class="btn primary" id="btnCockpitPiloto" data-p="medico" href="piloto-guiado.html?modo=real" style="font-size:13px;padding:13px">🩺 Cockpit do piloto<br><span id="subCockpitPiloto" style="font-size:10px;font-weight:700;opacity:.92">Atendimento real · libera depois do treinamento</span></a>
       <a class="btn logout" id="btnTreinoMedico" data-p="medico" href="piloto-guiado.html?modo=treino" style="border-color:var(--accent);color:var(--ink)">🎓 Calibração do médico (treinamento)<br><span style="font-size:10px;font-weight:700;color:var(--muted)">Você faz o papel do usuário e aprende a ler os gráficos com a IA</span></a>
+      <a class="btn primary" id="btnSupervisao" data-nivel="2" href="supervisao.html" style="font-size:13px;padding:13px">🔎 Supervisão · Piloto Orientador<br><span style="font-size:10px;font-weight:700;opacity:.92">Validar resultados, ajustar exercícios e enviar metadados · 5 tokens por envio</span></a>
+      <a class="btn primary" id="btnMaster" data-nivel="3" href="master.html" style="font-size:13px;padding:13px">🛰️ Master · Gerência<br><span style="font-size:10px;font-weight:700;opacity:.92">Fila de análise, dashboard (20 tokens) e ajustes da programação</span></a>
+      <a class="btn logout" id="btnGuia" href="guia.html" style="border-color:var(--accent);color:var(--ink)">💡 Instrução: o que cada medida significa<br><span style="font-size:10px;font-weight:700;color:var(--muted)">Jitter, shimmer, HNR e anamnese em linguagem simples</span></a>
       <a class="btn logout" id="btnEspacoPiloto" data-p="medico" href="espaco-piloto.html" style="border-color:var(--accent);color:var(--ink)">📋 Espaço do piloto: treinos dos usuários</a>
       <a class="btn logout" id="btnCadMedico" data-p="medico" href="cadastro-piloto.html" style="border-color:var(--accent);color:var(--ink)">🪪 Cadastro profissional</a>
       <a class="btn primary" id="btnClinica" data-p="clinica" href="clinica.html" style="font-size:13px;padding:13px">🏛️ Central da clínica<br><span style="font-size:10px;font-weight:700;opacity:.92">Validar médicos e certificar laudos</span></a>
@@ -210,6 +216,7 @@
       document.getElementById('userName').textContent = defaultName;
 
       await syncUserProfile(currentUser, defaultName);
+      carregaNivel();
     }
 
     async function syncUserProfile(user, defaultName) {
@@ -218,7 +225,7 @@
           .from('profiles').select('*').eq('id', user.id).single();
 
         if (profile) {
-currentTokens = profile.tokens ?? 100;
+          currentTokens = profile.tokens ?? 100;
           document.getElementById('userTokens').textContent = currentTokens;
           if (profile.nome) document.getElementById('userName').textContent = profile.nome;
           if (profile.avatar_url) document.getElementById('avatarImage').src = profile.avatar_url;
@@ -239,10 +246,30 @@ currentTokens = profile.tokens ?? 100;
       medico: 'Você passa pela calibração do médico (treinamento), depois atende no cockpit do piloto e envia o laudo assinado à sua clínica. Complete o cadastro profissional. Psicólogos usam o PsyQ, que está em breve.',
       clinica: 'A clínica é a central: aprova os médicos vinculados, valida e certifica os laudos, e os libera aos usuários.'
     };
+    let NIVEL = 0;
+    const NIVEL_TXT = ['Usuário', 'Nível 1 · Piloto Médico', 'Nível 2 · Piloto Orientador', 'Nível 3 · Piloto Master'];
+    let PAPEL_ATUAL = 'usuario';
+    async function carregaNivel() {
+      try {
+        const { data } = await supabaseClient.rpc('meu_nivel');
+        NIVEL = Number(data) || 0;
+      } catch (e) { NIVEL = 0; }
+      document.getElementById('userNivel').textContent = NIVEL_TXT[NIVEL] || NIVEL_TXT[0];
+      aplicaPapel(PAPEL_ATUAL, null);
+      try {
+        const { data } = await supabaseClient.from('tokens_log').select('*').eq('user_id', currentUser.id).order('criado', { ascending: false }).limit(3);
+        const L = data || [], N = { pacote_meta: 'envio de metadados', dashboard_master: 'dashboard master' };
+        document.getElementById('tokLog').textContent = L.length ? 'Últimos consumos: ' + L.map(x => (N[x.motivo] || x.motivo) + ' (' + x.qtd + ')').join(' · ') : '';
+      } catch (e) { /* tabela ainda não existe */ }
+    }
     function aplicaPapel(papel, profile) {
+      PAPEL_ATUAL = papel;
       if (!PAPEL_TXT[papel]) papel = 'usuario';
       document.getElementById('selPapel').value = papel;
       document.getElementById('papelInfo').textContent = PAPEL_TXT[papel];
+      document.querySelectorAll('.actions [data-nivel]').forEach(el => {
+        el.style.display = NIVEL >= +el.dataset.nivel ? '' : 'none';
+      });
       document.querySelectorAll('.actions [data-p]').forEach(el => {
         el.style.display = el.dataset.p.split(',').includes(papel) ? '' : 'none';
       });
@@ -319,9 +346,9 @@ currentTokens = profile.tokens ?? 100;
     document.getElementById('btnSalvarAiConfig').addEventListener('click', async () => { if (await salvarAi()) showMsg('✅ Calibração da IA salva.'); });
 
     document.getElementById('btnAddToken').addEventListener('click', () => {
-      currentTokens += 1;
+      currentTokens += 100;
       document.getElementById('userTokens').textContent = currentTokens;
-      showMsg('Token adicionado. Clique em Salvar Alterações.');
+      showMsg('+100 tokens. Clique em Salvar Alterações para gravar.');
     });
 
     document.getElementById('btnSaveChanges').addEventListener('click', async () => {
