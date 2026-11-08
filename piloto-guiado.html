@@ -62,6 +62,7 @@ details.c>summary{cursor:pointer;font-size:13px;font-weight:800;color:var(--a);l
 <div id="aul" style="display:grid;gap:8px;margin-top:8px"></div>
 <div class="msg" id="m3"></div><button class="b big" id="bGo">⚡ Iniciar análise guiada ▶</button></div></section>
 
+
 <!-- 4 ANÁLISE GUIADA -->
 <section class="scr" id="s4" hidden><div class="c"><h3>🧠 Análise guiada</h3><div class="pb"><i id="pb"></i></div><div class="ch" id="ch" style="margin-top:8px"></div>
 <div id="gstep" hidden class="c gbox" style="margin-top:10px"><div class="row"><b id="gTit" style="font-size:13px;color:#0e7490"></b><span class="pill" id="gNum"></span></div>
@@ -117,7 +118,6 @@ const mv=x=>x?x.m:'—',msg=(id,t,e)=>{const m=$(id);if(m){m.textContent=t||'';m
 const url=a=>a._u||(a._u=URL.createObjectURL(new Blob([a.ab],{type:a.tipo||'audio/webm'})));
 function show(n){document.querySelectorAll('.scr').forEach((s,i)=>s.hidden=i+1!==n);[...$('stp').children].forEach((e,i)=>e.className=i+1<n?'ok':i+1===n?'cur':'');
   const g=$('gwrap');const dest={2:'gS2',4:'gS4'}[n];if(dest){$(dest).appendChild(g);g.hidden=false;V&&V.fit()}else g.hidden=true;scrollTo({top:0,behavior:'smooth'})}
-
 
 /* ---------- medida (mesmo motor do piloto) ---------- */
 async function atMede(a,o){o=o||{};
@@ -248,7 +248,7 @@ function passo(a,k){return new Promise(res=>{const i=ORDEM[k];V.solo(i);
   $('gAsk').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('gAskB').click()}}})}
 
 async function guiado(){
-  show(4);$('ch').innerHTML='';$('bLaudo').hidden=true;$('marc').hidden=true;$('obsBox').hidden=true;$('gstep').hidden=true;prog(0);RC=[];renRC();REF=null;TOURS=0;AU.forEach(a=>{a.res=null;a.obs='';a.notasG={}});baseCal();
+show(4);$('ch').innerHTML='';$('bLaudo').hidden=true;$('marc').hidden=true;$('obsBox').hidden=true;$('gstep').hidden=true;prog(0);RC=[];renRC();REF=null;TOURS=0;AU.forEach(a=>{a.res=null;a.obs='';a.notasG={}});baseCal();
   if(!V)V=Vibes8.mount($('grid'));show(4);
   const nome=cv('c_nome');
   await say(`Olá, ${DOC.nome_completo}. Vou analisar ${AU.length===1?'o áudio':'os '+AU.length+' áudios'} ${MODO==='treino'?'do treinamento':'de '+nome}. Primeiro eu meço tudo, depois leio os gráficos com você, um de cada vez. Você conclui cada passo para eu avançar.`);
