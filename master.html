@@ -1,0 +1,152 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Master • Gerência • Elayon</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="health.css">
+<style>
+.hero{background:linear-gradient(135deg,#0a2a2f,#0e4f63 55%,#0b6b57);border:0}.hero h1{color:#fff}.hero p{color:#bfe3e0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px}.tk{background:#ffffff1f;border-radius:12px;padding:6px 12px;color:#fff;text-align:center;font-size:10px}.tk b{display:block;font-size:20px}
+.tb{display:flex;gap:6px;overflow-x:auto;margin-top:12px}.tb button{flex:1;min-width:104px;border:0;border-radius:10px;padding:9px 6px;font-size:11px;font-weight:800;background:#ffffff1f;color:#bfe3e0;cursor:pointer}.tb button.on{background:linear-gradient(135deg,#06b6d4,#1d4ed8);color:#fff}
+.dica{border-left:4px solid #06b6d4;background:linear-gradient(90deg,#e6fafd,#fff);border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.55}.dica a{color:var(--a);font-weight:800}
+.it{border:1px solid var(--l);border-radius:12px;padding:10px;display:grid;gap:6px;background:#fff}.it .r{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pill{display:inline-block;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:#fff7e0;color:#92400e;border:1px solid #f3dca0}.pill.ok{background:#e8fbf3;color:#047857;border-color:#9fe2c4}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}[hidden]{display:none!important}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kp div{border:1px solid var(--l);border-radius:12px;padding:8px;text-align:center;background:linear-gradient(180deg,#fff,#f1fcfe)}.kp b{display:block;font-size:20px;background:linear-gradient(90deg,#06b6d4,#1d4ed8,#059669);-webkit-background-clip:text;background-clip:text;color:transparent}.kp small{font-size:10px;color:var(--m)}
+.bar{height:8px;border-radius:6px;background:#e1f3f7;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#06b6d4,#059669)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chips button{border:1px solid var(--l);background:#fff;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:800;color:#0e7490;cursor:pointer}.chips button.on{background:linear-gradient(135deg,#06b6d4,#1d4ed8);color:#fff;border-color:transparent}
+svg.ln{width:100%;height:auto;background:#f6fcfe;border-radius:12px}svg.ln text{font-size:9px;fill:#5b7c86}
+.sg{border-left:4px solid #1d4ed8;background:#f4f8ff;border-radius:10px;padding:10px;font-size:12px;line-height:1.5;display:grid;gap:6px}
+</style></head><body><div class="w">
+<div class="c hero"><div class="top"><div><h1>🛰️ Master</h1><p>Gerência · Piloto Elayon Master · Nível 3</p></div><div class="tk"><b id="tk">—</b>tokens</div></div>
+<div class="tb" id="tb" hidden><button data-t="f" class="on">📥 Fila de análise</button><button data-t="d">📊 Dashboard</button><button data-t="a">🧩 Ajustes da programação</button></div></div>
+
+<section id="bloq" hidden><div class="c"><h3>Credencial Master</h3><p>Esta área é do Nível 3. A credencial Master é emitida só pela Elayon, direto no banco.</p><a class="b" href="pilotos-oficiais.html">Ativar credencial</a></div></section>
+
+<div id="app" hidden>
+<div class="c"><div class="dica"><b>Dica da sessão.</b> Você não precisa dominar fonoaudiologia para ler isto: o dashboard compara cada usuário consigo mesmo e mostra tendência. O significado clínico de cada medida está na <a href="guia.html">instrução</a>. Quando algo parecer clínico demais, leve ao fono ou ao médico colaborador antes de mudar a programação.</div></div>
+
+<div class="c"><label>Período dos metadados</label><div class="chips" id="per"><button data-p="1">Dia</button><button data-p="7" class="on">Semana</button><button data-p="30">Mês</button><button data-p="365">Ano</button><button data-p="0">Tudo</button></div></div>
+
+<section id="vF"><div class="c"><h3>📥 Aguardando análise</h3><p>Pacotes em PDF enviados pelos orientadores. Abra, confira e marque como analisado.</p><div id="lf" style="display:grid;gap:8px"></div></div></section>
+
+<section id="vD" hidden><div class="c"><h3>📊 Dashboard completo</h3><p>Lê todos os pacotes do período, soma os indicadores e sugere ajustes. <b>Custa 20 tokens</b> por geração. Depois de gerado, filtros e gráficos são livres.</p>
+<div id="dInfo" class="hint"></div><button class="b" id="bGer" style="margin-top:8px">⚡ Gerar dashboard (20 tokens)</button><div class="msg" id="mD"></div></div>
+<div id="dash" hidden>
+<div class="c"><label>Orientador</label><select id="dOri"></select></div>
+<div class="c"><div class="kp" id="dKp"></div></div>
+<div class="c"><h3>Tendência</h3><div class="chips" id="dMet"><button data-m="env" class="on">Envios por dia</button><button data-m="din">% dentro da faixa</button></div><div id="dLn" style="margin-top:8px"></div></div>
+<div class="c"><h3>Dentro da faixa individual, por medida</h3><div id="dMed" style="display:grid;gap:8px"></div></div>
+<div class="c"><h3>Exercícios mais feitos</h3><div id="dTar" style="display:grid;gap:8px"></div></div>
+<div class="c"><h3>Qualidade das gravações</h3><div id="dQua" style="display:grid;gap:8px"></div></div>
+<div class="c"><h3>Por orientador</h3><div id="dOr" style="display:grid;gap:8px"></div></div>
+<div class="c"><h3>Usuários que pedem atenção</h3><p>Código anônimo. Abaixo de 60% dentro da faixa individual.</p><div id="dUs" style="display:grid;gap:6px"></div></div>
+<div class="c"><h3>🧩 Ajustes sugeridos</h3><p>Sugestões automáticas a partir dos números. Você decide quais levar para a programação.</p><div id="dSg" style="display:grid;gap:8px"></div></div>
+</div></section>
+
+<section id="vA" hidden><div class="c"><h3>🧩 Ajustes da programação</h3><p>Seu quadro de melhorias. Vira lista de diretrizes para atualizarmos o código e as análises de campo.</p>
+<div class="row2"><div><label>Área</label><select id="aAr"><option value="codigo">Código</option><option value="analise">Análise</option><option value="exercicio">Exercícios</option><option value="ia">IA</option><option value="campo">Campo</option></select></div><div><label>Prioridade</label><select id="aPr"><option value="1">Alta</option><option value="2" selected>Média</option><option value="3">Baixa</option></select></div></div>
+<div><label>Título</label><input id="aTi"></div><div><label>Detalhe</label><textarea id="aTx"></textarea></div><button class="b" id="bAdd">+ Adicionar</button><div class="msg" id="mA"></div></div>
+<div class="c"><div class="row2"><select id="aFs"><option value="aberto">Abertos</option><option value="feito">Feitos</option><option value="">Todos</option></select><button class="b g" id="bExp">⬇ Exportar diretrizes (.md)</button></div><div id="la" style="display:grid;gap:8px;margin-top:8px"></div></div></section>
+
+<p style="text-align:center"><a href="perfil.html" style="color:var(--a);font-weight:700;font-size:11px">⬅ Voltar ao perfil</a></p>
+</div></div>
+<script src="elayon-legal.js"></script><script src="health-core.js"></script>
+<script>
+let U,PAC=[],AJU=[],TOK=0,GER={};
+const t=id=>document.getElementById(id);
+const say=(id,x,e)=>{const m=t(id);m.textContent=x||'';m.style.color=e?'#b91c1c':''};
+const dia=d=>{const x=new Date(d),p=n=>String(n).padStart(2,'0');return x.getFullYear()+'-'+p(x.getMonth()+1)+'-'+p(x.getDate())};
+const PNOM={1:'do dia',7:'da semana',30:'do mês',365:'do ano',0:'de todo o histórico'};
+const MET=[['f0','F0 (tom)'],['hnr','HNR (timbre)'],['jit','Jitter'],['shim','Shimmer']];
+let PER=7,MSEL='env';
+function aba(k){['f','d','a'].forEach(x=>{t('v'+x.toUpperCase()).hidden=x!==k});[...t('tb').children].forEach(b=>b.classList.toggle('on',b.dataset.t===k));if(k==='a')ajustes();if(k==='d')infoD()}
+t('tb').onclick=e=>{if(e.target.dataset.t)aba(e.target.dataset.t)};
+t('per').onclick=e=>{if(e.target.dataset.p==null)return;PER=+e.target.dataset.p;[...t('per').children].forEach(b=>b.classList.toggle('on',b===e.target));fila();infoD();t('dash').hidden=!GER[PER];if(GER[PER])render()};
+const noPer=p=>PER===0||(PER===1?dia(p.criado)===dia(new Date()):new Date(p.criado)>=new Date(Date.now()-PER*864e5));
+const doPer=()=>PAC.filter(noPer);
+
+async function saldo(){try{const {data}=await sb.from('profiles').select('tokens').eq('id',U.id).single();TOK=data&&data.tokens!=null?data.tokens:0}catch(e){TOK=0}t('tk').textContent=TOK}
+async function carrega(){const {data,error}=await sb.from('pacotes_meta').select('*').order('criado',{ascending:false}).limit(500);
+  if(error){t('lf').innerHTML='<p>'+esc(error.message)+' (rode o clinica.sql no Supabase)</p>';return}PAC=data||[]}
+
+/* ---- fila ---- */
+function fila(){const L=doPer(),a=L.filter(p=>p.status==='aguardando').length;
+  t('lf').innerHTML=L.length?`<p><b>${a}</b> aguardando · ${L.length-a} analisado(s) neste período.</p>`+L.map(p=>{const r=p.resumo||{},T=r.totais||{};
+   return `<div class="it"><div class="r"><b>${esc(p.remetente_nome||'Orientador')}</b><span class="pill ${p.status==='analisado'?'ok':''}">${p.status==='analisado'?'analisado':'aguardando'}</span></div>
+   <small>${p.periodo_ini||''} a ${p.periodo_fim||''} · enviado ${new Date(p.criado).toLocaleString('pt-BR')}</small>
+   <small>${T.usuarios||0} usuário(s) · ${T.envios||0} envio(s) · ${T.validados||0} validado(s) · ${r.dentro&&r.dentro.geral!=null?r.dentro.geral+'% dentro da faixa':'sem dado de faixa'}</small>
+   <div class="row2"><button class="b g sm" data-pdf="${esc(p.pdf_path)}">Abrir PDF</button>${p.status==='aguardando'?`<button class="b sm" data-ok="${p.id}">Marcar analisado</button>`:'<span></span>'}</div></div>`}).join(''):'<p>Nenhum pacote neste período.</p>'}
+t('lf').onclick=async e=>{const d=e.target.dataset||{};
+  if(d.pdf){e.target.textContent='⏳';try{const {data,error}=await sb.storage.from('metadados').download(d.pdf);if(error||!data)throw error||new Error('vazio');window.open(URL.createObjectURL(data),'_blank')}catch(x){alert('Não consegui abrir: '+(x.message||x))}finally{e.target.textContent='Abrir PDF'}}
+  if(d.ok){const {error}=await sb.from('pacotes_meta').update({status:'analisado',analisado_em:new Date().toISOString()}).eq('id',d.ok);if(error)return alert(error.message);const p=PAC.find(x=>x.id===d.ok);if(p)p.status='analisado';fila()}};
+
+/* ---- dashboard ---- */
+function infoD(){const n=doPer().length;t('dInfo').textContent=n?`${n} pacote(s) ${PNOM[PER]}.${GER[PER]?' Já gerado nesta sessão: gere de novo só se chegarem pacotes novos.':''}`:'Nenhum pacote neste período.';t('bGer').disabled=!n}
+t('bGer').onclick=async()=>{if(TOK<20)return say('mD','Saldo insuficiente: o dashboard custa 20 tokens. Some tokens no Perfil.',1);
+  t('bGer').disabled=true;say('mD','Gerando…');
+  const {data,error}=await sb.rpc('debitar_tokens',{qtd:20,motivo:'dashboard_master',ref:String(PER)});
+  if(error){t('bGer').disabled=false;return say('mD',/sem_saldo/.test(error.message)?'Saldo insuficiente: o dashboard custa 20 tokens.':'❌ '+error.message+' (rode o clinica.sql no Supabase)',1)}
+  TOK=data;t('tk').textContent=TOK;GER[PER]=true;say('mD','✅ Dashboard gerado. Saldo: '+TOK+' tokens.');t('dash').hidden=false;
+  const ori=[...new Set(doPer().map(p=>p.remetente_nome||'Orientador'))];t('dOri').innerHTML='<option value="">Todos os orientadores</option>'+ori.map(o=>`<option>${esc(o)}</option>`).join('');render();infoD()};
+t('dOri').onchange=render;
+t('dMet').onclick=e=>{if(!e.target.dataset.m)return;MSEL=e.target.dataset.m;[...t('dMet').children].forEach(b=>b.classList.toggle('on',b===e.target));render()};
+
+function agrega(P){const A={pac:P.length,us:{},env:0,ex:0,cal:0,val:0,aj:0,pend:0,din:{f0:{t:0,d:0},hnr:{t:0,d:0},jit:{t:0,d:0},shim:{t:0,d:0}},dia:{},tar:{},qua:{},ori:{}};
+  P.forEach(p=>{const r=p.resumo||{},T=r.totais||{},n=p.remetente_nome||'Orientador';
+    A.env+=T.envios||0;A.ex+=T.exercicios||0;A.cal+=T.calibracoes||0;A.val+=T.validados||0;A.aj+=T.ajustes||0;A.pend+=T.pendentes||0;
+    MET.forEach(([k])=>{const x=(r.dentro||{})[k];if(x){A.din[k].t+=x.t;A.din[k].d+=x.d}});
+    Object.entries(r.porDia||{}).forEach(([d,v])=>{const o=A.dia[d]=A.dia[d]||{env:0,t:0,d:0};o.env+=v});
+    const dk=dia(p.criado),o=A.dia[dk]=A.dia[dk]||{env:0,t:0,d:0};MET.forEach(([k])=>{const x=(r.dentro||{})[k];if(x){o.t+=x.t;o.d+=x.d}});
+    Object.entries(r.tarefas||{}).forEach(([k,v])=>A.tar[k]=(A.tar[k]||0)+v);Object.entries(r.qualidade||{}).forEach(([k,v])=>A.qua[k]=(A.qua[k]||0)+v);
+    const g=A.ori[n]=A.ori[n]||{env:0,val:0,aj:0,t:0,d:0};g.env+=T.envios||0;g.val+=T.validados||0;g.aj+=T.ajustes||0;MET.forEach(([k])=>{const x=(r.dentro||{})[k];if(x){g.t+=x.t;g.d+=x.d}});
+    (r.usuarios||[]).forEach(u=>{const c=A.us[u.id]=A.us[u.id]||{id:u.id,env:0,pw:0,pn:0};c.env+=u.envios||0;if(u.dentroPct!=null){c.pw+=u.dentroPct*(u.envios||1);c.pn+=u.envios||1}})});
+  return A}
+const pct=(d,t)=>t?Math.round(d/t*100):null;
+const bars=e=>{const mx=Math.max(1,...e.map(x=>x[1]));return e.length?e.map(([k,v,l])=>`<div><div style="display:flex;justify-content:space-between;font-size:12px"><span>${esc(k)}</span><b>${l||v}</b></div><div class="bar"><i style="width:${v/mx*100}%"></i></div></div>`).join(''):'<p>Sem dados.</p>'};
+function linha(pts,un){if(pts.length<2)return '<p>Dados insuficientes para uma tendência: precisa de pelo menos 2 dias.</p>';const W=340,H=130,m=26,mx=Math.max(1,...pts.map(p=>p.v)),X=i=>m+i*(W-m-8)/(pts.length-1),Y=v=>H-18-(v/mx)*(H-34);
+  const pl=pts.map((p,i)=>X(i)+','+Y(p.v)).join(' ');
+  return `<svg class="ln" viewBox="0 0 ${W} ${H}"><defs><linearGradient id="lg" x1="0" x2="1"><stop offset="0" stop-color="#06b6d4"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs>
+  <line x1="${m}" y1="${Y(0)}" x2="${W-8}" y2="${Y(0)}" stroke="#cfe6ec"/><text x="2" y="${Y(mx)+3}">${mx}${un}</text><text x="2" y="${Y(0)+3}">0</text>
+  <polyline points="${pl}" fill="none" stroke="url(#lg)" stroke-width="2.5" stroke-linejoin="round"/>
+  ${pts.map((p,i)=>`<circle cx="${X(i)}" cy="${Y(p.v)}" r="4" fill="#059669" stroke="#fff" stroke-width="1.5"><title>${p.d}: ${p.v}${un}</title></circle>`).join('')}
+  <text x="${m}" y="${H-4}">${pts[0].d.slice(5)}</text><text x="${W-8}" y="${H-4}" text-anchor="end">${pts[pts.length-1].d.slice(5)}</text></svg>`}
+function sugere(A){const S=[],g=pct(Object.values(A.din).reduce((a,x)=>a+x.d,0),Object.values(A.din).reduce((a,x)=>a+x.t,0)),q=A.qua,qt=Object.values(q).reduce((a,b)=>a+b,0);
+  MET.forEach(([k,n])=>{const p=pct(A.din[k].d,A.din[k].t);if(p!=null&&A.din[k].t>=10&&p<60)S.push({area:'analise',pr:1,ti:`${n} fora da faixa em ${100-p}% das medidas`,tx:`Só ${p}% das medidas de ${n} ficaram dentro da faixa individual (${A.din[k].t} medidas). Verificar se a faixa de calibração está estreita demais, se o exercício favorece o desvio, ou se é ruído de gravação. Levar ao fono colaborador antes de mudar limiares.`})});
+  const ruim=Object.entries(q).filter(([k])=>/ruim|baix|fraca|0$/i.test(k)).reduce((a,[,v])=>a+v,0);if(qt&&ruim/qt>.2)S.push({area:'exercicio',pr:1,ti:'Muitas gravações de baixa qualidade',tx:`${Math.round(ruim/qt*100)}% das gravações com qualidade ruim. Reforçar a instrução de gravação (ambiente silencioso, 15 a 20 cm do microfone) antes do primeiro exercício.`});
+  if(A.env&&A.aj/A.env>.3)S.push({area:'exercicio',pr:2,ti:'Muitos pedidos de ajuste de exercício',tx:`${Math.round(A.aj/A.env*100)}% dos envios geraram pedido de ajuste. Revisar a carga padrão dos treinos e o ponto de partida sugerido.`});
+  if(A.env&&A.pend/A.env>.4)S.push({area:'campo',pr:2,ti:'Fila do orientador acumulando',tx:`${Math.round(A.pend/A.env*100)}% dos envios sem validação. Avaliar lembrete ao orientador ou distribuir os usuários.`});
+  const sem=Object.keys(A.tar).length&&Object.entries(A.tar).sort((a,b)=>b[1]-a[1]);if(sem&&sem.length>2){const last=sem[sem.length-1];S.push({area:'exercicio',pr:3,ti:`Exercício pouco usado: ${last[0]}`,tx:`Foi feito só ${last[1]} vez(es) no período. Verificar se está claro, se é longo demais ou se vale retirar do catálogo padrão.`})}
+  if(!S.length)S.push({area:'campo',pr:3,ti:'Sem alertas automáticos neste período',tx:g==null?'Ainda não há medidas suficientes para sugerir ajustes.':`Indicadores estáveis (${g}% dentro da faixa). Manter a coleta e comparar com o próximo período.`});return S}
+let SUG=[];
+function render(){const f=t('dOri').value,P=doPer().filter(p=>!f||(p.remetente_nome||'Orientador')===f),A=agrega(P);
+  const g=pct(Object.values(A.din).reduce((a,x)=>a+x.d,0),Object.values(A.din).reduce((a,x)=>a+x.t,0)),nu=Object.keys(A.us).length;
+  t('dKp').innerHTML=[['Pacotes',A.pac],['Usuários',nu],['Envios',A.env],['Exercícios',A.ex],['Validados',A.env?pct(A.val,A.env)+'%':'—'],['Dentro da faixa',g==null?'—':g+'%']].map(([k,v])=>`<div><b>${v}</b><small>${k}</small></div>`).join('');
+  const dias=Object.keys(A.dia).sort();t('dLn').innerHTML=MSEL==='env'?linha(dias.map(d=>({d,v:A.dia[d].env})),''):linha(dias.filter(d=>A.dia[d].t).map(d=>({d,v:pct(A.dia[d].d,A.dia[d].t)})),'%');
+  t('dMed').innerHTML=bars(MET.map(([k,n])=>{const p=pct(A.din[k].d,A.din[k].t);return[n,p==null?0:p,p==null?'sem dado':p+'%']}));
+  t('dTar').innerHTML=bars(Object.entries(A.tar).sort((a,b)=>b[1]-a[1]));t('dQua').innerHTML=bars(Object.entries(A.qua).sort((a,b)=>b[1]-a[1]));
+  t('dOr').innerHTML=bars(Object.entries(A.ori).map(([k,o])=>[k+' · '+o.env+' envio(s) · '+(o.t?pct(o.d,o.t)+'% na faixa':'sem faixa'),o.env]));
+  const at=Object.values(A.us).map(u=>({id:u.id,env:u.env,p:u.pn?Math.round(u.pw/u.pn):null})).filter(u=>u.p!=null&&u.p<60).sort((a,b)=>a.p-b.p);
+  t('dUs').innerHTML=at.length?at.map(u=>`<div class="it"><div class="r"><b>${u.id}</b><span class="pill">${u.p}% na faixa</span></div><small>${u.env} envio(s)</small></div>`).join(''):'<p>Nenhum usuário abaixo de 60% no período.</p>';
+  SUG=sugere(A);t('dSg').innerHTML=SUG.map((s,i)=>`<div class="sg"><b>${esc(s.ti)}</b><span>${esc(s.tx)}</span><button class="b g sm" data-sg="${i}">+ Levar para ajustes da programação</button></div>`).join('')}
+t('dSg').onclick=async e=>{const i=e.target.dataset&&e.target.dataset.sg;if(i==null)return;const s=SUG[+i];
+  const {error}=await sb.from('ajustes_prog').insert({autor_id:U.id,area:s.area,prioridade:s.pr,titulo:s.ti,texto:s.tx,origem:{periodo:PER,gerado:new Date().toISOString()}});
+  e.target.textContent=error?'❌ '+error.message:'✔ Adicionado aos ajustes';e.target.disabled=!error};
+
+/* ---- ajustes da programação ---- */
+const AREA={codigo:'Código',analise:'Análise',exercicio:'Exercícios',ia:'IA',campo:'Campo'},PRI={1:'Alta',2:'Média',3:'Baixa'};
+async function ajustes(){const {data,error}=await sb.from('ajustes_prog').select('*').order('criado',{ascending:false});if(error)return t('la').innerHTML='<p>'+esc(error.message)+' (rode o clinica.sql no Supabase)</p>';AJU=data||[];lista()}
+function lista(){const f=t('aFs').value,L=AJU.filter(a=>!f||a.status===f).sort((a,b)=>a.prioridade-b.prioridade);
+  t('la').innerHTML=L.length?L.map(a=>`<div class="it"><div class="r"><b>${esc(a.titulo)}</b><span class="pill ${a.status==='feito'?'ok':''}">${AREA[a.area]} · ${PRI[a.prioridade]}</span></div>${a.texto?`<small style="white-space:pre-wrap">${esc(a.texto)}</small>`:''}<div class="row2"><button class="b g sm" data-st="${a.id}">${a.status==='feito'?'Reabrir':'Marcar como feito'}</button><button class="b g sm" data-rm="${a.id}">Excluir</button></div></div>`).join(''):'<p>Nada por aqui.</p>'}
+t('aFs').onchange=lista;
+t('bAdd').onclick=async()=>{const ti=t('aTi').value.trim();if(!ti)return say('mA','Dê um título.',1);
+  const {error}=await sb.from('ajustes_prog').insert({autor_id:U.id,area:t('aAr').value,prioridade:+t('aPr').value,titulo:ti,texto:t('aTx').value.trim()});
+  if(error)return say('mA','❌ '+error.message+' (rode o clinica.sql no Supabase)',1);t('aTi').value=t('aTx').value='';say('mA','Adicionado.');ajustes()};
+t('la').onclick=async e=>{const d=e.target.dataset||{};
+  if(d.st){const a=AJU.find(x=>x.id===d.st);await sb.from('ajustes_prog').update({status:a.status==='feito'?'aberto':'feito'}).eq('id',d.st)}
+  if(d.rm)await sb.from('ajustes_prog').delete().eq('id',d.rm);if(d.st||d.rm)ajustes()};
+t('bExp').onclick=()=>{const L=AJU.filter(a=>a.status==='aberto').sort((a,b)=>a.prioridade-b.prioridade);
+  const md=`# Diretrizes de ajuste — Elayon Health\nGerado em ${new Date().toLocaleString('pt-BR')} pelo Piloto Master\n\n`+(L.length?L.map(a=>`## [${PRI[a.prioridade]}] ${a.titulo}\nÁrea: ${AREA[a.area]}\n\n${a.texto||''}\n`).join('\n'):'Nenhum ajuste aberto.\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([md],{type:'text/markdown'}));a.download='diretrizes-elayon-'+dia(new Date())+'.md';a.click()};
+
+(async()=>{try{U=await eu()}catch(e){return}
+  let r;try{r=await sb.rpc('meu_nivel')}catch(e){r={}}
+  if((+(r&&r.data)||0)<3){t('bloq').hidden=false;return}
+  t('app').hidden=false;t('tb').hidden=false;await saldo();await carrega();fila();infoD()})();
+</script></body></html>
