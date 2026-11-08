@@ -10,9 +10,10 @@
 .bar{height:8px;border-radius:6px;background:#e1f3f7;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#06b6d4,#059669)}
 .ck{font-size:12px;line-height:1.5}.ck div{padding:3px 0}.ck .y::before{content:"✔ ";color:#047857;font-weight:800}.ck .n::before{content:"✖ ";color:#b91c1c;font-weight:800}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}[hidden]{display:none!important}
+textarea.res{min-height:150px;font-size:12px}
 </style></head><body><div class="w">
 <div class="c hero"><div class="top"><img class="lg" src="elayon-logo.png" alt="Elayon" onerror="if(!this.dataset.t){this.dataset.t=1;this.src='elayon_logo.png'}else this.style.display='none'"><div><h1 id="cTit">Central da clínica</h1><p>Valida médicos, certifica laudos e acompanha os metadados</p></div></div>
-<div class="tb" id="tb" hidden><button data-t="m" class="on">👩‍⚕️ Médicos</button><button data-t="l">📄 Laudos</button><button data-t="d">📊 Visão gerencial</button></div></div>
+<div class="tb" id="tb" hidden><button data-t="m" class="on">👩‍⚕️ Médicos</button><button data-t="l">📄 Laudos</button><button data-t="s">🔎 Supervisão</button><button data-t="d">📊 Gerência</button></div></div>
 
 <section id="vNova" hidden><div class="c"><h3>🏛️ Cadastrar a clínica</h3><p>O nome aparece para os médicos e para os usuários nos laudos certificados. O código gerado é o que o médico digita para se vincular.</p>
 <div><label>Nome da clínica ou serviço</label><input id="n_nome" autocomplete="off"></div><div class="msg" id="m0"></div><button class="b" id="bCria">Criar a clínica</button></div></section>
@@ -25,26 +26,32 @@
 <div class="c" id="det" hidden><h3 id="dT">Laudo</h3><div class="ck" id="dC"></div><iframe id="dPv" style="width:100%;height:380px;border:1px solid var(--l);border-radius:12px;background:#fff"></iframe>
 <div><label>Motivo (se for recusar)</label><input id="dMot" placeholder="Ex.: registro não confere"></div><div class="row2"><button class="b" id="bCert">✔ Certificar e liberar ao usuário</button><button class="b g" id="bRec">Recusar</button></div><div class="msg" id="mD"></div></div></section>
 
-<section id="vD" hidden><div class="c"><h3>📊 Visão gerencial</h3><p>Só metadados: contagens, qualidade das gravações e distribuição das tarefas. Nenhum conteúdo clínico livre.</p><div class="kp" id="kp"></div></div>
+<section id="vS" hidden><div class="c"><h3>🔎 Supervisão clínica</h3><p>Camada de quem acompanha o cuidado: cada usuário, os laudos completos emitidos e os resultados das missões, sempre contra a <b>faixa individual dele</b> (nunca contra a média da população).</p>
+<div><label>Usuário</label><select id="sP"></select></div><div class="lgd"><span><i style="background:#059669"></i>dentro da faixa</span><span><i style="background:#1d4ed8"></i>fora da faixa</span><span><i style="background:#06b6d4;border-radius:3px"></i>calibração</span></div></div><div id="sB"></div></section>
+
+<section id="vD" hidden><div class="c"><h3>📊 Gerência</h3><p>Camada de quem administra o serviço: volume, prazos, adesão e qualidade. Só metadados, nenhum conteúdo clínico.</p><div class="kp" id="kp"></div></div>
+<div class="c"><h3>Laudos por semana</h3><div id="dSem" style="display:grid;gap:8px"></div></div>
+<div class="c"><h3>Resumo para a diretoria</h3><textarea class="res" id="dRes" readonly></textarea><button class="b g" id="bCpR" style="margin-top:6px">Copiar resumo</button></div>
 <div class="c"><h3>Laudos por médico</h3><div id="dMed" style="display:grid;gap:8px"></div></div>
 <div class="c"><h3>Tarefas mais usadas</h3><div id="dTar" style="display:grid;gap:8px"></div></div>
 <div class="c"><h3>Qualidade das gravações</h3><div id="dQua" style="display:grid;gap:8px"></div></div></section>
 
 <p style="text-align:center"><a href="perfil.html" style="color:var(--a);font-weight:700;font-size:11px">⬅ Voltar ao perfil</a></p>
 </div>
-<script src="elayon-legal.js"></script><script src="health-core.js"></script>
+<script src="elayon-legal.js"></script><script src="health-core.js"></script><script src="gauge.js"></script>
 <script>
 let U,CL=null,MED=[],LAU=[],SEL=null;
 const t=id=>document.getElementById(id);
 const say=(id,x,e)=>{const m=t(id);m.textContent=x||'';m.style.color=e?'#b91c1c':''};
 const nov=()=>'ECL-'+[...crypto.getRandomValues(new Uint8Array(8))].map(b=>'23456789ABCDEFGHJKMNPQRSTUVWXYZ'[b%31]).join('');
-function aba(k){['m','l','d'].forEach(x=>{t('v'+x.toUpperCase()).hidden=x!==k});[...t('tb').children].forEach(b=>b.classList.toggle('on',b.dataset.t===k));if(k==='m')medicos();if(k==='l')laudos();if(k==='d')dash()}
+function aba(k){['m','l','s','d'].forEach(x=>{t('v'+x.toUpperCase()).hidden=x!==k});[...t('tb').children].forEach(b=>b.classList.toggle('on',b.dataset.t===k));if(k==='m')medicos();if(k==='l')laudos();if(k==='s')supervisao();if(k==='d')dash()}
 t('tb').onclick=e=>{if(e.target.dataset.t)aba(e.target.dataset.t)};
 
 /* ---- clínica ---- */
 t('bCria').onclick=async()=>{const n=t('n_nome').value.trim();if(n.length<3)return say('m0','Informe o nome da clínica.',1);
   for(let i=0;i<4;i++){const {error}=await sb.from('clinicas').insert({nome:n,dono_id:U.id,codigo:nov()});
     if(!error){try{await sb.from('profiles').update({papel:'clinica'}).eq('id',U.id)}catch(e){}return carrega()}
+    if(error.code==='42501'||/row-level security/i.test(error.message))return t('m0').innerHTML='<span style="color:#b91c1c">Cadastrar uma clínica exige a credencial exclusiva de Piloto Oficial.</span> <a href="pilotos-oficiais.html" style="color:var(--a);font-weight:800">Ativar minha credencial</a>';
     if(error.code!=='23505')return say('m0','❌ '+error.message+' (rode o clinica.sql no Supabase)',1)}
   say('m0','Não consegui gerar um código único. Tente de novo.',1)};
 async function carrega(){
@@ -95,15 +102,65 @@ async function decide(st){if(!SEL)return;const mot=t('dMot').value.trim();if(st=
 t('bCert').onclick=()=>{const falhas=t('dC').querySelectorAll('.n').length;if(falhas&&!confirm(falhas+' verificação(ões) falharam. Certificar mesmo assim?'))return;decide('certificado')};
 t('bRec').onclick=()=>decide('recusado');
 
-/* ---- visão gerencial (só metadados) ---- */
-async function dash(){const {data,error}=await sb.from('laudos_enviados').select('status,medico_nome,meta,criado').eq('clinica_id',CL.id);if(error)return;const L=data||[];
-  const n=s=>L.filter(x=>x.status===s).length,sev=L.map(x=>x.meta&&x.meta.severidade).filter(v=>v!=null);
-  t('kp').innerHTML=[['Enviados',L.length],['Certificados',n('certificado')],['Aguardando',n('enviado')],['Recusados',n('recusado')],['Médicos ativos',MED.filter(m=>m.status==='ativo').length||'—'],['Severidade média',sev.length?(sev.reduce((a,b)=>a+b,0)/sev.length).toFixed(1):'—']].map(([k,v])=>`<div><b>${v}</b><small>${k}</small></div>`).join('');
-  const cont=(arr)=>{const o={};arr.forEach(k=>{if(k)o[k]=(o[k]||0)+1});return Object.entries(o).sort((a,b)=>b[1]-a[1])};
-  const bars=(e)=>{const mx=Math.max(1,...e.map(x=>x[1]));return e.length?e.map(([k,v])=>`<div><div class="r" style="display:flex;justify-content:space-between;font-size:12px"><span>${esc(k)}</span><b>${v}</b></div><div class="bar"><i style="width:${v/mx*100}%"></i></div></div>`).join(''):'<p>Sem dados.</p>'};
-  t('dMed').innerHTML=bars(cont(L.map(x=>x.medico_nome)));
-  t('dTar').innerHTML=bars(cont(L.flatMap(x=>(x.meta&&x.meta.tarefas)||[])));
-  t('dQua').innerHTML=bars(cont(L.flatMap(x=>(x.meta&&x.meta.qualidade)||[])))}
+/* ---- dados compartilhados ---- */
+let ALL=[],ENV=[];
+async function carregaTudo(){const a=await sb.from('laudos_enviados').select('*').eq('clinica_id',CL.id).order('criado',{ascending:false});ALL=a.data||[];
+  try{const e=await sb.rpc('clinica_envios');ENV=(e.data)||[]}catch(x){ENV=[]}
+  if(!MED.length){const m=await sb.from('medicos_clinica').select('*').eq('clinica_id',CL.id);MED=m.data||[]}}
+const fix=(v,d=1)=>v==null?'—':(+v).toFixed(d);
+
+function gaugesLaudo(r){if(!r||!r.sessoes)return'<p>Sem medidas detalhadas neste envio.</p>';const ref=r.ref||{},pa=r.params||{},cal=r.calibracao||[],S=r.sessoes||[];
+  const pts=k=>[...cal.map((c,i)=>({v:+c[k],l:'calibração '+(i+1),k:'cal'})),...S.map(x=>({v:+x[k],l:'áudio '+x.n+' · '+(x.tarefa||'')}))];
+  const f0=ref.f0?[ref.f0.lo,ref.f0.hi]:[pa.f0min,pa.f0max],hn=ref.hnr?[ref.hnr.lo,ref.hnr.hi]:[pa.hnrmin,(pa.hnrmin||0)+10];
+  return gauge('F0 (tom)','Hz',f0[0],f0[1],pts('f0'))+gauge('HNR (timbre)','dB',hn[0],hn[1],pts('hnr'))+gauge('Jitter','%',0,pa.jitmax,pts('jit'),1)+gauge('Shimmer','dB',0,pa.shimmax,pts('shim'),1)}
+
+/* ---- supervisão ---- */
+async function supervisao(){await carregaTudo();const em={};
+  ALL.forEach(l=>{const k=(l.paciente_email||'').toLowerCase();if(k)em[k]=l.paciente_nome||k});ENV.forEach(e=>{const k=(e.paciente_email||'').toLowerCase();if(k&&!em[k])em[k]=e.paciente_nome||k});
+  const ks=Object.keys(em).sort((a,b)=>em[a].localeCompare(em[b]));
+  t('sP').innerHTML=ks.length?ks.map(k=>`<option value="${esc(k)}">${esc(em[k])} · ${esc(k)}</option>`).join(''):'<option value="">Nenhum usuário ainda</option>';
+  renderSup()}
+t('sP').onchange=renderSup;
+function renderSup(){const k=t('sP').value;if(!k)return t('sB').innerHTML='<div class="c"><p>Quando um médico enviar um laudo ou um usuário concluir uma missão, ele aparece aqui.</p></div>';
+  const L=ALL.filter(l=>(l.paciente_email||'').toLowerCase()===k),E=ENV.filter(e=>(e.paciente_email||'').toLowerCase()===k);
+  t('sB').innerHTML=`<div class="c"><h3>📄 Laudos emitidos (${L.length})</h3>${L.length?L.map(l=>{const r=l.resultados||{};return `<div class="it" style="margin-top:8px"><div class="r"><b>${esc(l.medico_nome||'Médico')}</b><span class="pill ${l.status==='certificado'?'ok':l.status==='recusado'?'er':'w'}">${l.status}</span></div>
+    <small>${esc(l.medico_registro||'')} · ${new Date(l.criado).toLocaleString('pt-BR')} · ${(r.sessoes||[]).length} áudio(s)</small>${gaugesLaudo(r)}
+    ${r.obs?`<div class="stx" style="white-space:pre-wrap;font-size:12px"><b>Observações do médico</b>\n${esc(r.obs)}</div>`:''}${r.conduta?`<small>Conduta: ${esc(r.conduta)}</small>`:''}
+    <button class="b g sm" data-pdf="${esc(l.pdf_path)}">Abrir o laudo completo (PDF)</button></div>`}).join(''):'<p>Nenhum laudo para este usuário.</p>'}</div>
+   <div class="c"><h3>🎯 Missões do usuário (${E.length})</h3><p>Exercícios e calibração que ele fez. A faixa individual vem da calibração dele.</p>${E.length?E.map(e=>`<div class="it" style="margin-top:8px"><div class="r"><b>${esc(e.titulo||e.codigo)}</b><small>${new Date(e.criado).toLocaleString('pt-BR')}</small></div><small>Médico: ${esc(e.medico_nome||'—')} · ${(e.resumo.exercicios||0)} exercício(s) + ${(e.resumo.calibracao||0)} calibração(ões)</small>${gaugesEnvio(e)}</div>`).join(''):'<p>Nenhuma missão concluída por este usuário.</p>'}</div>`}
+t('sB').onclick=async e=>{const p=e.target.dataset&&e.target.dataset.pdf;if(!p)return;e.target.textContent='⏳';
+  try{const {data,error}=await sb.storage.from('laudos').download(p);if(error||!data)throw error||new Error('vazio');window.open(URL.createObjectURL(data),'_blank')}catch(x){alert('Não consegui abrir: '+(x.message||x))}finally{e.target.textContent='Abrir o laudo completo (PDF)'}};
+
+/* ---- gerência (só metadados) ---- */
+async function dash(){await carregaTudo();const L=ALL,n=s=>L.filter(x=>x.status===s).length,sev=L.map(x=>x.meta&&x.meta.severidade).filter(v=>v!=null);
+  const cert=L.filter(x=>x.status==='certificado'&&x.decidido_em),horas=cert.length?cert.reduce((a,x)=>a+(new Date(x.decidido_em)-new Date(x.criado))/36e5,0)/cert.length:null;
+  const usuarios=new Set([...L.map(x=>(x.paciente_email||'').toLowerCase()),...ENV.map(x=>(x.paciente_email||'').toLowerCase())].filter(Boolean)).size;
+  const ativos=MED.filter(m=>m.status==='ativo').length,dec=n('certificado')+n('recusado'),rec=dec?Math.round(n('recusado')/dec*100):0;
+  const kp=[['Laudos enviados',L.length],['Certificados',n('certificado')],['Aguardando',n('enviado')],['Taxa de recusa',dec?rec+'%':'—'],['Prazo médio de certificação',horas==null?'—':(horas<1?Math.round(horas*60)+' min':horas.toFixed(1)+' h')],['Médicos ativos',ativos],['Usuários atendidos',usuarios],['Missões concluídas',ENV.length],['Severidade média',sev.length?(sev.reduce((a,b)=>a+b,0)/sev.length).toFixed(1):'—']];
+  t('kp').innerHTML=kp.map(([k,v])=>`<div><b>${v}</b><small>${k}</small></div>`).join('');
+  const cont=a=>{const o={};a.forEach(k=>{if(k)o[k]=(o[k]||0)+1});return Object.entries(o).sort((a,b)=>b[1]-a[1])};
+  const bars=e=>{const mx=Math.max(1,...e.map(x=>x[1]));return e.length?e.map(([k,v])=>`<div><div class="r" style="display:flex;justify-content:space-between;font-size:12px"><span>${esc(k)}</span><b>${v}</b></div><div class="bar"><i style="width:${v/mx*100}%"></i></div></div>`).join(''):'<p>Sem dados.</p>'};
+  const sem=[];for(let i=7;i>=0;i--){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-d.getDay()-i*7);sem.push(d)}
+  t('dSem').innerHTML=bars(sem.map(d=>{const f=new Date(d);f.setDate(f.getDate()+7);return [d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}),L.filter(x=>new Date(x.criado)>=d&&new Date(x.criado)<f).length]}));
+  t('dRes').value=`Resumo de ${new Date().toLocaleDateString('pt-BR')} · ${CL.nome}\n\n`+
+   `Volume: ${L.length} laudo(s) enviados pelos médicos, ${n('certificado')} certificado(s), ${n('enviado')} aguardando validação e ${n('recusado')} recusado(s)${dec?` (recusa de ${rec}%)`:''}.\n`+
+   `Prazo: ${horas==null?'ainda sem laudos certificados para medir o prazo':'a clínica leva em média '+(horas<1?Math.round(horas*60)+' minutos':horas.toFixed(1)+' horas')+' para certificar'}.\n`+
+   `Equipe: ${ativos} médico(s) ativo(s) e ${MED.filter(m=>m.status==='pendente').length} pedido(s) de vínculo pendente(s).\n`+
+   `Alcance: ${usuarios} usuário(s) acompanhado(s) e ${ENV.length} missão(ões) concluída(s) em casa.\n`+
+   (sev.length?`Gravidade média informada pelos médicos: ${(sev.reduce((a,b)=>a+b,0)/sev.length).toFixed(1)} de 10.\n`:'')+
+   `\nNota: indicadores de sinais vocais estimados por microfone de celular. O Elayon Health é um termômetro e não emite diagnóstico; a interpretação é do médico signatário.`;
+  t('dMed').innerHTML=bars(cont(L.map(x=>x.medico_nome)));t('dTar').innerHTML=bars(cont(L.flatMap(x=>(x.meta&&x.meta.tarefas)||[])));t('dQua').innerHTML=bars(cont(L.flatMap(x=>(x.meta&&x.meta.qualidade)||[])))}
+t('bCpR').onclick=async()=>{try{await navigator.clipboard.writeText(t('dRes').value);t('bCpR').textContent='Copiado ✔'}catch(e){t('dRes').select()}};
 
 (async()=>{try{U=await eu()}catch(e){return}try{await legalGate(sb,U,'piloto')}catch(e){}await carrega()})();
 </script></body></html>
+
+
+
+
+
+
+
+
+
+
