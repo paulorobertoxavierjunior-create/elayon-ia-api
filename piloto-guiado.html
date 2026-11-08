@@ -62,7 +62,6 @@ details.c>summary{cursor:pointer;font-size:13px;font-weight:800;color:var(--a);l
 <div id="aul" style="display:grid;gap:8px;margin-top:8px"></div>
 <div class="msg" id="m3"></div><button class="b big" id="bGo">⚡ Iniciar análise guiada ▶</button></div></section>
 
-
 <!-- 4 ANÁLISE GUIADA -->
 <section class="scr" id="s4" hidden><div class="c"><h3>🧠 Análise guiada</h3><div class="pb"><i id="pb"></i></div><div class="ch" id="ch" style="margin-top:8px"></div>
 <div id="gstep" hidden class="c gbox" style="margin-top:10px"><div class="row"><b id="gTit" style="font-size:13px;color:#0e7490"></b><span class="pill" id="gNum"></span></div>
@@ -118,6 +117,7 @@ const mv=x=>x?x.m:'—',msg=(id,t,e)=>{const m=$(id);if(m){m.textContent=t||'';m
 const url=a=>a._u||(a._u=URL.createObjectURL(new Blob([a.ab],{type:a.tipo||'audio/webm'})));
 function show(n){document.querySelectorAll('.scr').forEach((s,i)=>s.hidden=i+1!==n);[...$('stp').children].forEach((e,i)=>e.className=i+1<n?'ok':i+1===n?'cur':'');
   const g=$('gwrap');const dest={2:'gS2',4:'gS4'}[n];if(dest){$(dest).appendChild(g);g.hidden=false;V&&V.fit()}else g.hidden=true;scrollTo({top:0,behavior:'smooth'})}
+
 
 /* ---------- medida (mesmo motor do piloto) ---------- */
 async function atMede(a,o){o=o||{};
@@ -415,7 +415,11 @@ $('bEnv').onclick=async()=>{
     const up=await sb.storage.from('laudos').upload(path,ULT.blob,{contentType:'application/pdf'});if(up.error)throw up.error;
     const S=AU.filter(a=>a.res);
     const meta={audios:S.length,tarefas:S.map(a=>a.tarefa),recortes:RC.length,severidade:+$('l_sev').value,especialidade:DOC.especialidade,calibrado:true,qualidade:S.map(a=>(a.res.qual||{}).nivel||''),f0_med:S[0]&&S[0].res.f0?S[0].res.f0.m:null};
-    const ins=await sb.from('laudos_enviados').insert({clinica_id:CLIN.clinica_id,medico_id:U.id,medico_nome:DOC.nome_completo,medico_registro:DOC.crm_crfa_crp,paciente_nome:cv('c_nome'),paciente_email:cv('c_email').toLowerCase(),pdf_path:path,hash:ULT.hash,meta});
+    const resultados={ref:refPayload(),params:{f0min:+$('f1').value,f0max:+$('f2').value,jitmax:+$('jt').value,shimmax:+$('sh').value,hnrmin:+$('hn').value,pausasmax:+$('ps').value},
+      calibracao:CAL.map((a,i)=>({etapa:ETN[i],f0:mv(a.res.f0),jit:mv(a.res.jit),shim:mv(a.res.shim),hnr:mv(a.res.hnr),fon:a.res.fon})),
+      sessoes:S.map(a=>({n:AU.indexOf(a)+1,tarefa:a.tarefa,qual:(a.res.qual||{}).nivel||'',dur:a.res.dur,f0:mv(a.res.f0),jit:mv(a.res.jit),shim:mv(a.res.shim),hnr:mv(a.res.hnr),db:mv(a.res.db),pausas:a.res.pausas,fon:a.res.fon,obs:a.obs||''})),
+      conduta:cv('l_cd'),obs:cv('l_obs').slice(0,1500)};
+    const ins=await sb.from('laudos_enviados').insert({resultados,clinica_id:CLIN.clinica_id,medico_id:U.id,medico_nome:DOC.nome_completo,medico_registro:DOC.crm_crfa_crp,paciente_nome:cv('c_nome'),paciente_email:cv('c_email').toLowerCase(),pdf_path:path,hash:ULT.hash,meta});
     if(ins.error)throw ins.error;ULT.ok.env=true;tl();msg('m6','✅ Enviado à clínica '+(CLIN.clinica_nome||'')+'. Agora ela valida e certifica ao usuário.')}
   catch(e){msg('m6','❌ Não consegui enviar: '+(e.message||e)+' Você pode compartilhar o PDF.',1)}finally{$('bEnv').disabled=false}};
 $('bFim').onclick=()=>{
@@ -444,10 +448,12 @@ $('bVinc').onclick=async()=>{const cod=$('m_cod').value.trim();if(!cod)return ms
   try{const {data}=await sb.from('pilotos_perfil').select('*').eq('id',U.id).maybeSingle();PIL=data||null}catch(e){PIL=null}
   APR=!!(PROF.medico_aprovado_em||localStorage.getItem('medico_ok_'+U.id));
   const pedido=new URLSearchParams(location.search).get('modo');
-  MODO=pedido==='real'&&APR?'real':'treino';
+  let CRED=false;try{const {data}=await sb.rpc('tenho_credencial',{p:'medico'});CRED=data===true}catch(e){CRED=false}
+  MODO=pedido==='real'&&APR&&CRED?'real':'treino';
+  if(pedido==='real'&&APR&&!CRED)window.__semCred=true;
   prefill();
   if(MODO==='treino'){$('hTit').textContent='Calibração do médico';$('hSub').textContent='Treinamento · você faz o papel do usuário';$('mdTag').textContent='TREINAMENTO';$('mdTag').className='pill t';
-    $('mdTxt').textContent=pedido==='real'?'O cockpit real abre depois do treinamento. Faça a calibração com a sua própria voz, leia os 8 gráficos com a IA e assine o PDF de treino. Nada é enviado.':'Antes de atender, você treina o fluxo inteiro com a sua própria voz: calibra, lê os 8 gráficos com a IA, anota e assina um PDF de treino. Nada é enviado.';
+    $('mdTxt').textContent=window.__semCred?'O cockpit real é para Pilotos Oficiais: falta ativar a credencial exclusiva. Peça ao Porta-Voz e ative em Pilotos Oficiais. Enquanto isso, o treinamento está liberado.':pedido==='real'?'O cockpit real abre depois do treinamento. Faça a calibração com a sua própria voz, leia os 8 gráficos com a IA e assine o PDF de treino. Nada é enviado.':'Antes de atender, você treina o fluxo inteiro com a sua própria voz: calibra, lê os 8 gráficos com a IA, anota e assina um PDF de treino. Nada é enviado.';
     $('clBox').hidden=true;$('calTxt0').textContent='Você faz o papel do usuário: grave os 3 áudios aqui ou carregue arquivos seus.';$('bIni').textContent='Iniciar o treinamento ▶'}
   else{$('hTit').textContent='Cockpit do piloto';$('hSub').textContent='Atendimento real · laudo certificado pela clínica';$('mdTag').textContent='REAL';
     $('mdTxt').textContent='Preencha uma vez. Estes dados assinam o laudo. O fluxo: calibração do usuário, cadastro e áudios da consulta, leitura guiada dos gráficos, laudo assinado por você e envio à clínica.';
@@ -455,7 +461,3 @@ $('bVinc').onclick=async()=>{const cod=$('m_cod').value.trim();if(!cod)return ms
     if(!PIL){msg('m1','Você ainda não tem o cadastro profissional. Faça no perfil, aba médico.',1)}}
   show(1)})();
 </script></body></html>
-
-
-
-
