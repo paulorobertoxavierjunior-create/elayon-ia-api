@@ -1,0 +1,109 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Central da Clínica • Elayon</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="health.css">
+<style>
+.hero{background:linear-gradient(135deg,#0a2a2f,#0e4f63 55%,#0b6b57);border:0}.hero h1{color:#fff}.hero p{color:#bfe3e0}
+.top{display:flex;align-items:center;gap:12px}.lg{width:46px;height:46px;border-radius:50%;object-fit:cover;border:1.5px solid #3ecfcf;background:#fff;flex:none}
+.tb{display:flex;gap:6px;overflow-x:auto;margin-top:12px}.tb button{flex:1;min-width:96px;border:0;border-radius:10px;padding:9px 6px;font-size:11px;font-weight:800;background:#ffffff1f;color:#bfe3e0;cursor:pointer}.tb button.on{background:linear-gradient(135deg,#06b6d4,#1d4ed8);color:#fff}
+.it{border:1px solid var(--l);border-radius:12px;padding:10px;display:grid;gap:6px;background:#fff}.it b{font-size:13px}.it .r{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pill{display:inline-block;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:#e6fafd;color:#0e7490;border:1px solid #a5e8f2}.pill.ok{background:#e8fbf3;color:#047857;border-color:#9fe2c4}.pill.er{background:#eef2ff;color:#3730a3;border-color:#c7d2fe}.pill.w{background:#fff7e0;color:#92400e;border-color:#fcd88b}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kp div{border:1px solid var(--l);border-radius:12px;padding:10px;text-align:center;background:linear-gradient(180deg,#fff,#f1fcfe)}.kp b{display:block;font-size:22px;background:linear-gradient(90deg,#06b6d4,#1d4ed8,#059669);-webkit-background-clip:text;background-clip:text;color:transparent}.kp small{font-size:10px}
+.bar{height:8px;border-radius:6px;background:#e1f3f7;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#06b6d4,#059669)}
+.ck{font-size:12px;line-height:1.5}.ck div{padding:3px 0}.ck .y::before{content:"✔ ";color:#047857;font-weight:800}.ck .n::before{content:"✖ ";color:#b91c1c;font-weight:800}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}[hidden]{display:none!important}
+</style></head><body><div class="w">
+<div class="c hero"><div class="top"><img class="lg" src="elayon-logo.png" alt="Elayon" onerror="if(!this.dataset.t){this.dataset.t=1;this.src='elayon_logo.png'}else this.style.display='none'"><div><h1 id="cTit">Central da clínica</h1><p>Valida médicos, certifica laudos e acompanha os metadados</p></div></div>
+<div class="tb" id="tb" hidden><button data-t="m" class="on">👩‍⚕️ Médicos</button><button data-t="l">📄 Laudos</button><button data-t="d">📊 Visão gerencial</button></div></div>
+
+<section id="vNova" hidden><div class="c"><h3>🏛️ Cadastrar a clínica</h3><p>O nome aparece para os médicos e para os usuários nos laudos certificados. O código gerado é o que o médico digita para se vincular.</p>
+<div><label>Nome da clínica ou serviço</label><input id="n_nome" autocomplete="off"></div><div class="msg" id="m0"></div><button class="b" id="bCria">Criar a clínica</button></div></section>
+
+<section id="vM" hidden><div class="c"><h3>🔑 Código da clínica</h3><div class="it"><b id="cod" style="font-size:18px;letter-spacing:1px"></b><div class="row2"><button class="b g" id="bCp">Copiar</button><a class="b g" id="bWa" target="_blank" rel="noopener">Enviar por WhatsApp</a></div></div></div>
+<div class="c"><h3>👩‍⚕️ Médicos vinculados</h3><div id="lm" style="display:grid;gap:8px"></div><div class="msg" id="mM"></div></div></section>
+
+<section id="vL" hidden><div class="c"><h3>📄 Laudos enviados</h3><div class="row2"><select id="fs"><option value="enviado">Aguardando validação</option><option value="certificado">Certificados</option><option value="recusado">Recusados</option><option value="">Todos</option></select><button class="b g" id="bAt">↻ Atualizar</button></div>
+<div id="ll" style="display:grid;gap:8px"></div></div>
+<div class="c" id="det" hidden><h3 id="dT">Laudo</h3><div class="ck" id="dC"></div><iframe id="dPv" style="width:100%;height:380px;border:1px solid var(--l);border-radius:12px;background:#fff"></iframe>
+<div><label>Motivo (se for recusar)</label><input id="dMot" placeholder="Ex.: registro não confere"></div><div class="row2"><button class="b" id="bCert">✔ Certificar e liberar ao usuário</button><button class="b g" id="bRec">Recusar</button></div><div class="msg" id="mD"></div></div></section>
+
+<section id="vD" hidden><div class="c"><h3>📊 Visão gerencial</h3><p>Só metadados: contagens, qualidade das gravações e distribuição das tarefas. Nenhum conteúdo clínico livre.</p><div class="kp" id="kp"></div></div>
+<div class="c"><h3>Laudos por médico</h3><div id="dMed" style="display:grid;gap:8px"></div></div>
+<div class="c"><h3>Tarefas mais usadas</h3><div id="dTar" style="display:grid;gap:8px"></div></div>
+<div class="c"><h3>Qualidade das gravações</h3><div id="dQua" style="display:grid;gap:8px"></div></div></section>
+
+<p style="text-align:center"><a href="perfil.html" style="color:var(--a);font-weight:700;font-size:11px">⬅ Voltar ao perfil</a></p>
+</div>
+<script src="elayon-legal.js"></script><script src="health-core.js"></script>
+<script>
+let U,CL=null,MED=[],LAU=[],SEL=null;
+const t=id=>document.getElementById(id);
+const say=(id,x,e)=>{const m=t(id);m.textContent=x||'';m.style.color=e?'#b91c1c':''};
+const nov=()=>'ECL-'+[...crypto.getRandomValues(new Uint8Array(8))].map(b=>'23456789ABCDEFGHJKMNPQRSTUVWXYZ'[b%31]).join('');
+function aba(k){['m','l','d'].forEach(x=>{t('v'+x.toUpperCase()).hidden=x!==k});[...t('tb').children].forEach(b=>b.classList.toggle('on',b.dataset.t===k));if(k==='m')medicos();if(k==='l')laudos();if(k==='d')dash()}
+t('tb').onclick=e=>{if(e.target.dataset.t)aba(e.target.dataset.t)};
+
+/* ---- clínica ---- */
+t('bCria').onclick=async()=>{const n=t('n_nome').value.trim();if(n.length<3)return say('m0','Informe o nome da clínica.',1);
+  for(let i=0;i<4;i++){const {error}=await sb.from('clinicas').insert({nome:n,dono_id:U.id,codigo:nov()});
+    if(!error){try{await sb.from('profiles').update({papel:'clinica'}).eq('id',U.id)}catch(e){}return carrega()}
+    if(error.code!=='23505')return say('m0','❌ '+error.message+' (rode o clinica.sql no Supabase)',1)}
+  say('m0','Não consegui gerar um código único. Tente de novo.',1)};
+async function carrega(){
+  const {data,error}=await sb.from('clinicas').select('*').eq('dono_id',U.id).limit(1);
+  if(error){t('vNova').hidden=false;return say('m0','❌ '+error.message+' (rode o clinica.sql no Supabase)',1)}
+  CL=(data||[])[0]||null;
+  if(!CL){t('vNova').hidden=false;t('tb').hidden=true;return}
+  t('vNova').hidden=true;t('tb').hidden=false;t('cTit').textContent=CL.nome;t('cod').textContent=CL.codigo;
+  t('bWa').href='https://wa.me/?text='+encodeURIComponent('Código da clínica '+CL.nome+' no Elayon: '+CL.codigo+'. No Perfil, escolha "Sou médico", abra o Cockpit do piloto e use "Vincular".');
+  aba('m')}
+t('bCp').onclick=async()=>{try{await navigator.clipboard.writeText(CL.codigo);t('bCp').textContent='Copiado ✔'}catch(e){t('bCp').textContent=CL.codigo}};
+
+/* ---- médicos ---- */
+async function medicos(){const {data,error}=await sb.from('medicos_clinica').select('*').eq('clinica_id',CL.id).order('criado',{ascending:false});if(error)return say('mM','❌ '+error.message,1);
+  MED=data||[];t('lm').innerHTML=MED.length?MED.map(m=>`<div class="it"><div class="r"><b>${esc(m.medico_nome||'Médico')}</b><span class="pill ${m.status==='ativo'?'ok':m.status==='pendente'?'w':'er'}">${m.status}</span></div><small>${esc(m.medico_registro||'sem registro')} • pedido em ${String(m.criado).slice(0,10)}</small>
+  <div class="row2">${m.status!=='ativo'?`<button class="b sm" data-ap="${m.medico_id}">Aprovar</button>`:'<span></span>'}${m.status!=='recusado'?`<button class="b g sm" data-rc="${m.medico_id}">${m.status==='ativo'?'Desvincular':'Recusar'}</button>`:'<span></span>'}</div></div>`).join(''):'<p>Nenhum médico pediu vínculo ainda. Envie o código acima.</p>'}
+t('lm').onclick=async e=>{const a=e.target.dataset.ap,r=e.target.dataset.rc,id=a||r;if(!id)return;
+  const {error}=await sb.from('medicos_clinica').update({status:a?'ativo':'recusado'}).eq('clinica_id',CL.id).eq('medico_id',id);
+  if(error)return say('mM','❌ '+error.message,1);say('mM',a?'Médico aprovado.':'Vínculo encerrado.');medicos()};
+
+/* ---- laudos ---- */
+async function laudos(){t('det').hidden=true;const f=t('fs').value;let q=sb.from('laudos_enviados').select('*').eq('clinica_id',CL.id).order('criado',{ascending:false});if(f)q=q.eq('status',f);
+  const {data,error}=await q;if(error){t('ll').innerHTML='';return say('mD','❌ '+error.message,1)}
+  LAU=data||[];t('ll').innerHTML=LAU.length?LAU.map((l,i)=>`<div class="it"><div class="r"><b>${esc(l.paciente_nome||'Paciente')}</b><span class="pill ${l.status==='certificado'?'ok':l.status==='recusado'?'er':'w'}">${l.status}</span></div><small>${esc(l.medico_nome||'')} • ${esc(l.medico_registro||'')} • ${String(l.criado).slice(0,10)}</small><button class="b g sm" data-o="${i}">Abrir e conferir</button></div>`).join(''):'<p>Nada por aqui.</p>'}
+t('fs').onchange=laudos;t('bAt').onclick=laudos;
+t('ll').onclick=e=>{if(e.target.dataset.o!=null)abre(+e.target.dataset.o)};
+async function abre(i){SEL=LAU[i];t('det').hidden=false;t('dT').textContent=SEL.paciente_nome||'Laudo';t('dC').innerHTML='⏳ conferindo…';t('dPv').src='about:blank';say('mD','');t('dMot').value='';
+  const dis=SEL.status!=='enviado';t('bCert').disabled=dis;t('bRec').disabled=dis;
+  const ck=[];const ok=(c,x)=>ck.push(`<div class="${c?'y':'n'}">${x}</div>`);
+  try{const {data,error}=await sb.storage.from('laudos').download(SEL.pdf_path);if(error||!data)throw error||new Error('arquivo ausente');
+    const buf=new Uint8Array(await data.arrayBuffer());t('dPv').src=URL.createObjectURL(new Blob([buf],{type:'application/pdf'}));
+    let s='';for(let k=0;k<buf.length;k+=8192)s+=String.fromCharCode.apply(null,buf.subarray(k,k+8192));
+    const m=s.match(/ELAYONHEALTH\[([A-Za-z0-9+\/=]+)\]/);ok(!!m,'PDF é um laudo Elayon Health');
+    if(m){let o=null;try{o=JSON.parse(decodeURIComponent(escape(atob(m[1]))))}catch(e){}ok(!!o,'Conteúdo do laudo legível');
+      if(o){const {hash,...corpo}=o,h=await sha(JSON.stringify(corpo));ok(hash===h,'Assinatura de integridade (SHA-256) confere');ok(!!SEL.hash&&SEL.hash===h,'Hash registrado no envio é o mesmo do PDF');
+        ok(!o.treino,'Não é documento de treinamento');
+        const v=MED.find(x=>x.medico_id===SEL.medico_id);ok(!!v&&v.status==='ativo','Médico está ativo nesta clínica');
+        ok(String(o.piloto.crm).replace(/\W/g,'').toLowerCase()===String(SEL.medico_registro||'').replace(/\W/g,'').toLowerCase(),'Registro profissional do laudo = registro do vínculo ('+esc(o.piloto.crm)+')');
+        ok(String(o.paciente.email||'').toLowerCase()===String(SEL.paciente_email||'').toLowerCase(),'E-mail do paciente no laudo = e-mail do envio ('+esc(o.paciente.email)+')');
+        ok(!!(o.calibracao&&o.calibracao.length===3),'Calibração inicial de 3 áudios consta no laudo');
+        ok(!!(o.laudo&&o.laudo.obs),'Observações clínicas do médico presentes')}}}
+  catch(e){ok(false,'Não consegui abrir o PDF: '+esc(e.message||e))}
+  t('dC').innerHTML=ck.join('');t('det').scrollIntoView({behavior:'smooth'})}
+async function decide(st){if(!SEL)return;const mot=t('dMot').value.trim();if(st==='recusado'&&!mot)return say('mD','Informe o motivo da recusa.',1);
+  const {data,error}=await sb.from('laudos_enviados').update({status:st,motivo:st==='recusado'?mot:null,decidido_em:new Date().toISOString()}).eq('id',SEL.id).select('id');
+  if(error||!data||!data.length)return say('mD','❌ '+((error&&error.message)||'sem permissão'),1);
+  say('mD',st==='certificado'?'✅ Certificado. O usuário já vê o laudo no cockpit.':'Laudo recusado. O médico verá o motivo.');t('bCert').disabled=true;t('bRec').disabled=true;laudos()}
+t('bCert').onclick=()=>{const falhas=t('dC').querySelectorAll('.n').length;if(falhas&&!confirm(falhas+' verificação(ões) falharam. Certificar mesmo assim?'))return;decide('certificado')};
+t('bRec').onclick=()=>decide('recusado');
+
+/* ---- visão gerencial (só metadados) ---- */
+async function dash(){const {data,error}=await sb.from('laudos_enviados').select('status,medico_nome,meta,criado').eq('clinica_id',CL.id);if(error)return;const L=data||[];
+  const n=s=>L.filter(x=>x.status===s).length,sev=L.map(x=>x.meta&&x.meta.severidade).filter(v=>v!=null);
+  t('kp').innerHTML=[['Enviados',L.length],['Certificados',n('certificado')],['Aguardando',n('enviado')],['Recusados',n('recusado')],['Médicos ativos',MED.filter(m=>m.status==='ativo').length||'—'],['Severidade média',sev.length?(sev.reduce((a,b)=>a+b,0)/sev.length).toFixed(1):'—']].map(([k,v])=>`<div><b>${v}</b><small>${k}</small></div>`).join('');
+  const cont=(arr)=>{const o={};arr.forEach(k=>{if(k)o[k]=(o[k]||0)+1});return Object.entries(o).sort((a,b)=>b[1]-a[1])};
+  const bars=(e)=>{const mx=Math.max(1,...e.map(x=>x[1]));return e.length?e.map(([k,v])=>`<div><div class="r" style="display:flex;justify-content:space-between;font-size:12px"><span>${esc(k)}</span><b>${v}</b></div><div class="bar"><i style="width:${v/mx*100}%"></i></div></div>`).join(''):'<p>Sem dados.</p>'};
+  t('dMed').innerHTML=bars(cont(L.map(x=>x.medico_nome)));
+  t('dTar').innerHTML=bars(cont(L.flatMap(x=>(x.meta&&x.meta.tarefas)||[])));
+  t('dQua').innerHTML=bars(cont(L.flatMap(x=>(x.meta&&x.meta.qualidade)||[])))}
+
+(async()=>{try{U=await eu()}catch(e){return}try{await legalGate(sb,U,'piloto')}catch(e){}await carrega()})();
+</script></body></html>
