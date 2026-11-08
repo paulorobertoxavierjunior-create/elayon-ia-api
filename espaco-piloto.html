@@ -1,0 +1,122 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Espaço do Piloto • Elayon Health</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="health.css">
+<style>
+.top{display:flex;align-items:center;gap:12px}.lg{width:46px;height:46px;border-radius:50%;object-fit:cover;border:1.5px solid var(--a);background:#fff;flex:none}.top h1{font-size:17px;line-height:1.2}
+details.c>summary{cursor:pointer;font-size:13px;font-weight:800;color:var(--a);list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.c>summary::-webkit-details-marker{display:none}details.c>summary::after{content:"▾";color:var(--m)}details.c[open]>summary::after{content:"▴"}details.c[open]>summary{margin-bottom:6px}
+.ck{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--l);border-radius:10px;padding:7px 10px;font-size:12px;background:#fff;text-transform:none;font-weight:600;color:var(--ink);margin:0}.ck input{width:auto;margin-top:2px}
+.ck small{display:block;font-weight:400;color:var(--m);font-size:10px;text-transform:none}
+.cod{font:800 24px monospace;letter-spacing:2px;text-align:center;background:#f0f7f7;border:2px dashed var(--a);border-radius:14px;padding:14px;color:var(--ink)}
+.tr{border:1px solid var(--l);border-radius:12px;padding:10px;display:grid;gap:6px;background:#fff}.tr.off{opacity:.55}.tr .bt{display:flex;gap:6px;flex-wrap:wrap}.tr .bt button{width:auto;padding:6px 10px;font-size:11px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.nt{border:1px solid var(--l);border-radius:10px;padding:8px 10px;font-size:11px;line-height:1.5;background:#fff}.nt b{color:var(--a)}
+pre{font:10px/1.4 monospace;white-space:pre-wrap;color:var(--m);max-height:200px;overflow:auto;background:#f8fbfa;border-radius:10px;padding:8px}
+</style></head><body><div class="w">
+<div class="c"><div class="top"><img class="lg" src="elayon-logo.png" alt="Elayon" onerror="if(!this.dataset.t){this.dataset.t=1;this.src='elayon_logo.png'}else this.style.display='none'"><div><h1>Espaço do Piloto</h1><p>Elayon Health · treinos, fontes e estudo de laudos</p></div></div>
+<div class="hd"><span id="quem">…</span><a href="perfil.html">⬅ Perfil</a></div><div id="cad"></div></div>
+
+<details class="c" id="dN" open><summary>🧭 Novo treino para um usuário</summary>
+<p>O usuário digita o código no Meu Espaço e o treino entra na lista dele. O que você escrever em "Fontes" é o que a IA dele pode citar ao acompanhar os exercícios.</p>
+<div class="g2"><div><label>Título do treino</label><input id="tt" placeholder="Ex.: Fonação — semana 1"></div><div><label>Nome do usuário</label><input id="pn"></div></div>
+<div><label>E-mail da conta Elayon do usuário (opcional: trava o código a esse e-mail)</label><input id="pe" type="email"></div>
+<div><label>Orientação ao usuário</label><textarea id="or" placeholder="Ex.: Faça 1 vez por dia, em lugar silencioso, sem forçar a voz."></textarea></div>
+<label>Exercícios</label><div id="exs" style="display:grid;gap:6px"></div>
+<div class="g2"><div><label>Exercício próprio: nome</label><input id="cn"></div><div><label>Tempo mínimo de voz (s)</label><input id="cm" type="number" min="0" value="0"></div></div>
+<div><label>Exercício próprio: instrução</label><input id="ci"></div><button class="b g" id="bAddC">+ Adicionar exercício próprio</button><div id="cs"></div>
+<div><label>Fontes para a IA acompanhar (cole texto de protocolos, escalas, artigos; ou carregue .txt)</label><textarea id="fo" style="min-height:110px" placeholder="Ex.: [Protocolo X] Texto…"></textarea><input type="file" id="ff" accept=".txt,.md,text/plain"></div>
+<div class="msg" id="mN"></div><button class="b" id="bGer">Gerar código do treino</button><div id="res"></div></details>
+
+<details class="c" id="dM"><summary>📋 Meus treinos</summary><div id="lt" style="display:grid;gap:8px"><p>Carregando…</p></div></details>
+
+<details class="c" id="dE"><summary>🔬 Estudar um laudo (.elayon)</summary>
+<p>Peça ao usuário o arquivo .elayon do laudo (botão "💾 .elayon" no Meu Espaço). Aqui você revê os 8 gráficos com o áudio, pausa, marca percepções e isola trechos. Nada sai do seu aparelho.</p>
+<input type="file" id="fl" accept=".elayon,.json,application/json">
+<div class="msg" id="mE"></div>
+<div id="est" style="display:none;gap:10px">
+ <div id="grid"></div><audio id="aud" controls style="width:100%"></audio>
+ <div class="row2"><button class="b g" id="bP">⏸ Pausar gráficos</button><button class="b g" id="bPin">📌 Marcar este instante</button></div>
+ <div class="row2"><button class="b g" id="bA">⟦ Início aqui</button><button class="b g" id="bB">Fim aqui ⟧</button></div>
+ <div class="nt" id="sel">Trecho isolado: nenhum. Toque em "Início aqui" e "Fim aqui" durante o áudio.</div>
+ <button class="b g" id="bTr" style="display:none">▶ Tocar só o trecho</button>
+ <div><label>Percepção para a nota</label><input id="np" placeholder="Ex.: voz soprosa; esforço na retomada"></div>
+ <div id="nts" style="display:grid;gap:6px"></div><button class="b g" id="bEx" style="display:none">💾 Baixar notas (.txt)</button>
+ <details class="c" style="box-shadow:none"><summary>Resumo do laudo</summary><div id="rs"></div></details></div></details>
+<p style="text-align:center"><a href="termos.html" style="color:var(--a);font-weight:700;font-size:11px">Termos</a> · <a href="privacidade.html" style="color:var(--a);font-weight:700;font-size:11px">Privacidade</a></p>
+</div>
+<script src="elayon-legal.js"></script><script src="health-core.js"></script><script src="health-dsp.js"></script><script src="vibes8.js"></script><script src="espaco-comum.js"></script>
+<script>
+let U=null,PIL=null,V=null,LZ=null,NOTAS=[],cust=[],selA=null,selB=null,stopB=0;
+const msg=(id,t,e)=>{const m=$(id);m.textContent=t||'';m.style.color=e?'#b91c1c':''};
+$('exs').innerHTML=EX.filter(e=>e.id!=='livre').map(e=>`<label class="ck"><input type="checkbox" value="${e.id}"><span><b>${esc(e.nome)}</b><small>${esc(e.bloco)}${e.min?' · '+e.min+' s de voz':''}</small></span></label>`).join('');
+$('bAddC').onclick=()=>{const n=$('cn').value.trim();if(!n)return;cust.push({nome:n,instr:$('ci').value.trim(),min:+$('cm').value||0});$('cn').value=$('ci').value='';renderC()};
+function renderC(){$('cs').innerHTML=cust.map((c,i)=>`<div class="ck"><span><b>${esc(c.nome)}</b><small>${esc(c.instr)}${c.min?' · '+c.min+' s':''}</small></span><button class="b g sm" onclick="cust.splice(${i},1);renderC()">✕</button></div>`).join('')}
+$('ff').onchange=async e=>{const f=e.target.files[0];if(!f)return;const t=await f.text();$('fo').value=($('fo').value?$('fo').value+'\n\n':'')+`[${f.name.replace(/\.\w+$/,'')}] `+t.slice(0,20000);e.target.value=''};
+
+async function gerar(){
+  if(!PIL)return msg('mN','Faça o cadastro de piloto antes de gerar treinos.',1);
+  const titulo=$('tt').value.trim(),ids=[...document.querySelectorAll('#exs input:checked')].map(i=>({id:i.value})),exercicios=[...ids,...cust];
+  if(!titulo)return msg('mN','Dê um título ao treino.',1);if(!exercicios.length)return msg('mN','Escolha ao menos um exercício.',1);
+  const pe=$('pe').value.trim().toLowerCase();if(pe&&!/^\S+@\S+\.\S+$/.test(pe))return msg('mN','E-mail inválido.',1);
+  msg('mN','Gerando…');$('bGer').disabled=true;let codigo,error;
+  for(let t=0;t<4;t++){codigo=codigoNovo();({error}=await sb.from('treinos').insert({codigo,piloto_id:U.id,titulo,paciente_nome:$('pn').value.trim()||null,paciente_email:pe||null,orientacao:$('or').value.trim(),fontes:$('fo').value.trim(),exercicios}));
+    if(!error||error.code!=='23505')break}
+  $('bGer').disabled=false;
+  if(error)return msg('mN',/relation|schema|not exist/i.test(error.message)?'A tabela de treinos ainda não existe no servidor. Rode o arquivo espaco.sql no Supabase.':'Erro: '+error.message,1);
+  msg('mN','✅ Treino criado.');
+  const txt=`Olá${$('pn').value.trim()?' '+$('pn').value.trim():''}! Seu treino no Elayon Space: "${titulo}". No app, abra Perfil, depois Meu Espaço, e digite o código ${codigo}.`;
+  $('res').innerHTML=`<div class="cod">${codigo}</div><div class="row2"><button class="b g" id="bCp">Copiar código</button><a class="b" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(txt)}">Enviar no WhatsApp</a></div>`;
+  $('bCp').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(codigo);$('bCp').textContent='Copiado ✔'};listar()}
+$('bGer').onclick=gerar;
+
+async function listar(){
+  const {data,error}=await sb.from('treinos').select('*').eq('piloto_id',U.id).order('criado',{ascending:false});
+  if(error)return $('lt').innerHTML=`<p>${/relation|schema|not exist/i.test(error.message)?'A tabela de treinos ainda não existe. Rode espaco.sql no Supabase.':esc(error.message)}</p>`;
+  $('lt').innerHTML=data.length?data.map(t=>`<div class="tr ${t.ativo?'':'off'}"><div class="row"><b style="font-size:12px">${esc(t.titulo)}</b><span class="tag ${t.ativo?'ok':''}">${t.ativo?'ativo':'desativado'}</span></div>
+   <small>${esc(t.codigo)}${t.paciente_nome?' · '+esc(t.paciente_nome):''}${t.paciente_email?' · '+esc(t.paciente_email):''} · ${(t.exercicios||[]).length} exercícios · ${new Date(t.criado).toLocaleDateString('pt-BR')}</small>
+   <div class="bt"><button class="b g" data-a="cp" data-c="${esc(t.codigo)}">Copiar código</button><button class="b g" data-a="at" data-i="${t.id}" data-v="${t.ativo?1:0}">${t.ativo?'Desativar':'Reativar'}</button><button class="b g" data-a="rm" data-i="${t.id}">Excluir</button></div></div>`).join(''):'<p>Nenhum treino ainda.</p>'}
+$('lt').onclick=async e=>{const a=e.target.dataset&&e.target.dataset.a;if(!a)return;
+  if(a==='cp'){navigator.clipboard&&navigator.clipboard.writeText(e.target.dataset.c);e.target.textContent='Copiado ✔';return}
+  if(a==='at')await sb.from('treinos').update({ativo:e.target.dataset.v!=='1'}).eq('id',e.target.dataset.i);
+  if(a==='rm'&&confirm('Excluir este treino? O usuário que já carregou o código mantém a cópia dele.'))await sb.from('treinos').delete().eq('id',e.target.dataset.i);
+  listar()};
+
+/* ---------- estudar laudo ---------- */
+const f1=(v,d=1)=>v==null?'—':(+v).toFixed(d);
+function statsJ(tk,a,b){const w=tk.filter(k=>k.ct>=a&&k.ct<=b),Vv=w.filter(k=>k.voz),m=x=>x.length?x.reduce((s,y)=>s+y,0)/x.length:null;
+  return{dur:+(b-a).toFixed(1),voz:w.length?Vv.length/w.length:0,f0:m(Vv.map(k=>k.f0)),jit:m(Vv.map(k=>k.jit)),shim:m(Vv.map(k=>k.shim)),hnr:m(Vv.map(k=>k.hnr)),db:m(w.map(k=>k.db))}}
+const sTxt=s=>`${s.dur} s · voz ${Math.round(s.voz*100)}% · F0 ${f1(s.f0,0)} Hz · jitter ${f1(s.jit,2)}% · shimmer ${f1(s.shim,2)} dB · HNR ${f1(s.hnr)} dB · ${f1(s.db)} dBFS`;
+const nk=()=>'esp_notas_'+U.id+'_'+LZ.id,salvaN=()=>{try{localStorage.setItem(nk(),JSON.stringify(NOTAS))}catch(e){}};
+function renderN(){$('nts').innerHTML=NOTAS.map((n,i)=>`<div class="nt"><b>${fm2(n.t)}</b> ${esc(n.txt||'(sem texto)')}<br><small>${esc(n.est)}</small> <button class="b g sm" style="width:auto;padding:3px 8px" onclick="NOTAS.splice(${i},1);salvaN();renderN()">✕</button></div>`).join('');$('bEx').style.display=NOTAS.length?'block':'none'}
+const fm2=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+(s%60).toFixed(1).padStart(4,'0');
+async function abrir(f){
+  try{LZ=await laudoImporta(f)}catch(e){return msg('mE',e.message,1)}
+  msg('mE','Laudo de '+new Date(LZ.ts).toLocaleString('pt-BR')+' · '+(LZ.ex&&LZ.ex.nome)+(LZ.cod?' · treino '+LZ.cod:''));
+  $('est').style.display='grid';if(!V)V=Vibes8.mount($('grid'));
+  const a=$('aud');a.src=URL.createObjectURL(new Blob([LZ.ab],{type:LZ.tipo||'audio/webm'}));V.replay(LZ.tk,()=>a.currentTime);V.pause(false);V.fit();
+  try{NOTAS=JSON.parse(localStorage.getItem(nk())||'[]')}catch(e){NOTAS=[]}selA=selB=null;$('sel').textContent='Trecho isolado: nenhum. Toque em "Início aqui" e "Fim aqui" durante o áudio.';$('bTr').style.display='none';renderN();
+  $('rs').innerHTML=`<p><b>Usuário:</b> o laudo não traz nome nem e-mail; só medidas e áudio.</p><p>${esc(sTxt(statsJ(LZ.tk,0,LZ.res.dur)))}</p>
+   ${(LZ.check||[]).map(k=>`<p>${k.t==='ok'?'✔':k.t==='at'?'⚠️':'🔁'} ${esc(k.x)}</p>`).join('')}
+   ${LZ.txt?`<p><b>Transcrição do navegador:</b> ${esc(LZ.txt)}</p>`:''}${LZ.ia?`<p><b>Retorno da IA ao usuário:</b> ${esc(LZ.ia)}</p>`:''}<pre>${esc(JSON.stringify(LZ.meta,null,1))}</pre>`}
+$('fl').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)abrir(f)};
+$('bP').onclick=()=>{const p=!V.isPaused();V.pause(p);const a=$('aud');p?a.pause():a.play().catch(()=>{});$('bP').textContent=p?'▶ Retomar gráficos':'⏸ Pausar gráficos'};
+$('bPin').onclick=()=>{const t=$('aud').currentTime;NOTAS.push({t,txt:$('np').value.trim(),est:sTxt(statsJ(LZ.tk,Math.max(0,t-2.5),t+2.5))});$('np').value='';NOTAS.sort((x,y)=>x.t-y.t);salvaN();renderN()};
+function selUp(){if(selA!=null&&selB!=null&&selB>selA){$('sel').innerHTML='<b>Trecho isolado '+fm2(selA)+' a '+fm2(selB)+':</b> '+esc(sTxt(statsJ(LZ.tk,selA,selB)));$('bTr').style.display='block'}else $('sel').textContent='Trecho isolado: início '+(selA==null?'—':fm2(selA))+', fim '+(selB==null?'—':fm2(selB))}
+$('bA').onclick=()=>{selA=$('aud').currentTime;if(selB!=null&&selB<=selA)selB=null;selUp()};$('bB').onclick=()=>{selB=$('aud').currentTime;selUp()};
+$('bTr').onclick=()=>{const a=$('aud');a.currentTime=selA;a.play().catch(()=>{});clearInterval(stopB);stopB=setInterval(()=>{if(a.currentTime>=selB||a.paused){a.pause();clearInterval(stopB)}},60)};
+$('bEx').onclick=()=>dl(new Blob([`Notas do piloto — laudo ${LZ.id} (${new Date(LZ.ts).toLocaleString('pt-BR')}) — ${LZ.ex&&LZ.ex.nome}\n\n`+NOTAS.map(n=>`${fm2(n.t)}  ${n.txt||'(sem texto)'}\n   ${n.est}`).join('\n\n')+'\n\nTermômetro de método; não é diagnóstico.'],{type:'text/plain'}),`notas-${LZ.id}.txt`);
+
+(async()=>{
+  try{U=await eu()}catch(e){return}
+  try{await legalGate(sb,U,'piloto')}catch(e){}
+  try{const {data}=await sb.from('profiles').select('nome').eq('id',U.id).maybeSingle();$('quem').textContent=((data&&data.nome)||U.email)+' · '+U.email}catch(e){$('quem').textContent=U.email}
+  try{const {data}=await sb.from('pilotos_perfil').select('*').eq('id',U.id).maybeSingle();PIL=data||null}catch(e){PIL=null}
+  $('cad').innerHTML=PIL?`<p>🩺 Piloto cadastrado${PIL.registro||PIL.crm?' · '+esc(PIL.registro||PIL.crm):''}</p>`:'<p>⚠️ Você ainda não tem cadastro de piloto. <a href="cadastro-piloto.html" style="color:var(--a);font-weight:800">Cadastrar agora</a>. Sem ele, só o estudo de laudos fica disponível.</p>';
+  listar()})();
+</script></body></html>
+
+
+
+
+
+
+
