@@ -1,63 +1,64 @@
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Elayon Vibes • Cockpit do Usuário (CRS v5)</title>
+<title>Elayon Vibes 8 • Cockpit</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="elayon-legal.js"></script>
 <style>
-body{margin:0;background:#04060b;color:#f8fafc;font-family:system-ui;padding:10px}
-.hud{display:flex;align-items:center;gap:10px;background:#070c16;border:1px solid #38bdf833;border-radius:14px;padding:10px 12px}
-.hud img{width:38px;height:38px;border-radius:50%;border:1.5px solid #38bdf8;object-fit:cover}
-.hud small{display:block;font:10px monospace;color:#94a3b8}.hud a{color:#7dd3fc;text-decoration:none;font-size:18px}
-.tk{margin-left:auto;text-align:right;font-size:10px;color:#94a3b8}.tk b{display:block;font-size:18px;color:#4ade80}
-#av{font-size:12px;color:#fbbf24;margin:8px 0}#av a{color:#7dd3fc}
-h2{text-align:center;font-size:16px;color:#7dd3fc;text-transform:uppercase;margin:8px 0}
-.st{display:inline-block;font:10px monospace;padding:2px 8px;border-radius:6px;background:#0b1d33;color:#7dd3fc}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+:root{--ink:#0a2a2f;--m:#4a6b70;--cy:#06b6d4;--bl:#1d4ed8;--gn:#059669;--l:#cdeaf0}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:system-ui,-apple-system,sans-serif;padding:10px;background:#fff radial-gradient(900px 420px at 0% -8%,#dff8fc 0,transparent 65%),radial-gradient(700px 380px at 100% 0,#e3fbef 0,transparent 60%) no-repeat}
+.hud{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--l);border-radius:16px;padding:10px 12px;box-shadow:0 8px 24px #06b6d41f}
+.hud img{width:38px;height:38px;border-radius:50%;border:2px solid var(--cy);object-fit:cover}
+.hud b{font-size:14px}.hud small{display:block;font:10px monospace;color:var(--m)}.hud a{color:#0891b2;text-decoration:none;font-size:18px}
+.tk{margin-left:auto;text-align:right;font-size:10px;color:var(--m)}.tk b{display:block;font-size:18px;color:var(--gn)}
+#av{font-size:12px;color:#b45309;margin:8px 0}#av a{color:#0891b2}
+h2{text-align:center;font-size:16px;color:#0e7490;text-transform:uppercase;letter-spacing:.8px;margin:10px 0 6px;background:linear-gradient(90deg,#06b6d4,#1d4ed8 55%,#059669);-webkit-background-clip:text;background-clip:text;color:transparent}
+.st{display:inline-block;font:10px monospace;padding:3px 10px;border-radius:20px;background:#e6fafd;color:#0e7490;border:1px solid #a5e8f2}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
 @media(max-width:480px){.grid{grid-template-columns:1fr}}
-.c{border:1px solid var(--c);border-radius:12px;padding:8px;background:#070c16}.w{grid-column:1/-1}
-.h{display:flex;gap:5px;align-items:baseline;font-size:11px;font-weight:800;text-transform:uppercase;color:var(--c)}
-.h small{font-weight:400;color:#94a3b8;font-size:9px}
-.h i{margin-left:auto;font:10px monospace;font-style:normal;background:#0008;padding:2px 5px;border-radius:5px;white-space:nowrap}
-canvas{width:100%;height:84px;display:block;margin-top:5px;background:#020408;border-radius:8px}.w canvas{height:105px}
-.box{margin-top:10px;border:1px solid #38bdf833;border-radius:14px;padding:10px;background:#070c16}
+.c{border:1px solid color-mix(in srgb,var(--c) 45%,#fff);border-radius:14px;padding:9px;background:#fff;box-shadow:0 6px 18px color-mix(in srgb,var(--c) 14%,transparent)}.w{grid-column:1/-1}
+.h{display:flex;gap:5px;align-items:baseline;font-size:11px;font-weight:800;text-transform:uppercase;color:color-mix(in srgb,var(--c) 68%,#0a2a2f)}
+.h small{font-weight:500;color:var(--m);font-size:9px;text-transform:none}
+.h i{margin-left:auto;font:10px monospace;font-style:normal;background:#ecfeff;border:1px solid #cdeaf0;color:var(--ink);padding:2px 6px;border-radius:6px;white-space:nowrap}
+canvas{width:100%;height:92px;display:block;margin-top:6px;background:linear-gradient(180deg,#fff,#f3fcfd);border:1px solid #dff1f5;border-radius:10px}.w canvas{height:110px}
+.box{margin-top:10px;border:1px solid var(--l);border-radius:16px;padding:12px;background:#fff;box-shadow:0 6px 18px #06b6d41a}
 .box audio{width:100%;height:34px}
 .slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
-.slot{border:1px solid #1e293b;border-radius:10px;padding:5px;font-size:10px;background:#050810}
-.slot.ok{border-color:#4ade8088}.slot.sel{box-shadow:0 0 0 1px #7dd3fc}
-.slot img{width:70%;display:block;border-radius:6px;margin:4px 0}.slot small{display:block;color:#94a3b8;font-size:10px}
+.slot{border:1px solid var(--l);border-radius:10px;padding:6px;font-size:10px;background:#f8fdfe}
+.slot.ok{border-color:#10b981aa}.slot.sel{box-shadow:0 0 0 2px #06b6d4}
+.slot img{width:100%;display:block;border-radius:6px;margin:4px 0}.slot small{display:block;color:var(--m);font-size:10px}
 button,.btn{font-family:inherit}
-.slot button{background:#0b1d33;color:#7dd3fc;border:1px solid #38bdf855;border-radius:7px;padding:4px 9px;font-size:12px;margin-right:4px}
-.chat{height:210px;overflow-y:auto;margin-top:10px;padding:10px;background:#070c16;border:1px solid #38bdf833;border-radius:14px;display:flex;flex-direction:column;gap:6px}
-.msg{padding:7px 10px;border-radius:10px;font-size:12px;line-height:1.4;max-width:88%}
-.msg.ia{background:#052e22;border:1px solid #10b98155;color:#a7f3d0;align-self:flex-start}
-.msg.user{background:#0c2a44;border:1px solid #38bdf855;color:#bae6fd;align-self:flex-end}
-.mic{width:100%;margin-top:10px;padding:16px;border-radius:14px;border:1px solid #ef444466;background:linear-gradient(135deg,#7f1d1d,#b91c1c);color:#fff;font-weight:800;font-size:14px}
-.mic:disabled{background:#1e293b;color:#94a3b8;border-color:#334155}
-.lay{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:8px 0 4px}.lay button{padding:11px 4px;border-radius:12px;border:1px solid #334155;background:#0b1220;color:#94a3b8;font-weight:800;font-size:11px}.lay button.on{border-color:#2dd4bf;color:#5eead4;background:#06201c}.lay button.pend{border-color:#fbbf24;color:#fde68a;background:#1c1405}.lay button.rdy{border-color:#38bdf8;color:#7dd3fc;background:#07182b}#lmsg{font-size:11px;color:#94a3b8;margin:4px 0 8px;line-height:1.4}.ref{background:none;border:1px dashed #475569;color:#94a3b8;border-radius:10px;padding:8px;font-size:11px;margin-top:10px;width:100%}
-.fim a{flex:1;text-align:center;text-decoration:none;padding:16px;border-radius:14px;background:linear-gradient(135deg,#0f766e,#14b8a6);color:#fff;font-weight:800;font-size:14px}
-.fim button{width:56px;border-radius:14px;border:1px solid #fbbf2488;background:#1c1405;color:#fbbf24;font-size:22px}
-.mon{background:#0b1d33;color:#7dd3fc;border:1px solid #38bdf855;border-radius:8px;padding:5px 10px;font-size:11px;margin-left:6px}
-.tabs2{display:flex;gap:6px;margin:8px 0;overflow-x:auto}.tabs2 button{flex:1;white-space:nowrap;padding:10px 12px;border-radius:12px;border:1px solid #334155;background:#0b1220;color:#94a3b8;font-weight:800;font-size:12px}.tabs2 button.on{border-color:#38bdf8;color:#7dd3fc;background:#07182b}
-.up{display:block;text-align:center;padding:16px;border-radius:12px;border:1px dashed #38bdf8;color:#7dd3fc;font-weight:800;margin:10px 0;cursor:pointer}
-.pn p{font-size:12px;line-height:1.5;color:#cbd5e1;margin:6px 0}.pn a{display:block;text-align:center;padding:12px;border-radius:12px;border:1px solid #334155;color:#7dd3fc;text-decoration:none;font-weight:800;font-size:12px;margin-top:8px}
-#hStat{font-size:12px;line-height:1.5;color:#a7f3d0;background:#052e22;border:1px solid #10b98155;border-radius:10px;padding:10px;margin-top:8px}
-#start{position:fixed;inset:0;z-index:99;background:#04060bf5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center}
-#start img{width:96px;height:96px;border-radius:22px;object-fit:contain;background:#fafaf8;border:2px solid #38bdf8}#start h1{font-size:20px;color:#7dd3fc;margin:0}#start p{font-size:12px;color:#94a3b8;max-width:320px;line-height:1.5;margin:0}
-.gb{display:flex;gap:6px;margin-top:8px}.gb button{flex:1;background:#0b1d33;color:#7dd3fc;border:1px solid #38bdf855;border-radius:8px;padding:6px;font-size:11px}
-.tg{cursor:pointer;margin-left:6px;padding:2px 5px;color:#94a3b8;font-size:13px}.c.foco{grid-column:1/-1}.c.foco canvas{height:182px}
-#diag{font:10px monospace;color:#94a3b8;white-space:pre-wrap;margin:6px 0 0}
-.fs{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid #334155;border-radius:12px;padding:8px 10px;margin-top:8px;background:#050810}.fs b{font-size:12px;color:#e2e8f0}.fs small{display:block;font-size:10px;color:#94a3b8;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fs button{background:#0b1d33;color:#7dd3fc;border:1px solid #38bdf855;border-radius:8px;padding:6px 10px;font-size:11px;margin-left:4px}
-#cst{font-size:11px;color:#fbbf24;margin-top:8px}
+.slot button{background:#e6fafd;color:#0e7490;border:1px solid #a5e8f2;border-radius:7px;padding:4px 9px;font-size:12px;margin-right:4px}
+.chat{height:220px;overflow-y:auto;margin-top:10px;padding:10px;background:#f7fdfe;border:1px solid var(--l);border-radius:14px;display:flex;flex-direction:column;gap:6px}
+.msg{padding:8px 11px;border-radius:12px;font-size:12px;line-height:1.45;max-width:88%}
+.msg.ia{background:#e8fbf3;border:1px solid #10b98155;color:#064e3b;align-self:flex-start}
+.msg.user{background:#e6f1ff;border:1px solid #3b82f655;color:#1e3a8a;align-self:flex-end}
+.mic{width:100%;margin-top:10px;padding:16px;border-radius:16px;border:0;background:linear-gradient(135deg,#06b6d4,#1d4ed8 60%,#059669);color:#fff;font-weight:800;font-size:14px;box-shadow:0 10px 24px #1d4ed833}
+.mic:disabled{background:#e2e8f0;color:#94a3b8;box-shadow:none}
+.lay{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:8px 0 4px}.lay button{padding:11px 4px;border-radius:12px;border:1px solid var(--l);background:#fff;color:var(--m);font-weight:800;font-size:11px}
+.lay button.on{border-color:#10b981;color:#047857;background:#e8fbf3}.lay button.pend{border-color:#f59e0b;color:#92400e;background:#fffbeb}.lay button.rdy{border-color:#06b6d4;color:#0e7490;background:#e6fafd}
+#lmsg{font-size:11px;color:var(--m);margin:4px 0 8px;line-height:1.4}
+.ref{background:none;border:1px dashed #94d3df;color:var(--m);border-radius:10px;padding:8px;font-size:11px;margin-top:10px;width:100%}
+.tabs2{display:flex;gap:6px;margin:8px 0;overflow-x:auto}.tabs2 button{flex:1;white-space:nowrap;padding:10px 12px;border-radius:12px;border:1px solid var(--l);background:#fff;color:var(--m);font-weight:800;font-size:12px}.tabs2 button.on{border-color:transparent;color:#fff;background:linear-gradient(135deg,#06b6d4,#1d4ed8)}
+.pn p{font-size:12px;line-height:1.5;color:#334e53;margin:6px 0}.pn a{display:block;text-align:center;padding:12px;border-radius:12px;border:1px solid var(--l);color:#0e7490;text-decoration:none;font-weight:800;font-size:12px;margin-top:8px;background:#f8fdfe}
+#hStat{font-size:12px;line-height:1.5;color:#064e3b;background:#e8fbf3;border:1px solid #10b98155;border-radius:10px;padding:10px;margin-top:8px}
+#start{position:fixed;inset:0;z-index:99;background:#fffffff5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center}
+#start img{width:96px;height:96px;border-radius:22px;object-fit:contain;background:#fff;border:2px solid var(--cy);box-shadow:0 10px 30px #06b6d433}#start h1{font-size:22px;margin:0;background:linear-gradient(90deg,#06b6d4,#1d4ed8,#059669);-webkit-background-clip:text;background-clip:text;color:transparent}#start p{font-size:12px;color:var(--m);max-width:320px;line-height:1.5;margin:0}
+.gb{display:flex;gap:6px;margin-top:8px}.gb button{flex:1;background:#e6fafd;color:#0e7490;border:1px solid #a5e8f2;border-radius:10px;padding:7px;font-size:11px}
+.tg{cursor:pointer;margin-left:6px;padding:2px 5px;color:var(--m);font-size:13px}.c.foco{grid-column:1/-1}.c.foco canvas{height:190px}
+#diag{font:10px monospace;color:var(--m);white-space:pre-wrap;margin:6px 0 0}
+.fs{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--l);border-radius:12px;padding:8px 10px;margin-top:8px;background:#f8fdfe}.fs b{font-size:12px}.fs small{display:block;font-size:10px;color:var(--m);max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fs button{background:#e6fafd;color:#0e7490;border:1px solid #a5e8f2;border-radius:8px;padding:6px 10px;font-size:11px;margin-left:4px}
+#cst{font-size:11px;color:#92400e;margin-top:8px}
 </style></head><body>
-<div id="start"><img src="IMG-20260218-WA0016.jpg" alt="Elayon" onerror="this.style.display='none'"><h1>Elayon Vibes 8</h1><p>Cockpit de calibração e acompanhamento vocal. A IA vai falar com você e os gráficos acompanham a voz dela. O microfone só liga quando você abrir.</p><button class="mic" id="bStart" style="max-width:320px" onclick="iniciar()" disabled>Carregando…</button></div>
+<div id="start"><img src="elayon-logo.png" alt="Elayon" onerror="if(!this.dataset.t){this.dataset.t=1;this.src='IMG-20260218-WA0016.jpg'}else this.style.display='none'"><h1>Elayon Vibes 8</h1><p>Cockpit de calibração e acompanhamento vocal. A IA vai falar com você e os gráficos acompanham a voz dela. O microfone só liga quando você abrir.</p><button class="mic" id="bStart" style="max-width:320px" onclick="iniciar()" disabled>Carregando…</button></div>
 <header class="hud"><img id="hudAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=ElayonUser" alt="">
 <div><b id="hudNome">Carregando…</b><small id="hudId">ID —</small></div>
 <div class="tk">TOKENS<b id="hudTokens">--</b></div><a href="perfil.html">⚙️</a></header>
 <div class="tabs2"><button id="bV" class="on" onclick="aba('V')">🎙️ Calibração</button><button id="bC" onclick="aba('C')">📥 Conteúdo</button><button id="bT" onclick="aba('T')">🗣️ Testes vocálicos</button><button id="bR" onclick="aba('R')">🏋️ Treino</button></div>
 <div id="av"></div>
 <input type="file" id="pdfIn" accept="application/pdf" hidden onchange="carregarPDF(this)">
-<div class="lay"><button id="bH" onclick="camHealth()">🏥 Elayon Health</button><button id="bP" onclick="camPsyq()">❄️ PsyQ</button><button id="bPC" onclick="camPC()">💻 Elayon PC</button></div><div id="lmsg"></div>
+<div class="lay"><button id="bH" onclick="camHealth()">🏥 Elayon Health</button><button id="bP" onclick="camPsyq()">❄️ PsyQ · em breve</button><button id="bPC" onclick="camPC()">💻 Elayon PC</button></div><div id="lmsg"></div>
 <div id="pV"><h2>Elayon Vibes 8 • Cockpit do Usuário</h2>
 <div style="text-align:center"><span class="st" id="modo">😴 REPOUSO</span></div>
 <div class="gb"><button onclick="todos(true)">▾ Recolher todos</button><button onclick="todos(false)">▸ Expandir todos</button></div>
@@ -65,20 +66,19 @@ button,.btn{font-family:inherit}
 <div class="chat" id="chat"></div>
 <button class="mic" id="crsMic" onclick="crsToggle()" disabled>🎙️ Carregando…</button>
 <div class="grid" id="grid2"></div>
-<div class="box"><b id="fifoT" style="font-size:11px;color:#7dd3fc;text-transform:uppercase">Buffer FIFO</b>
+<div class="box"><b id="fifoT" style="font-size:11px;color:#0e7490;text-transform:uppercase">Buffer FIFO</b>
 <audio id="crsAudio" controls></audio><div class="slots" id="slots"></div>
 <img id="esp" alt="espectroide" style="display:none;width:70%;margin:8px auto 0;border-radius:10px"></div>
 <button class="ref" onclick="refazer()">↻ Refazer calibração (teste)</button>
 <details class="ref" style="text-align:left"><summary>🔍 Diagnóstico técnico</summary><pre id="diag"></pre></details>
 <div style="height:55vh"></div></div>
-<div id="pC" class="box pn" style="display:none"><b style="color:#7dd3fc">📥 Conteúdo & camadas</b>
-<p>Cada PDF carregado soma <b>1 token</b> por áudio (além do 1 base da calibração). A IA consulta <b>todas</b> as fontes ao responder e cita o documento usado. Dá para trocar ou remover qualquer PDF.</p>
+<div id="pC" class="box pn" style="display:none"><b style="color:#0e7490">📥 Conteúdo & camadas</b>
+<p>Cada PDF carregado soma <b>1 token</b> por áudio (além do 1 base da calibração). A IA consulta <b>todas</b> as fontes ao responder e cita o documento usado. Dá para trocar ou remover qualquer PDF. O psicológico fica no PsyQ, ferramenta própria.</p>
 <div id="fontes"></div><div id="hStat">Nenhum laudo carregado.</div><div id="cst"></div>
-<a href="cadastro-piloto.html">👨‍⚕️ Sou médico: cadastro profissional de piloto</a><a href="piloto.html">🩺 Painel do piloto (gravar/carregar áudios e emitir laudo)</a></div>
-<div id="pT" class="box pn" style="display:none"><b style="color:#7dd3fc">🗣️ Testes vocálicos de comandos</b><p>Em breve: a IA dá um comando (vogal sustentada, contagem, frase), você responde e o Vibes 8 compara cada medida com as faixas definidas no laudo do seu médico, mostrando nos 12 gráficos o que ficou dentro e fora.</p><p>Pré-requisito: laudo carregado na aba Conteúdo.</p></div>
-<div id="pR" class="box pn" style="display:none"><b style="color:#7dd3fc">🏋️ Treino, orientação e autoconsulta simbólica</b><p>Carregue aqui o PDF de treino (tutorial da ferramenta, exercícios e orientações). Ele soma 1 token por áudio e a IA o consulta ao responder.</p><div id="fTreino"></div><p>Em breve: exercícios guiados pela IA, periódicos ou contínuos, conforme o modo e os exercícios definidos no laudo do médico, com cada autoexame entrando no gráfico XII.</p></div>
-
-<script>
+<div class="fs" style="display:block"><b>🏛️ Laudos certificados pela clínica</b><small style="max-width:none;white-space:normal">Quando a clínica valida o laudo do seu médico, ele aparece aqui e você ativa com um toque.</small><div id="lc" style="margin-top:6px"></div><button onclick="listarClinica()" style="margin:6px 0 0">↻ Atualizar</button></div>
+<a href="meu-espaco.html">🌱 Meu Espaço: exercícios e auto escuta</a><a href="perfil.html">🩺 Sou médico ou profissional de saúde (no perfil)</a></div>
+<div id="pT" class="box pn" style="display:none"><b style="color:#0e7490">🗣️ Testes vocálicos de comandos</b><p>Em breve: a IA dá um comando (vogal sustentada, contagem, frase), você responde e o Vibes 8 compara cada medida com as faixas definidas no laudo do seu médico, mostrando nos 12 gráficos o que ficou dentro e fora.</p><p>Pré-requisito: laudo carregado na aba Conteúdo.</p></div>
+<div id="pR" class="box pn" style="display:none"><b style="color:#0e7490">🏋️ Treino, orientação e autoconsulta simbólica</b><p>Carregue aqui o PDF de treino (tutorial da ferramenta, exercícios e orientações). Ele soma 1 token por áudio e a IA o consulta ao responder.</p><div id="fTreino"></div><p>Em breve: exercícios guiados pela IA, periódicos ou contínuos, conforme o modo e os exercícios definidos no laudo do médico, com cada autoexame entrando no gráfico XII.</p></div><script>
 const CFG={URL:'https://xlktkelumtpugidnecbj.supabase.co',
 KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM',
 MAX:3,IA_CAPTA_MIC:false,INDEX:'https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/',TRIAGEM:'https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/',LOGIN:'login.html',
@@ -90,11 +90,11 @@ const tout=(p,ms,v)=>Promise.race([Promise.resolve(p),new Promise(r=>setTimeout(
 function falha(m){try{const a=$('av');if(a)a.innerHTML='⚠️ '+m+' <a href="javascript:location.reload()">Recarregar</a>';const b=$('bStart');if(b&&b.disabled){b.disabled=false;b.textContent='▶ Iniciar assim mesmo';b.onclick=()=>{$('start').style.display='none'}}}catch(x){}}
 addEventListener('error',e=>falha('Erro: '+(e.message||'desconhecido')));addEventListener('unhandledrejection',e=>falha('Erro: '+((e.reason&&e.reason.message)||e.reason||'desconhecido')));
 const U={id:null,nome:'Operador',tokens:0,calibrado:false,ciclo:0,sessoes:[],sel:null,prov:'gemini',key:'',proto:'',hist:[],health:'nenhum',relatorio:'',psyq:false,params:null,email:'',src:{},falhas:0};
-const custo=()=>1+(U.health==='ok'?1:0)+Object.keys(U.src||{}).length;   // 1 base + 1 por PDF (Health, PsiQ, Treino, 3 conteúdos)
+const custo=()=>1+(U.health==='ok'?1:0)+Object.keys(U.src||{}).filter(k=>k!=='psyq').length;   // 1 base + 1 por PDF (Health, PsiQ, Treino, 3 conteúdos)
 const R={ctx:null,an:null,stream:null,buf:null,fb:null,sr:48000,fl:[],P:[],A:[],vz:[],rec:null,rep:null,repS:null,prev:.3};
 let rec=null,H=[],D={n:new Array(11).fill(0),sp:new Float32Array(64),f0:150,db:-60,jit:0,shim:0,hnr:10,cpp:5,cent:1000,G:0,Rr:0,B:0,As:0,S:0,flow:.2,cq:.5,floor:-70};
 
-const GR=[['I. Frequência / Tom','F0 & Jitter','#38bdf8'],['II. Intensidade','Rosca & Shimmer','#fb923c'],['III. Timbre','HNR & CPPS','#4ade80'],['IV. Prosódia / Pausas','CRS ritmo e silêncio','#fbbf24'],['V. Perceptivo-Auditivo','GRBAS acústico','#c084fc'],['VI. Aerodinâmica','fluxo (proxy)','#2dd4bf'],['VII. Contato Glótico','EGG (proxy)','#ec4899'],['VIII. Ambiente / Ruído','piso & SNR','#60a5fa'],['IX. Espectro (FFT)','escuta simbólica','#a3e635'],['X. Detecção de Silêncio','escuta simbólica','#f87171'],['XI. Dimensões CRS','8 linhas · escuta simbólica','#22d3ee'],['XII. Acompanhamento IA','1 linha por gráfico · sessão completa','#f8fafc']];
+const GR=[['I. Frequência / Tom','F0 & Jitter','#0891b2'],['II. Intensidade','Rosca & Shimmer','#0284c7'],['III. Timbre','HNR & CPPS','#059669'],['IV. Prosódia / Pausas','CRS ritmo e silêncio','#0e7490'],['V. Perceptivo-Auditivo','GRBAS acústico','#1d4ed8'],['VI. Aerodinâmica','fluxo (proxy)','#0d9488'],['VII. Contato Glótico','EGG (proxy)','#2563eb'],['VIII. Ambiente / Ruído','piso & SNR','#10b981'],['IX. Espectro (FFT)','escuta simbólica','#06b6d4'],['X. Detecção de Silêncio','escuta simbólica','#0369a1'],['XI. Dimensões CRS','8 linhas · escuta simbólica','#22d3ee'],['XII. Acompanhamento IA','1 linha por gráfico · sessão completa','#047857']];
 const cardG=(g,i)=>`<div class="c ${i>9?'w':''}" id="c${i}" style="--c:${g[2]}"><div class="h">${g[0]}<small>${g[1]}</small><i id="t${i}">--</i><span class="tg" id="k${i}" onclick="colapsar(${i})">▾</span><span class="tg" onclick="foco(${i})">⛶</span></div><canvas id="g${i}"></canvas></div>`;
 $('grid').innerHTML=GR.slice(0,10).map(cardG).join('');$('grid2').innerHTML=GR.slice(10).map((g,j)=>cardG(g,j+10)).join('');
 const rg=(v,a,b)=>Math.max(0,Math.min(1,(v-a)/(b-a)));
@@ -105,8 +105,9 @@ function escalas(o){ESC={};if(!o)return;const p=o.params||{},q=o.ref||{},mk=(lo,
 const cv=[...Array(12).keys()].map(i=>{const c=$('g'+i);return{c,x:c.getContext('2d'),W:0,h:0}});
 function fit(){const r=Math.min(devicePixelRatio||1,1.5);cv.forEach(o=>{o.W=o.c.clientWidth;o.h=o.c.clientHeight;o.c.width=o.W*r;o.c.height=o.h*r;o.x.setTransform(r,0,0,r,0,0)})}
 addEventListener('resize',fit);
-const fade=(x,W,h,a)=>{x.globalCompositeOperation='source-over';x.fillStyle=`rgba(2,4,8,${a})`;x.fillRect(0,0,W,h);x.globalCompositeOperation='lighter'};
+const fade=(x,W,h,a)=>{x.globalCompositeOperation='source-over';x.fillStyle=`rgba(255,255,255,${a})`;x.fillRect(0,0,W,h)};   // fundo branco; o rastro some em branco
 const dot=(x,px,py,r,c)=>{x.fillStyle=c;x.beginPath();x.arc(px,py,r,0,6.2832);x.fill()};
+
 
 /* ===== FIFO persistente ===== */
 const DB=new Promise((ok,no)=>{const r=indexedDB.open('crs_fifo',1);r.onupgradeneeded=()=>r.result.createObjectStore('s',{keyPath:'k'});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
@@ -155,9 +156,7 @@ async function refazer(){
   aviso('');renderFifo();layers();
   if(U.tokens<custo()){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
   micPronto();iaIntro()
-}
-
-/* ===== DSP fonoaudiológico (20 Hz) — estimativas acústicas de microfone ===== */
+}/* ===== DSP fonoaudiológico (20 Hz) — estimativas acústicas de microfone ===== */
 const med=a=>a.length?a.reduce((p,q)=>p+q,0)/a.length:0;
 function mk(o){
   R.vz.push(o.voz?1:0);if(R.vz.length>40)R.vz.shift();
@@ -212,47 +211,48 @@ setInterval(tick,50);
 
 /* ===== Gráficos ===== */
 const lv=(db,fl)=>rg(db-fl,4,32);const G=[];const serie=()=>rec?rec.tk:(U.sel!=null&&U.sessoes[U.sel]?U.sessoes[U.sel].tk:H);
-G[0]=(x,W,h,t)=>{fade(x,W,h,.26);const L=H.slice(-160),Y=k=>h-8-rgx(k.f0,'f0',70,400)*(h-16),g=x.createLinearGradient(0,0,W,0);g.addColorStop(0,'rgba(56,189,248,.12)');g.addColorStop(.7,'#38bdf8');g.addColorStop(1,'#e0f2fe');
-  x.strokeStyle='rgba(56,189,248,.22)';x.lineWidth=1;x.beginPath();for(let px=0;px<=W;px+=6){const y=h/2+Math.sin(px*.03+t*1.5)*(3+lv(D.db,D.floor)*8);px?x.lineTo(px,y):x.moveTo(px,y)}x.stroke();
-  for(const [lw,al] of [[7,.18],[2.4,1]]){x.globalAlpha=al;x.lineWidth=lw;x.strokeStyle=g;x.beginPath();let pen=false;L.forEach((k,i)=>{const px=i/159*W;if(k.voz){pen?x.lineTo(px,Y(k)):x.moveTo(px,Y(k));pen=true}else pen=false});x.stroke()}x.globalAlpha=1;
-  L.forEach((k,i)=>{if(k.voz)for(let q=0;q<3;q++)dot(x,i/159*W+Math.sin(i*7+q*2+t*9)*k.jit*3,Y(k)+Math.cos(i*5+q+t*8)*(2+k.jit*6),1.1,'rgba(165,243,252,.55)')});
-  const py=h-8-rgx(D.f0,'f0',70,400)*(h-16);for(let r=0;r<3;r++){x.strokeStyle=`rgba(125,211,252,${.6-r*.18})`;x.lineWidth=1;x.beginPath();x.arc(W-4,py,4+((t*30+r*8)%24),0,6.28);x.stroke()}};
-G[1]=(x,W,h,t)=>{fade(x,W,h,.3);const cx=W/2,cy=h/2,q=lv(D.db,D.floor),R0=h*.2+q*h*.2+Math.sin(t*1.3)*2,th=3+q*10,sh=D.shim*5+q*2,g=x.createRadialGradient(cx,cy,R0*.4,cx,cy,R0*1.7);g.addColorStop(0,'rgba(254,215,170,.95)');g.addColorStop(.5,'rgba(251,146,60,.9)');g.addColorStop(1,'rgba(244,63,94,.15)');
+const lgr=(x,x0,y0,x1,y1,c0,c1)=>{const g=x.createLinearGradient(x0,y0,x1,y1);g.addColorStop(0,c0);g.addColorStop(1,c1);return g};
+G[0]=(x,W,h,t)=>{fade(x,W,h,.26);const L=H.slice(-160),Y=k=>h-8-rgx(k.f0,'f0',70,400)*(h-16),g=lgr(x,0,0,W,0,'rgba(34,211,238,.3)','#1d4ed8');
+  x.strokeStyle='rgba(6,182,212,.25)';x.lineWidth=1;x.beginPath();for(let px=0;px<=W;px+=6){const y=h/2+Math.sin(px*.03+t*1.5)*(3+lv(D.db,D.floor)*8);px?x.lineTo(px,y):x.moveTo(px,y)}x.stroke();
+  for(const [lw,al] of [[8,.13],[2.4,1]]){x.globalAlpha=al;x.lineWidth=lw;x.strokeStyle=g;x.beginPath();let pen=false;L.forEach((k,i)=>{const px=i/159*W;if(k.voz){pen?x.lineTo(px,Y(k)):x.moveTo(px,Y(k));pen=true}else pen=false});x.stroke()}x.globalAlpha=1;
+  L.forEach((k,i)=>{if(k.voz)for(let q=0;q<3;q++)dot(x,i/159*W+Math.sin(i*7+q*2+t*9)*k.jit*3,Y(k)+Math.cos(i*5+q+t*8)*(2+k.jit*6),1.1,'rgba(14,116,144,.5)')});
+  const py=h-8-rgx(D.f0,'f0',70,400)*(h-16);for(let r=0;r<3;r++){x.strokeStyle=`rgba(29,78,216,${.6-r*.18})`;x.lineWidth=1;x.beginPath();x.arc(W-4,py,4+((t*30+r*8)%24),0,6.28);x.stroke()}};
+G[1]=(x,W,h,t)=>{fade(x,W,h,.3);const cx=W/2,cy=h/2,q=lv(D.db,D.floor),R0=h*.2+q*h*.2+Math.sin(t*1.3)*2,th=3+q*10,sh=D.shim*5+q*2,g=x.createRadialGradient(cx,cy,R0*.4,cx,cy,R0*1.7);g.addColorStop(0,'rgba(6,182,212,.95)');g.addColorStop(.55,'rgba(29,78,216,.85)');g.addColorStop(1,'rgba(5,150,105,.45)');
   for(let p=0;p<3;p++){x.strokeStyle=g;x.globalAlpha=.95-p*.28;x.lineWidth=Math.max(1,th-p*2.8);x.beginPath();for(let i=0;i<=120;i++){const a=i/120*6.2832,r=R0+Math.sin(a*6+t*3+p)*(1+sh)*(1+p*.4)+Math.sin(a*11-t*4)*sh,px=cx+Math.cos(a)*r*1.5,py=cy+Math.sin(a)*r;i?x.lineTo(px,py):x.moveTo(px,py)}x.closePath();x.stroke()}x.globalAlpha=1;
-  const rr=12+q*18,gg=x.createRadialGradient(cx,cy,1,cx,cy,rr);gg.addColorStop(0,'#fff7ed');gg.addColorStop(1,'rgba(251,146,60,0)');x.fillStyle=gg;x.beginPath();x.arc(cx,cy,rr,0,6.28);x.fill()};
-G[2]=(x,W,h,t)=>{fade(x,W,h,.35);const n=48,bw=W/n,q=rgx(D.hnr,'hnr',0,25),g=x.createLinearGradient(0,h,0,0);g.addColorStop(0,`hsla(${150-q*40},85%,38%,.95)`);g.addColorStop(.55,`hsla(${60-q*20},95%,55%,.95)`);g.addColorStop(1,'hsla(340,90%,62%,.95)');
+  const rr=12+q*18,gg=x.createRadialGradient(cx,cy,1,cx,cy,rr);gg.addColorStop(0,'rgba(34,211,238,.9)');gg.addColorStop(1,'rgba(34,211,238,0)');x.fillStyle=gg;x.beginPath();x.arc(cx,cy,rr,0,6.28);x.fill()};
+G[2]=(x,W,h,t)=>{fade(x,W,h,.35);const n=48,bw=W/n,q=rgx(D.hnr,'hnr',0,25),g=x.createLinearGradient(0,h,0,0);g.addColorStop(0,'#22d3ee');g.addColorStop(.6,q>.5?'#10b981':'#0284c7');g.addColorStop(1,q>.5?'#047857':'#1d4ed8');
   const V=i=>Math.pow(D.sp[Math.floor(i*64/n)]/255,.7);x.fillStyle=g;for(let i=0;i<n;i++){const b=Math.max(2,V(i)*(h-8)*(.9+.1*Math.sin(t*5+i)));x.fillRect(i*bw+1,h-b,bw-2,b)}
-  x.fillStyle='rgba(255,255,255,.5)';for(let i=0;i<n;i++)x.fillRect(i*bw+1,h-Math.max(2,V(i)*(h-8))-2,bw-2,2)};
-G[3]=(x,W,h,t)=>{fade(x,W,h,.4);const L=H.slice(-200),g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(251,191,36,.9)');g.addColorStop(.6,'rgba(249,115,22,.4)');g.addColorStop(1,'rgba(251,191,36,.02)');
-  L.forEach((k,i)=>{if(!k.voz){x.fillStyle='rgba(239,68,68,.14)';x.fillRect(i/199*W,0,W/199+1,h)}});
+  x.fillStyle='rgba(10,42,47,.5)';for(let i=0;i<n;i++)x.fillRect(i*bw+1,h-Math.max(2,V(i)*(h-8))-2,bw-2,2)};
+G[3]=(x,W,h,t)=>{fade(x,W,h,.4);const L=H.slice(-200),g=lgr(x,0,0,0,h,'rgba(6,182,212,.75)','rgba(5,150,105,.04)');
+  L.forEach((k,i)=>{if(!k.voz){x.fillStyle='rgba(100,116,139,.14)';x.fillRect(i/199*W,0,W/199+1,h)}});
   x.beginPath();L.forEach((k,i)=>{const px=i/199*W,py=h-6-lv(k.db,k.floor)*(h-16)*(.97+.03*Math.sin(t*6+i))-(Math.sin(t*1.4+i*.05)+1)*1.5;i?x.lineTo(px,py):x.moveTo(px,py)});
-  x.strokeStyle='#fde68a';x.lineWidth=1.6;x.stroke();x.lineTo(W,h);x.lineTo(0,h);x.fillStyle=g;x.fill()};
-G[4]=(x,W,h,t)=>{fade(x,W,h,.3);const cx=W/2,cy=h/2,L=['G','R','B','A','S'],v=[D.G,D.Rr,D.B,D.As,D.S],cl=['#fbbf24','#f87171','#38bdf8','#a78bfa','#4ade80'];
+  x.strokeStyle='#0e7490';x.lineWidth=1.8;x.stroke();x.lineTo(W,h);x.lineTo(0,h);x.fillStyle=g;x.fill()};
+G[4]=(x,W,h,t)=>{fade(x,W,h,.3);const cx=W/2,cy=h/2,L=['G','R','B','A','S'],v=[D.G,D.Rr,D.B,D.As,D.S],cl=['#06b6d4','#0284c7','#1d4ed8','#059669','#10b981'];
   v.forEach((s,i)=>{const a=i/5*6.2832-1.57+Math.sin(t*.5+i)*.08,rad=h*.1+Math.min(s,3)/3*h*.32,px=cx+Math.cos(a)*rad*1.5,py=cy+Math.sin(a)*rad;
-    x.strokeStyle=cl[i]+'55';x.lineWidth=1;x.beginPath();x.moveTo(cx,cy);x.lineTo(px,py);x.stroke();
-    for(let q=0;q<16;q++){const aa=q*1.7+t*(1+i*.2),rr=4+s*8+q;dot(x,px+Math.cos(aa)*rr,py+Math.sin(aa)*rr,1,cl[i])}
-    dot(x,px,py,4+s*2,cl[i]);x.fillStyle='#e2e8f0';x.font='10px system-ui';x.fillText(L[i]+s.toFixed(1),px+7,py-6)});dot(x,cx,cy,3,'#fff')};
+    x.strokeStyle=cl[i]+'66';x.lineWidth=1;x.beginPath();x.moveTo(cx,cy);x.lineTo(px,py);x.stroke();
+    for(let q=0;q<16;q++){const aa=q*1.7+t*(1+i*.2),rr=4+s*8+q;dot(x,px+Math.cos(aa)*rr,py+Math.sin(aa)*rr,1,cl[i]+'aa')}
+    dot(x,px,py,4+s*2,cl[i]);x.fillStyle='#0a2a2f';x.font='10px system-ui';x.fillText(L[i]+s.toFixed(1),px+7,py-6)});dot(x,cx,cy,3,'#0e7490')};
 G[5]=(x,W,h,t)=>{fade(x,W,h,.3);const A1=h*.12+D.flow*h*.28,A2=h*.1+D.cq*h*.25;
   for(let px=0;px<W;px+=3){const u=px/W,y1=h/2+Math.sin(px*.045+t*3)*A1*(.5+.5*Math.sin(u*3+t)),y2=h/2+Math.sin(px*.045+t*3+2.2)*A2;
-    x.fillStyle='rgba(45,212,191,.12)';x.fillRect(px,Math.min(y1,y2),2,Math.abs(y1-y2));dot(x,px,y1,1.6,'#2dd4bf');dot(x,px,y2,1.6,'#fbbf24')}};
+    x.fillStyle='rgba(6,182,212,.14)';x.fillRect(px,Math.min(y1,y2),2,Math.abs(y1-y2));dot(x,px,y1,1.6,'#0891b2');dot(x,px,y2,1.6,'#059669')}};
 G[6]=(x,W,h,t)=>{fade(x,W,h,.35);const L=H.slice(-120);let p0=h;x.beginPath();x.moveTo(0,h);
   L.forEach((k,i)=>{const px=i/119*W,py=h-6-(k.voz?k.cq:.05)*(h-14);x.lineTo(px,p0);x.lineTo(px,py);p0=py});
-  x.lineTo(W,p0);x.strokeStyle='#ec4899';x.lineWidth=2;x.stroke();x.lineTo(W,h);x.fillStyle='rgba(236,72,153,.15)';x.fill();x.fillStyle='rgba(255,255,255,.07)';x.fillRect((t*80)%W,0,3,h)};
-G[7]=(x,W,h,t)=>{fade(x,W,h,.4);const cx=W/2,cy=h*.8,r=h*.62,v=[rg(D.floor,-90,-30),rg(D.db-D.floor,0,50),D.n[3]],cl=['#60a5fa','#4ade80','#fbbf24'];
-  v.forEach((q,i)=>{const rr=r-i*12;x.lineWidth=7;x.strokeStyle='#1e293b';x.beginPath();x.arc(cx,cy,rr,Math.PI,6.2832);x.stroke();x.strokeStyle=cl[i];x.beginPath();x.arc(cx,cy,rr,Math.PI,Math.PI+q*Math.PI);x.stroke()});
-  const a=Math.PI+((t*.8)%1)*Math.PI;dot(x,cx+Math.cos(a)*r,cy+Math.sin(a)*r,3,'#fff')};
-G[8]=(x,W,h,t)=>{fade(x,W,h,.35);const n=64,bw=W/n,g=x.createLinearGradient(0,h,0,0);g.addColorStop(0,'#15803d');g.addColorStop(.5,'#a3e635');g.addColorStop(.8,'#facc15');g.addColorStop(1,'#fb7185');D.pk=D.pk||new Float32Array(n);x.fillStyle=g;
+  x.lineTo(W,p0);x.strokeStyle='#1d4ed8';x.lineWidth=2;x.stroke();x.lineTo(W,h);x.fillStyle='rgba(6,182,212,.16)';x.fill();x.fillStyle='rgba(6,182,212,.12)';x.fillRect((t*80)%W,0,3,h)};
+G[7]=(x,W,h,t)=>{fade(x,W,h,.4);const cx=W/2,cy=h*.8,r=h*.62,v=[rg(D.floor,-90,-30),rg(D.db-D.floor,0,50),D.n[3]],cl=['#06b6d4','#1d4ed8','#10b981'];
+  v.forEach((q,i)=>{const rr=r-i*12;x.lineWidth=7;x.strokeStyle='#e1f3f7';x.beginPath();x.arc(cx,cy,rr,Math.PI,6.2832);x.stroke();x.strokeStyle=cl[i];x.beginPath();x.arc(cx,cy,rr,Math.PI,Math.PI+q*Math.PI);x.stroke()});
+  const a=Math.PI+((t*.8)%1)*Math.PI;dot(x,cx+Math.cos(a)*r,cy+Math.sin(a)*r,3,'#0a2a2f')};
+G[8]=(x,W,h,t)=>{fade(x,W,h,.35);const n=64,bw=W/n,g=lgr(x,0,h,0,0,'#22d3ee','#047857');D.pk=D.pk||new Float32Array(n);x.fillStyle=g;
   for(let i=0;i<n;i++){const v=Math.pow(D.sp[i]/255,.7),b=Math.max(2,v*h*.85);D.pk[i]=Math.max(D.pk[i]-.006,v);x.fillRect(i*bw+1,h-b,bw-2,b)}
-  x.fillStyle='#fff';for(let i=0;i<n;i++)x.fillRect(i*bw+1,h-D.pk[i]*h*.85-2,bw-2,2)};
+  x.fillStyle='#1d4ed8';for(let i=0;i<n;i++)x.fillRect(i*bw+1,h-D.pk[i]*h*.85-2,bw-2,2)};
 G[9]=(x,W,h,t)=>{fade(x,W,h,.5);const L=H.slice(-200),bw=W/200;
-  L.forEach((k,i)=>{x.fillStyle=k.voz?'rgba(34,211,238,.25)':'rgba(248,113,113,.7)';x.fillRect(i*bw,k.voz?h*.35:0,bw+.5,k.voz?h*.3:h);if(i>5&&k.voz&&!L[i-1].voz)dot(x,i*bw,h/2,3,'#fff')});x.fillStyle='rgba(255,255,255,.2)';x.fillRect((t*60)%W,0,2,h)};
-G[10]=(x,W,h,t)=>{fade(x,W,h,.4);const ses=U.sel!=null&&!R.an&&!IA.on&&U.sessoes[U.sel],L=ses?ses.tk:H.slice(-160),N=Math.max(1,L.length-1);   // sessão carregada quando em repouso
+  L.forEach((k,i)=>{x.fillStyle=k.voz?'rgba(6,182,212,.38)':'rgba(100,116,139,.28)';x.fillRect(i*bw,k.voz?h*.35:0,bw+.5,k.voz?h*.3:h);if(i>5&&k.voz&&!L[i-1].voz)dot(x,i*bw,h/2,3,'#1d4ed8')});x.fillStyle='rgba(6,182,212,.25)';x.fillRect((t*60)%W,0,2,h)};
+G[10]=(x,W,h,t)=>{fade(x,W,h,.4);const ses=U.sel!=null&&!R.an&&!IA.on&&U.sessoes[U.sel],L=ses?ses.tk:H.slice(-160),N=Math.max(1,L.length-1);
   for(let m=0;m<8;m++){x.strokeStyle=GR[m][2];x.lineWidth=1.5;x.beginPath();L.forEach((k,i)=>{const px=i/N*W,py=h-6-k.n[m]*(h-12);i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke();if(L.length)dot(x,W-3,h-6-L[L.length-1].n[m]*(h-12),3,GR[m][2])}};
 G[11]=(x,W,h,t)=>{fade(x,W,h,1);const S=serie(),n=S.length;if(n<2)return;
-  for(let s=1;s<n/20;s++){x.fillStyle='rgba(255,255,255,.08)';x.fillRect(s*20/n*W,0,1,h)}
+  for(let s=1;s<n/20;s++){x.fillStyle='rgba(10,42,47,.07)';x.fillRect(s*20/n*W,0,1,h)}
   const st=Math.max(1,Math.floor(n/240));
   for(let m=0;m<11;m++){x.strokeStyle=GR[m][2];x.lineWidth=1.2;x.beginPath();for(let i=0;i<n;i+=st){const px=i/(n-1)*W,py=h-6-S[i].n[m]*(h-12);i?x.lineTo(px,py):x.moveTo(px,py)}x.stroke()}
-  if(R.rep){x.fillStyle='#fff';x.fillRect(Math.min(1,$('crsAudio').currentTime*20/n)*W,0,2,h)}};
+  if(R.rep){x.fillStyle='#0a2a2f';x.fillRect(Math.min(1,$('crsAudio').currentTime*20/n)*W,0,2,h)}};
 
 let last=0,tt=0,fr=0;
 function loop(ms){requestAnimationFrame(loop);if(ms-last<33)return;last=ms;tt+=.033;
@@ -264,9 +264,7 @@ function loop(ms){requestAnimationFrame(loop);if(ms-last<33)return;last=ms;tt+=.
   if(++fr%6==0){const L=H.slice(-200),pa=L.filter((k,i)=>i&&k.voz&&!L[i-1].voz).length,S=serie();
     const T=[`${c.voz?Math.round(D.f0):'--'} Hz | jit ${D.jit.toFixed(2)}%`,`${D.db.toFixed(1)} dBFS | shim ${D.shim.toFixed(2)}`,`HNR ${D.hnr.toFixed(1)} | CPP ${D.cpp.toFixed(1)}`,`${pa} retomadas | fon ${Math.round(c.pros*100)}%`,`G${D.G.toFixed(1)} R${D.Rr.toFixed(1)} B${D.B.toFixed(1)} A${D.As.toFixed(1)} S${D.S.toFixed(1)}`,`fluxo ~${D.flow.toFixed(2)}`,`CQ ~${D.cq.toFixed(2)}`,`${D.floor.toFixed(0)} dBFS | SNR ${(D.db-D.floor).toFixed(0)}`,`${Math.round(D.cent)} Hz cent.`,`${Math.round(c.sil*100)}% sil.`,`CRS ${D.n[10].toFixed(2)}`,`${(S.length/20).toFixed(1)}s | ${U.sessoes.length} sess.`];
     T.forEach((s,i)=>$('t'+i).textContent=s);
-    $('modo').textContent=R.rep?'REPRISE':rec?'● GRAVANDO':R.an?'🎙️ MIC ABERTO':IA.on?'🔊 IA FALANDO':'😴 REPOUSO'}}
-
-/* ===== Análise da sessão (deriva por segundo, integra por retomada) ===== */
+    $('modo').textContent=R.rep?'REPRISE':rec?'● GRAVANDO':R.an?'🎙️ MIC ABERTO':IA.on?'🔊 IA FALANDO':'😴 REPOUSO'}}/* ===== Análise da sessão (deriva por segundo, integra por retomada) ===== */
 function analisarSessao(tk){
   const dur=tk.length/20,V=tk.filter(k=>k.voz),r=(v,d=1)=>+(+v).toFixed(d);
   const est=a=>{if(!a.length)return null;const m=med(a);return{m:r(m,2),min:r(Math.min(...a),2),max:r(Math.max(...a),2),dp:r(Math.sqrt(med(a.map(q=>(q-m)**2))),2)}};
@@ -285,16 +283,16 @@ function analisarSessao(tk){
 }
 function espectroide(tk,sec,ret,dur){
   const W=900,Hh=540,c=document.createElement('canvas');c.width=W;c.height=Hh;const x=c.getContext('2d'),n=tk.length||1,w=W/n+.8;
-  x.fillStyle='#04060b';x.fillRect(0,0,W,Hh);
-  tk.forEach((k,i)=>{for(let j=0;j<64;j++){const v=k.sp[j]/255;x.fillStyle=`hsl(${280-v*260},90%,${6+v*58}%)`;x.fillRect(i/n*W,(63-j)*3.9,w,4.5)}});
-  x.strokeStyle='#fde047';x.lineWidth=2;x.beginPath();let pen=false;tk.forEach((k,i)=>{if(k.voz&&k.f0){const y=250-250*Math.log(k.f0/60)/Math.log(8000/60);pen?x.lineTo(i/n*W,y):x.moveTo(i/n*W,y);pen=true}else pen=false});x.stroke();
-  x.fillStyle='#020408';x.fillRect(0,256,W,140);
+  x.fillStyle='#fff';x.fillRect(0,0,W,Hh);
+  tk.forEach((k,i)=>{for(let j=0;j<64;j++){const v=k.sp[j]/255;if(v<.06)continue;x.fillStyle=`hsl(${215-v*95},85%,${95-v*55}%)`;x.fillRect(i/n*W,(63-j)*3.9,w,4.5)}});
+  x.strokeStyle='#0b3b66';x.lineWidth=2;x.beginPath();let pen=false;tk.forEach((k,i)=>{if(k.voz&&k.f0){const y=250-250*Math.log(k.f0/60)/Math.log(8000/60);pen?x.lineTo(i/n*W,y):x.moveTo(i/n*W,y);pen=true}else pen=false});x.stroke();
+  x.fillStyle='#f3fcfd';x.fillRect(0,256,W,140);
   for(let m=0;m<11;m++){x.strokeStyle=GR[m][2];x.lineWidth=1.3;x.beginPath();tk.forEach((k,i)=>{const y=392-k.n[m]*128;i?x.lineTo(i/n*W,y):x.moveTo(i/n*W,y)});x.stroke()}
-  tk.forEach((k,i)=>{x.fillStyle=k.voz?'#0e7490':'#b91c1c';x.fillRect(i/n*W,402,w,22)});
-  x.fillStyle='#020408';x.fillRect(0,430,W,100);const sw=W/Math.max(1,dur);
-  sec.forEach((s,i)=>{const d=i?s.db-sec[i-1].db:0,hh=Math.max(-30,Math.min(30,d*3));x.fillStyle=d>=0?'#22c55e':'#ef4444';x.fillRect(i*sw+2,470-Math.max(hh,0),sw-4,Math.abs(hh)||1);x.fillStyle='#94a3b8';x.font='11px monospace';x.fillText(i+'s',i*sw+3,525)});
-  x.setLineDash([5,4]);x.strokeStyle='#fff';x.lineWidth=1;ret.slice(1).forEach(s=>{const px=s.t/dur*W;x.beginPath();x.moveTo(px,0);x.lineTo(px,440);x.stroke();x.fillStyle='#fff';x.font='bold 11px sans-serif';x.fillText('↻∫'+s.area,px+3,12)});x.setLineDash([]);
-  x.fillStyle='#e2e8f0';x.font='11px sans-serif';x.fillText('Espectrograma 60Hz–8kHz + F0 (amarelo)',6,246);x.fillText('Dimensões I–XI (normalizadas)',6,272);x.fillText('Voz (azul) / Silêncio (vermelho)',6,420);x.fillText('Δ intensidade por segundo (verde sobe, vermelho cai) · ↻ = retomada sonora, ∫ = área da fala',6,448);
+  tk.forEach((k,i)=>{x.fillStyle=k.voz?'#0e7490':'#cbd5e1';x.fillRect(i/n*W,402,w,22)});
+  x.fillStyle='#f3fcfd';x.fillRect(0,430,W,100);const sw=W/Math.max(1,dur);
+  sec.forEach((s,i)=>{const d=i?s.db-sec[i-1].db:0,hh=Math.max(-30,Math.min(30,d*3));x.fillStyle=d>=0?'#059669':'#1d4ed8';x.fillRect(i*sw+2,470-Math.max(hh,0),sw-4,Math.abs(hh)||1);x.fillStyle='#4a6b70';x.font='11px monospace';x.fillText(i+'s',i*sw+3,525)});
+  x.setLineDash([5,4]);x.strokeStyle='#0b3b66';x.lineWidth=1;ret.slice(1).forEach(s=>{const px=s.t/dur*W;x.beginPath();x.moveTo(px,0);x.lineTo(px,440);x.stroke();x.fillStyle='#0b3b66';x.font='bold 11px sans-serif';x.fillText('↻∫'+s.area,px+3,12)});x.setLineDash([]);
+  x.fillStyle='#0a2a2f';x.font='11px sans-serif';x.fillText('Espectrograma 60Hz–8kHz + F0 (linha azul-marinho)',6,246);x.fillText('Dimensões I–XI (normalizadas)',6,272);x.fillText('Voz (ciano) / Silêncio (cinza)',6,420);x.fillText('Δ intensidade por segundo (verde sobe, azul cai) · ↻ = retomada sonora, ∫ = área da fala',6,448);
   return c.toDataURL('image/jpeg',.82)
 }
 
@@ -383,85 +381,7 @@ async function processar(blob){
     await iaFalar(txt,res,img,fim);
     if(U.tokens<custo()){aviso('Saldo insuficiente de tokens.');setMic('Saldo insuficiente',true)}else micPronto()
   }catch(e){aviso('❌ Erro ao processar a sessão: '+(e&&e.message||e));if(bub)bub.textContent='(erro ao processar)';micPronto()}
-}
-
-/* ===== Áudio / gravação / transcrição pela API do usuário ===== */
-async function crsAudio(){
-  if(R.stream)return;
-  R.ctx=new (window.AudioContext||window.webkitAudioContext)();await R.ctx.resume();
-  R.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-  R.an=R.ctx.createAnalyser();R.an.fftSize=2048;R.an.smoothingTimeConstant=.3;R.sr=R.ctx.sampleRate;
-  R.ctx.createMediaStreamSource(R.stream).connect(R.an);R.buf=new Float32Array(2048);R.fb=new Float32Array(1024);H=[]
-}
-function fecharCaptacao(){try{R.stream&&R.stream.getTracks().forEach(t=>t.stop())}catch(e){}try{R.ctx&&R.ctx.close()}catch(e){}R.stream=null;R.ctx=null;R.an=null;R.fl=[];R.P=[];R.A=[];H=[]}   // captação desligada = gráficos em repouso
-let mr=null,chunks=[],t0=0,lim=0,live=null;
-async function crsToggle(){
-  if(!U.id)return;
-  if(!rec){
-    if(U.tokens<custo()){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
-    try{await crsAudio()}catch(e){return alert(e&&e.name==='NotReadableError'?'O microfone está em uso por outro app ou aba. Feche-os e tente de novo.':'Microfone indisponível')}
-    try{speechSynthesis.cancel()}catch(e){}IA.on=false;
-    rec={tk:[]};chunks=[];mr=new MediaRecorder(R.stream);mr.ondataavailable=e=>chunks.push(e.data);
-    mr.onstop=()=>{fecharCaptacao();processar(new Blob(chunks,{type:mr.mimeType||'audio/webm'}))};mr.start();t0=Date.now();iniciarSR();
-    live=chatAdd('user','🎙️ gravando…');setMic(U.calibrado?'⏹️ Parar & Enviar':`⏹️ Parar & Processar Calibração ${U.ciclo+1}`,false);
-    lim=setTimeout(()=>rec&&crsToggle(),30000)
-  }else{clearTimeout(lim);setMic('⏳ Processando...',true);srOn=false;mr.stop()}
-}
-const b64=u=>{let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)};
-async function wav(blob){
-  const ab=await blob.arrayBuffer(),AC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
-  const buf=await new AC(1,1,16000).decodeAudioData(ab),oc=new AC(1,Math.ceil(buf.duration*16000),16000),s=oc.createBufferSource();s.buffer=buf;s.connect(oc.destination);s.start();
-  const o=(await oc.startRendering()).getChannelData(0),v=new DataView(new ArrayBuffer(44+o.length*2)),w=(p,t)=>[...t].forEach((c,i)=>v.setUint8(p+i,c.charCodeAt(0)));
-  w(0,'RIFF');v.setUint32(4,36+o.length*2,true);w(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,16000,true);v.setUint32(28,32000,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,o.length*2,true);
-  for(let i=0;i<o.length;i++)v.setInt16(44+i*2,Math.max(-1,Math.min(1,o[i]))*32767,true);return new Uint8Array(v.buffer)
-}
-async function pcm16(blob){const ab=await blob.arrayBuffer(),AC=window.OfflineAudioContext||window.webkitOfflineAudioContext,buf=await new AC(1,1,16000).decodeAudioData(ab),oc=new AC(1,Math.ceil(buf.duration*16000),16000),s=oc.createBufferSource();s.buffer=buf;s.connect(oc.destination);s.start();return (await oc.startRendering()).getChannelData(0)}
-let WH=null;
-async function whisperLocal(blob){
-  const pcm=await pcm16(blob);
-  if(!WH){const nb=chatAdd('ia','⬇️ Baixando o modelo de voz interno (só na 1ª vez)…');const m=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2');WH=await m.pipeline('automatic-speech-recognition','Xenova/whisper-tiny');nb.remove()}
-  return ((await WH(pcm,{language:'portuguese',task:'transcribe',chunk_length_s:30,no_repeat_ngram_size:3,repetition_penalty:1.3})).text||'').trim()
-}
-async function transcrever(blob){
-  let t='';
-  if(U.key){try{const w=await wav(blob);
-    if(U.prov==='groq'){const f=new FormData();f.append('file',new Blob([w],{type:'audio/wav'}),'a.wav');f.append('model','whisper-large-v3-turbo');f.append('language','pt');
-      t=(await (await fetch('https://api.groq.com/openai/v1/audio/transcriptions',{method:'POST',headers:{Authorization:'Bearer '+U.key},body:f})).json()).text||''}
-    else if(U.prov==='openai'){const f=new FormData();f.append('file',new Blob([w],{type:'audio/wav'}),'a.wav');f.append('model','whisper-1');f.append('file',new Blob([w],{type:'audio/wav'}),'a.wav');f.append('model','whisper-1');f.append('language','pt');
-      t=(await (await fetch('https://api.openai.com/v1/audio/transcriptions',{method:'POST',headers:{Authorization:'Bearer '+U.key},body:f})).json()).text||''}
-    else if(U.prov==='gemini'||!U.prov){const j=await (await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CFG.GEMINI}:generateContent?key=${U.key}`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({contents:[{parts:[{text:'Transcreva fielmente a fala em português do Brasil. Responda somente com a transcrição. Se não houver fala, responda exatamente: (silêncio)'},{inline_data:{mime_type:'audio/wav',data:b64(w)}}]}]})})).json();
-      t=j.candidates[0].content.parts[0].text}
-    t=t.trim();if(t==='(silêncio)')return ''}catch(e){t=''}}
-  if(!t){try{t=await whisperLocal(blob)}catch(e){t=''}}
-  return t
-}
-async function processar(blob){
-  const rt=rec;rec=null;const bub=live;bub.textContent='⏳ transcrevendo…';
-  try{
-    const an=analisarSessao(rt.tk),res=an.res,semVoz=rt.tk.length>10&&res.fon<.05;          // análise primeiro (silenciosa)
-    let txt=semVoz?'':await resolverTexto(blob,bub);                                        // evita "Obrigado." alucinado em áudio mudo
-    if(semVoz){bub.textContent='(não captei sua voz)';aviso('Não captei sua voz. Chegue mais perto do microfone e tente de novo — nenhum token foi cobrado.');return micPronto()}
-    if(!txt&&!semVoz){U.falhas=(U.falhas||0)+1;if(U.falhas<2){bub.textContent='(não entendi)';const m='Não consegui entender o que você disse. Pode repetir, um pouco mais devagar?';chatAdd('ia',m);falar(m);aviso('Nenhum token foi cobrado.');return micPronto()}}
-    U.falhas=0;bub.textContent=txt||'(sem transcrição — sessão aceita sem texto)';
-    setMic('📊 Calculando CRS...',true);
-    const img=espectroide(rt.tk,an.sec,an.ret,Math.max(1,res.dur));
-    try{await debitar()}catch(e){bub.remove();if(e.message==='sem_saldo'){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}aviso('Falha ao debitar o token. Tente de novo.');return micPronto()}
-    const s={k:U.id+':'+Date.now(),uid:U.id,ts:Date.now(),blob,txt,dur:res.dur,tk:rt.tk,res,img};
-    try{const ab=await blob.arrayBuffer();await tx('readwrite',st=>st.put(Object.assign({},s,{blob:null,ab,tipo:blob.type})))}   // ArrayBuffer: Safari/WebViews falham com Blob no IndexedDB
-    catch(e){aviso('⚠️ Este navegador não guardou o áudio; a sessão segue só na memória.')}
-    U.sessoes.unshift(s);                                                                    // entra na 1ª caixa, as outras migram
-    while(U.sessoes.length>3){const o=U.sessoes.pop();try{await tx('readwrite',st=>st.delete(o.k))}catch(e){}}   // FIFO: sai a mais antiga
-    const antes=U.calibrado;if(U.ciclo<CFG.MAX)U.ciclo++;U.sel=0;renderFifo();$('esp').src=img;$('esp').style.display='block';
-    sb.from('calibracoes_crs').insert([{user_id:U.id,operador_nome:U.nome,etapa:U.ciclo,transcricao_usuario:txt,audio_url:'idb:'+s.k,tokens_consumidos:custo()}]).then(()=>{},()=>{});
-    document.dispatchEvent(new CustomEvent('crs:sessao',{detail:{res,txt}}));
-    const fim=!antes&&U.ciclo>=CFG.MAX;if(fim)await travar();
-    await iaFalar(txt,res,img,fim);
-    if(U.tokens<custo()){aviso('Saldo insuficiente de tokens.');setMic('Saldo insuficiente',true)}else micPronto()
-  }catch(e){aviso('❌ Erro ao processar a sessão: '+(e&&e.message||e));if(bub)bub.textContent='(erro ao processar)';micPronto()}
-}
-
-/* ===== Chat com a IA do usuário ===== */
+}/* ===== Chat com a IA do usuário ===== */
 const SYS='Você é o Elayon Core, guia de calibração e acompanhamento vocal do Elayon Space, apoiando um profissional de saúde. Fale em português do Brasil, tom calmo e acolhedor, no máximo 4 frases curtas, sem listas nem emojis. NUNCA dê diagnóstico: descreva achados em linguagem simples, compare com as sessões anteriores, sugira exercícios leves ou autoexame e indique que os valores são estimativas acústicas de microfone de celular, cabendo a avaliação ao profissional. REGRAS DE SEGURANÇA: nunca diga que o usuário "melhorou" ou "piorou" como juízo clínico, diga que a medida "mudou em relação à referência"; não prometa cuidado, tratamento nem resultado; lembre, quando fizer sentido, que quem interpreta é o médico. Se o usuário relatar fala que piorou de repente, fraqueza num lado do corpo, boca torta, confusão, dor de cabeça forte e súbita, ou pensamentos de se machucar, a PRIMEIRA coisa a dizer é para ligar para o SAMU (192) ou procurar emergência agora (em sofrimento emocional, CVV 188), antes de qualquer análise. Os blocos [SISTEMA] e os dados CRS são internos: interprete, não recite números crus. Quando houver imagem, é o espectroide da sessão (espectrograma com F0, linhas das dimensões I a XI, faixa voz/silêncio e variação por segundo; linhas tracejadas marcam retomadas sonoras). No encerramento, agradeça e despeça-se.';
 function chatAdd(cls,txt){const d=document.createElement('div');d.className='msg '+cls;d.textContent=txt;$('chat').appendChild(d);$('chat').scrollTop=1e9;return d}
 function escolheVoz(){const V=speechSynthesis.getVoices().filter(v=>/^pt[-_]BR/i.test(v.lang));if(!V.length)return null;
@@ -516,7 +436,7 @@ function layers(){setTimeout(layersExtra,0);
   $('lmsg').textContent=!U.calibrado?`Conclua a calibração (${U.ciclo}/${CFG.MAX}) para liberar a camada Health.`:h==='ok'?'Camada Health ativa • o laudo médico acompanha cada resposta da IA.':'Calibrado ✔ Toque em Health e carregue o PDF do laudo do seu médico na aba Conteúdo.';
   if(U.id&&!rec&&!$('crsMic').disabled)micPronto()
 }
-function aba(x){['V','C','T','R'].forEach(k=>{$('p'+k).style.display=k===x?'block':'none';$('b'+k).className=k===x?'on':''});if(x==='C'||x==='R')hStat()}
+function aba(x){['V','C','T','R'].forEach(k=>{$('p'+k).style.display=k===x?'block':'none';$('b'+k).className=k===x?'on':''});if(x==='C'||x==='R')hStat();if(x==='C')listarClinica()}
 function prontoStart(){const b=$('bStart');b.disabled=false;b.textContent='▶ Iniciar Elayon Vibes 8';b.onclick=iniciar}
 function iniciar(){$('start').style.display='none';iaIntro()}          // o toque libera o áudio: a IA fala ao iniciar
 async function camHealth(){
@@ -530,20 +450,30 @@ function hStat(){fontesUI();const L=lerLocal(),e=$('hStat');e.textContent=L?`✅
 function msgC(t){$('hStat').textContent=t}
 async function carregarPDF(inp){
   const f=inp.files[0],slot=inp.dataset.slot||'c1';inp.value='';if(!f)return;if(!U.id)return msgC('Entre na sua conta primeiro.');
-  const b=new Uint8Array(await f.arrayBuffer());let s='';for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode.apply(null,b.subarray(i,i+8192));
+  return processaPDF(new Uint8Array(await f.arrayBuffer()),f.name,slot)
+}
+async function processaPDF(b,nome,slot){
+  let s='';for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode.apply(null,b.subarray(i,i+8192));
   const m=s.match(/ELAYONHEALTH\[([A-Za-z0-9+\/=]+)\]/);
   if(slot!=='health'){
     if(m)return msgC('❌ Este é um laudo Elayon Health: carregue-o no cartão 🏥 Laudo Health.');
     msgC('⏳ lendo o PDF…');const t=await textoPDF(b);if(t==null)return;
-    U.src[slot]={nome:f.name,txt:t.slice(0,8000),ts:Date.now()};salvarSrc();return msgC(`✅ ${SLOTS[slot][0]}: "${f.name}" carregado (+1 token por áudio).`)}
+    U.src[slot]={nome,txt:t.slice(0,8000),ts:Date.now()};salvarSrc();return msgC(`✅ ${SLOTS[slot][0]}: "${nome}" carregado (+1 token por áudio).`)}
   if(!m)return msgC('❌ Este PDF não é um laudo Elayon Health.');
   let o;try{o=JSON.parse(decodeURIComponent(escape(atob(m[1]))))}catch(e){return msgC('❌ Não consegui ler o laudo.')}
   const {hash,...corpo}=o;if(hash!==await sha(JSON.stringify(corpo)))return msgC('❌ Laudo alterado: a assinatura de integridade não confere.');
+  if(o.treino)return msgC('❌ Este é um PDF de treinamento do médico: não tem validade clínica e não ativa a camada Health.');
   if(o.paciente.email&&U.email&&o.paciente.email.toLowerCase()!==U.email.toLowerCase())return msgC('❌ Este laudo foi emitido para outro paciente.');
   localStorage.setItem('crs_health_'+U.id,JSON.stringify(o));U.health='ok';U.relatorio=textoLaudo(o);U.params=o.params;U.ref=o.ref||null;escalas(o);
   try{await sb.from('profiles').update({health_status:'ok',health_relatorio:U.relatorio}).eq('id',U.id)}catch(e){}
   layers();hStat();aba('V');const t=`Camada Health ativada com o laudo de ${o.piloto.nome}. Vou considerar o relatório antes de cada resposta.`;chatAdd('ia',t);falar(t)
 }
+/* laudos certificados pela clínica (RPC meus_laudos_certificados; PDF no bucket privado "laudos") */
+async function listarClinica(){const e=$('lc');if(!e||!sb)return;e.textContent='⏳';
+  try{const {data,error}=await sb.rpc('meus_laudos_certificados');if(error)throw error;const L=data||[];
+    e.innerHTML=L.length?L.map(l=>`<div class="fs"><div><b>${esc(l.medico_nome||'Médico')}</b><small>${esc(l.clinica_nome||'Clínica')} • ${String(l.criado||'').slice(0,10)}</small></div><div><button onclick="ativarClinica('${esc(l.pdf_path)}')">Ativar</button></div></div>`).join(''):'<small style="max-width:none">Nenhum laudo certificado ainda.</small>'}
+  catch(x){e.innerHTML='<small style="max-width:none">Ainda não disponível (a clínica precisa estar configurada).</small>'}}
+async function ativarClinica(p){msgC('⏳ baixando o laudo certificado…');try{const {data,error}=await sb.storage.from('laudos').download(p);if(error||!data)throw error||new Error('vazio');await processaPDF(new Uint8Array(await data.arrayBuffer()),p.split('/').pop(),'health')}catch(e){msgC('❌ Não consegui baixar o laudo: '+(e&&e.message||e))}}
 async function removerLaudo(){localStorage.removeItem('crs_health_'+U.id);U.health='nenhum';U.relatorio='';U.params=null;try{await sb.from('profiles').update({health_status:'nenhum',health_relatorio:null}).eq('id',U.id)}catch(e){}layers();hStat()}
 function confere(r){const p=U.params,o=[];if(!p)return '';
   if(r.f0)o.push(`F0 ${r.f0.m} Hz ${r.f0.m>=p.f0min&&r.f0.m<=p.f0max?'dentro':'fora'} da faixa ${p.f0min}-${p.f0max}`);
@@ -553,14 +483,14 @@ function confere(r){const p=U.params,o=[];if(!p)return '';
   o.push(`pausas ${r.pausas} ${r.pausas<=p.pausasmax?'dentro':'acima'} do limite ${p.pausasmax}`);
   const q=U.ref,pos=(v,e)=>e&&e.hi>e.lo?Math.round((v-e.lo)/(e.hi-e.lo)*100)+'% do intervalo de referência (0% = mínimo, 100% = máximo)':'';
   if(q){if(r.f0&&q.f0)o.push(`F0 na posição ${pos(r.f0.m,q.f0)}${q.f0.med!=null?', mediana de referência '+q.f0.med+' Hz':''}`);if(r.hnr&&q.hnr)o.push(`HNR na posição ${pos(r.hnr.m,q.hnr)}${q.hnr.med!=null?', mediana de referência '+q.hnr.med+' dB':''}`)}return ' Conferência com as faixas definidas pelo médico: '+o.join('; ')+'.'}
-function camPsyq(){aba('C');msgC('Carregue o PDF do PsiQ no cartão 🧠 PsiQ.')}
+function camPsyq(){location.href='psyq.html'}
 function camPC(){$('lmsg').textContent='💻 Elayon PC — em breve.'}
 setInterval(()=>{if(U.id&&U.health!=='ok')lerHealth().then(layers)},20000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&U.id)lerHealth().then(layers)});
 
 /* ===== Fontes em PDF: Health, PsiQ, Treino e 3 de conteúdo • cada PDF = +1 token por áudio ===== */
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const SLOTS={psyq:['🧠 PsiQ','relatório / orientação psicológica'],treino:['🏋️ Treino','tutorial da ferramenta e exercícios'],c1:['📚 Conteúdo 1','exercícios, procedimentos, autoavaliação…'],c2:['📚 Conteúdo 2','livre'],c3:['📚 Conteúdo 3','livre']};
+const SLOTS={treino:['🏋️ Treino','tutorial da ferramenta e exercícios'],c1:['📚 Conteúdo 1','exercícios, procedimentos, autoavaliação…'],c2:['📚 Conteúdo 2','livre'],c3:['📚 Conteúdo 3','livre']};
 const lerSrc=()=>{try{return JSON.parse(localStorage.getItem('crs_src_'+U.id))||{}}catch(e){return{}}};
 function salvarSrc(){try{localStorage.setItem('crs_src_'+U.id,JSON.stringify(U.src))}catch(e){msgC('⚠️ Sem espaço para guardar este PDF.')}layers();fontesUI()}
 function pick(k){$('pdfIn').dataset.slot=k;$('pdfIn').click()}
@@ -568,17 +498,17 @@ function rm(k){if(k==='health')return removerLaudo();delete U.src[k];salvarSrc()
 function fontesUI(){
   const card=(k,t,d,x)=>`<div class="fs"><div><b>${t}</b><small>${x?esc(x):d}</small></div><div><button onclick="pick('${k}')">${x?'Trocar':'Carregar'}</button>${x?`<button onclick="rm('${k}')">✕</button>`:''}</div></div>`;
   const L=lerLocal(),S=U.src||{};
-  $('fontes').innerHTML=card('health','🏥 Laudo Health','PDF assinado pelo médico',L?`${L.obj.piloto.nome} • ${String(L.obj.emitido).slice(0,10)}`:'')+['psyq','c1','c2','c3'].map(k=>card(k,SLOTS[k][0],SLOTS[k][1],S[k]&&S[k].nome)).join('');
+  $('fontes').innerHTML=card('health','🏥 Laudo Health','PDF assinado pelo médico',L?`${L.obj.piloto.nome} • ${String(L.obj.emitido).slice(0,10)}`:'')+['c1','c2','c3'].map(k=>card(k,SLOTS[k][0],SLOTS[k][1],S[k]&&S[k].nome)).join('');
   $('fTreino').innerHTML=card('treino',SLOTS.treino[0],SLOTS.treino[1],S.treino&&S.treino.nome)
 }
 function layersExtra(){
-  const S=U.src||{},n=Object.keys(S).length,h=U.health==='ok'?1:0,b=$('bP');
-  b.className=S.psyq?'on':U.calibrado?'rdy':'';b.textContent=S.psyq?'✅ PsiQ ativo':'🧠 PsiQ';
+  const S=U.src||{},n=Object.keys(S).filter(k=>k!=='psyq').length,h=U.health==='ok'?1:0,b=$('bP');
+  b.className='';b.textContent='❄️ PsyQ · em breve';
   const t=`Custo por áudio: ${custo()} token${custo()>1?'s':''} (1 calibração${h?' + 1 Health':''}${n?` + ${n} PDF${n>1?'s':''}`:''}).`;
   $('cst').textContent=t;$('lmsg').textContent+=' • '+t
 }
 function fontesSys(){
-  const o=U.src||{},n={psyq:'PsiQ (orientação psicológica)',treino:'Treino / tutorial da ferramenta',c1:'Conteúdo 1',c2:'Conteúdo 2',c3:'Conteúdo 3'},a=Object.keys(o).map(k=>`[${n[k]} — arquivo "${o[k].nome}"]: ${o[k].txt}`);
+  const o=Object.fromEntries(Object.entries(U.src||{}).filter(([k])=>k!=='psyq')),n={treino:'Treino / tutorial da ferramenta',c1:'Conteúdo 1',c2:'Conteúdo 2',c3:'Conteúdo 3'},a=Object.keys(o).map(k=>`[${n[k]} — arquivo "${o[k].nome}"]: ${o[k].txt}`);
   return a.length?' FONTES DE CONTEÚDO inseridas pelo usuário (consulte todas antes de responder e cite o documento usado; se a resposta não estiver nas fontes, diga isso e responda com cautela): '+a.join(' || '):''
 }
 async function textoPDF(b){
