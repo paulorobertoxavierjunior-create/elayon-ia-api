@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pilotos Oficiais • Elayon Health</title>
-<style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>
   :root{--bg1:#f4f9f4;--bg2:#eaf4f6;--card:#fff;--ink:#0a2a2f;--muted:#4a6b70;--line:#d8e8eb;--accent:#2a9d8f;--accent2:#3ecfcf;--wa:#1fa855}
   *{box-sizing:border-box;margin:0;padding:0}
   body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;font-family:system-ui,-apple-system,sans-serif;background:radial-gradient(circle at top left,var(--bg1),var(--bg2));color:var(--ink)}
@@ -17,7 +17,7 @@
   .wa{display:block;margin-top:14px;padding:14px;border-radius:14px;background:var(--wa);color:#fff;font-weight:800;font-size:15px;text-decoration:none}
   .num{font-size:12px;color:var(--muted);margin-top:8px}
   .back{display:inline-block;margin-top:22px;font-size:12px;font-weight:700;color:var(--accent);text-decoration:none}
-  .nota{font-size:11px;margin-top:18px;line-height:1.5;color:var(--muted)}
+  .cred{margin-top:18px;border:1px solid var(--line);border-radius:16px;padding:14px;text-align:left;background:linear-gradient(180deg,#fff,#f1fcfe)}.cred b{font-size:13px}.cred input{width:100%;margin-top:8px;padding:12px;border:1px solid var(--line);border-radius:10px;font:inherit;text-transform:uppercase;letter-spacing:.5px}.cred button{width:100%;margin-top:8px;padding:12px;border:0;border-radius:12px;font-weight:800;color:#fff;background:linear-gradient(135deg,#06b6d4,#1d4ed8);cursor:pointer}#cm{font-size:12px;margin-top:8px;line-height:1.5}.nota{font-size:11px;margin-top:18px;line-height:1.5;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -29,9 +29,23 @@
   <div class="porta">Contate o Porta-Voz<b>Paulo Roberto Xavier Júnior</b></div>
   <a class="wa" id="wa" href="https://wa.me/5592984805386" target="_blank" rel="noopener">Falar pelo WhatsApp</a>
   <div class="num">WhatsApp: 92 8480-5386</div>
+  <div class="cred"><b>🔑 Já recebi minha credencial</b><p style="margin:4px 0 0;font-size:12px">A credencial é exclusiva e entregue pelo Porta-Voz depois da qualificação. Entre na sua conta e digite o código.</p>
+  <input id="cc" placeholder="ESH-V8-XXXXXXXX" autocomplete="off"><button id="bc">Ativar credencial</button><div id="cm"></div></div>
   <a class="back" href="espaco-piloto.html" style="display:block;margin-top:18px">Já sou piloto cadastrado: entrar no Espaço do Piloto</a>
   <a class="back" href="perfil.html" style="margin-top:12px">⬅ Voltar ao perfil</a>
   <p class="nota">O Elayon Health é uma ferramenta de apoio à escuta e ao acompanhamento. Não faz diagnóstico nem substitui avaliação profissional.</p>
 </main>
+<script>
+const sb=window.supabase?supabase.createClient('https://xlktkelumtpugidnecbj.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM'):null;
+const cm=(h,e)=>{const m=document.getElementById('cm');m.innerHTML=h;m.style.color=e?'#b91c1c':'#047857'};
+document.getElementById('bc').onclick=async()=>{const c=document.getElementById('cc').value.trim();if(!c)return cm('Digite a credencial.',1);if(!sb)return cm('Sem conexão com o servidor.',1);
+  const {data:{session}}=await sb.auth.getSession();if(!session){return cm('Entre na sua conta primeiro. <a href="login.html" style="color:#0891b2;font-weight:800">Entrar</a>',1)}
+  const {data,error}=await sb.rpc('resgatar_credencial',{cod:c});if(error)return cm('Erro: '+error.message+' (o clinica.sql já foi rodado?)',1);
+  if(!data||!data.ok)return cm(((data&&data.erro)||'não foi possível ativar')+'.',1);
+  const L='style="color:#0891b2;font-weight:800"';
+  if(data.papel==='orientador')return cm('✅ Credencial de <b>Piloto Orientador (Nível 2)</b> ativada. Abra a <a href="supervisao.html" '+L+'>Supervisão</a>.');
+  if(data.papel==='master')return cm('✅ Credencial de <b>Piloto Master (Nível 3)</b> ativada. Abra o <a href="master.html" '+L+'>Master</a>.');
+  cm(data.papel==='clinica'?'✅ Credencial de <b>clínica</b> ativada. Abra a <a href="clinica.html" style="color:#0891b2;font-weight:800">Central da clínica</a>.':'✅ Credencial de <b>médico oficial</b> ativada. Faça o treinamento e abra o cockpit real pelo <a href="perfil.html" style="color:#0891b2;font-weight:800">perfil</a>.')};
+</script>
 </body>
 </html>
