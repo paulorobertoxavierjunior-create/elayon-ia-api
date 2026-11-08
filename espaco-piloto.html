@@ -28,6 +28,8 @@ pre{font:10px/1.4 monospace;white-space:pre-wrap;color:var(--m);max-height:200px
 
 <details class="c" id="dM"><summary>📋 Meus treinos</summary><div id="lt" style="display:grid;gap:8px"><p>Carregando…</p></div></details>
 
+<details class="c" id="dR"><summary>📥 Envios dos usuários</summary><p>O que os usuários mandaram ao concluir a missão: exercícios e calibração, em ordem. Toque em Estudar para abrir no painel de estudo.</p><div id="rcv" style="display:grid;gap:8px"><p>Carregando…</p></div></details>
+
 <details class="c" id="dE"><summary>🔬 Estudar um laudo (.elayon)</summary>
 <p>Peça ao usuário o arquivo .elayon do laudo (botão "💾 .elayon" no Meu Espaço). Aqui você revê os 8 gráficos com o áudio, pausa, marca percepções e isola trechos. Nada sai do seu aparelho.</p>
 <input type="file" id="fl" accept=".elayon,.json,application/json">
@@ -80,6 +82,18 @@ $('lt').onclick=async e=>{const a=e.target.dataset&&e.target.dataset.a;if(!a)ret
   if(a==='rm'&&confirm('Excluir este treino? O usuário que já carregou o código mantém a cópia dele.'))await sb.from('treinos').delete().eq('id',e.target.dataset.i);
   listar()};
 
+/* ---------- envios recebidos ---------- */
+async function envios(){
+  const {data,error}=await sb.from('envios').select('*').order('criado',{ascending:false}).limit(40);
+  if(error)return $('rcv').innerHTML=`<p>${/relation|schema|not exist/i.test(error.message)?'Os envios ainda não existem no servidor. Rode clinica.sql no Supabase.':esc(error.message)}</p>`;
+  const L=(data||[]).filter(e=>e.resumo&&e.resumo.itens);
+  $('rcv').innerHTML=L.length?L.map(e=>`<div class="tr"><div class="row"><b style="font-size:12px">${esc(e.codigo||'sem treino')}</b><small>${new Date(e.criado).toLocaleString('pt-BR')}</small></div>
+   ${e.resumo.itens.map(x=>`<div class="row" style="gap:6px"><small>${x.ordem+1}. ${x.tipo==='calibracao'?'🎚️ ':'🏋️ '}${esc(x.exercicio)}</small><button class="b g sm" data-p="${esc(x.path)}">Estudar</button></div>`).join('')}</div>`).join(''):'<p>Nenhum envio ainda.</p>'}
+$('rcv').onclick=async e=>{const p=e.target.dataset&&e.target.dataset.p;if(!p)return;e.target.textContent='⏳';
+  try{const {data,error}=await sb.storage.from('envios').download(p);if(error||!data)throw error||new Error('vazio');
+    $('dE').open=true;await abrir(new File([data],p.split('/').pop(),{type:'application/json'}));$('dE').scrollIntoView({behavior:'smooth'})}
+  catch(x){alert('Não consegui abrir: '+(x.message||x))}finally{e.target.textContent='Estudar'}};
+
 /* ---------- estudar laudo ---------- */
 const f1=(v,d=1)=>v==null?'—':(+v).toFixed(d);
 function statsJ(tk,a,b){const w=tk.filter(k=>k.ct>=a&&k.ct<=b),Vv=w.filter(k=>k.voz),m=x=>x.length?x.reduce((s,y)=>s+y,0)/x.length:null;
@@ -111,12 +125,5 @@ $('bEx').onclick=()=>dl(new Blob([`Notas do piloto — laudo ${LZ.id} (${new Dat
   try{const {data}=await sb.from('profiles').select('nome').eq('id',U.id).maybeSingle();$('quem').textContent=((data&&data.nome)||U.email)+' · '+U.email}catch(e){$('quem').textContent=U.email}
   try{const {data}=await sb.from('pilotos_perfil').select('*').eq('id',U.id).maybeSingle();PIL=data||null}catch(e){PIL=null}
   $('cad').innerHTML=PIL?`<p>🩺 Piloto cadastrado${PIL.registro||PIL.crm?' · '+esc(PIL.registro||PIL.crm):''}</p>`:'<p>⚠️ Você ainda não tem cadastro de piloto. <a href="cadastro-piloto.html" style="color:var(--a);font-weight:800">Cadastrar agora</a>. Sem ele, só o estudo de laudos fica disponível.</p>';
-  listar()})();
+  listar();envios()})();
 </script></body></html>
-
-
-
-
-
-
-
