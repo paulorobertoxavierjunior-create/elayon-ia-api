@@ -1,0 +1,118 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tokens por gestor • Elayon</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="health.css">
+<style>
+.hero{background:linear-gradient(135deg,#0a2a2f,#0e4f63 55%,#0b6b57);border:0}.hero h1{color:#fff}.hero p{color:#bfe3e0}
+.tb{display:flex;gap:6px;overflow-x:auto;margin-top:12px}.tb button{flex:1;min-width:92px;border:0;border-radius:10px;padding:9px 6px;font-size:11px;font-weight:800;background:#ffffff1f;color:#bfe3e0;cursor:pointer}.tb button.on{background:linear-gradient(135deg,#06b6d4,#1d4ed8);color:#fff}
+.it{border:1px solid var(--l);border-radius:12px;padding:10px;display:grid;gap:6px;background:#fff}.it .r{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pill{display:inline-block;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:#fff7e0;color:#92400e;border:1px solid #f3dca0}.pill.ok{background:#e8fbf3;color:#047857;border-color:#9fe2c4}.pill.er{background:#fff0f0;color:#b91c1c;border-color:#f3b4b4}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}[hidden]{display:none!important}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kp div{border:1px solid var(--l);border-radius:12px;padding:8px;text-align:center;background:linear-gradient(180deg,#fff,#f1fcfe);font-size:10px;color:var(--m)}.kp b{display:block;font-size:18px;color:#0b3a82}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chips button{border:1px solid var(--l);background:#fff;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:800;color:#0e7490;cursor:pointer}.chips button.on{background:linear-gradient(135deg,#06b6d4,#1d4ed8);color:#fff;border-color:transparent}
+.dica{border-left:4px solid #06b6d4;background:linear-gradient(90deg,#e6fafd,#fff);border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.55}
+.tot{border:2px solid #f6c343;background:#fff9e6}
+</style></head><body><div class="w">
+<div class="c hero"><h1>💳 Tokens por gestor</h1><p>Consumo, cobrança e crédito · Piloto Elayon Advanced</p>
+<div class="tb" id="tb" hidden><button data-t="c" class="on">📊 Consumo</button><button data-t="p">🧾 Pedidos</button><button data-t="k">➕ Creditar</button><button data-t="a">👤 Contas</button><button data-t="f">🧾 Faturas</button><button data-t="v">💲 Preço</button></div></div>
+
+<section id="bloq" hidden><div class="c"><h3>Área do Master</h3><p>Esta página é do Advanced (dono da plataforma).</p><a class="b" href="perfil.html">Voltar ao perfil</a></div></section>
+
+<div id="app" hidden>
+<section id="vC">
+<div class="c"><div class="dica"><b>Como ler.</b> Cada gestor é uma clínica: o consumo soma o dono e os médicos ativos vinculados. O valor usa o preço por token da aba Preço. As tarifas por ação ficam na Central. Pacote = relatório ao Master, Dashboard = atualização geral, Fala = tokens do cockpit.</div></div>
+<div class="c"><label>Período</label><div class="chips" id="per"><button data-p="7">7 dias</button><button data-p="30" class="on">30 dias</button><button data-p="m0">Mês atual</button><button data-p="m1">Mês passado</button><button data-p="365">Ano</button></div>
+<div id="pInfo" class="hint" style="margin-top:6px"></div></div>
+<div id="lc" style="display:grid;gap:10px"></div>
+<div class="c"><button class="b g" id="bCsv">⬇ Exportar cobrança (.csv)</button><div class="msg" id="mC"></div></div>
+</section>
+
+<section id="vP" hidden><div class="c"><h3>🧾 Pedidos de tokens</h3><p>Usuários pedem blocos de 100 pelo perfil. Confirme só depois de receber o pagamento: ao confirmar, o crédito entra na hora. Não há gateway: o registro é manual.</p><div id="lp" style="display:grid;gap:8px"></div><div class="msg" id="mP"></div></div></section>
+
+<section id="vK" hidden><div class="c"><h3>➕ Creditar tokens</h3><p>Para venda feita fora do app, cortesia ou correção.</p>
+<label>E-mail do usuário</label><input id="kEm" type="email" placeholder="usuario@exemplo.com"><button class="b g" id="bBus" style="margin-top:8px">Buscar</button>
+<div id="kUs" class="it" hidden style="margin-top:8px"></div>
+<div id="kForm" hidden><div class="row2" style="margin-top:8px"><div><label>Quantidade</label><select id="kQt"><option>100</option><option>200</option><option>500</option><option>1000</option><option>5000</option></select></div><div><label>Motivo</label><select id="kMo"><option value="compra">Compra</option><option value="cortesia">Cortesia</option><option value="ajuste">Ajuste</option></select></div></div>
+<button class="b" id="bCre" style="margin-top:8px">Creditar</button></div><div class="msg" id="mK"></div></div></section>
+
+<section id="vA" hidden><div class="c"><h3>👤 Conta de cobrança</h3><p>Define quem paga: <b>cobre quem está abaixo</b> (o consumo dos usuários do médico, dos médicos da clínica ou das clínicas do master cai na conta dele) e se é <b>pós-pago</b> (acumula até o limite e vira fatura). Normalmente isto é ligado sozinho quando você confirma o pedido de um plano.</p>
+<label>E-mail</label><input id="aEm" type="email"><button class="b g" id="bBA" style="margin-top:8px">Buscar</button><div id="aUs" class="it" hidden style="margin-top:8px"></div>
+<div id="aForm" hidden><div class="row2" style="margin-top:8px"><div><label>Modelo</label><select id="aMo"><option value="credito">Crédito</option><option value="piloto">Piloto</option><option value="clinica">Clínica</option><option value="master">Master</option></select></div><div><label>Pagamento</label><select id="aPo"><option value="0">Pré-pago</option><option value="1">Pós-pago</option></select></div></div>
+<div class="row3" style="margin-top:8px"><div><label>Cobre quem está abaixo</label><select id="aCo"><option value="0">Não</option><option value="1">Sim</option></select></div><div><label>Limite pós-pago (tokens)</label><input id="aLi" inputmode="numeric" value="2000"></div><div><label>Desconto %</label><input id="aDs" inputmode="numeric" value="0"></div></div>
+<button class="b" id="bSA" style="margin-top:8px">Salvar conta</button></div><div class="msg" id="mA"></div></div></section>
+
+<section id="vF" hidden><div class="c"><h3>🧾 Faturas do pós-pago</h3><p>Consumo ainda sem fatura, por conta pós-paga, no período. Gere a fatura, cobre por Pix ou boleto e marque como paga quando receber.</p>
+<div class="chips" id="fPer"><button data-p="m0" class="on">Mês atual</button><button data-p="m1">Mês passado</button><button data-p="30">30 dias</button></div>
+<div id="lPf" style="display:grid;gap:8px;margin-top:8px"></div><div class="msg" id="mF"></div></div>
+<div class="c"><h3>Faturas emitidas</h3><div id="lFa" style="display:grid;gap:8px"></div></div></section>
+
+<section id="vV" hidden><div class="c"><h3>💲 Preço do token</h3><p>Valor cobrado por token, em reais. Muda só os cálculos daqui para frente: pedidos já confirmados guardam o valor da época.</p>
+<label>Reais por token (a Central é o lugar principal para isto)</label><input id="pr" inputmode="decimal" placeholder="0,00"><div id="prInfo" class="hint" style="margin-top:6px"></div>
+<button class="b" id="bPr" style="margin-top:8px">Salvar preço</button><div class="msg" id="mV"></div></div></section>
+
+<p style="text-align:center"><a href="master.html" style="color:var(--a);font-weight:700;font-size:11px">⬅ Voltar ao Master</a></p>
+</div></div>
+<script src="elayon-legal.js"></script><script src="health-core.js"></script>
+<script>
+const t=id=>document.getElementById(id);
+const say=(id,x,e)=>{const m=t(id);m.textContent=x||'';m.style.color=e?'#b91c1c':''};
+const brl=c=>(c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+let FP='m0',AU=null;
+const fx=()=>{const h=new Date();let a,b=h;if(FP==='m0')a=new Date(h.getFullYear(),h.getMonth(),1);else if(FP==='m1'){a=new Date(h.getFullYear(),h.getMonth()-1,1);b=new Date(h.getFullYear(),h.getMonth(),0)}else a=new Date(h.getTime()-30*864e5);return [iso(a),iso(b)]};
+const iso=d=>{const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())};
+let PER='30',PRECO=0,ROWS=[],KU=null;
+function faixa(){const h=new Date();let a,b=h;
+  if(PER==='m0')a=new Date(h.getFullYear(),h.getMonth(),1);
+  else if(PER==='m1'){a=new Date(h.getFullYear(),h.getMonth()-1,1);b=new Date(h.getFullYear(),h.getMonth(),0)}
+  else a=new Date(h.getTime()-(+PER)*864e5);
+  return [iso(a),iso(b)]}
+function aba(k){['c','p','k','a','f','v'].forEach(x=>{t('v'+x.toUpperCase()).hidden=x!==k});[...t('tb').children].forEach(b=>b.classList.toggle('on',b.dataset.t===k));
+  if(k==='p')pedidos();if(k==='v')precoTela();if(k==='f')faturas()}
+t('tb').onclick=e=>{if(e.target.dataset.t)aba(e.target.dataset.t)};
+t('per').onclick=e=>{if(!e.target.dataset.p)return;PER=e.target.dataset.p;[...t('per').children].forEach(b=>b.classList.toggle('on',b===e.target));consumo()};
+async function consumo(){const [a,b]=faixa();t('pInfo').textContent=a+' a '+b;
+  const {data,error}=await sb.rpc('consumo_gestores',{p_ini:a,p_fim:b});
+  if(error)return t('lc').innerHTML='<div class="c"><p>'+esc(error.message)+' (rode o clinica.sql, seção 11)</p></div>';
+  ROWS=data||[];const S=k=>ROWS.reduce((x,r)=>x+(+r[k]||0),0);
+  const card=(r,tot)=>`<div class="c ${tot?'tot':''}"><div class="r" style="display:flex;justify-content:space-between;gap:8px"><h3 style="margin:0">${esc(r.clinica)}</h3><span class="pill ${tot?'ok':''}">${brl(r.consumidos*PRECO)}</span></div>
+  <div class="kp" style="margin-top:8px"><div><b>${r.consumidos}</b>consumidos</div><div><b>${r.saldo}</b>saldo atual</div><div><b>${r.creditados}</b>creditados</div><div><b>${r.pacotes}</b>pacotes</div><div><b>${r.dashboards}</b>dashboards</div><div><b>${r.fala}</b>fala</div></div>
+  <small>${tot?'':r.membros+' usuário(s) ligado(s)'}${r.outros?' • outros: '+r.outros:''}</small></div>`;
+  const tot={clinica:'Total da plataforma',consumidos:S('consumidos'),saldo:S('saldo'),creditados:S('creditados'),pacotes:S('pacotes'),dashboards:S('dashboards'),fala:S('fala'),outros:S('outros'),membros:S('membros')};
+  t('lc').innerHTML=card(tot,1)+(ROWS.length?ROWS.map(r=>card(r)).join(''):'<div class="c"><p>Nada consumido neste período.</p></div>');
+  if(!PRECO)t('pInfo').textContent+=' • defina o preço por token na aba Preço para ver valores em R$'}
+t('bCsv').onclick=()=>{const [a,b]=faixa();const L=['gestor;usuarios;tokens_consumidos;pacotes;dashboards;fala;outros;creditados;saldo;valor_brl'];
+  ROWS.forEach(r=>L.push([r.clinica.replace(/;/g,','),r.membros,r.consumidos,r.pacotes,r.dashboards,r.fala,r.outros,r.creditados,r.saldo,(r.consumidos*PRECO/100).toFixed(2).replace('.',',')].join(';')));
+  const x=document.createElement('a');x.href=URL.createObjectURL(new Blob(['﻿'+L.join('\n')],{type:'text/csv'}));x.download=`tokens-por-gestor-${a}_${b}.csv`;x.click();say('mC','Arquivo gerado.')};
+async function pedidos(){const {data,error}=await sb.rpc('listar_pedidos');if(error)return t('lp').innerHTML='<p>'+esc(error.message)+'</p>';
+  t('lp').innerHTML=(data||[]).length?data.map(p=>`<div class="it"><div class="r"><b>${esc(p.nome||p.email||'Usuário')}</b><span class="pill ${p.status==='pago'?'ok':p.status==='recusado'?'er':''}">${p.status}</span></div><small>${p.qtd?p.qtd+' tokens':'ativação de plano pós-pago'}${p.valor_centavos!=null&&p.qtd?' • '+brl(p.valor_centavos):''} • ${String(p.criado).slice(0,10)} • ${esc(p.email||'')}</small>
+  ${p.status==='pendente'?`<div class="row2"><button class="b sm" data-ok="${p.id}">${p.qtd?'Confirmei o pagamento':'Ativar plano'}</button><button class="b g sm" data-no="${p.id}">Recusar</button></div>`:''}</div>`).join(''):'<p>Nenhum pedido ainda.</p>'}
+t('lp').onclick=async e=>{const d=e.target.dataset||{};if(!d.ok&&!d.no)return;
+  const {error}=await sb.rpc('decidir_pedido',{p_id:d.ok||d.no,p_pago:!!d.ok});if(error)return say('mP','❌ '+error.message,1);say('mP',d.ok?'Crédito lançado.':'Pedido recusado.');pedidos()};
+t('bBus').onclick=async()=>{KU=null;t('kForm').hidden=true;const em=t('kEm').value.trim();if(!em)return say('mK','Digite o e-mail.',1);
+  const {data,error}=await sb.rpc('buscar_usuario',{p_email:em});if(error)return say('mK','❌ '+error.message,1);
+  if(!data||!data.length){t('kUs').hidden=true;return say('mK','Nenhum usuário com esse e-mail.',1)}
+  KU=data[0];say('mK','');t('kUs').hidden=false;t('kUs').innerHTML=`<b>${esc(KU.nome||'Sem nome')}</b><small>${esc(KU.email)} • saldo ${KU.tokens} tokens</small>`;t('kForm').hidden=false};
+t('bCre').onclick=async()=>{if(!KU)return;const q=+t('kQt').value;
+  const {data,error}=await sb.rpc('creditar_tokens',{p_user:KU.id,p_qtd:q,p_motivo:t('kMo').value});if(error)return say('mK','❌ '+error.message,1);
+  say('mK',`+${q} tokens. Novo saldo: ${data}.`);KU.tokens=data;t('kUs').innerHTML=`<b>${esc(KU.nome||'Sem nome')}</b><small>${esc(KU.email)} • saldo ${data} tokens</small>`};
+function precoTela(){t('pr').value=PRECO?(PRECO/100).toString().replace('.',','):'';t('prInfo').textContent=PRECO?`Bloco de 100 tokens: ${brl(Math.round(PRECO*100))}`:'Preço ainda não definido.'}
+t('bPr').onclick=async()=>{const v=Math.round(parseFloat(String(t('pr').value).replace(',','.'))*1e5)/1e3;if(!(v>=0))return say('mV','Valor inválido.',1);
+  const {error}=await sb.rpc('definir_preco_token',{p_centavos:v});if(error)return say('mV','❌ '+error.message,1);PRECO=v;precoTela();say('mV','Preço salvo.');consumo()};
+t('fPer').onclick=e=>{if(!e.target.dataset.p)return;FP=e.target.dataset.p;[...t('fPer').children].forEach(b=>b.classList.toggle('on',b===e.target));faturas()};
+async function faturas(){const [a,b]=fx();const {data,error}=await sb.rpc('pre_faturas',{p_ini:a,p_fim:b});if(error)return t('lPf').innerHTML='<p>'+esc(error.message)+' (rode o clinica.sql, seção 13)</p>';
+  t('lPf').innerHTML=(data||[]).length?data.map(r=>`<div class="it"><div class="r"><b>${esc(r.nome||r.email)}</b><span class="pill">${r.modelo}</span></div><div class="kp"><div><b>${r.tokens}</b>tokens sem fatura</div><div><b>${brl(r.valor_centavos)}</b>valor</div><div><b>${r.usuarios}</b>usuários</div></div><small>limite ${r.limite_pos} tokens • ${esc(r.email||'')}</small>${r.tokens>0?`<button class="b sm" data-gf="${r.pagador_id}">Gerar fatura (${a} a ${b})</button>`:''}</div>`).join(''):'<p>Nenhuma conta pós-paga. Ative em Contas ou ao confirmar um plano pós-pago.</p>';
+  const {data:F}=await sb.rpc('listar_faturas');t('lFa').innerHTML=(F||[]).length?F.map(f=>`<div class="it"><div class="r"><b>${esc(f.nome||f.email)}</b><span class="pill ${f.status==='paga'?'ok':f.status==='cancelada'?'er':''}">${f.status}</span></div><small>${f.periodo_ini} a ${f.periodo_fim} • ${f.tokens} tokens • ${brl(f.valor_centavos)}</small>${f.status==='aberta'?`<div class="row2"><button class="b sm" data-fp="${f.id}">Recebi o pagamento</button><button class="b g sm" data-fc="${f.id}">Cancelar</button></div>`:''}</div>`).join(''):'<p>Nenhuma fatura emitida.</p>'}
+t('vF').onclick=async e=>{const d=e.target.dataset||{};let r;
+  if(d.gf){const [a,b]=fx();r=await sb.rpc('gerar_fatura',{p_pagador:d.gf,p_ini:a,p_fim:b})}else if(d.fp)r=await sb.rpc('marcar_fatura',{p_id:d.fp,p_status:'paga'});else if(d.fc)r=await sb.rpc('marcar_fatura',{p_id:d.fc,p_status:'cancelada'});else return;
+  if(r.error)return say('mF','❌ '+r.error.message,1);say('mF','Feito.');faturas()};
+t('bBA').onclick=async()=>{AU=null;t('aForm').hidden=true;const em=t('aEm').value.trim();if(!em)return say('mA','Digite o e-mail.',1);
+  const {data,error}=await sb.rpc('buscar_usuario',{p_email:em});if(error)return say('mA','❌ '+error.message,1);if(!data||!data.length){t('aUs').hidden=true;return say('mA','Nenhum usuário com esse e-mail.',1)}
+  AU=data[0];say('mA','');const {data:c}=await sb.from('contas_cobranca').select('*').eq('user_id',AU.id).maybeSingle();
+  t('aUs').hidden=false;t('aUs').innerHTML=`<b>${esc(AU.nome||'Sem nome')}</b><small>${esc(AU.email)} • saldo ${AU.tokens} tokens${c?' • conta: '+c.modelo+(c.pos_pago?' pós-pago':' pré-pago')+(c.cobre_abaixo?' • cobre abaixo':''):' • sem conta especial (paga o que consome)'}</small>`;
+  if(c){t('aMo').value=c.modelo;t('aPo').value=c.pos_pago?'1':'0';t('aCo').value=c.cobre_abaixo?'1':'0';t('aLi').value=c.limite_pos;t('aDs').value=c.desconto_pct}t('aForm').hidden=false};
+t('bSA').onclick=async()=>{if(!AU)return;const {error}=await sb.rpc('definir_conta',{p_user:AU.id,p_modelo:t('aMo').value,p_cobre:t('aCo').value==='1',p_pos:t('aPo').value==='1',p_limite:parseInt(t('aLi').value||'0',10),p_desc:parseInt(t('aDs').value||'0',10)});say('mA',error?'❌ '+error.message:'Conta salva.',!!error)};
+(async()=>{try{await eu()}catch(e){return}
+  let r;try{r=await sb.rpc('meu_nivel')}catch(e){r={}}
+  if((+(r&&r.data)||0)<4){t('bloq').hidden=false;return}
+  t('app').hidden=false;t('tb').hidden=false;
+  try{const p=await sb.rpc('preco_publico');PRECO=+(p&&p.data)||0}catch(e){}
+  await consumo()})();
+</script></body></html>
