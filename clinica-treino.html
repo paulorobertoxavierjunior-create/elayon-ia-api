@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Elayon Health • Treinamento da clínica</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg1:#f4f9f4;--bg2:#eaf4f6;--ink:#0a2a2f;--muted:#4a6b70;--line:#d8e8eb;--a:#2a9d8f;--a2:#3ecfcf;--ok:#047857;--err:#b91c1c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;padding:20px 14px;font-family:system-ui,-apple-system,sans-serif;background:radial-gradient(circle at top left,var(--bg1),var(--bg2));color:var(--ink)}
+.w{max-width:520px;margin:0 auto}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--muted);margin-bottom:12px}
+.top a{color:var(--a);text-decoration:none}
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px 18px;box-shadow:0 10px 30px rgba(0,0,0,.05)}
+.fake{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#856404;background:#fff3cd;border:1px solid #ffeeba;border-radius:20px;padding:3px 10px;margin-bottom:10px}
+h1{font-size:20px;letter-spacing:-.4px;margin-bottom:4px;line-height:1.25}
+.bar{height:6px;background:#eef5f5;border-radius:6px;margin:10px 0 16px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--a),var(--a2));width:0;transition:width .3s}
+.cnt{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+h2{font-size:17px;margin:4px 0 8px}
+p,li{font-size:13px;line-height:1.6;color:var(--muted)} p{margin-bottom:10px} ul{margin:0 0 10px 18px}
+.sim{border:1px dashed var(--a);background:#f7fcfd;border-radius:14px;padding:12px;margin:12px 0;font-size:12.5px;color:var(--ink);line-height:1.55}
+.sim .row{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}.sim .row:first-child{border-top:0}
+.sim label{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;margin:6px 0;cursor:pointer}.sim input[type=checkbox]{margin-top:2px}
+.sim input[type=text],.sim textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:13px}
+.pill{font-size:10px;font-weight:800;border-radius:20px;padding:3px 9px;background:#fff3cd;color:#856404}.pill.ok{background:#e8fbf3;color:var(--ok)}
+.b{display:block;width:100%;margin-top:10px;padding:12px;border:0;border-radius:12px;font-weight:800;font-size:13px;text-align:center;text-decoration:none;color:#fff;background:linear-gradient(135deg,var(--a),var(--a2));cursor:pointer}
+.b[disabled]{opacity:.45;cursor:not-allowed}.b.g{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.msg{font-size:12px;margin-top:8px;line-height:1.5;font-weight:700}.msg.ok{color:var(--ok)}.msg.er{color:var(--err)}
+.q{margin:14px 0}.q b{font-size:13px;display:block;margin-bottom:6px;color:var(--ink)}.q label{display:flex;gap:8px;font-size:12.5px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;cursor:pointer;color:var(--ink);line-height:1.45}
+.nota{font-size:11px;color:var(--muted);line-height:1.5;text-align:center;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="w">
+  <div class="top"><span>ELAYON HEALTH · TREINAMENTO DA CLÍNICA</span><a href="trilha.html?p=clinica">⬅ minha trilha</a></div>
+  <div class="card">
+    <span class="fake">Treinamento · dados fictícios · nada é gravado nem cobrado</span>
+    <h1>Treinamento da clínica</h1>
+    <div class="bar"><i id="bar"></i></div>
+    <div id="cena"></div>
+  </div>
+  <p class="nota">O Elayon Health é uma ferramenta de apoio à escuta e ao acompanhamento. Não faz diagnóstico nem substitui avaliação profissional.</p>
+</div>
+<script>
+const PAPEL='clinica';
+const sb=supabase.createClient('https://xlktkelumtpugidnecbj.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM');
+const $=id=>document.getElementById(id);
+const PASSOS=[{t:"O papel da clínica",txt:"<p>A clínica é o <b>ponto central do cuidado</b>. O médico (piloto) envia o laudo para ela. A clínica confere, devolve ao médico se houver dúvida, valida, certifica e só então libera ao usuário. A clínica não diagnostica: a interpretação clínica é do médico.</p>",sim:"<div class=\"row\"><span>1 · Médico envia</span><span class=\"pill\">laudo</span></div><div class=\"row\"><span>2 · Clínica confere e valida</span><span class=\"pill\">você</span></div><div class=\"row\"><span>3 · Clínica certifica</span><span class=\"pill\">PDF + SHA-256</span></div><div class=\"row\"><span>4 · Usuário vê e ativa no cockpit</span><span class=\"pill\">aba Conteúdo</span></div><button class=\"b\" data-a>Entendi o fluxo</button>",liga:(el,ok)=>{el.querySelector('[data-a]').onclick=function(){this.disabled=true;ok("Fluxo entendido. Os dados da gerência (metadados) seguem ao master, sem conteúdo clínico livre.")}}},
+{t:"Aprovar o médico",txt:"<p>O médico pede vínculo com o seu código de clínica. Antes de aprovar, confira o <b>registro no conselho</b> (CRM, CRFa, CRP). <b>Cadastrar 1 médico ativo já ativa a clínica.</b> Os médicos e a clínica podem cadastrar usuários e pacientes reais.</p>",sim:"<div class=\"row\"><span><b>Dra. Exemplo</b><br>CRFa 12345/AM · Fonoaudiologia</span><span class=\"pill\" id=\"st\">aguardando</span></div><button class=\"b\" data-a>✅ Aprovar este médico</button>",liga:(el,ok)=>{el.querySelector('[data-a]').onclick=function(){this.disabled=true;document.getElementById('st').textContent='ativo';document.getElementById('st').className='pill ok';ok('Médico aprovado. A clínica está ativa e pode receber laudos.')}}},
+{t:"Receber o laudo e conferir a integridade",txt:"<p>O laudo chega em PDF com um <b>código de integridade (SHA-256)</b>, que mostra se o arquivo foi alterado depois de assinado. A clínica confere esse código antes de validar.</p>",sim:"<div class=\"row\"><span><b>Laudo de TESTE</b><br>Paciente: TESTE Maria · Dra. Exemplo</span><span class=\"pill\">recebido</span></div><div class=\"row\"><span>SHA-256</span><span style=\"font-family:monospace;font-size:11px\">9f2c…41ab</span></div><button class=\"b\" data-a>🔎 Conferir integridade</button>",liga:(el,ok)=>{el.querySelector('[data-a]').onclick=function(){this.disabled=true;ok('Integridade conferida: o código bate com o do envio.')}}},
+{t:"Validar com o médico",txt:"<p>Se algo não fechar, a clínica <b>devolve ao médico com observação</b>. Só valida quando os três itens abaixo estiverem conferidos.</p>",sim:"<label><input type=\"checkbox\" class=\"c\"> O registro profissional confere</label><label><input type=\"checkbox\" class=\"c\"> O código de integridade confere</label><label><input type=\"checkbox\" class=\"c\"> O texto não traz diagnóstico, só observações de sinais vocais</label><button class=\"b\" data-a disabled>✅ Validar o laudo</button><button class=\"b g\" data-d>↩ Devolver ao médico</button>",liga:(el,ok,er)=>{const cs=[...el.querySelectorAll('.c')],b=el.querySelector('[data-a]');cs.forEach(c=>c.onchange=()=>{b.disabled=!cs.every(x=>x.checked)});b.onclick=function(){this.disabled=true;ok('Laudo validado.')};el.querySelector('[data-d]').onclick=()=>er('Devolvido ao médico com observação. No treino, confira os três itens e valide para seguir.')}},
+{t:"Certificar e liberar ao usuário",txt:"<p>Certificado, o laudo aparece no <b>cockpit do usuário, aba Conteúdo</b>, e ele ativa com um toque. O usuário vê o laudo carregando e atualizado. A clínica atualiza o prontuário de exercícios dele.</p>",sim:"<div class=\"row\"><span>TESTE Maria</span><span class=\"pill\" id=\"st2\">validado</span></div><button class=\"b\" data-a>📜 Certificar e liberar</button>",liga:(el,ok)=>{el.querySelector('[data-a]').onclick=function(){this.disabled=true;document.getElementById('st2').textContent='liberado ao usuário';document.getElementById('st2').className='pill ok';ok('Laudo certificado e liberado. Cada atualização de prontuário consome 20 tokens, conforme o seu plano.')}}},
+{t:"Relatório ao master e consumo",txt:"<p>Se a clínica tem master, envia a ele um <b>relatório de metadados</b>: contagens, qualidade, tarefas. Sem conteúdo clínico livre e sem dado individual. Cada envio consome <b>20 tokens</b>. Quem paga depende do plano: a clínica no plano Clínica paga por todos os usuários dos seus médicos, em pós-pago.</p>",sim:"<div class=\"row\"><span>Laudos no mês</span><span><b>12</b></span></div><div class=\"row\"><span>Médicos ativos</span><span><b>3</b></span></div><div class=\"row\"><span>Qualidade boa</span><span><b>83%</b></span></div><button class=\"b\" data-a>📤 Enviar relatório (simulado)</button>",liga:(el,ok)=>{el.querySelector('[data-a]').onclick=function(){this.disabled=true;ok('Relatório simulado enviado. No treino nada é cobrado.')}}}];
+const QUIZ=[{"p": "O que a clínica faz com o laudo recebido?", "o": ["Faz o diagnóstico do paciente", "Confere, valida, certifica e libera ao usuário", "Apaga depois de ler"], "c": 1}, {"p": "O que vai no relatório da clínica ao master?", "o": ["O PDF completo de cada paciente", "Metadados e contagens, sem conteúdo clínico livre", "Nome e telefone dos pacientes"], "c": 1}, {"p": "O que acontece quando a clínica cadastra o primeiro médico ativo?", "o": ["A clínica fica ativa", "Cria-se um master", "Nada muda"], "c": 0}];
+let i=0,feito={};
+function bar(){const t=PASSOS.length+1;$('bar').style.width=Math.round(100*Math.min(i,t)/t)+'%'}
+function passo(){
+  bar();
+  if(i>=PASSOS.length)return quiz();
+  const s=PASSOS[i];
+  $('cena').innerHTML='<div class="cnt">Passo '+(i+1)+' de '+PASSOS.length+'</div><h2>'+s.t+'</h2>'+s.txt+'<div class="sim" id="sim">'+s.sim+'</div><div class="msg" id="fb"></div>'
+   +'<button class="b" id="prox" disabled>'+(i<PASSOS.length-1?'Próximo passo':'Ir para a conferência')+'</button>'+(i>0?'<button class="b g" id="volta">⬅ Voltar</button>':'');
+  $('prox').onclick=()=>{i++;passo()};if($('volta'))$('volta').onclick=()=>{i--;passo()};
+  const ok=()=>{feito[i]=1;$('prox').disabled=false};
+  if(feito[i])ok();
+  s.liga($('sim'),(m)=>{$('fb').className='msg ok';$('fb').textContent=m;ok()},(m)=>{$('fb').className='msg er';$('fb').textContent=m});
+}
+function quiz(){
+  $('cena').innerHTML='<div class="cnt">Conferência final</div><h2>Três perguntas</h2><p>Acerte as três para concluir o treinamento. Pode tentar de novo.</p>'
+   +QUIZ.map((q,k)=>'<div class="q"><b>'+(k+1)+'. '+q.p+'</b>'+q.o.map((o,j)=>'<label><input type="radio" name="q'+k+'" value="'+j+'"> '+o+'</label>').join('')+'</div>').join('')
+   +'<button class="b" id="bq">Conferir respostas</button><div class="msg" id="fb"></div><button class="b g" id="volta">⬅ Voltar ao último passo</button>';
+  $('volta').onclick=()=>{i=PASSOS.length-1;passo()};
+  $('bq').onclick=async()=>{
+    let certo=0,todas=true;QUIZ.forEach((q,k)=>{const r=document.querySelector('input[name=q'+k+']:checked');if(!r)todas=false;else if(+r.value===q.c)certo++});
+    if(!todas){$('fb').className='msg er';$('fb').textContent='Responda as três perguntas.';return}
+    if(certo<QUIZ.length){$('fb').className='msg er';$('fb').textContent='Acertou '+certo+' de '+QUIZ.length+'. Releia o passo correspondente e tente de novo.';return}
+    $('bq').disabled=true;$('fb').className='msg';$('fb').textContent='⏳ registrando…';
+    let erro=null;try{const {data,error}=await sb.rpc('concluir_treinamento',{p:PAPEL});if(error)erro=error.message;else if(data&&!data.ok)erro=data.erro}catch(e){erro=e.message}
+    if(erro){$('bq').disabled=false;$('fb').className='msg er';$('fb').textContent='Não consegui registrar: '+erro+'. Entre na sua conta e tente de novo.';return}
+    $('bar').style.width='100%';
+    $('cena').innerHTML='<h2>✅ Treinamento concluído</h2><p>Você conhece o fluxo completo da clínica. Agora ative a credencial da clínica e use a ferramenta real.</p><a class="b" href="trilha.html?p=clinica">Continuar na minha trilha</a>';
+  };
+}
+passo();
+</script>
+</body>
+</html>
