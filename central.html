@@ -1,0 +1,115 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Central • Elayon Space Health</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="health.css">
+<style>
+.hero{background:linear-gradient(135deg,#061a4a,#0b3a82 60%,#0e7490);border:0}.hero h1{color:#fff}.hero p{color:#cfe3ff}
+.it{border:1px solid var(--l);border-radius:12px;padding:10px;display:grid;gap:6px;background:#fff}.it .r{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pill{display:inline-block;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:#fff7e0;color:#92400e;border:1px solid #f3dca0}.pill.ok{background:#e8fbf3;color:#047857;border-color:#9fe2c4}.pill.er{background:#fff0f0;color:#b91c1c;border-color:#f3b4b4}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}[hidden]{display:none!important}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kp div{border:1px solid var(--l);border-radius:12px;padding:8px;text-align:center;background:linear-gradient(180deg,#fff,#f1fcfe);font-size:10px;color:var(--m)}.kp b{display:block;font-size:19px;color:#0b3a82}
+.dica{border-left:4px solid #06b6d4;background:linear-gradient(90deg,#e6fafd,#fff);border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.55}
+.soon{opacity:.6;border:1px dashed var(--l);border-radius:12px;padding:10px;font-size:12px}
+details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
+</style></head><body><div class="w">
+<div class="c hero"><h1>🛰️ Central Elayon Space Health</h1><p>Piloto Elayon Advanced · tudo que a plataforma processa, em um lugar. Esta área não consome tokens.</p>
+<button class="b" id="bAt" style="margin-top:10px" hidden>🔄 Atualizar plataforma</button><div id="stamp" class="hint" style="color:#cfe3ff"></div></div>
+
+<section id="bloq" hidden><div class="c"><h3>Área do Advanced</h3><p>Só a credencial Advanced abre a Central.</p><a class="b" href="perfil.html">Voltar ao perfil</a></div></section>
+
+<div id="app" hidden>
+<details class="c" open><summary>✅ Prontidão para ligar</summary><div id="lPr" style="display:grid;gap:6px;margin-top:6px"></div></details>
+
+<details class="c" open><summary>💲 Preço do token</summary>
+<p>O valor base de tudo. Os preços dos planos são calculados a partir dele, com o desconto de cada plano. Zero significa "a definir".</p>
+<div class="row2"><div><label>Reais por token</label><input id="vTk" inputmode="decimal" placeholder="0,00"></div><div><label>&nbsp;</label><button class="b" id="bTk">Salvar preço</button></div></div>
+<div id="vInfo" class="hint" style="margin-top:6px"></div><div class="msg" id="mTk"></div></details>
+
+<details class="c" open><summary>🧪 Coleta com pacientes reais</summary>
+<p>Enquanto estiver bloqueada, médicos reais podem se cadastrar e treinar, mas só se cria treino com paciente chamado "TESTE ...". Libere depois do parecer do CEP e do consentimento (TCLE) dos participantes.</p>
+<div id="cRs" class="pill" style="width:max-content"></div><button class="b g" id="bCo" style="margin-top:8px"></button><div class="msg" id="mCo"></div></details>
+
+<div class="c"><div class="kp" id="kp"></div></div>
+
+<details class="c" open><summary>🌳 Quem está em quê</summary>
+<p>Masters → clínicas → médicos → usuários. Só números, sem dado de paciente.</p>
+<h3>Masters</h3><div id="lM" style="display:grid;gap:8px"></div>
+<h3 style="margin-top:12px">Clínicas</h3><div id="lC" style="display:grid;gap:8px"></div>
+<h3 style="margin-top:12px">Médicos</h3><div id="lD" style="display:grid;gap:8px"></div></details>
+
+<details class="c" open><summary>📥 Caixa de melhorias</summary>
+<p>Pedidos que os Masters mandaram. Valide, responda ou marque como feito.</p><div id="lS" style="display:grid;gap:8px"></div><div class="msg" id="mS"></div></details>
+
+<details class="c"><summary>🪙 Tarifas por ação (tokens)</summary>
+<p>O servidor cobra estes valores. Valem na hora, para todos, menos para você.</p><div id="lT" style="display:grid;gap:8px"></div><div class="msg" id="mT"></div></details>
+
+<details class="c"><summary>📦 Planos (pacotes de uso)</summary>
+<p>O que aparece na página de planos. Preço em reais, tokens incluídos.</p><div id="lP" style="display:grid;gap:8px"></div>
+<h3 style="margin-top:10px">Novo plano</h3>
+<div class="row2"><div><label>Nome</label><input id="pN"></div><div><label>Para quem</label><select id="pPu"><option value="medico">Médico</option><option value="clinica">Clínica</option><option value="master">Master</option></select></div></div>
+<div class="row2"><div><label>Modelo de cobrança</label><select id="pMo"><option value="credito">Crédito (a pessoa paga o que consome)</option><option value="piloto">Piloto (o médico paga os usuários dele)</option><option value="clinica">Clínica (paga todos os usuários dos médicos)</option><option value="master">Master (paga toda a rede)</option></select></div><div><label>Pagamento</label><select id="pPo"><option value="0">Pré-pago (carrega tokens)</option><option value="1">Pós-pago (fatura)</option></select></div></div>
+<div class="row3"><div><label>Tokens incluídos</label><input id="pTk" inputmode="numeric" placeholder="0"></div><div><label>Desconto %</label><input id="pDs" inputmode="numeric" placeholder="0"></div><div><label>Limite pós-pago</label><input id="pLi" inputmode="numeric" placeholder="2000"></div></div>
+<label>Descrição</label><input id="pDe"><button class="b" id="bPl" style="margin-top:8px">Adicionar plano</button><div class="msg" id="mP"></div></details>
+
+<details class="c"><summary>🧾 Auditoria</summary><p>Ações administrativas e tentativas de acesso à manutenção.</p><div id="lA" style="display:grid;gap:6px"></div></details>
+
+<div class="c"><h3>Atalhos</h3><div class="row2"><a class="b g" href="tokens-gestao.html">💳 Contas, faturas e consumo</a><a class="b g" href="master.html">📊 Dashboard e metadados</a></div>
+<div class="row2" style="margin-top:8px"><a class="b g" href="master.html#ajustes" id="aAj">🧩 Melhoria dos códigos</a><a class="b g" href="planos.html">🛒 Página de planos</a></div></div>
+
+<div class="c"><h3>Em construção</h3>
+<div class="soon"><b>💬 Chat científico com IA</b><br>Entra depois que as bibliotecas de referência estiverem validadas pelos profissionais: a IA só deve citar o que foi validado.</div>
+<div class="soon" style="margin-top:8px"><b>🔬 Área de estudos e resultados</b><br>Depende dos primeiros dados reais, que dependem da aprovação do CEP.</div></div>
+
+<p style="text-align:center"><a href="perfil.html" style="color:var(--a);font-weight:700;font-size:11px">⬅ Voltar ao perfil</a></p>
+</div></div>
+<script src="elayon-legal.js"></script><script src="health-core.js"></script>
+<script>
+const t=id=>document.getElementById(id);
+const say=(id,x,e)=>{const m=t(id);m.textContent=x||'';m.style.color=e?'#b91c1c':''};
+const brl=c=>(c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const TNOM={laudo_medico:'Laudo emitido pelo médico',atualizacao_prontuario:'Atualização do prontuário de exercícios',pacote_meta:'Relatório de metadados ao Master',dashboard_master:'Atualização geral do Master'};
+let SOL=[],PRECO=0,COLETA=false;
+const reaisParaCent=v=>Math.round(parseFloat(String(v).replace(',','.'))*1e5)/1e3;
+async function preco(){try{const {data}=await sb.rpc('preco_publico');PRECO=+data||0}catch(e){PRECO=0}t('vTk').value=PRECO?(PRECO/100).toString().replace('.',','):'';
+  const x=n=>PRECO?brl(Math.round(n*PRECO)):'—';t('vInfo').textContent=PRECO?`Laudo (10 tokens): ${x(10)} · Atualização (20): ${x(20)} · Bloco de 100: ${x(100)} · Bloco de 1.000: ${x(1000)}`:'Preço ainda não definido: a página de planos mostra "a definir".'}
+t('bTk').onclick=async()=>{const c=reaisParaCent(t('vTk').value);if(!(c>=0))return say('mTk','Valor inválido.',1);const {error}=await sb.rpc('definir_preco_token',{p_centavos:c});if(error)return say('mTk','❌ '+error.message,1);say('mTk','Preço salvo. A página de planos já usa o novo valor.');await preco();planos()};
+async function prontidao(){const {data,error}=await sb.rpc('prontidao');if(error)return t('lPr').innerHTML='<p>'+esc(error.message)+'</p>';COLETA=!!data.coleta_real;
+  const it=(ok,tx)=>`<div class="it" style="padding:8px"><div class="r"><span>${tx}</span><span class="pill ${ok?'ok':''}">${ok?'ok':'pendente'}</span></div></div>`;
+  t('lPr').innerHTML=it(data.senha_manutencao,'Senha de manutenção definida no banco')+it(data.preco_definido,'Preço do token definido')+it(data.planos_ativos>0,'Pelo menos um plano ativo ('+data.planos_ativos+')')+it(data.medicos_ativos>0,'Médicos reais cadastrados ('+data.medicos_ativos+')')+it(data.clinicas>0,'Clínicas ('+data.clinicas+')')+it(data.masters>0,'Masters ativos ('+data.masters+')')+it(data.coleta_real,'Coleta com pacientes reais liberada (só após CEP e TCLE)')+(data.pedidos_pendentes?it(false,data.pedidos_pendentes+' pedido(s) aguardando confirmação'):'')+(data.faturas_abertas?it(false,data.faturas_abertas+' fatura(s) aberta(s)'):'');
+  t('cRs').textContent=COLETA?'LIBERADA':'BLOQUEADA';t('cRs').className='pill '+(COLETA?'ok':'er');t('bCo').textContent=COLETA?'Bloquear de novo':'Liberar coleta com pacientes reais';t('bCo').dataset.arm='0'}
+t('bCo').onclick=async()=>{const b=t('bCo');if(!COLETA&&b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Confirme: o CEP aprovou e o TCLE está em uso? Toque de novo';return}
+  const {error}=await sb.rpc('definir_coleta_real',{p_on:!COLETA});if(error)return say('mCo','❌ '+error.message,1);say('mCo',COLETA?'Coleta bloqueada.':'Coleta liberada. Fica registrado na auditoria.');prontidao()};
+async function atualiza(){t('bAt').disabled=true;t('stamp').textContent='Atualizando…';
+  const {data,error}=await sb.rpc('arvore_plataforma');
+  if(error){t('stamp').textContent='';t('bAt').disabled=false;return t('lM').innerHTML='<p>'+esc(error.message)+' (rode o clinica.sql, seção 12)</p>'}
+  const T=data.totais,k=(n,l)=>`<div><b>${n}</b>${l}</div>`;
+  t('kp').innerHTML=k(T.masters,'masters')+k(T.clinicas,'clínicas')+k(T.medicos,'médicos')+k(T.usuarios,'usuários')+k(T.saldo_tokens,'tokens em saldo')+k(T.consumo_30d,'consumo 30 dias');
+  const card=(a,b,c3)=>`<div class="it"><div class="r"><b>${esc(a)}</b><small>${esc(b||'')}</small></div><div class="row3">${c3.map(x=>`<div class="pill ok" style="text-align:center">${x[0]} ${x[1]}</div>`).join('')}</div></div>`;
+  t('lM').innerHTML=data.masters.length?data.masters.map(m=>card(m.nome,'',[[m.clinicas,'clínicas'],[m.medicos,'médicos'],[m.usuarios,'usuários']])).join(''):'<p>Nenhum master ativo.</p>';
+  t('lC').innerHTML=data.clinicas.length?data.clinicas.map(c=>card(c.nome,'Master: '+c.master,[[c.medicos,'médicos'],[c.usuarios,'usuários'],['','']].slice(0,2))).join(''):'<p>Nenhuma clínica.</p>';
+  t('lD').innerHTML=data.medicos.length?data.medicos.map(m=>card(m.nome,m.clinica,[[m.usuarios,'usuários']])).join(''):'<p>Nenhum médico vinculado.</p>';
+  await preco();await Promise.all([sols(),tarifas(),planos(),prontidao()]);
+  t('stamp').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR');t('bAt').disabled=false}
+t('bAt').onclick=atualiza;
+async function sols(){const {data,error}=await sb.from('solicitacoes').select('*').order('criado',{ascending:false}).limit(100);if(error)return t('lS').innerHTML='<p>'+esc(error.message)+'</p>';
+  SOL=data||[];const ab=SOL.filter(s=>s.status==='pendente'||s.status==='validada');
+  t('lS').innerHTML=ab.length?ab.map(s=>`<div class="it"><div class="r"><b>${esc(s.titulo)}</b><span class="pill ${s.status==='validada'?'ok':''}">${s.status}</span></div><small>${esc(s.autor_nome||'Master')} • ${s.tipo} • ${String(s.criado).slice(0,10)}</small>${s.texto?'<p>'+esc(s.texto)+'</p>':''}
+  <input data-rs="${s.id}" placeholder="Resposta ao master" value="${esc(s.resposta||'')}"><div class="row3"><button class="b sm" data-st="validada" data-id="${s.id}">Validar</button><button class="b g sm" data-st="feita" data-id="${s.id}">Feita</button><button class="b g sm" data-st="recusada" data-id="${s.id}">Recusar</button></div></div>`).join(''):'<p>Caixa vazia.</p>'}
+t('lS').onclick=async e=>{const d=e.target.dataset||{};if(!d.st)return;const r=document.querySelector(`[data-rs="${d.id}"]`).value.trim();
+  const {error}=await sb.from('solicitacoes').update({status:d.st,resposta:r||null,decidido_em:new Date().toISOString()}).eq('id',d.id);if(error)return say('mS','❌ '+error.message,1);say('mS','Atualizado.');sols()};
+async function tarifas(){const {data,error}=await sb.from('tarifas').select('*').order('motivo');if(error)return t('lT').innerHTML='<p>'+esc(error.message)+'</p>';
+  t('lT').innerHTML=(data||[]).map(x=>`<div class="it"><div class="r"><b>${esc(TNOM[x.motivo]||x.descricao||x.motivo)}</b><small>${esc(x.motivo)}</small></div><div class="row2"><input data-tq="${x.motivo}" inputmode="numeric" value="${x.qtd}"><button class="b g sm" data-ts="${x.motivo}">Salvar</button></div></div>`).join('')}
+t('lT').onclick=async e=>{const m=(e.target.dataset||{}).ts;if(!m)return;const v=parseInt(document.querySelector(`[data-tq="${m}"]`).value,10);if(!(v>=0))return say('mT','Valor inválido.',1);
+  const {error}=await sb.rpc('definir_tarifa',{p_motivo:m,p_qtd:v});say('mT',error?'❌ '+error.message:'Tarifa salva.',!!error)};
+async function planos(){const {data,error}=await sb.from('planos').select('*').order('publico').order('ordem');if(error)return t('lP').innerHTML='<p>'+esc(error.message)+'</p>';
+  t('lP').innerHTML=(data||[]).length?data.map(p=>`<div class="it"><div class="r"><b>${esc(p.nome)}</b><span class="pill ${p.ativo?'ok':'er'}">${p.ativo?'ativo':'oculto'}</span></div><small>${p.publico} • ${p.modelo}${p.pos_pago?' pós-pago (limite '+p.limite_pos+')':' pré-pago'} • ${p.tokens} tokens${p.desconto_pct?' • '+p.desconto_pct+'% off':''} • ${PRECO?brl(Math.round(p.tokens*PRECO*(1-p.desconto_pct/100))):'preço a definir'}${p.descricao?' • '+esc(p.descricao):''}</small><button class="b g sm" data-pa="${p.id}" data-v="${p.ativo?0:1}">${p.ativo?'Ocultar':'Mostrar'}</button></div>`).join(''):'<p>Nenhum plano ainda. Crie o primeiro abaixo.</p>'}
+t('lP').onclick=async e=>{const d=e.target.dataset||{};if(!d.pa)return;await sb.from('planos').update({ativo:d.v==='1'}).eq('id',d.pa);planos()};
+t('bPl').onclick=async()=>{const n=t('pN').value.trim(),pos=t('pPo').value==='1',tk=parseInt(t('pTk').value||'0',10),ds=parseInt(t('pDs').value||'0',10),li=parseInt(t('pLi').value||'2000',10);
+  if(!n||!(tk>=0)||(tk===0&&!pos)||!(ds>=0&&ds<=100))return say('mP','Preencha nome e tokens (zero só no pós-pago), desconto de 0 a 100.',1);
+  const {error}=await sb.from('planos').insert({nome:n,publico:t('pPu').value,modelo:t('pMo').value,pos_pago:pos,tokens:tk,desconto_pct:ds,limite_pos:li,preco_centavos:0,descricao:t('pDe').value.trim()||null});if(error)return say('mP','❌ '+error.message,1);
+  t('pN').value=t('pTk').value=t('pDs').value=t('pLi').value=t('pDe').value='';say('mP','Plano criado.');planos()};
+async function audit(){const {data}=await sb.rpc('listar_auditoria');t('lA').innerHTML=(data||[]).length?data.map(a=>`<div class="it" style="padding:8px"><b>${esc(a.acao)}</b><small>${esc(a.quem||'')} • ${String(a.criado).replace('T',' ').slice(0,16)}${a.detalhe?' • '+esc(JSON.stringify(a.detalhe)).slice(0,120):''}</small></div>`).join(''):'<p>Sem registros.</p>'}
+document.addEventListener('toggle',e=>{if(e.target.tagName==='DETAILS'&&e.target.open&&e.target.textContent.includes('Auditoria'))audit()},true);
+(async()=>{try{await eu()}catch(e){return}
+  let r;try{r=await sb.rpc('meu_nivel')}catch(e){r={}}
+  if((+(r&&r.data)||0)<4){t('bloq').hidden=false;return}
+  t('app').hidden=false;t('bAt').hidden=false;await atualiza()})();
+</script></body></html>
