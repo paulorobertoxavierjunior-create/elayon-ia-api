@@ -34,7 +34,7 @@
 <div><label>Motivo do ajuste (fica no seu histórico)</label><input id="aNota" placeholder="Ex.: voz cansada no 3º dia; reduzir carga"></div>
 <div class="row2"><button class="b g" id="bRasc">Salvar rascunho</button><button class="b" id="bConf">✔ Confirmar e publicar</button></div><button class="b g" id="bDesc" style="margin-top:6px">Descartar rascunho</button><div class="msg" id="mA"></div></div></section>
 
-<section id="vE" hidden><div class="c"><h3>📤 Enviar à gerência</h3><p>Gera um PDF só com metadados agregados e anônimos (sem nome nem e-mail de usuário) e envia para a fila de análise do Piloto Master. <b>Custa 5 tokens</b>, debitados do seu saldo.</p>
+<section id="vE" hidden><div class="c"><h3>📤 Enviar à gerência</h3><p>Gera um PDF só com metadados agregados e anônimos (sem nome nem e-mail de usuário) e envia para a fila de análise do Piloto Master. <b id="tCusto">Consome tokens</b> do seu saldo (valor da tarifa vigente).</p>
 <div class="row2"><div><label>De</label><input type="date" id="eI"></div><div><label>Até</label><input type="date" id="eF"></div></div><button class="b g" id="bPrev" style="margin-top:6px">Ver prévia</button></div>
 <div class="c" id="ePv" hidden><div class="kp" id="eKp"></div><div id="eTx" class="hint" style="margin-top:8px;line-height:1.5"></div><button class="b" id="bEnv" style="margin-top:8px">📤 Gerar PDF e enviar (5 tokens)</button><div class="msg" id="mE"></div></div></section>
 
@@ -51,7 +51,7 @@ const sha8=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new 
 function aba(k){['r','a','e'].forEach(x=>{t('v'+x.toUpperCase()).hidden=x!==k});[...t('tb').children].forEach(b=>b.classList.toggle('on',b.dataset.t===k));if(k==='a')ajusteUI();if(k==='e'){PRE=null;t('ePv').hidden=true}}
 t('tb').onclick=e=>{if(e.target.dataset.t)aba(e.target.dataset.t)};
 
-async function saldo(){try{const {data}=await sb.from('profiles').select('tokens,nome').eq('id',U.id).single();TOK=data&&data.tokens!=null?data.tokens:0;U._nome=(data&&data.nome)||U.email}catch(e){TOK=0}t('tk').textContent=TOK}
+let TAR={};async function saldo(){try{const {data:tr}=await sb.from('tarifas').select('motivo,qtd');(tr||[]).forEach(x=>TAR[x.motivo]=x.qtd);const q=TAR.pacote_meta==null?20:TAR.pacote_meta;const e=document.getElementById('tCusto');if(e)e.textContent='Custa '+q+' tokens'}catch(e){}try{const {data}=await sb.from('profiles').select('tokens,nome').eq('id',U.id).single();TOK=data&&data.tokens!=null?data.tokens:0;U._nome=(data&&data.nome)||U.email}catch(e){TOK=0}t('tk').textContent=TOK}
 async function carrega(){
   const a=await sb.from('treinos').select('*').eq('piloto_id',U.id).order('criado',{ascending:false});TR=a.data||[];
   const e=await sb.from('envios').select('*').order('criado',{ascending:false}).limit(300);const cods=new Set(TR.map(x=>x.codigo));
@@ -129,14 +129,14 @@ function pdfMeta(r){const {jsPDF}=window.jspdf,d=new jsPDF({unit:'pt',format:'a4
   P('Exercícios mais feitos',13,true);Object.entries(r.tarefas).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>P(k+': '+v));y+=6;
   P('Usuários (códigos anônimos)',13,true);r.usuarios.forEach(u=>P(`${u.id}: ${u.envios} envio(s), ${u.dentroPct==null?'sem dado':u.dentroPct+'% dentro da faixa'}`));y+=10;
   P('Termômetro vocal por microfone de celular. Não é diagnóstico. A interpretação é do profissional responsável.',9);return d}
-t('bEnv').onclick=async()=>{if(!PRE)return;if(TOK<5)return say('mE','Saldo insuficiente: o envio custa 5 tokens. Some tokens no Perfil.',1);
+t('bEnv').onclick=async()=>{if(!PRE)return;
   t('bEnv').disabled=true;say('mE','Gerando o PDF…');
   try{const d=pdfMeta(PRE),path=U.id+'/'+Date.now()+'.pdf',blob=d.output('blob');
     const up=await sb.storage.from('metadados').upload(path,blob,{contentType:'application/pdf'});if(up.error)throw up.error;
     const {data,error}=await sb.rpc('enviar_pacote_meta',{p_pdf_path:path,p_resumo:PRE,p_ini:PRE.periodo.ini,p_fim:PRE.periodo.fim,p_nome:PRE.remetente});
     if(error||!data||!data.ok){try{await sb.storage.from('metadados').remove([path])}catch(x){}throw error||new Error('não enviado')}
     TOK=data.saldo;t('tk').textContent=TOK;say('mE','✅ Enviado à gerência. Saldo: '+TOK+' tokens.');t('ePv').hidden=true;PRE=null}
-  catch(x){say('mE',/sem_saldo/.test(x.message||'')?'Saldo insuficiente: o envio custa 5 tokens.':'❌ '+(x.message||x)+' (rode o clinica.sql no Supabase)',1);t('bEnv').disabled=false}};
+  catch(x){say('mE',/sem_saldo/.test(x.message||'')?'Saldo ou limite insuficiente para o envio (veja Minha conta).':'❌ '+(x.message||x)+' (rode o clinica.sql no Supabase)',1);t('bEnv').disabled=false}};
 
 (async()=>{try{U=await eu()}catch(e){return}
   let r;try{r=await sb.rpc('meu_nivel')}catch(e){r={}}NV=+(r&&r.data)||0;
