@@ -1,1 +1,38 @@
-
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Minha conta • Elayon Health</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="health.css">
+<style>
+.hero{background:linear-gradient(135deg,#0a2a2f,#0e4f63 55%,#0b6b57);border:0}.hero h1{color:#fff}.hero p{color:#bfe3e0}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kp div{border:1px solid var(--l);border-radius:12px;padding:8px;text-align:center;background:linear-gradient(180deg,#fff,#f1fcfe);font-size:10px;color:var(--m)}.kp b{display:block;font-size:19px;color:#0b3a82}
+.it{border:1px solid var(--l);border-radius:12px;padding:10px;display:grid;gap:4px;background:#fff}.it .r{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.pill{display:inline-block;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:#fff7e0;color:#92400e;border:1px solid #f3dca0}.pill.ok{background:#e8fbf3;color:#047857;border-color:#9fe2c4}.pill.er{background:#fff0f0;color:#b91c1c;border-color:#f3b4b4}
+.dica{border-left:4px solid #06b6d4;background:linear-gradient(90deg,#e6fafd,#fff);border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.55}[hidden]{display:none!important}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+</style></head><body><div class="w">
+<div class="c hero"><h1>🪙 Minha conta</h1><p>Saldo, quem paga o seu consumo e o que você cobre.</p></div>
+<div class="c"><div class="kp" id="kp"></div><div id="quem" class="dica" style="margin-top:10px"></div></div>
+<div class="c" id="cCob" hidden><h3>O que a sua conta cobre</h3><div class="kp" id="kCob"></div><p id="cobTx" style="margin-top:8px"></p></div>
+<div class="c"><div class="row2"><a class="b" href="planos.html">🛒 Ver planos</a><button class="b g" id="bMais">+ Pedir 100 tokens</button></div><div class="msg" id="msg"></div></div>
+<div class="c"><h3>Últimos consumos</h3><div id="lg" style="display:grid;gap:6px"></div></div>
+<div class="c"><h3>Pedidos e faturas</h3><div id="lf" style="display:grid;gap:6px"></div></div>
+<p class="hint" style="text-align:center;font-size:11px">O Elayon Health é uma ferramenta de apoio à escuta e ao acompanhamento. Não faz diagnóstico.</p>
+<p style="text-align:center"><a href="perfil.html" style="color:var(--a);font-weight:700;font-size:11px">⬅ Voltar ao perfil</a></p>
+</div>
+<script src="health-core.js"></script>
+<script>
+const brl=c=>(c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const NM={pacote_meta:'relatório ao master',dashboard_master:'atualização do master',laudo_medico:'laudo',atualizacao_prontuario:'atualização de prontuário',cockpit_fala:'fala',compra:'compra',cortesia:'cortesia',ajuste:'ajuste'};
+let U;
+(async()=>{try{U=await eu()}catch(e){return}
+  const {data:c,error}=await sb.rpc('minha_cobertura');if(error){$('quem').textContent=error.message+' (rode o clinica.sql, seção 13)';return}
+  const k=(n,l)=>`<div><b>${n}</b>${l}</div>`,PR=+c.preco_token_centavos||0;
+  $('kp').innerHTML=k(c.saldo,'seu saldo')+k(c.meu_consumo_30d,'seu uso em 30 dias')+k(c.pos_aberto||0,'pós-pago aberto');
+  $('quem').innerHTML=c.pagador_nome?`<b>${esc(c.pagador_nome)}</b> paga o seu consumo. Você usa à vontade; o seu saldo fica guardado.`:'Você paga o seu próprio consumo, com o seu saldo. Quando acabar, peça mais tokens ou assine um plano.';
+  if(c.conta&&c.conta.cobre_abaixo){$('cCob').hidden=false;$('kCob').innerHTML=k(c.cobertos_usuarios,'pessoas cobertas')+k(c.cobertos_30d,'tokens em 30 dias')+k(PR?brl(Math.round(c.cobertos_30d*PR*(1-c.conta.desconto_pct/100))):'—','valor estimado');
+    $('cobTx').textContent=`Plano ${c.conta.modelo}, ${c.conta.pos_pago?'pós-pago (limite de '+c.conta.limite_pos+' tokens por ciclo)':'pré-pago'}. Quem está abaixo de você usa à vontade e o consumo cai na sua conta.`}
+  const {data:L}=await sb.from('tokens_log').select('*').order('criado',{ascending:false}).limit(12);
+  $('lg').innerHTML=(L||[]).length?L.map(x=>`<div class="it"><div class="r"><b>${esc(NM[x.motivo]||x.motivo)}</b><span class="pill ${x.qtd>0?'ok':''}">${x.qtd>0?'+':''}${x.qtd}</span></div><small>${String(x.criado).replace('T',' ').slice(0,16)}${x.usuario_id&&x.usuario_id!==U.id?' • de alguém que você cobre':x.user_id!==U.id?' • pago por outra conta':''}${x.pos?' • pós-pago':''}</small></div>`).join(''):'<p>Nada ainda.</p>';
+  const [{data:P},{data:F}]=await Promise.all([sb.from('pedidos_tokens').select('*').order('criado',{ascending:false}).limit(6),sb.from('faturas').select('*').order('criado',{ascending:false}).limit(6)]);
+  const rows=[...(P||[]).map(p=>`<div class="it"><div class="r"><b>Pedido: ${p.qtd?p.qtd+' tokens':'ativação de plano'}</b><span class="pill ${p.status==='pago'||p.status==='ativado'?'ok':p.status==='recusado'?'er':''}">${p.status}</span></div><small>${String(p.criado).slice(0,10)}${p.valor_centavos!=null?' • '+brl(p.valor_centavos):''}</small></div>`),...(F||[]).map(f=>`<div class="it"><div class="r"><b>Fatura ${f.periodo_ini} a ${f.periodo_fim}</b><span class="pill ${f.status==='paga'?'ok':f.status==='cancelada'?'er':''}">${f.status}</span></div><small>${f.tokens} tokens • ${brl(f.valor_centavos)}</small></div>`)];
+  $('lf').innerHTML=rows.length?rows.join(''):'<p>Nenhum pedido ou fatura.</p>'})();
+$('bMais').onclick=async()=>{const {error}=await sb.rpc('pedir_tokens',{p_qtd:100});const m=$('msg');m.style.color=error?'#b91c1c':'';m.textContent=error?(/muitos_pedidos/.test(error.message)?'Você já tem 3 pedidos aguardando.':'Erro: '+error.message):'Pedido enviado. O saldo sobe quando o pagamento for confirmado.'};
+</script></body></html>
