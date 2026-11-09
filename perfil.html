@@ -67,6 +67,11 @@
     .hint a { color: var(--accent); font-weight: 700; }
     .chip { display:inline-flex; gap:6px; align-items:center; background:#eaf4f6; border:1px solid var(--line); border-radius:20px; padding:3px 10px; margin:2px 4px 2px 0; font-size:11px; font-weight:700 }
     .chip button { border:0; background:none; cursor:pointer; color:var(--danger); font-size:12px }
+    .tabs { display:flex; gap:4px; margin:0 0 16px; background:#eef5f5; border:1px solid var(--line); border-radius:14px; padding:4px; }
+    .tab { flex:1; border:0; background:transparent; padding:9px 2px; border-radius:10px; font-size:12px; font-weight:800; color:var(--muted); cursor:pointer; }
+    .tab.on { background:#fff; color:var(--ink); box-shadow:0 1px 6px rgba(0,0,0,.08); }
+    .tabpanel { display:none; } .tabpanel.on { display:block; }
+    .vazio { font-size:12px; line-height:1.5; color:var(--muted); background:#f7fcfd; border:1px dashed var(--line); border-radius:12px; padding:12px; text-align:center; }
     .msg { margin-top: 12px; font-size: 11px; min-height: 16px; text-align: center; font-weight: 600; }
     .msg-error { color: var(--danger); }
     .msg-success { color: var(--success); }
@@ -98,6 +103,15 @@
 
     <p class="sub">Identidade do Operador & Parâmetros de Acesso</p>
 
+    <nav class="tabs" id="tabs" role="tablist">
+      <button type="button" class="tab on" data-tab="perfil" role="tab">Perfil</button>
+      <button type="button" class="tab" data-tab="usuario" role="tab">Usuário</button>
+      <button type="button" class="tab" data-tab="piloto" role="tab">Piloto</button>
+      <button type="button" class="tab" data-tab="clinica" role="tab">Clínica</button>
+      <button type="button" class="tab" data-tab="master" role="tab">Master</button>
+    </nav>
+
+    <div class="tabpanel on" id="tab-perfil">
     <!-- Metadados & Tokens -->
     <section class="box">
       <div class="row"><span class="label">ID</span><span class="value" id="userId" style="font-size:9px; font-family:monospace;">A carregar...</span></div>
@@ -126,7 +140,7 @@
     </section>
 
     <!-- Configuração da IA: vários provedores, com reserva automática -->
-    <details class="ai-setup-box" id="aiBox">
+   <details class="ai-setup-box" id="aiBox">
       <summary>🧠 Calibração da IA <span id="aiStatusBadge" class="ai-status-badge">NÃO CONFIGURADA</span></summary>
       <div class="input-group">
         <label for="selectAiProvider">Provedor (o que você escolher aqui é o principal)</label>
@@ -164,31 +178,28 @@
       <label style="margin-top:10px">Provedores com chave guardada</label>
       <div id="aiList" class="hint">Nenhum.</div>
     </details>
-
-    <!-- Ações e Transição ao Cockpit -->
     <div class="actions">
       <button class="btn primary" id="btnSaveChanges" style="background: #f0f7f7; color: var(--accent); border: 1px solid var(--accent);">💾 Salvar Alterações</button>
-      <div style="font-size:10px;font-weight:800;letter-spacing:.08em;color:var(--muted);margin-top:6px">ELAYON SPACE SYSTEMS</div>
-      <details open style="border:1px solid var(--accent);border-radius:14px;padding:8px 10px;background:#fff"><summary style="cursor:pointer;font-weight:800;font-size:13px;padding:4px 0">🩺 ELAYON HEALTH <span style="font-size:9px;font-weight:800;color:#047857;background:#e8fbf3;border-radius:20px;padding:3px 9px;margin-left:6px">ATIVO</span><div style="font-size:10.5px;font-weight:600;color:var(--muted);margin-top:2px">Cuidado real e extensão da observação clínica</div></summary><div style="display:grid;gap:8px;margin-top:8px">
-      <a class="btn primary" id="btnMeuEspaco" data-p="usuario,medico" href="meu-espaco.html" style="font-size: 14px; padding: 14px;">🌿 Bem-vindo ao Elayon Space<br><span style="font-size:11px;font-weight:700;opacity:.92">Meu Espaço · Auto Escuta Simbólica</span></a>
-      <a class="btn primary" id="btnCockpitUsuario" data-p="usuario" href="cockpit.html" style="font-size:13px;padding:13px">🎛️ Cockpit Vibes 8<br><span style="font-size:10px;font-weight:700;opacity:.92">Calibração e acompanhamento vocal</span></a>
-      <a class="btn primary" id="btnCockpitPiloto" data-p="medico" href="piloto-guiado.html?modo=real" style="font-size:13px;padding:13px">🩺 Cockpit do piloto<br><span id="subCockpitPiloto" style="font-size:10px;font-weight:700;opacity:.92">Atendimento real · libera depois do treinamento</span></a>
-      <a class="btn logout" id="btnTreinoMedico" data-p="medico" href="piloto-guiado.html?modo=treino" style="border-color:var(--accent);color:var(--ink)">🎓 Calibração do médico (treinamento)<br><span style="font-size:10px;font-weight:700;color:var(--muted)">Você faz o papel do usuário e aprende a ler os gráficos com a IA</span></a>
-      <a class="btn primary" id="btnSupervisao" data-nivel="2" href="supervisao.html" style="font-size:13px;padding:13px">🔎 Supervisão · Piloto Orientador<br><span style="font-size:10px;font-weight:700;opacity:.92">Validar resultados, ajustar exercícios e enviar metadados · 5 tokens por envio</span></a>
-      <a class="btn primary" id="btnMaster" data-nivel="3" href="master.html" style="font-size:13px;padding:13px">🛰️ Master · Gerência<br><span style="font-size:10px;font-weight:700;opacity:.92">Fila de análise, dashboard (20 tokens) e ajustes da programação</span></a>
-      <a class="btn primary" id="btnTokens" data-nivel="4" href="tokens-gestao.html" style="font-size:13px;padding:13px">💳 Tokens por gestor<br><span style="font-size:10px;font-weight:700;opacity:.92">Consumo, cobrança, pedidos e crédito</span></a>
+      <a class="btn logout" id="btnConta" href="minha-conta.html" style="border-color:var(--accent);color:var(--ink)">🪙 Minha conta · tokens e quem paga</a>
+      <a class="btn logout" id="btnPlanos" href="planos.html" style="border-color:var(--accent);color:var(--ink)">🛒 Planos</a>
+      <a class="btn logout" id="btnGuia" href="guia.html" style="border-color:var(--accent);color:var(--ink)">💡 Instrução: o que cada medida significa<br><span style="font-size:10px;font-weight:700;color:var(--muted)">Jitter, shimmer, HNR e anamnese em linguagem simples</span></a>
       <div id="btnManutWrap" style="text-align:center;margin-top:6px">
         <button type="button" id="btnManut" tabindex="-1" aria-hidden="true" style="background:none;border:0;color:var(--muted);opacity:.45;font-size:10px;letter-spacing:.06em;padding:6px 10px;cursor:default">Manutenção</button>
         <div id="manutBox" style="margin-top:8px;display:none;gap:6px"><input id="manutPw" type="password" autocomplete="off" placeholder="senha" style="flex:1;padding:10px;border:1px solid var(--accent);border-radius:10px"><button type="button" id="manutGo" class="btn primary" style="padding:10px 14px;font-size:12px">Abrir</button></div>
         <div id="manutMsg" style="font-size:11px;color:#b91c1c;margin-top:4px"></div>
       </div>
-      <a class="btn logout" id="btnEspacoPiloto" data-p="medico" href="espaco-piloto.html" style="border-color:var(--accent);color:var(--ink)">📋 Espaço do piloto: treinos dos usuários</a>
-      <a class="btn logout" id="btnCadMedico" data-p="medico" href="cadastro-piloto.html" style="border-color:var(--accent);color:var(--ink)">🪪 Cadastro profissional</a>
-      <a class="btn primary" id="btnClinica" data-p="clinica" href="clinica.html" style="font-size:13px;padding:13px">🏛️ Central da clínica<br><span style="font-size:10px;font-weight:700;opacity:.92">Validar médicos e certificar laudos</span></a>
-      <a class="btn logout" id="btnConta" href="minha-conta.html" style="border-color:var(--accent);color:var(--ink)">🪙 Minha conta · tokens e quem paga</a>
-      <a class="btn logout" id="btnPlanos" href="planos.html" style="border-color:var(--accent);color:var(--ink)">🛒 Planos</a>
-      <a class="btn logout" id="btnGuia" href="guia.html" style="border-color:var(--accent);color:var(--ink)">💡 Instrução: o que cada medida significa<br><span style="font-size:10px;font-weight:700;color:var(--muted)">Jitter, shimmer, HNR e anamnese em linguagem simples</span></a>
-      </div></details>
+      <button class="btn logout" id="btnLogout" type="button">Sair da Sessão</button>
+    </div>
+    </div>
+
+    <div class="tabpanel" id="tab-usuario">
+      <p class="hint">Para quem usa o Elayon no dia a dia: se escutar, treinar a voz e acompanhar o que o médico entrega.</p>
+      <div class="actions">
+      <a class="btn primary" id="btnMeuEspaco" data-p="usuario,medico" href="meu-espaco.html" style="font-size: 14px; padding: 14px;">🌿 Bem-vindo ao Elayon Space<br><span style="font-size:11px;font-weight:700;opacity:.92">Meu Espaço · Auto Escuta Simbólica</span></a>
+      <a class="btn primary" id="btnCockpitUsuario" data-p="usuario" href="cockpit.html" style="font-size:13px;padding:13px">🎛️ Cockpit Vibes 8<br><span style="font-size:10px;font-weight:700;opacity:.92">Calibração e acompanhamento vocal</span></a>
+        <div class="vazio" style="display:none"><b>Esta aba é do usuário.</b><br>Seu papel atual é outro. Para ver o espaço do usuário, troque em Perfil, em "Como você usa o Elayon".</div>
+      </div>
+      <details style="margin-top:14px;border:1px solid var(--line);border-radius:14px;padding:8px 10px;background:#fff"><summary style="cursor:pointer;font-weight:800;font-size:12px;padding:4px 0">🌌 O ecossistema Elayon Space</summary><div style="display:grid;gap:8px;margin-top:8px">
       <div style="border:1px solid var(--line,#cfe6ec);border-radius:12px;padding:10px 12px;background:#fff"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:12px">🎙️ ELAYON CRS</b><span style="font-size:9px;font-weight:800;color:#047857;background:#e8fbf3;border-radius:20px;padding:3px 9px">BASE DE TODAS AS CAMADAS</span></div><div style="font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:4px">A escuta da fala humana como dado computável. Roda por baixo do Health e das camadas seguintes.</div></div>
       <div style="border:1px dashed var(--line,#cfe6ec);border-radius:12px;padding:10px 12px;background:#f7fcfd;opacity:.92"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:12px">🧠 ELAYON PSIQ</b><span style="font-size:9px;font-weight:800;color:#0e7490;background:#e0f7fb;border-radius:20px;padding:3px 9px">EM BREVE</span></div><div style="font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:4px">Escuta profunda orientada aos profissionais que escutam, com estilo lúdico para crianças. Roda a camada Health como conferência. Validação por psicólogo responsável.</div><a class="btn logout" id="btnCalibraPsiq" href="psyq.html" style="margin-top:8px;padding:9px;font-size:11px;border-color:var(--accent);color:var(--ink)">🎯 Calibrar PsiQ</a></div>
       <div style="border:1px dashed var(--line,#cfe6ec);border-radius:12px;padding:10px 12px;background:#f7fcfd;opacity:.92"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:12px">🌀 ELAYON VIBES 8</b><span style="font-size:9px;font-weight:800;color:#047857;background:#e8fbf3;border-radius:20px;padding:3px 9px">ATIVO NO HEALTH</span></div><div style="font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:4px">Treinamento e captação máxima da ressonância humana. Já roda dentro do cockpit do Health; a plataforma própria vem depois.</div></div>
@@ -196,9 +207,37 @@
       <div style="border:1px dashed var(--line,#cfe6ec);border-radius:12px;padding:10px 12px;background:#f7fcfd;opacity:.92"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:12px">⚙️ ELAYON MECHANICS</b><span style="font-size:9px;font-weight:800;color:#0e7490;background:#e0f7fb;border-radius:20px;padding:3px 9px">EM BREVE</span></div><div style="font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:4px">Automação e domótica a partir do PC, com acompanhamento humano contínuo.</div></div>
       <div style="border:1px dashed var(--line,#cfe6ec);border-radius:12px;padding:10px 12px;background:#f7fcfd;opacity:.92"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:12px">🧬 ELAYON TWIN</b><span style="font-size:9px;font-weight:800;color:#0e7490;background:#e0f7fb;border-radius:20px;padding:3px 9px">EM BREVE</span></div><div style="font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:4px">Metadados para gêmeos digitais e sistemas complexos de controle.</div></div>
       <div style="border:1px dashed var(--line,#cfe6ec);border-radius:12px;padding:10px 12px;background:#f7fcfd;opacity:.92"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:12px">🌌 ELAYON OMK</b><span style="font-size:9px;font-weight:800;color:#0e7490;background:#e0f7fb;border-radius:20px;padding:3px 9px">EM BREVE</span></div><div style="font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:4px">Espaço de autoconhecimento produtivo e acompanhamento em sendas filosóficas e de fé.</div></div>
+      </div></details>
+    </div>
+
+    <div class="tabpanel" id="tab-piloto">
+      <p class="hint">O piloto é o profissional de saúde que acompanha usuários pelo Elayon. Ele treina, atende, assina o laudo e responde por ele. A ferramenta apoia a escuta e não faz diagnóstico.</p>
+      <div class="actions">
+      <a class="btn primary" id="btnCockpitPiloto" data-p="medico" href="piloto-guiado.html?modo=real" style="font-size:13px;padding:13px">🩺 Cockpit do piloto<br><span id="subCockpitPiloto" style="font-size:10px;font-weight:700;opacity:.92">Atendimento real · libera depois do treinamento</span></a>
+      <a class="btn logout" id="btnTreinoMedico" data-p="medico" href="piloto-guiado.html?modo=treino" style="border-color:var(--accent);color:var(--ink)">🎓 Calibração do médico (treinamento)<br><span style="font-size:10px;font-weight:700;color:var(--muted)">Você faz o papel do usuário e aprende a ler os gráficos com a IA</span></a>
+      <a class="btn logout" id="btnEspacoPiloto" data-p="medico" href="espaco-piloto.html" style="border-color:var(--accent);color:var(--ink)">📋 Espaço do piloto: treinos dos usuários</a>
+      <a class="btn logout" id="btnCadMedico" data-p="medico" href="cadastro-piloto.html" style="border-color:var(--accent);color:var(--ink)">🪪 Cadastro profissional</a>
+      <a class="btn primary" id="btnSupervisao" data-nivel="2" href="supervisao.html" style="font-size:13px;padding:13px">🔎 Supervisão · Piloto Orientador<br><span style="font-size:10px;font-weight:700;opacity:.92">Validar resultados, ajustar exercícios e enviar metadados · 5 tokens por envio</span></a>
       <a class="btn logout" id="btnStartAvaliacao" href="piloto-guiado.html?modo=treino" style="border-color:var(--accent);color:var(--ink)">🎛️ Demo para investidores<br><span style="font-size:10px;font-weight:700;color:var(--muted)">Calibração do médico, análise guiada e laudo assinado</span></a>
-      <a class="btn logout" id="btnPilotosOficiais" data-p="clinica,medico,usuario" href="pilotos-oficiais.html" style="border-color:var(--accent);color:var(--ink);line-height:1.4">🩺 Pilotos Oficiais Elayon Health / Serviços de Saúde<br><span style="font-size:10px;font-weight:700;color:#856404">Aguardando Chave Codex ESH-V8</span></a>
-      <button class="btn logout" id="btnLogout" type="button">Sair da Sessão</button>
+        <div class="vazio" style="display:none"><b>Acesso de piloto por credencial.</b><br>A credencial é entregue após a qualificação do profissional.<br><a class="btn logout" href="https://wa.me/5592984805386" target="_blank" rel="noopener" style="margin-top:8px;padding:9px;font-size:11px;border-color:var(--accent);color:var(--ink)">Falar com o Porta-Voz</a></div>
+      </div>
+    </div>
+
+    <div class="tabpanel" id="tab-clinica">
+      <p class="hint">A clínica é o ponto central do cuidado: recebe os laudos, envia ao médico, valida o retorno e atualiza o usuário. Cadastra seus médicos e pacientes.</p>
+      <div class="actions">
+      <a class="btn primary" id="btnClinica" data-p="clinica" href="clinica.html" style="font-size:13px;padding:13px">🏛️ Central da clínica<br><span style="font-size:10px;font-weight:700;opacity:.92">Validar médicos e certificar laudos</span></a>
+        <div class="vazio" style="display:none"><b>Acesso de clínica por credencial.</b><br>Cadastrar 1 médico ativa a clínica. A credencial é entregue após a qualificação.<br><a class="btn logout" href="https://wa.me/5592984805386" target="_blank" rel="noopener" style="margin-top:8px;padding:9px;font-size:11px;border-color:var(--accent);color:var(--ink)">Falar com o Porta-Voz</a></div>
+      </div>
+    </div>
+
+    <div class="tabpanel" id="tab-master">
+      <p class="hint">O Master é a gerência de uma rede: treina e cadastra clínicas, acompanha o consumo, recebe a análise agregada e anonimizada de toda a rede e paga pelos usuários das suas clínicas.</p>
+      <div class="actions">
+      <a class="btn primary" id="btnMaster" data-nivel="3" href="master.html" style="font-size:13px;padding:13px">🛰️ Master · Gerência<br><span style="font-size:10px;font-weight:700;opacity:.92">Fila de análise, dashboard (20 tokens) e ajustes da programação</span></a>
+        <div class="vazio" style="display:none"><b>Acesso Master por credencial paga.</b><br>É o plano de quem gere várias clínicas. Veja como funciona em Planos e fale com o Porta-Voz.<br><a class="btn logout" href="https://wa.me/5592984805386" target="_blank" rel="noopener" style="margin-top:8px;padding:9px;font-size:11px;border-color:var(--accent);color:var(--ink)">Falar com o Porta-Voz</a></div>
+        <a class="btn logout" href="planos.html" style="border-color:var(--accent);color:var(--ink)">🛒 Ver planos Master</a>
+      </div>
     </div>
 
     <div class="msg" id="msg"></div>
@@ -259,7 +298,8 @@
     }
 
     // Papel: usuário, médico ou clínica. Mostra só os botões que servem a cada um.
-    const PAPEL_TXT = {
+   
+const PAPEL_TXT = {
       usuario: 'Você faz os exercícios no Meu Espaço, recebe treinos do seu médico e ativa o laudo certificado no cockpit.',
       medico: 'Você passa pela calibração do médico (treinamento), depois atende no cockpit do piloto e envia o laudo assinado à sua clínica. Complete o cadastro profissional. Psicólogos usam o PsyQ, que está em breve.',
       clinica: 'A clínica é a central: aprova os médicos vinculados, valida e certifica os laudos, e os libera aos usuários.'
@@ -291,6 +331,11 @@
       document.querySelectorAll('.actions [data-p]').forEach(el => {
         el.style.display = el.dataset.p.split(',').includes(papel) ? '' : 'none';
       });
+      document.querySelectorAll('.tabpanel .actions').forEach(a => {
+        const v = a.querySelector('.vazio'); if (!v) return;
+        const ha = [...a.querySelectorAll('[data-p],[data-nivel]')].some(el => el.style.display !== 'none');
+        v.style.display = ha ? 'none' : '';
+      });
       const ok = profile && profile.medico_aprovado_em;
       const sub = document.getElementById('subCockpitPiloto');
       if (sub) sub.textContent = ok ? 'Atendimento real · treinamento aprovado ✔' : 'Atendimento real · libera depois do treinamento';
@@ -308,6 +353,14 @@
     });
 
     aplicaPapel('usuario', null);
+
+    document.getElementById('tabs').addEventListener('click', e => {
+      const b = e.target.closest('.tab'); if (!b) return;
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t === b));
+      document.querySelectorAll('.tabpanel').forEach(p => p.classList.toggle('on', p.id === 'tab-' + b.dataset.tab));
+      try { history.replaceState(null, '', '#' + b.dataset.tab); } catch (_) {}
+    });
+    (function () { const h = (location.hash || '').slice(1), b = document.querySelector('.tab[data-tab="' + h + '"]'); if (b) b.click(); })();
 
     // Edição Inline de Nome
     document.getElementById('btnEditName').addEventListener('click', () => {
@@ -434,7 +487,7 @@ function aiErroAmigavel(m){m=String(m||'');
       return { ai_provider: act, ai_key: (aiCfg[act] && aiCfg[act].key) || '', ai_cfg: cfg };
     }
     async function salvarAi() {
-      if (!currentUser) return false;
+if (!currentUser) return false;
       const pl = aiPayload(); if (!pl.ai_key) { showMsg('Cole a chave do provedor principal.', true); return false; }
       let { error } = await supabaseClient.from('profiles').update(pl).eq('id', currentUser.id);
       if (error && /ai_cfg/.test(error.message)) {
