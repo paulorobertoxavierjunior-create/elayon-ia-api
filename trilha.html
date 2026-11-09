@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Elayon Health • Minha trilha</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg1:#f4f9f4;--bg2:#eaf4f6;--ink:#0a2a2f;--muted:#4a6b70;--line:#d8e8eb;--a:#2a9d8f;--a2:#3ecfcf;--ok:#047857;--err:#b91c1c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;padding:20px 14px;font-family:system-ui,-apple-system,sans-serif;background:radial-gradient(circle at top left,var(--bg1),var(--bg2));color:var(--ink)}
+.w{max-width:520px;margin:0 auto}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--muted);margin-bottom:12px}
+.top a{color:var(--a);text-decoration:none}
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px 18px;box-shadow:0 10px 30px rgba(0,0,0,.05)}
+h1{font-size:21px;letter-spacing:-.4px;margin-bottom:6px}
+.sub{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:14px}
+.tabs{display:flex;gap:4px;background:#eef5f5;border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:14px}
+.tab{flex:1;border:0;background:transparent;padding:9px 2px;border-radius:10px;font-size:12px;font-weight:800;color:var(--muted);cursor:pointer}
+.tab.on{background:#fff;color:var(--ink);box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.step{display:grid;grid-template-columns:34px 1fr;gap:10px;padding:14px 0;border-top:1px solid var(--line)}
+.step:first-of-type{border-top:0}
+.n{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;background:#eef5f5;color:var(--muted);border:1.5px solid var(--line)}
+.step.ok .n{background:#e8fbf3;color:var(--ok);border-color:#a7e9cc}
+.step.agora .n{background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;border-color:transparent}
+.step.trav{opacity:.55}
+.t{font-weight:800;font-size:14px}
+.d{font-size:12px;color:var(--muted);line-height:1.5;margin-top:3px}
+.st{font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-top:6px}
+.step.ok .st{color:var(--ok)}.step.agora .st{color:#0e7490}.step.trav .st{color:var(--muted)}
+.b{display:block;width:100%;margin-top:10px;padding:12px;border:0;border-radius:12px;font-weight:800;font-size:13px;text-align:center;text-decoration:none;color:#fff;background:linear-gradient(135deg,var(--a),var(--a2));cursor:pointer}
+.b.g{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.cred input{width:100%;margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:10px;font:inherit;text-transform:uppercase;letter-spacing:.5px}
+.msg{font-size:12px;margin-top:8px;line-height:1.5;font-weight:600}
+.nota{font-size:11px;color:var(--muted);line-height:1.5;text-align:center;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="w">
+  <div class="top"><span>ELAYON HEALTH · MINHA TRILHA</span><a href="perfil.html">⬅ perfil</a></div>
+  <div class="card">
+    <h1 id="h">Minha trilha</h1>
+    <p class="sub" id="sub">Cada papel segue a mesma ordem: aprender a ferramenta, cadastrar, ativar a credencial e usar a ferramenta real.</p>
+    <nav class="tabs" id="tabs">
+      <button class="tab" data-p="piloto">Piloto</button>
+      <button class="tab" data-p="clinica">Clínica</button>
+      <button class="tab" data-p="master">Master</button>
+    </nav>
+    <div id="lista"><p class="sub">Carregando…</p></div>
+  </div>
+  <p class="nota">O Elayon Health é uma ferramenta de apoio à escuta e ao acompanhamento. Não faz diagnóstico nem substitui avaliação profissional. A credencial é pessoal e entregue após a qualificação.</p>
+</div>
+<script>
+const sb=supabase.createClient('https://xlktkelumtpugidnecbj.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM');
+const $=id=>document.getElementById(id);
+let T=null,P=(new URLSearchParams(location.search).get('p')||'piloto');
+const ROT={
+  piloto:{nome:'Piloto (médico ou profissional de saúde)',pas:[
+    {k:'treino',t:'Treinamento do piloto',d:'Você faz o papel do usuário e aprende a ler os 8 gráficos com a IA, até gerar o PDF do treino. É aprovado ao final.',href:'piloto-guiado.html?modo=treino',bt:'🎓 Fazer o treinamento',ok:t=>t.treino.medico},
+    {k:'cad',t:'Cadastro profissional',d:'Nome, registro (CRM, CRFa, CRP), UF, especialidade e o termo de responsabilidade: o laudo é seu.',href:'cadastro-piloto.html',bt:'🪪 Cadastrar como piloto',ok:t=>t.cadastro_piloto},
+    {k:'cred',t:'Credencial de piloto',d:'Digite a credencial entregue pelo Porta-Voz. Ela é pessoal e só vale depois do treinamento.',cred:true,ok:t=>t.cred.medico},
+    {k:'real',t:'Cockpit real do piloto',d:'Atendimento real: assina o laudo, envia à clínica e acompanha seus usuários.',href:'piloto-guiado.html?modo=real',bt:'🩺 Abrir o cockpit do piloto',ok:()=>false,final:true}]},
+  clinica:{nome:'Clínica',pas:[
+    {k:'treino',t:'Treinamento da clínica',d:'Passo a passo com dados fictícios: cadastrar médicos, receber o laudo, enviar ao médico, validar e certificar, liberar ao usuário.',href:'clinica-treino.html',bt:'🎓 Fazer o treinamento',ok:t=>t.treino.clinica},
+    {k:'cred',t:'Credencial de clínica',d:'Digite a credencial da clínica. Cadastrar 1 médico ativa a clínica.',cred:true,ok:t=>t.cred.clinica},
+    {k:'real',t:'Central da clínica',d:'Ferramenta real: aprova os médicos, recebe os laudos, valida e certifica.',href:'clinica.html',bt:'🏛️ Abrir a Central da clínica',ok:()=>false,final:true}]},
+  master:{nome:'Master (gerência da rede)',pas:[
+    {k:'treino',t:'Treinamento do master',d:'Passo a passo com dados fictícios: emitir credenciais de clínica, acompanhar a rede, dashboard, melhorias, tokens e metadados.',href:'master-treino.html',bt:'🎓 Fazer o treinamento',ok:t=>t.treino.master},
+    {k:'cred',t:'Credencial de master',d:'Digite a credencial do master, emitida em nome da pessoa ou empresa contratante.',cred:true,ok:t=>t.cred.master},
+    {k:'real',t:'Ferramenta do master',d:'Fila de análise, dashboard da rede, clínicas, credenciais e melhorias.',href:'master.html',bt:'🛰️ Abrir o Master',ok:()=>false,final:true}]}
+};
+function desenha(){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.p===P));
+  if(!ROT[P])P='piloto';const R=ROT[P];$('h').textContent='Trilha · '+R.nome;
+  if(!T||!T.logado){$('lista').innerHTML='<p class="sub">Entre na sua conta para ver a sua trilha.</p><a class="b" href="login.html">Entrar</a>';return}
+  let liberado=true,html='';
+  R.pas.forEach((s,i)=>{
+    const feito=s.ok(T),agora=!feito&&liberado,trav=!feito&&!liberado;
+    const cls=feito?'ok':agora?'agora':'trav';
+    const rot=feito?'Concluído ✔':agora?'Próximo passo':'Aguardando o passo anterior';
+    let acao='';
+    if(!trav){
+      if(s.cred&&!feito)acao='<div class="cred"><input id="cc_'+P+'" placeholder="ESH-V8-XXXXXXXX" autocomplete="off"><button class="b" data-cred="'+P+'">🔑 Ativar credencial</button><div class="msg" id="cm_'+P+'"></div></div>';
+      else if(s.href)acao='<a class="b'+(feito&&!s.final?' g':'')+'" href="'+s.href+'">'+(feito&&!s.final?'Rever · ':'')+s.bt+'</a>';
+    }
+    html+='<div class="step '+cls+'"><div class="n">'+(feito?'✔':i+1)+'</div><div><div class="t">'+s.t+'</div><div class="d">'+s.d+'</div><div class="st">'+rot+'</div>'+acao+'</div></div>';
+    if(!feito)liberado=false;
+  });
+  $('lista').innerHTML=html;
+}
+async function carrega(){
+  try{const {data,error}=await sb.rpc('minha_trilha');if(error)throw error;T=data}catch(e){T={logado:true,treino:{},cadastro_piloto:false,cred:{},erro:e.message};}
+  if(T.logado===false){const {data:{session}}=await sb.auth.getSession();if(session)T.logado=true}
+  T.treino=T.treino||{};T.cred=T.cred||{};
+  desenha();
+}
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;P=b.dataset.p;try{history.replaceState(null,'','?p='+P)}catch(_){ }desenha()});
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-cred]');if(!b)return;const p=b.dataset.cred,inp=$('cc_'+p),m=$('cm_'+p);
+  const c=inp.value.trim();m.style.color='';if(!c){m.textContent='Digite a credencial.';m.style.color='#b91c1c';return}
+  b.disabled=true;m.textContent='⏳ conferindo…';
+  const {data,error}=await sb.rpc('resgatar_credencial',{cod:c});b.disabled=false;
+  if(error){m.textContent='Erro: '+error.message;m.style.color='#b91c1c';return}
+  if(!data||!data.ok){m.textContent=((data&&data.erro)||'não foi possível ativar')+'.';m.style.color='#b91c1c';return}
+  const esperado={piloto:['medico','orientador'],clinica:['clinica'],master:['master']}[p]||[];
+  await carrega();
+  if(data.papel==='advanced'){location.href='central.html';return}
+  if(!esperado.includes(data.papel)){P=data.papel==='clinica'?'clinica':data.papel==='master'?'master':'piloto';desenha()}
+});
+carrega();
+</script>
+</body>
+</html>
