@@ -1,0 +1,41 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Planos • Elayon Health</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="health.css">
+<style>
+.hero{background:linear-gradient(135deg,#0a2a2f,#0e4f63 55%,#0b6b57);border:0}.hero h1{color:#fff}.hero p{color:#bfe3e0}
+.pl{border:1px solid var(--l);border-radius:14px;padding:14px;background:#fff;display:grid;gap:6px}.pl h3{margin:0}.pr{font-size:26px;font-weight:800;color:#0b3a82}.pr small{font-size:12px;font-weight:700;color:var(--m)}
+.tag{display:inline-block;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:#e8fbf3;color:#047857;border:1px solid #9fe2c4;width:max-content}
+.dica{border-left:4px solid #06b6d4;background:linear-gradient(90deg,#e6fafd,#fff);border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.55}
+.nota{font-size:11px;color:var(--m);line-height:1.5}
+</style></head><body><div class="w">
+<div class="c hero"><h1>Planos Elayon Health</h1><p>Você paga pelos tokens que usa. O cuidado com o paciente continua sendo cobrado por você, do seu jeito.</p></div>
+<div class="c"><div class="dica"><b>Teste grátis.</b> Todo cadastro novo começa com <b>100 tokens</b>, sem cartão. Dá para emitir laudos e acompanhar usuários antes de decidir.</div></div>
+<div class="c"><h3>Quanto cada ação consome</h3><div id="tar" class="nota">Carregando…</div></div>
+<div id="lista" style="display:grid;gap:14px"></div>
+<div class="c"><h3>Como pagar</h3><p class="nota">Pix ou boleto bancário. Ao escolher um plano o pedido fica registrado e o crédito entra assim que o pagamento é confirmado. Por enquanto a confirmação é feita pela equipe Elayon; a cobrança automática entra junto com a abertura do CNPJ.</p>
+<div class="msg" id="msg"></div></div>
+<div class="c"><p class="nota">O Elayon Health é uma ferramenta de apoio à escuta e ao acompanhamento. Não faz diagnóstico nem substitui avaliação profissional. A decisão clínica é sempre do profissional de saúde.</p></div>
+<p style="text-align:center"><a href="perfil.html" style="color:var(--a);font-weight:700;font-size:11px">⬅ Voltar ao perfil</a></p>
+</div>
+<script src="health-core.js"></script>
+<script>
+const brl=c=>(c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const PU={medico:'Para médicos e profissionais',clinica:'Para clínicas',master:'Para Masters (rede de clínicas)'};
+const TN={laudo_medico:'Laudo emitido',atualizacao_prontuario:'Atualização de prontuário de exercícios',pacote_meta:'Relatório de metadados ao Master',dashboard_master:'Atualização geral do Master'};
+(async()=>{
+  try{const {data}=await sb.from('tarifas').select('motivo,qtd').order('motivo');$('tar').innerHTML=(data&&data.length)?data.map(x=>`${esc(TN[x.motivo]||x.motivo)}: <b>${x.qtd} tokens</b>`).join('<br>'):'Faça login para ver as tarifas.'}catch(e){$('tar').textContent='Faça login para ver as tarifas.'}
+  let PR=0;try{const {data}=await sb.rpc('preco_publico');PR=+data||0}catch(e){}
+  if(PR)$('tar').innerHTML+=`<br><br>Cada token: <b>${brl(Math.round(PR*100)/100*1)}</b>`;
+  const {data,error}=await sb.from('planos').select('*').eq('ativo',true).order('publico').order('ordem');
+  if(error||!data||!data.length){$('lista').innerHTML='<div class="c"><p>Os planos serão publicados em breve. Enquanto isso, o teste de 100 tokens está liberado.</p></div>';return}
+  const g={};data.forEach(p=>(g[p.publico]=g[p.publico]||[]).push(p));
+  const MO={credito:'Você carrega tokens e consome só o seu uso.',piloto:'Você paga o consumo de todos os seus usuários. Eles usam à vontade.',clinica:'A clínica paga o consumo de todos os usuários dos seus médicos.',master:'Você paga o consumo de todas as clínicas da sua rede.'};
+  const valor=p=>PR?Math.round(p.tokens*PR*(1-p.desconto_pct/100)):null;
+  $('lista').innerHTML=Object.keys(PU).filter(k=>g[k]).map(k=>`<div style="display:grid;gap:10px"><h3 style="margin:0 4px">${PU[k]}</h3>${g[k].map(p=>`<div class="pl"><h3>${esc(p.nome)}</h3>${p.desconto_pct?`<span class="tag">${p.desconto_pct}% de desconto</span>`:''}
+   <div class="pr">${p.pos_pago?(PR?`${brl(Math.round(PR*(1-p.desconto_pct/100)*100)/100)} <small>por token consumido</small>`:'<small>valor por token a definir</small>'):(valor(p)==null?'<small>preço a definir</small>':`${brl(valor(p))} <small>${p.tokens} tokens</small>`)}</div>
+   <div class="nota"><b>${p.pos_pago?'Pós-pago':'Pré-pago'}.</b> ${MO[p.modelo]||''}${p.pos_pago?` Limite de ${p.limite_pos} tokens por ciclo; a fatura chega por Pix ou boleto.`:''}</div>${p.descricao?'<div class="nota">'+esc(p.descricao)+'</div>':''}<button class="b" data-p="${p.id}">${p.pos_pago?'Quero ativar':'Quero este plano'}</button></div>`).join('')}</div>`).join('')})();
+$('lista').onclick=async e=>{const id=(e.target.dataset||{}).p;if(!id)return;
+  const {data:{session}}=await sb.auth.getSession();if(!session){location.href='login.html';return}
+  const {error}=await sb.rpc('pedir_plano',{p_plano:id});const m=$('msg');
+  if(error){m.style.color='#b91c1c';m.textContent=/muitos_pedidos/.test(error.message)?'Você já tem 3 pedidos aguardando pagamento.':'Não foi possível registrar: '+error.message;return}
+  m.style.color='';m.textContent='✅ Pedido registrado. Assim que o pagamento for confirmado, os tokens entram no seu saldo.';m.scrollIntoView({behavior:'smooth'})};
+</script></body></html>
