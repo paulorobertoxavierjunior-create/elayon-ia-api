@@ -15,7 +15,7 @@ svg.ln{width:100%;height:auto;background:#f6fcfe;border-radius:12px}svg.ln text{
 .sg{border-left:4px solid #1d4ed8;background:#f4f8ff;border-radius:10px;padding:10px;font-size:12px;line-height:1.5;display:grid;gap:6px}
 </style></head><body><div class="w">
 <div class="c hero"><div class="top"><div><h1>🛰️ Master</h1><p>Gerência · Piloto Elayon Master · Nível 3</p></div><div class="tk"><b id="tk">—</b>tokens</div></div>
-<div class="tb" id="tb" hidden><button data-t="f" class="on">📥 Fila de análise</button><button data-t="d">📊 Dashboard</button><button data-t="a">🧩 Ajustes da programação</button></div></div>
+<div class="tb" id="tb" hidden><button data-t="f" class="on">📥 Fila de análise</button><button data-t="d">📊 Dashboard</button><button data-t="a">🧩 Ajustes da programação</button><button data-t="c">🔑 Credenciais</button></div></div>
 
 <section id="bloq" hidden><div class="c"><h3>Credencial Master</h3><p>Esta área é do Nível 3. A credencial Master é emitida só pela Elayon, direto no banco.</p><a class="b" href="pilotos-oficiais.html">Ativar credencial</a></div></section>
 
@@ -45,6 +45,11 @@ svg.ln{width:100%;height:auto;background:#f6fcfe;border-radius:12px}svg.ln text{
 <div><label>Título</label><input id="aTi"></div><div><label>Detalhe</label><textarea id="aTx"></textarea></div><button class="b" id="bAdd">+ Adicionar</button><div class="msg" id="mA"></div></div>
 <div class="c"><div class="row2"><select id="aFs"><option value="aberto">Abertos</option><option value="feito">Feitos</option><option value="">Todos</option></select><button class="b g" id="bExp">⬇ Exportar diretrizes (.md)</button></div><div id="la" style="display:grid;gap:8px;margin-top:8px"></div></div></section>
 
+<section id="vC" hidden><div class="c"><h3>🔑 Emitir credencial</h3><p>Cada clínica, médico ou orientador recebe um código próprio, de uso único, ligado à conta de quem resgatar. Entregue o código só depois da qualificação e do NDA. Para cancelar, desative: o acesso cai na hora.</p>
+<div class="row2"><div><label>Papel</label><select id="cPa"><option value="clinica">Clínica (gestor da clínica)</option><option value="medico">Médico (Nível 1)</option><option value="orientador">Orientador (Nível 2)</option></select></div><div><label>Emitida para</label><input id="cPara" placeholder="Ex.: Clínica Aurora"></div></div>
+<button class="b" id="bEmi" style="margin-top:8px">Emitir código</button><div class="msg" id="mC"></div><pre id="cNovo" hidden style="font-size:16px;font-weight:800;text-align:center;margin-top:8px"></pre></div>
+<div class="c"><h3>Emitidas</h3><div id="lc" style="display:grid;gap:8px"></div></div></section>
+
 <p style="text-align:center"><a href="perfil.html" style="color:var(--a);font-weight:700;font-size:11px">⬅ Voltar ao perfil</a></p>
 </div></div>
 <script src="elayon-legal.js"></script><script src="health-core.js"></script>
@@ -56,7 +61,7 @@ const dia=d=>{const x=new Date(d),p=n=>String(n).padStart(2,'0');return x.getFul
 const PNOM={1:'do dia',7:'da semana',30:'do mês',365:'do ano',0:'de todo o histórico'};
 const MET=[['f0','F0 (tom)'],['hnr','HNR (timbre)'],['jit','Jitter'],['shim','Shimmer']];
 let PER=7,MSEL='env';
-function aba(k){['f','d','a'].forEach(x=>{t('v'+x.toUpperCase()).hidden=x!==k});[...t('tb').children].forEach(b=>b.classList.toggle('on',b.dataset.t===k));if(k==='a')ajustes();if(k==='d')infoD()}
+function aba(k){['f','d','a','c'].forEach(x=>{t('v'+x.toUpperCase()).hidden=x!==k});[...t('tb').children].forEach(b=>b.classList.toggle('on',b.dataset.t===k));if(k==='a')ajustes();if(k==='d')infoD();if(k==='c')creds()}
 t('tb').onclick=e=>{if(e.target.dataset.t)aba(e.target.dataset.t)};
 t('per').onclick=e=>{if(e.target.dataset.p==null)return;PER=+e.target.dataset.p;[...t('per').children].forEach(b=>b.classList.toggle('on',b===e.target));fila();infoD();t('dash').hidden=!GER[PER];if(GER[PER])render()};
 const noPer=p=>PER===0||(PER===1?dia(p.criado)===dia(new Date()):new Date(p.criado)>=new Date(Date.now()-PER*864e5));
@@ -144,6 +149,14 @@ t('la').onclick=async e=>{const d=e.target.dataset||{};
 t('bExp').onclick=()=>{const L=AJU.filter(a=>a.status==='aberto').sort((a,b)=>a.prioridade-b.prioridade);
   const md=`# Diretrizes de ajuste — Elayon Health\nGerado em ${new Date().toLocaleString('pt-BR')} pelo Piloto Master\n\n`+(L.length?L.map(a=>`## [${PRI[a.prioridade]}] ${a.titulo}\nÁrea: ${AREA[a.area]}\n\n${a.texto||''}\n`).join('\n'):'Nenhum ajuste aberto.\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([md],{type:'text/markdown'}));a.download='diretrizes-elayon-'+dia(new Date())+'.md';a.click()};
+
+const PCR={clinica:'Clínica',medico:'Médico',orientador:'Orientador'};
+async function creds(){const {data,error}=await sb.rpc('listar_credenciais');if(error)return t('lc').innerHTML='<p>'+esc(error.message)+' (rode o clinica.sql, seção 10)</p>';
+  t('lc').innerHTML=(data||[]).length?data.map(c=>`<div class="it"><div class="r"><b>${esc(c.emitida_para||'sem nome')}</b><span class="pill ${c.usada?'ok':''}">${PCR[c.papel]||c.papel}${c.usada?' · resgatada':' · aguardando'}${c.ativo?'':' · desativada'}</span></div><small>${esc(c.codigo)} • emitida em ${String(c.criado).slice(0,10)}</small>${c.papel==='master'?'':`<button class="b g sm" data-cd="${esc(c.codigo)}" data-at="${c.ativo?0:1}">${c.ativo?'Desativar':'Reativar'}</button>`}</div>`).join(''):'<p>Nenhuma credencial emitida ainda.</p>'}
+t('bEmi').onclick=async()=>{const para=t('cPara').value.trim();if(!para)return say('mC','Diga para quem é a credencial.',1);
+  const {data,error}=await sb.rpc('emitir_credencial',{p_papel:t('cPa').value,p_para:para});if(error)return say('mC','❌ '+error.message,1);
+  t('cNovo').textContent=data;t('cNovo').hidden=false;say('mC','Código emitido. Copie e entregue agora.');t('cPara').value='';try{await navigator.clipboard.writeText(data)}catch(e){}creds()};
+t('lc').onclick=async e=>{const d=e.target.dataset||{};if(!d.cd)return;await sb.rpc('alterar_credencial',{p_codigo:d.cd,p_ativo:d.at==='1'});creds()};
 
 (async()=>{try{U=await eu()}catch(e){return}
   let r;try{r=await sb.rpc('meu_nivel')}catch(e){r={}}
