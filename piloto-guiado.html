@@ -62,7 +62,6 @@ details.c>summary{cursor:pointer;font-size:13px;font-weight:800;color:var(--a);l
 <div id="aul" style="display:grid;gap:8px;margin-top:8px"></div>
 <div class="msg" id="m3"></div><button class="b big" id="bGo">⚡ Iniciar análise guiada ▶</button></div></section>
 
-
 <!-- 4 ANÁLISE GUIADA -->
 <section class="scr" id="s4" hidden><div class="c"><h3>🧠 Análise guiada</h3><div class="pb"><i id="pb"></i></div><div class="ch" id="ch" style="margin-top:8px"></div>
 <div id="gstep" hidden class="c gbox" style="margin-top:10px"><div class="row"><b id="gTit" style="font-size:13px;color:#0e7490"></b><span class="pill" id="gNum"></span></div>
@@ -93,7 +92,7 @@ details.c>summary{cursor:pointer;font-size:13px;font-weight:800;color:var(--a);l
 
 <!-- 6 ENTREGA -->
 <section class="scr" id="s6" hidden>
-<div class="c gbox" id="s6tr" hidden><h3>🎓 Treinamento concluído</h3><p>Você leu os 8 gráficos, anotou, assinou e gerou o PDF. O documento de treinamento não tem validade clínica e não ativa a camada Health.</p>
+<div class="c gbox" id="s6tr" hidden><h3>🎓 Treinamento concluído</h3><p>Você leu os 8 gráficos, anotou, assinou e gerou o PDF. O documento de treinamento não tem validade clínica e não ativa a camada Health.</p><p style="margin-top:8px"><b>Próximo passo:</b> cadastre-se como piloto e ative a credencial para abrir o cockpit real.</p><a class="b" href="trilha.html?p=piloto" style="display:block;margin-top:8px;text-align:center;text-decoration:none">🧭 Continuar na minha trilha</a>
 <div class="msg" id="m6a"></div><a class="b big" href="piloto-guiado.html?modo=real" id="bReal">Avançar para o cockpit real ▶</a>
 <div class="row2"><button class="b g" data-go="1">↺ Refazer desde o início</button><button class="b g" data-go="2">Voltar à calibração</button></div>
 <div class="row2"><button class="b g" data-go="4">Rever a análise</button><button class="b g" data-go="5">Rever o laudo</button></div></div>
@@ -248,7 +247,7 @@ function passo(a,k){return new Promise(res=>{const i=ORDEM[k];V.solo(i);
   $('gAsk').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('gAskB').click()}}})}
 
 async function guiado(){
-show(4);$('ch').innerHTML='';$('bLaudo').hidden=true;$('marc').hidden=true;$('obsBox').hidden=true;$('gstep').hidden=true;prog(0);RC=[];renRC();REF=null;TOURS=0;AU.forEach(a=>{a.res=null;a.obs='';a.notasG={}});baseCal();
+  show(4);$('ch').innerHTML='';$('bLaudo').hidden=true;$('marc').hidden=true;$('obsBox').hidden=true;$('gstep').hidden=true;prog(0);RC=[];renRC();REF=null;TOURS=0;AU.forEach(a=>{a.res=null;a.obs='';a.notasG={}});baseCal();
   if(!V)V=Vibes8.mount($('grid'));show(4);
   const nome=cv('c_nome');
   await say(`Olá, ${DOC.nome_completo}. Vou analisar ${AU.length===1?'o áudio':'os '+AU.length+' áudios'} ${MODO==='treino'?'do treinamento':'de '+nome}. Primeiro eu meço tudo, depois leio os gráficos com você, um de cada vez. Você conclui cada passo para eu avançar.`);
@@ -451,9 +450,10 @@ $('bVinc').onclick=async()=>{const cod=$('m_cod').value.trim();if(!cod)return ms
   let CRED=false;try{const {data}=await sb.rpc('tenho_credencial',{p:'medico'});CRED=data===true}catch(e){CRED=false}
   MODO=pedido==='real'&&APR&&CRED?'real':'treino';
   if(pedido==='real'&&APR&&!CRED)window.__semCred=true;
+  try{if(!CRED){const b=$('bReal');if(b)b.hidden=true}}catch(e){}
   prefill();
   if(MODO==='treino'){$('hTit').textContent='Calibração do médico';$('hSub').textContent='Treinamento · você faz o papel do usuário';$('mdTag').textContent='TREINAMENTO';$('mdTag').className='pill t';
-    $('mdTxt').textContent=window.__semCred?'O cockpit real é para Pilotos Oficiais: falta ativar a credencial exclusiva. Peça ao Porta-Voz e ative em Pilotos Oficiais. Enquanto isso, o treinamento está liberado.':pedido==='real'?'O cockpit real abre depois do treinamento. Faça a calibração com a sua própria voz, leia os 8 gráficos com a IA e assine o PDF de treino. Nada é enviado.':'Antes de atender, você treina o fluxo inteiro com a sua própria voz: calibra, lê os 8 gráficos com a IA, anota e assina um PDF de treino. Nada é enviado.';
+    $('mdTxt').textContent=window.__semCred?'O cockpit real é para Pilotos Oficiais: falta ativar a credencial exclusiva. Siga a sua trilha: cadastro profissional e credencial. Enquanto isso, o treinamento está liberado.':pedido==='real'?'O cockpit real abre depois do treinamento. Faça a calibração com a sua própria voz, leia os 8 gráficos com a IA e assine o PDF de treino. Nada é enviado.':'Antes de atender, você treina o fluxo inteiro com a sua própria voz: calibra, lê os 8 gráficos com a IA, anota e assina um PDF de treino. Nada é enviado.';
     $('clBox').hidden=true;$('calTxt0').textContent='Você faz o papel do usuário: grave os 3 áudios aqui ou carregue arquivos seus.';$('bIni').textContent='Iniciar o treinamento ▶'}
   else{$('hTit').textContent='Cockpit do piloto';$('hSub').textContent='Atendimento real · laudo certificado pela clínica';$('mdTag').textContent='REAL';
     $('mdTxt').textContent='Preencha uma vez. Estes dados assinam o laudo. O fluxo: calibração do usuário, cadastro e áudios da consulta, leitura guiada dos gráficos, laudo assinado por você e envio à clínica.';
