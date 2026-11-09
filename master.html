@@ -14,8 +14,8 @@
 svg.ln{width:100%;height:auto;background:#f6fcfe;border-radius:12px}svg.ln text{font-size:9px;fill:#5b7c86}
 .sg{border-left:4px solid #1d4ed8;background:#f4f8ff;border-radius:10px;padding:10px;font-size:12px;line-height:1.5;display:grid;gap:6px}
 </style></head><body><div class="w">
-<div class="c hero"><div class="top"><div><h1>🛰️ Master</h1><p>Gerência · Piloto Elayon Master · Nível 3</p></div><div class="tk"><b id="tk">—</b>tokens</div></div>
-<div class="tb" id="tb" hidden><button data-t="f" class="on">📥 Fila de análise</button><button data-t="d">📊 Dashboard</button><button data-t="a">🧩 Ajustes da programação</button><button data-t="c">🔑 Credenciais</button></div></div>
+<div class="c hero"><div class="top"><div><h1>🛰️ Master</h1><p>Gerência · Piloto Elayon Master</p></div><div class="tk"><b id="tk">—</b>tokens</div></div>
+<div class="tb" id="tb" hidden><button data-t="f" class="on">📥 Fila de análise</button><button data-t="d">📊 Dashboard</button><button data-t="a">🧩 Ajustes da programação</button><button data-t="h">🏥 Clínicas</button><button data-t="c">🔑 Credenciais</button><button data-t="s">💬 Melhorias</button></div></div>
 
 <section id="bloq" hidden><div class="c"><h3>Credencial Master</h3><p>Esta área é do Nível 3. A credencial Master é emitida só pela Elayon, direto no banco.</p><a class="b" href="pilotos-oficiais.html">Ativar credencial</a></div></section>
 
@@ -26,7 +26,7 @@ svg.ln{width:100%;height:auto;background:#f6fcfe;border-radius:12px}svg.ln text{
 
 <section id="vF"><div class="c"><h3>📥 Aguardando análise</h3><p>Pacotes em PDF enviados pelos orientadores. Abra, confira e marque como analisado.</p><div id="lf" style="display:grid;gap:8px"></div></div></section>
 
-<section id="vD" hidden><div class="c"><h3>📊 Dashboard completo</h3><p>Lê todos os pacotes do período, soma os indicadores e sugere ajustes. <b>Custa 20 tokens</b> por geração. Depois de gerado, filtros e gráficos são livres.</p>
+<section id="vD" hidden><div class="c"><h3>📊 Dashboard completo</h3><p>Lê todos os pacotes do período, soma os indicadores e sugere ajustes. <b id="tCusto">Consome tokens</b> por geração (o Advanced não paga). Depois de gerado, filtros e gráficos são livres.</p>
 <div id="dInfo" class="hint"></div><button class="b" id="bGer" style="margin-top:8px">⚡ Gerar dashboard (20 tokens)</button><div class="msg" id="mD"></div></div>
 <div id="dash" hidden>
 <div class="c"><label>Orientador</label><select id="dOri"></select></div>
@@ -45,6 +45,14 @@ svg.ln{width:100%;height:auto;background:#f6fcfe;border-radius:12px}svg.ln text{
 <div><label>Título</label><input id="aTi"></div><div><label>Detalhe</label><textarea id="aTx"></textarea></div><button class="b" id="bAdd">+ Adicionar</button><div class="msg" id="mA"></div></div>
 <div class="c"><div class="row2"><select id="aFs"><option value="aberto">Abertos</option><option value="feito">Feitos</option><option value="">Todos</option></select><button class="b g" id="bExp">⬇ Exportar diretrizes (.md)</button></div><div id="la" style="display:grid;gap:8px;margin-top:8px"></div></div></section>
 
+<section id="vH" hidden><div class="c"><h3>🏥 Clínicas como ferramenta de análise</h3><p>Visão agregada por clínica, sem nome de paciente. Usa o período escolhido acima. O tempo é da emissão do laudo até a certificação pela clínica. Serve para achar gargalo no fluxo.</p><div id="lh" style="display:grid;gap:8px"></div></div>
+<div class="c" id="lkTok" hidden><a class="b g" href="tokens-gestao.html">💳 Gestão de tokens por gestor</a></div></section>
+
+<section id="vS" hidden><div class="c"><h3>💬 Pedir melhoria</h3><p>Mande ao Advanced o que precisa melhorar nos relatórios, nos exercícios ou no código. Ele valida e responde aqui.</p>
+<div class="row2"><div><label>Tipo</label><select id="sTi"><option value="relatorio">Relatório</option><option value="exercicio">Exercícios</option><option value="codigo">Código</option><option value="outro">Outro</option></select></div><div><label>Título</label><input id="sTt"></div></div>
+<label>Detalhe</label><textarea id="sTx"></textarea><button class="b" id="bSol" style="margin-top:8px">Enviar</button><div class="msg" id="mS"></div></div>
+<div class="c"><h3>Meus pedidos</h3><div id="ls" style="display:grid;gap:8px"></div></div></section>
+
 <section id="vC" hidden><div class="c"><h3>🔑 Emitir credencial</h3><p>Cada clínica, médico ou orientador recebe um código próprio, de uso único, ligado à conta de quem resgatar. Entregue o código só depois da qualificação e do NDA. Para cancelar, desative: o acesso cai na hora.</p>
 <div class="row2"><div><label>Papel</label><select id="cPa"><option value="clinica">Clínica (gestor da clínica)</option><option value="medico">Médico (Nível 1)</option><option value="orientador">Orientador (Nível 2)</option></select></div><div><label>Emitida para</label><input id="cPara" placeholder="Ex.: Clínica Aurora"></div></div>
 <button class="b" id="bEmi" style="margin-top:8px">Emitir código</button><div class="msg" id="mC"></div><pre id="cNovo" hidden style="font-size:16px;font-weight:800;text-align:center;margin-top:8px"></pre></div>
@@ -54,14 +62,14 @@ svg.ln{width:100%;height:auto;background:#f6fcfe;border-radius:12px}svg.ln text{
 </div></div>
 <script src="elayon-legal.js"></script><script src="health-core.js"></script>
 <script>
-let U,PAC=[],AJU=[],TOK=0,GER={};
+let U,PAC=[],AJU=[],TOK=0,GER={},NIV=0,TAR={};
 const t=id=>document.getElementById(id);
 const say=(id,x,e)=>{const m=t(id);m.textContent=x||'';m.style.color=e?'#b91c1c':''};
 const dia=d=>{const x=new Date(d),p=n=>String(n).padStart(2,'0');return x.getFullYear()+'-'+p(x.getMonth()+1)+'-'+p(x.getDate())};
 const PNOM={1:'do dia',7:'da semana',30:'do mês',365:'do ano',0:'de todo o histórico'};
 const MET=[['f0','F0 (tom)'],['hnr','HNR (timbre)'],['jit','Jitter'],['shim','Shimmer']];
 let PER=7,MSEL='env';
-function aba(k){['f','d','a','c'].forEach(x=>{t('v'+x.toUpperCase()).hidden=x!==k});[...t('tb').children].forEach(b=>b.classList.toggle('on',b.dataset.t===k));if(k==='a')ajustes();if(k==='d')infoD();if(k==='c')creds()}
+function aba(k){['f','d','a','h','c','s'].forEach(x=>{t('v'+x.toUpperCase()).hidden=x!==k});[...t('tb').children].forEach(b=>b.classList.toggle('on',b.dataset.t===k));if(k==='a')ajustes();if(k==='d')infoD();if(k==='c')creds();if(k==='h')clin();if(k==='s')sols()}
 t('tb').onclick=e=>{if(e.target.dataset.t)aba(e.target.dataset.t)};
 t('per').onclick=e=>{if(e.target.dataset.p==null)return;PER=+e.target.dataset.p;[...t('per').children].forEach(b=>b.classList.toggle('on',b===e.target));fila();infoD();t('dash').hidden=!GER[PER];if(GER[PER])render()};
 const noPer=p=>PER===0||(PER===1?dia(p.criado)===dia(new Date()):new Date(p.criado)>=new Date(Date.now()-PER*864e5));
@@ -84,10 +92,10 @@ t('lf').onclick=async e=>{const d=e.target.dataset||{};
 
 /* ---- dashboard ---- */
 function infoD(){const n=doPer().length;t('dInfo').textContent=n?`${n} pacote(s) ${PNOM[PER]}.${GER[PER]?' Já gerado nesta sessão: gere de novo só se chegarem pacotes novos.':''}`:'Nenhum pacote neste período.';t('bGer').disabled=!n}
-t('bGer').onclick=async()=>{if(TOK<20)return say('mD','Saldo insuficiente: o dashboard custa 20 tokens. Some tokens no Perfil.',1);
+t('bGer').onclick=async()=>{const q=TAR.dashboard_master==null?20:TAR.dashboard_master;
   t('bGer').disabled=true;say('mD','Gerando…');
-  const {data,error}=await sb.rpc('debitar_tokens',{qtd:20,motivo:'dashboard_master',ref:String(PER)});
-  if(error){t('bGer').disabled=false;return say('mD',/sem_saldo/.test(error.message)?'Saldo insuficiente: o dashboard custa 20 tokens.':'❌ '+error.message+' (rode o clinica.sql no Supabase)',1)}
+  const {data,error}=await sb.rpc('consumir',{p_motivo:'dashboard_master',p_ref:String(PER)});
+  if(error){t('bGer').disabled=false;return say('mD',/sem_saldo/.test(error.message)?'Saldo ou limite insuficiente (veja Minha conta).':'❌ '+error.message+' (rode o clinica.sql no Supabase)',1)}
   TOK=data;t('tk').textContent=TOK;GER[PER]=true;say('mD','✅ Dashboard gerado. Saldo: '+TOK+' tokens.');t('dash').hidden=false;
   const ori=[...new Set(doPer().map(p=>p.remetente_nome||'Orientador'))];t('dOri').innerHTML='<option value="">Todos os orientadores</option>'+ori.map(o=>`<option>${esc(o)}</option>`).join('');render();infoD()};
 t('dOri').onchange=render;
@@ -150,7 +158,15 @@ t('bExp').onclick=()=>{const L=AJU.filter(a=>a.status==='aberto').sort((a,b)=>a.
   const md=`# Diretrizes de ajuste — Elayon Health\nGerado em ${new Date().toLocaleString('pt-BR')} pelo Piloto Master\n\n`+(L.length?L.map(a=>`## [${PRI[a.prioridade]}] ${a.titulo}\nÁrea: ${AREA[a.area]}\n\n${a.texto||''}\n`).join('\n'):'Nenhum ajuste aberto.\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([md],{type:'text/markdown'}));a.download='diretrizes-elayon-'+dia(new Date())+'.md';a.click()};
 
-const PCR={clinica:'Clínica',medico:'Médico',orientador:'Orientador'};
+async function clin(){const h=new Date(),a=PER===0?'2000-01-01':dia(new Date(h.getTime()-PER*864e5)),b=dia(h);
+  const {data,error}=await sb.rpc('analise_clinicas',{p_ini:a,p_fim:b});if(error)return t('lh').innerHTML='<p>'+esc(error.message)+' (rode o clinica.sql, seção 11)</p>';
+  t('lh').innerHTML=(data||[]).length?data.map(c=>{const dec=c.certificados+c.recusados,rec=dec?Math.round(c.recusados/dec*100):0;return `<div class="it"><div class="r"><b>${esc(c.clinica)}</b><span class="pill ${c.pendentes?'':'ok'}">${c.pendentes} pendente(s)</span></div>
+  <div class="kp"><div><b>${c.laudos}</b>laudos</div><div><b>${c.horas_medias==null?'—':c.horas_medias+'h'}</b>até certificar</div><div><b>${dec?rec+'%':'—'}</b>recusados</div></div><small>${c.medicos_ativos} médico(s) ativo(s)${c.medicos_pendentes?' • '+c.medicos_pendentes+' pedido(s) de vínculo':''}</small></div>`}).join(''):'<p>Nenhuma clínica cadastrada ainda.</p>'}
+async function sols(){const {data,error}=await sb.from('solicitacoes').select('*').eq('autor_id',U.id).order('criado',{ascending:false});if(error)return t('ls').innerHTML='<p>'+esc(error.message)+' (rode o clinica.sql, seção 12)</p>';
+  t('ls').innerHTML=(data||[]).length?data.map(s=>`<div class="it"><div class="r"><b>${esc(s.titulo)}</b><span class="pill ${s.status==='validada'||s.status==='feita'?'ok':''}">${s.status}</span></div><small>${s.tipo} • ${String(s.criado).slice(0,10)}</small>${s.resposta?'<p><b>Resposta:</b> '+esc(s.resposta)+'</p>':''}</div>`).join(''):'<p>Nenhum pedido ainda.</p>'}
+t('bSol').onclick=async()=>{const ti=t('sTt').value.trim();if(!ti)return say('mS','Dê um título.',1);
+  const {error}=await sb.from('solicitacoes').insert({autor_id:U.id,autor_nome:U._nome||U.email,tipo:t('sTi').value,titulo:ti,texto:t('sTx').value.trim()});if(error)return say('mS','❌ '+error.message,1);t('sTt').value=t('sTx').value='';say('mS','Enviado.');sols()};
+const PCR={clinica:'Clínica',medico:'Médico',orientador:'Orientador',master:'Master',advanced:'Advanced'};
 async function creds(){const {data,error}=await sb.rpc('listar_credenciais');if(error)return t('lc').innerHTML='<p>'+esc(error.message)+' (rode o clinica.sql, seção 10)</p>';
   t('lc').innerHTML=(data||[]).length?data.map(c=>`<div class="it"><div class="r"><b>${esc(c.emitida_para||'sem nome')}</b><span class="pill ${c.usada?'ok':''}">${PCR[c.papel]||c.papel}${c.usada?' · resgatada':' · aguardando'}${c.ativo?'':' · desativada'}</span></div><small>${esc(c.codigo)} • emitida em ${String(c.criado).slice(0,10)}</small>${c.papel==='master'?'':`<button class="b g sm" data-cd="${esc(c.codigo)}" data-at="${c.ativo?0:1}">${c.ativo?'Desativar':'Reativar'}</button>`}</div>`).join(''):'<p>Nenhuma credencial emitida ainda.</p>'}
 t('bEmi').onclick=async()=>{const para=t('cPara').value.trim();if(!para)return say('mC','Diga para quem é a credencial.',1);
@@ -160,6 +176,9 @@ t('lc').onclick=async e=>{const d=e.target.dataset||{};if(!d.cd)return;await sb.
 
 (async()=>{try{U=await eu()}catch(e){return}
   let r;try{r=await sb.rpc('meu_nivel')}catch(e){r={}}
-  if((+(r&&r.data)||0)<3){t('bloq').hidden=false;return}
-  t('app').hidden=false;t('tb').hidden=false;await saldo();await carrega();fila();infoD()})();
+  NIV=+(r&&r.data)||0;if(NIV<3){t('bloq').hidden=false;return}
+  if(NIV<4)t('cPa').innerHTML='<option value="clinica">Clínica (gestor da clínica)</option>';else{t('cPa').innerHTML+='<option value="master">Master (cliente)</option>';t('lkTok').hidden=false}
+  try{const {data:tr}=await sb.from('tarifas').select('motivo,qtd');(tr||[]).forEach(x=>TAR[x.motivo]=x.qtd)}catch(e){}
+  t('bGer').textContent=NIV>=4?'⚡ Gerar dashboard (grátis para o Advanced)':'⚡ Gerar dashboard ('+(TAR.dashboard_master==null?20:TAR.dashboard_master)+' tokens)';t('tCusto').textContent=NIV>=4?'Grátis para você':'Custa '+(TAR.dashboard_master==null?20:TAR.dashboard_master)+' tokens'
+  t('app').hidden=false;t('tb').hidden=false;await saldo();await carrega();fila();infoD();if(location.hash==='#ajustes')aba('a')})();
 </script></body></html>
