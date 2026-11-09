@@ -31,6 +31,7 @@
   <div class="num">WhatsApp: 92 8480-5386</div>
   <div class="cred"><b>🔑 Já recebi minha credencial</b><p style="margin:4px 0 0;font-size:12px">A credencial é exclusiva e entregue pelo Porta-Voz depois da qualificação. Entre na sua conta e digite o código.</p>
   <input id="cc" placeholder="ESH-V8-XXXXXXXX" autocomplete="off"><button id="bc">Ativar credencial</button><div id="cm"></div></div>
+  <a class="back" href="trilha.html" style="display:block;margin-top:18px">🧭 Minha trilha: treinamento, cadastro e credencial</a>
   <a class="back" href="espaco-piloto.html" style="display:block;margin-top:18px">Já sou piloto cadastrado: entrar no Espaço do Piloto</a>
   <a class="back" href="perfil.html" style="margin-top:12px">⬅ Voltar ao perfil</a>
   <p class="nota">O Elayon Health é uma ferramenta de apoio à escuta e ao acompanhamento. Não faz diagnóstico nem substitui avaliação profissional.</p>
@@ -44,6 +45,7 @@ document.getElementById('bc').onclick=async()=>{const c=document.getElementById(
   if(!data||!data.ok)return cm(((data&&data.erro)||'não foi possível ativar')+'.',1);
   const L='style="color:#0891b2;font-weight:800"';
   if(data.papel==='orientador')return cm('✅ Credencial de <b>Piloto Orientador (Nível 2)</b> ativada. Abra a <a href="supervisao.html" '+L+'>Supervisão</a>.');
+  if(data.papel==='advanced')return cm('✅ Credencial <b>Advanced</b> ativada. Abra a <a href="central.html" '+L+'>Central</a>.');
   if(data.papel==='master')return cm('✅ Credencial de <b>Piloto Master (Nível 3)</b> ativada. Abra o <a href="master.html" '+L+'>Master</a>.');
   cm(data.papel==='clinica'?'✅ Credencial de <b>clínica</b> ativada. Abra a <a href="clinica.html" style="color:#0891b2;font-weight:800">Central da clínica</a>.':'✅ Credencial de <b>médico oficial</b> ativada. Faça o treinamento e abra o cockpit real pelo <a href="perfil.html" style="color:#0891b2;font-weight:800">perfil</a>.')};
 </script>
