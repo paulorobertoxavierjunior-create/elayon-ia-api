@@ -108,7 +108,6 @@ addEventListener('resize',fit);
 const fade=(x,W,h,a)=>{x.globalCompositeOperation='source-over';x.fillStyle=`rgba(255,255,255,${a})`;x.fillRect(0,0,W,h)};   // fundo branco; o rastro some em branco
 const dot=(x,px,py,r,c)=>{x.fillStyle=c;x.beginPath();x.arc(px,py,r,0,6.2832);x.fill()};
 
-
 /* ===== FIFO persistente ===== */
 const DB=new Promise((ok,no)=>{const r=indexedDB.open('crs_fifo',1);r.onupgradeneeded=()=>r.result.createObjectStore('s',{keyPath:'k'});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
 const tx=async(m,f)=>{const d=await tout(DB,3000,null);if(!d)throw new Error('armazenamento local indisponível');return new Promise((ok,no)=>{const t=d.transaction('s',m),q=f(t.objectStore('s'));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>no(t.error)})};
@@ -127,7 +126,7 @@ async function carregar(){
   U.id=session.user.id;U.email=session.user.email||'';U.src=lerSrc();
   try{await legalGate(sb,session.user,'usuario')}catch(e){}
   const {data:p}=await tout(sb.from('profiles').select('*').eq('id',U.id).single(),8000,{data:null});
-  U.nome=(p&&p.nome)||(session.user.email||'Operador').split('@')[0];U.tokens=(p&&p.tokens)??0;
+  U.nome=(p&&p.nome)||(session.user.email||'Operador').split('@')[0];U.tokens=(p&&p.tokens)??0;try{const {data:cb}=await sb.rpc('minha_cobertura');U.coberto=!!(cb&&cb.pagador_id&&cb.pagador_id!==session.user.id)}catch(e){U.coberto=false}
   U.prov=(p&&p.ai_provider)||'gemini';U.key=(p&&p.ai_key)||'';U.pr=p||{};U.proto=(p&&(p.protocolo_ia||p.protocolo))||'';
   aplicarHealth(p);if(p&&p.avatar_url)$('hudAvatar').src=p.avatar_url;hud();
   const todas=(await tout(tx('readonly',s=>s.getAll()).catch(()=>[]),3000,[]))||[];
@@ -136,17 +135,13 @@ async function carregar(){
   const ini=+localStorage.getItem('crs_ini_'+U.id)||0;U.ciclo=Math.min(CFG.MAX,U.sessoes.filter(s=>s.ts>ini).length);
   U.calibrado=!!(session.user.user_metadata&&session.user.user_metadata.crs_calibrado)||localStorage.getItem('crs_ok_'+U.id)==='1';
   renderFifo();if(U.calibrado)U.ciclo=CFG.MAX;layers();
-  if(U.tokens<custo()){aviso('Saldo insuficiente de tokens.');prontoStart();return setMic('Saldo insuficiente',true)}
+  if(!U.coberto&&U.tokens<custo()){aviso('Saldo insuficiente de tokens.');prontoStart();return setMic('Saldo insuficiente',true)}
   micPronto();prontoStart()
 }
 async function debitar(){
-  for(let i=0;i<3;i++){
-    const {data:r,error}=await sb.from('profiles').select('tokens').eq('id',U.id).single();
-    if(error||!r)throw new Error('saldo');
-    if(r.tokens<custo()){U.tokens=r.tokens;hud();throw new Error('sem_saldo')}
-    const {data:u}=await sb.from('profiles').update({tokens:r.tokens-custo()}).eq('id',U.id).eq('tokens',r.tokens).select('tokens');
-    if(u&&u.length){U.tokens=u[0].tokens;hud();return}
-  }throw new Error('conflito')
+  const {data,error}=await sb.rpc('debitar_tokens',{qtd:custo(),motivo:'cockpit_fala',ref:null});
+  if(error){if(/sem_saldo|limite_pos/.test(error.message)){hud();throw new Error('sem_saldo')}throw new Error('saldo')}
+  U.tokens=data;hud()
 }
 function travado(){layers()}
 async function travar(){U.calibrado=true;localStorage.setItem('crs_ok_'+U.id,'1');try{await sb.auth.updateUser({data:{crs_calibrado:true}})}catch(e){}travado()}
@@ -154,7 +149,7 @@ async function refazer(){
   U.calibrado=false;U.ciclo=0;localStorage.removeItem('crs_ok_'+U.id);localStorage.setItem('crs_ini_'+U.id,Date.now());
   try{await sb.auth.updateUser({data:{crs_calibrado:false}})}catch(e){}
   aviso('');renderFifo();layers();
-  if(U.tokens<custo()){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
+  if(!U.coberto&&U.tokens<custo()){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
   micPronto();iaIntro()
 }/* ===== DSP fonoaudiológico (20 Hz) — estimativas acústicas de microfone ===== */
 const med=a=>a.length?a.reduce((p,q)=>p+q,0)/a.length:0;
@@ -320,7 +315,7 @@ let mr=null,chunks=[],t0=0,lim=0,live=null;
 async function crsToggle(){
   if(!U.id)return;
   if(!rec){
-    if(U.tokens<custo()){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
+    if(!U.coberto&&U.tokens<custo()){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}
     try{await crsAudio()}catch(e){return alert(e&&e.name==='NotReadableError'?'O microfone está em uso por outro app ou aba. Feche-os e tente de novo.':'Microfone indisponível')}
     try{speechSynthesis.cancel()}catch(e){}IA.on=false;
     rec={tk:[]};chunks=[];mr=new MediaRecorder(R.stream);mr.ondataavailable=e=>chunks.push(e.data);
@@ -379,7 +374,7 @@ async function processar(blob){
     document.dispatchEvent(new CustomEvent('crs:sessao',{detail:{res,txt}}));
     const fim=!antes&&U.ciclo>=CFG.MAX;if(fim)await travar();
     await iaFalar(txt,res,img,fim);
-    if(U.tokens<custo()){aviso('Saldo insuficiente de tokens.');setMic('Saldo insuficiente',true)}else micPronto()
+    if(!U.coberto&&U.tokens<custo()){aviso('Saldo insuficiente de tokens.');setMic('Saldo insuficiente',true)}else micPronto()
   }catch(e){aviso('❌ Erro ao processar a sessão: '+(e&&e.message||e));if(bub)bub.textContent='(erro ao processar)';micPronto()}
 }/* ===== Chat com a IA do usuário ===== */
 const SYS='Você é o Elayon Core, guia de calibração e acompanhamento vocal do Elayon Space, apoiando um profissional de saúde. Fale em português do Brasil, tom calmo e acolhedor, no máximo 4 frases curtas, sem listas nem emojis. NUNCA dê diagnóstico: descreva achados em linguagem simples, compare com as sessões anteriores, sugira exercícios leves ou autoexame e indique que os valores são estimativas acústicas de microfone de celular, cabendo a avaliação ao profissional. REGRAS DE SEGURANÇA: nunca diga que o usuário "melhorou" ou "piorou" como juízo clínico, diga que a medida "mudou em relação à referência"; não prometa cuidado, tratamento nem resultado; lembre, quando fizer sentido, que quem interpreta é o médico. Se o usuário relatar fala que piorou de repente, fraqueza num lado do corpo, boca torta, confusão, dor de cabeça forte e súbita, ou pensamentos de se machucar, a PRIMEIRA coisa a dizer é para ligar para o SAMU (192) ou procurar emergência agora (em sofrimento emocional, CVV 188), antes de qualquer análise. Os blocos [SISTEMA] e os dados CRS são internos: interprete, não recite números crus. Quando houver imagem, é o espectroide da sessão (espectrograma com F0, linhas das dimensões I a XI, faixa voz/silêncio e variação por segundo; linhas tracejadas marcam retomadas sonoras). No encerramento, agradeça e despeça-se.';
