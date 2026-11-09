@@ -98,7 +98,6 @@
 
     <p class="sub">Identidade do Operador & Parâmetros de Acesso</p>
 
-    
     <!-- Metadados & Tokens -->
     <section class="box">
       <div class="row"><span class="label">ID</span><span class="value" id="userId" style="font-size:9px; font-family:monospace;">A carregar...</span></div>
@@ -107,7 +106,7 @@
         <span class="label">Tokens</span>
         <div class="tokens-group" style="display: flex; align-items: center; gap: 8px;">
           <span class="value" id="userTokens" style="color: var(--accent);">100</span>
-          <button style="background:var(--accent); color:#fff; border:none; width:22px; height:22px; border-radius:50%; font-weight:800; cursor:pointer;" id="btnAddToken" title="Somar 100 tokens">+</button>
+          <button style="background:var(--accent); color:#fff; border:none; width:22px; height:22px; border-radius:50%; font-weight:800; cursor:pointer;" id="btnAddToken" title="Pedir mais 100 tokens">+</button>
           <small style="color:var(--muted);font-weight:700;font-size:10px">de 100 em 100</small>
         </div>
       </div>
@@ -177,9 +176,17 @@
       <a class="btn logout" id="btnTreinoMedico" data-p="medico" href="piloto-guiado.html?modo=treino" style="border-color:var(--accent);color:var(--ink)">🎓 Calibração do médico (treinamento)<br><span style="font-size:10px;font-weight:700;color:var(--muted)">Você faz o papel do usuário e aprende a ler os gráficos com a IA</span></a>
       <a class="btn primary" id="btnSupervisao" data-nivel="2" href="supervisao.html" style="font-size:13px;padding:13px">🔎 Supervisão · Piloto Orientador<br><span style="font-size:10px;font-weight:700;opacity:.92">Validar resultados, ajustar exercícios e enviar metadados · 5 tokens por envio</span></a>
       <a class="btn primary" id="btnMaster" data-nivel="3" href="master.html" style="font-size:13px;padding:13px">🛰️ Master · Gerência<br><span style="font-size:10px;font-weight:700;opacity:.92">Fila de análise, dashboard (20 tokens) e ajustes da programação</span></a>
+      <a class="btn primary" id="btnTokens" data-nivel="4" href="tokens-gestao.html" style="font-size:13px;padding:13px">💳 Tokens por gestor<br><span style="font-size:10px;font-weight:700;opacity:.92">Consumo, cobrança, pedidos e crédito</span></a>
+      <div id="btnManutWrap" style="text-align:center;margin-top:6px">
+        <button type="button" id="btnManut" tabindex="-1" aria-hidden="true" style="background:none;border:0;color:var(--muted);opacity:.45;font-size:10px;letter-spacing:.06em;padding:6px 10px;cursor:default">Manutenção</button>
+        <div id="manutBox" style="margin-top:8px;display:none;gap:6px"><input id="manutPw" type="password" autocomplete="off" placeholder="senha" style="flex:1;padding:10px;border:1px solid var(--accent);border-radius:10px"><button type="button" id="manutGo" class="btn primary" style="padding:10px 14px;font-size:12px">Abrir</button></div>
+        <div id="manutMsg" style="font-size:11px;color:#b91c1c;margin-top:4px"></div>
+      </div>
       <a class="btn logout" id="btnEspacoPiloto" data-p="medico" href="espaco-piloto.html" style="border-color:var(--accent);color:var(--ink)">📋 Espaço do piloto: treinos dos usuários</a>
       <a class="btn logout" id="btnCadMedico" data-p="medico" href="cadastro-piloto.html" style="border-color:var(--accent);color:var(--ink)">🪪 Cadastro profissional</a>
       <a class="btn primary" id="btnClinica" data-p="clinica" href="clinica.html" style="font-size:13px;padding:13px">🏛️ Central da clínica<br><span style="font-size:10px;font-weight:700;opacity:.92">Validar médicos e certificar laudos</span></a>
+      <a class="btn logout" id="btnConta" href="minha-conta.html" style="border-color:var(--accent);color:var(--ink)">🪙 Minha conta · tokens e quem paga</a>
+      <a class="btn logout" id="btnPlanos" href="planos.html" style="border-color:var(--accent);color:var(--ink)">🛒 Planos</a>
       <a class="btn logout" id="btnGuia" href="guia.html" style="border-color:var(--accent);color:var(--ink)">💡 Instrução: o que cada medida significa<br><span style="font-size:10px;font-weight:700;color:var(--muted)">Jitter, shimmer, HNR e anamnese em linguagem simples</span></a>
       </div></details>
       <div style="border:1px solid var(--line,#cfe6ec);border-radius:12px;padding:10px 12px;background:#fff"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:12px">🎙️ ELAYON CRS</b><span style="font-size:9px;font-weight:800;color:#047857;background:#e8fbf3;border-radius:20px;padding:3px 9px">BASE DE TODAS AS CAMADAS</span></div><div style="font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:4px">A escuta da fala humana como dado computável. Roda por baixo do Health e das camadas seguintes.</div></div>
@@ -258,7 +265,7 @@
       clinica: 'A clínica é a central: aprova os médicos vinculados, valida e certifica os laudos, e os libera aos usuários.'
     };
     let NIVEL = 0;
-    const NIVEL_TXT = ['Usuário', 'Nível 1 · Piloto Médico', 'Nível 2 · Piloto Orientador', 'Nível 3 · Piloto Master'];
+    const NIVEL_TXT = ['Usuário', 'Nível 1 · Piloto Médico', 'Nível 2 · Piloto Orientador', 'Nível 3 · Piloto Master', 'Nível 4 · Piloto Advanced'];
     let PAPEL_ATUAL = 'usuario';
     async function carregaNivel() {
       try {
@@ -269,7 +276,7 @@
       aplicaPapel(PAPEL_ATUAL, null);
       try {
         const { data } = await supabaseClient.from('tokens_log').select('*').eq('user_id', currentUser.id).order('criado', { ascending: false }).limit(3);
-        const L = data || [], N = { pacote_meta: 'envio de metadados', dashboard_master: 'dashboard master' };
+        const L = data || [], N = { pacote_meta: 'relatório ao master', dashboard_master: 'atualização do master', laudo_medico: 'laudo', atualizacao_prontuario: 'atualização de prontuário', cockpit_fala: 'fala', compra: 'compra', cortesia: 'cortesia' };
         document.getElementById('tokLog').textContent = L.length ? 'Últimos consumos: ' + L.map(x => (N[x.motivo] || x.motivo) + ' (' + x.qtd + ')').join(' · ') : '';
       } catch (e) { /* tabela ainda não existe */ }
     }
@@ -356,10 +363,10 @@
 
     document.getElementById('btnSalvarAiConfig').addEventListener('click', async () => { if (await salvarAi()) showMsg('✅ Calibração da IA salva.'); });
 
-    document.getElementById('btnAddToken').addEventListener('click', () => {
-      currentTokens += 100;
-      document.getElementById('userTokens').textContent = currentTokens;
-      showMsg('+100 tokens. Clique em Salvar Alterações para gravar.');
+    document.getElementById('btnAddToken').addEventListener('click', async () => {
+      const { error } = await supabaseClient.rpc('pedir_tokens', { p_qtd: 100 });
+      if (error) return showMsg(/muitos_pedidos/.test(error.message) ? 'Você já tem 3 pedidos aguardando confirmação.' : 'Não foi possível pedir: ' + error.message, true);
+      showMsg('Pedido de +100 tokens enviado. O saldo sobe quando o pagamento for confirmado.');
     });
 
     document.getElementById('btnSaveChanges').addEventListener('click', async () => {
@@ -368,8 +375,8 @@
       aiGuardaForm();
 
       const { error } = await supabaseClient.from('profiles').upsert({
-        id: currentUser.id, email: currentUser.email, nome: finalName, tokens: currentTokens, ...aiPayload()
-      }).then(async (r1) => (r1.error && /ai_cfg/.test(r1.error.message)) ? supabaseClient.from('profiles').upsert({ id: currentUser.id, email: currentUser.email, nome: finalName, tokens: currentTokens, ai_provider: aiPayload().ai_provider, ai_key: aiPayload().ai_key }) : r1);
+        id: currentUser.id, email: currentUser.email, nome: finalName, ...aiPayload()
+      }).then(async (r1) => (r1.error && /ai_cfg/.test(r1.error.message)) ? supabaseClient.from('profiles').upsert({ id: currentUser.id, email: currentUser.email, nome: finalName, ai_provider: aiPayload().ai_provider, ai_key: aiPayload().ai_key }) : r1);
 
       if (!error) showMsg('✅ Perfil gravado com sucesso!');
       else showMsg('Erro ao gravar: ' + error.message, true);
@@ -470,6 +477,28 @@ function aiErroAmigavel(m){m=String(m||'');
     aiMostra('gemini');
 
     initAuth();
-  </script>
+  
+    // Manutenção (inanimada): 5 toques em menos de 5 segundos abrem o campo. A senha é conferida NO SERVIDOR (rpc acesso_manutencao),
+    // que libera 30 minutos de acesso Advanced a esta conta. Erros repetidos bloqueiam a tentativa.
+    (function () {
+      let toques = [];
+      const box = document.getElementById('manutBox'), msg = document.getElementById('manutMsg');
+      document.getElementById('btnManut').addEventListener('click', () => {
+        const agora = Date.now(); toques = toques.filter(t => agora - t < 5000); toques.push(agora);
+        if (toques.length >= 5) { toques = []; box.style.display = 'flex'; document.getElementById('manutPw').focus(); }
+      });
+      async function abre() {
+        msg.textContent = '';
+        const v = document.getElementById('manutPw').value; if (!v) return;
+        const { data, error } = await supabaseClient.rpc('acesso_manutencao', { p_senha: v });
+        document.getElementById('manutPw').value = '';
+        if (error || !data) { msg.textContent = 'Não foi possível agora.'; return; }
+        if (data.ok) { location.href = 'central.html'; return; }
+        msg.textContent = data.erro === 'bloqueado' ? 'Muitas tentativas. Tente mais tarde.' : data.erro === 'nao_configurado' ? 'Manutenção não configurada.' : 'Senha incorreta.';
+      }
+      document.getElementById('manutGo').addEventListener('click', abre);
+      document.getElementById('manutPw').addEventListener('keydown', e => { if (e.key === 'Enter') abre(); });
+    })();
+</script>
 </body>
 </html>
