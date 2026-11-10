@@ -1,0 +1,41 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Elayon Master</title><link rel="manifest" href="/app-master.webmanifest"><link rel="apple-touch-icon" href="/icons/apple-master.png"><link rel="icon" href="/icons/icon-master-192.png"><meta name="theme-color" content="#0e5e66"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Elayon Master"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><script src="/app-core.js"></script><script>
+let P=null;
+Elx.inicia({tipo:'candidato',nome:'Elayon Master',cor:'#0e5e66',titulo:'Elayon Master',frase:'Responsável pela sua operação. O acesso é por convite do Advanced.'},async(u)=>{
+ const A=$('app');A.innerHTML='<div class="c"><p>Carregando…</p></div>';
+ let T={treino:{},cred:{}};try{T=await rpc('minha_trilha')}catch(e){}
+ if(!(T.cred&&T.cred.master))return jornada(T);
+ try{await rpc('master_clinica')}catch(e){}
+ painel();
+});
+function jornada(T){const t=T.treino||{},c=T.cred||{};
+ const S=[['Conhecer a ferramenta e calibrar','Treine como usuário e calibre de verdade. Quando passar, pede a credencial.',!!t.medico,'/trilha.html?p=piloto'],
+  ['Credencial e cadastro oficial de médico','Com a credencial liberada, faça o registro oficial (CRM e conselho).',!!c.medico&&!!T.cadastro_piloto,'/trilha.html?p=piloto'],
+  ['Treino da clínica','Use a ferramenta completa como tutorial, cadastrando um paciente de teste.',!!t.clinica,'/trilha.html?p=clinica'],
+  ['Treino do master e avaliação','Perguntas uma de cada vez. Você refaz até acertar todas.',!!t.master,'/trilha.html?p=master'],
+  ['Credencial de master','Com a avaliação aprovada, você pede a credencial e recebe o painel completo.',!!c.master,'/trilha.html?p=master']];
+ const at=S.findIndex(s=>!s[2]);
+ $('app').innerHTML='<div class="c cen"><img class="logo" src="/icons/logo-emblema.png" alt=""><h1>Sua jornada</h1><p>Você começa conhecendo a ferramenta por dentro. A cada etapa aprovada, o Advanced libera a próxima credencial.</p></div>'
+  +'<div class="c">'+S.map((s,i)=>'<div class="step '+(s[2]?'ok':i===at?'at':'')+'"><div class="n">'+(s[2]?'✓':i+1)+'</div><div><b>'+s[0]+'</b><p>'+s[1]+'</p></div></div>').join('')+'</div>'
+  +(at>=0?'<a class="b" href="'+S[at][3]+'">Continuar: '+S[at][0]+'</a>':'')
+  +'<button class="b g" onclick="location.reload()">Atualizar</button>'}
+async function painel(){
+ try{P=await rpc('meu_painel_master')}catch(e){$('app').innerHTML='<div class="c"><h2>Algo falhou</h2><p>'+esc(msg(e))+'</p></div>';return}
+ let cv=[];try{cv=await rpc('meus_convites')}catch(e){}
+ const pc=P.preco_token_centavos||0,v=t=>pc?brl(Math.round(t*pc)):'—';
+ $('app').innerHTML='<div class="tabs" id="tb"><button class="tab on" data-p="pn">Painel</button><button class="tab" data-p="md">Médicos</button><button class="tab" data-p="cl">Clínica</button><button class="tab" data-p="co">Consumo</button><button class="tab" data-p="fe">Ferramentas</button></div>'
+ +'<div class="pane on" id="p-pn">'+(P.saldo_baixo?'<div class="alerta">⚠️ Saldo baixo: restam '+P.saldo+' tokens. Fale com o Advanced para renovar. O app dos seus usuários continua disponível; só o que gasta token pausa.</div>':'')
+  +'<div class="c"><h2>'+esc(P.nome)+'</h2><p>Você responde pela sua operação e paga o consumo todo. O usuário nunca é cobrado.</p><div class="kp"><div><b>'+P.saldo+'</b>tokens</div><div><b>'+(P.medicos||[]).length+'</b>médicos</div><div><b>'+P.usuarios+'</b>usuários</div></div>'
+  +'<div class="kp"><div><b>'+P.laudos.enviados+'</b>laudos</div><div><b>'+P.laudos.certificados+'</b>certificados</div><div><b>'+P.laudos.pendentes+'</b>a certificar</div></div></div></div>'
+ +'<div class="pane" id="p-md"><div class="c"><h3>Convidar um médico</h3><p>O médico abre o app Elayon Médico com o convite, faz o cadastro oficial e já entra na sua clínica.</p><input id="mN" placeholder="Nome do médico"><button class="b" id="mB">Gerar convite de médico</button><div id="mR"></div><div class="msg" id="mM"></div></div>'
+  +'<div class="c"><h3>Seus médicos</h3>'+((P.medicos||[]).map(m=>'<div class="it"><div class="r"><b>'+esc(m.nome)+'</b><span class="pill ok">'+m.usuarios+' usuário(s)</span></div><small>'+m.laudos+' laudo(s) · desde '+String(m.desde).slice(0,10)+'</small></div>').join('')||'<p>Nenhum ainda.</p>')+'</div>'
+  +'<div class="c"><h3>Convidar um usuário</h3><p>Como você também atende, os seus convites criam o vínculo com você.</p><input id="uN" placeholder="Nome do usuário"><button class="b g" id="uB">Gerar convite de usuário</button><div id="uR"></div></div>'
+  +'<div class="c"><h3>Convites emitidos</h3>'+(cv.map(x=>'<div class="it"><div class="r"><b>'+esc(x.para_nome||x.tipo)+'</b><span class="pill'+(x.usado_em?' ok':'')+'">'+(x.usado_em?'usado':'aberto')+'</span></div><small>'+x.tipo+' · '+esc(x.codigo)+(x.usado_por_nome?' · '+esc(x.usado_por_nome):'')+'</small></div>').join('')||'<p>Nenhum.</p>')+'</div></div>'
+ +'<div class="pane" id="p-cl"><div class="c"><h3>'+esc((P.clinica||{}).nome||'Sua clínica')+'</h3><p>A clínica é uma aba sua: aqui chegam os laudos dos seus médicos para você conferir, certificar e liberar.</p><div class="kp"><div><b>'+P.laudos.pendentes+'</b>a certificar</div><div><b>'+P.laudos.certificados+'</b>certificados</div><div><b>'+P.laudos.enviados+'</b>recebidos</div></div><a class="b" href="/clinica.html">Receber e certificar laudos</a><a class="b g" href="/supervisao.html">Supervisão dos usuários</a></div></div>'
+ +'<div class="pane" id="p-co"><div class="c"><h3>Consumo dos últimos 30 dias</h3><p>Você paga tudo. Os valores abaixo são só para a sua gestão.</p><div class="kp"><div><b>'+P.consumo_30d+'</b>tokens</div><div><b>'+v(P.consumo_30d)+'</b>valor</div><div><b>'+P.saldo+'</b>saldo</div></div></div>'
+  +'<div class="c"><h3>Por médico</h3>'+((P.medicos||[]).map(m=>'<div class="it"><div class="r"><b>'+esc(m.nome)+'</b><b>'+v(m.tokens_30d)+'</b></div><small>'+m.tokens_30d+' tokens dos usuários dele</small></div>').join('')||'<p>Sem consumo.</p>')+'</div></div>'
+ +'<div class="pane" id="p-fe"><div class="c"><h3>Ferramentas</h3><a class="b" href="/piloto.html">Atender como médico</a><a class="b g" href="/cockpit.html">Cockpit para treinar médicos</a><a class="b g" href="/master.html">Dashboard e metadados</a><a class="b g" href="/master-treino.html">Rever o meu treinamento</a></div></div>';
+ $('tb').onclick=e=>{const b=e.target.closest('.tab');if(!b)return;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('.pane').forEach(x=>x.classList.toggle('on',x.id==='p-'+b.dataset.p))};
+ const conv=async(tipo,ni,res,msgEl)=>{const n=$(ni).value.trim();if(!n)return;try{const c=await rpc('gerar_convite',{p_tipo:tipo,p_nome:n});const app=tipo==='medico'?'app-medico.html':'app-usuario.html';const txt='Convite Elayon para '+n+': '+c+' · abra '+location.origin+'/'+app;
+  $(res).innerHTML='<div class="cod">'+esc(c)+'</div><a class="b g" style="margin-top:8px" href="https://wa.me/?text='+encodeURIComponent(txt)+'">Enviar por WhatsApp</a>';if(msgEl){$(msgEl).className='msg ok';$(msgEl).textContent='Válido por 7 dias, uso único.'}}catch(e){if(msgEl){$(msgEl).className='msg er';$(msgEl).textContent=msg(e)}}};
+ $('mB').onclick=()=>conv('medico','mN','mR','mM');$('uB').onclick=()=>conv('usuario','uN','uR',null)}
+</script></body></html>
