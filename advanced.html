@@ -1,0 +1,207 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Advanced • Elayon Space Health</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="health.css">
+<style>
+.hero{background:linear-gradient(135deg,#061a4a,#0b3a82 60%,#0e7490);border:0}.hero h1{color:#fff}.hero p{color:#cfe3ff}
+.it{border:1px solid var(--l);border-radius:12px;padding:10px;display:grid;gap:6px;background:#fff}.it .r{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pill{display:inline-block;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:#fff7e0;color:#92400e;border:1px solid #f3dca0}.pill.ok{background:#e8fbf3;color:#047857;border-color:#9fe2c4}.pill.er{background:#fff0f0;color:#b91c1c;border-color:#f3b4b4}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}[hidden]{display:none!important}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kp div{border:1px solid var(--l);border-radius:12px;padding:8px;text-align:center;background:linear-gradient(180deg,#fff,#f1fcfe);font-size:10px;color:var(--m)}.kp b{display:block;font-size:19px;color:#0b3a82}
+.dica{border-left:4px solid #06b6d4;background:linear-gradient(90deg,#e6fafd,#fff);border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.55}
+.soon{opacity:.6;border:1px dashed var(--l);border-radius:12px;padding:10px;font-size:12px}
+details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
+.tabs{display:flex;gap:4px;overflow-x:auto;max-width:100%;min-width:0;background:#eef5f5;border:1px solid var(--l);border-radius:14px;padding:4px;margin-bottom:12px}.tab{flex:1;white-space:nowrap;border:0;background:transparent;padding:9px 10px;border-radius:10px;font-size:12px;font-weight:800;color:var(--m);cursor:pointer}.tab.on{background:#fff;color:#0b3a82;box-shadow:0 1px 6px rgba(0,0,0,.08)}.ab{display:none;min-width:0;max-width:100%}.w>*{min-width:0}#app{min-width:0}.ab.on{display:block}.bdg{display:inline-block;min-width:16px;padding:0 5px;border-radius:10px;background:#dc2626;color:#fff;font-size:10px;line-height:16px;text-align:center}.nv{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:#0e7490;border-radius:20px;padding:1px 7px;margin-left:6px;vertical-align:middle}.cod{font-family:monospace;font-weight:800;font-size:12px;word-break:break-all}
+</style></head><body><div class="w">
+<div class="c hero"><h1>🛰️ Advanced · Elayon Space Health</h1><p>Protótipo de observação: o fluxo da rede inteira, as credenciais e as sugestões de melhoria, num lugar só. Esta área não consome tokens.</p>
+<button class="b" id="bAt" style="margin-top:10px" hidden>🔄 Atualizar plataforma</button><div id="stamp" class="hint" style="color:#cfe3ff"></div></div>
+
+<section id="bloq" hidden><div class="c"><h3>Área do Advanced</h3><p>Esta área tem um canal de acesso próprio.</p><a class="b" href="index.html">Voltar ao início</a></div></section>
+
+<div id="app" hidden>
+<nav class="tabs" id="abas"><button class="tab on" data-ab="resumo">Resumo</button><button class="tab" data-ab="req">Requisições <span class="bdg" id="bdgReq" hidden></span></button><button class="tab" data-ab="pil">Pilotos</button><button class="tab" data-ab="cred">Credenciais</button><button class="tab" data-ab="plat">Plataforma</button></nav>
+
+<div class="ab on" id="ab-resumo">
+<div class="c"><div class="kp" id="kp"></div></div>
+<details class="c" open><summary>🌐 Rede: masters, clínicas e pilotos</summary>
+<p id="dNovos" class="hint"></p>
+<p>Cada master com as clínicas que cadastrou e os pilotos de cada clínica. O selo <b>novo</b> marca o que chegou desde o último refresh.</p><div id="lPc" style="display:grid;gap:10px"></div></details>
+<details class="c" open><summary>📈 Eficiência da ferramenta</summary>
+<p>Do pedido de acesso ao laudo certificado. Só contagens e tempos médios da plataforma inteira, sem dado de paciente.</p><div id="lMe" style="display:grid;gap:8px"></div></details>
+<details class="c" open><summary>✅ Prontidão para ligar</summary><div id="lPr" style="display:grid;gap:6px;margin-top:6px"></div></details>
+<div class="c"><h3>Em construção</h3>
+<div class="soon"><b>💬 Chat científico com IA</b><br>Entra depois que as bibliotecas de referência estiverem validadas pelos profissionais: a IA só deve citar o que foi validado.</div>
+<div class="soon" style="margin-top:8px"><b>🔬 Área de estudos e resultados</b><br>Depende dos primeiros dados reais, que dependem da aprovação do CEP.</div></div>
+</div>
+
+<div class="ab" id="ab-req">
+<details class="c" open><summary>🙋 Requisições de acesso</summary>
+<p>Médico, clínica ou master pedem acesso pela trilha deles. Ao habilitar, a credencial é gerada e fica <b>reservada para o ID da conta</b> que pediu: só ela consegue ativar. O usuário comum é automático e não precisa de requisição.</p>
+<div id="lRq" style="display:grid;gap:8px"></div><div class="msg" id="mRq"></div></details>
+<details class="c" open><summary>🛟 Suporte: sugestões dos masters</summary>
+<p>Sugestões de melhoria contínua, por texto, sobre qualquer assunto. Valide, responda ou marque como feita.</p><div id="lS" style="display:grid;gap:8px"></div><div class="msg" id="mS"></div></details>
+</div>
+
+<div class="ab" id="ab-pil">
+<details class="c" open><summary>🧑‍⚕️ Pilotos autônomos</summary>
+<p>Pilotos com credencial que não estão vinculados a nenhuma clínica.</p><div id="lPa" style="display:grid;gap:8px"></div></details>
+
+<details class="c" open><summary>🌳 Quem está em quê</summary>
+<p>Masters → clínicas → médicos → usuários. Só números, sem dado de paciente.</p>
+<h3>Masters</h3><div id="lM" style="display:grid;gap:8px"></div>
+<h3 style="margin-top:12px">Clínicas</h3><div id="lC" style="display:grid;gap:8px"></div>
+<h3 style="margin-top:12px">Médicos</h3><div id="lD" style="display:grid;gap:8px"></div></details>
+</div>
+
+<div class="ab" id="ab-cred">
+<details class="c" open><summary>🔑 Emitir credencial avulsa</summary>
+<p>Para quem você quer habilitar sem esperar o pedido. Escreva o nome (para o contrato, no caso do master). Se souber o e-mail da conta, a credencial fica reservada a ela.</p>
+<div class="row2"><div><label>Papel</label><select id="eP"><option value="medico">Piloto (médico)</option><option value="orientador">Piloto orientador</option><option value="clinica">Clínica</option><option value="master">Master</option></select></div><div><label>Nome</label><input id="eN" placeholder="Nome ou empresa"></div></div>
+<button class="b" id="bEm" style="margin-top:8px">Gerar credencial</button><div id="eCod" style="margin-top:8px;font-family:monospace;font-weight:800;word-break:break-all"></div><div class="msg" id="mEm"></div></details>
+<details class="c" open><summary>🧾 Credenciais emitidas</summary>
+<p>Reemitir desativa a credencial antiga e gera outra. Deixe o e-mail em branco para manter a mesma conta, ou informe o e-mail da conta nova quando a pessoa trocou de conta.</p>
+<div id="lCr" style="display:grid;gap:8px"></div><div class="msg" id="mCr"></div></details>
+</div>
+
+<div class="ab" id="ab-plat">
+<details class="c" open><summary>💲 Preço do token</summary>
+<p>O valor base de tudo. Os preços dos planos são calculados a partir dele, com o desconto de cada plano. Zero significa "a definir".</p>
+<div class="row2"><div><label>Reais por token</label><input id="vTk" inputmode="decimal" placeholder="0,00"></div><div><label>&nbsp;</label><button class="b" id="bTk">Salvar preço</button></div></div>
+<div id="vInfo" class="hint" style="margin-top:6px"></div><div class="msg" id="mTk"></div></details>
+
+<details class="c" open><summary>🧪 Coleta com pacientes reais</summary>
+<p>Enquanto estiver bloqueada, médicos reais podem se cadastrar e treinar, mas só se cria treino com paciente chamado "TESTE ...". Libere depois do parecer do CEP e do consentimento (TCLE) dos participantes.</p>
+<div id="cRs" class="pill" style="width:max-content"></div><button class="b g" id="bCo" style="margin-top:8px"></button><div class="msg" id="mCo"></div></details>
+
+<details class="c"><summary>🪙 Tarifas por ação (tokens)</summary>
+<p>O servidor cobra estes valores. Valem na hora, para todos, menos para você.</p><div id="lT" style="display:grid;gap:8px"></div><div class="msg" id="mT"></div></details>
+
+<details class="c"><summary>📦 Planos (pacotes de uso)</summary>
+<p>O que aparece na página de planos. Preço em reais, tokens incluídos.</p><div id="lP" style="display:grid;gap:8px"></div>
+<h3 style="margin-top:10px">Novo plano</h3>
+<div class="row2"><div><label>Nome</label><input id="pN"></div><div><label>Para quem</label><select id="pPu"><option value="medico">Médico</option><option value="clinica">Clínica</option><option value="master">Master</option></select></div></div>
+<div class="row2"><div><label>Modelo de cobrança</label><select id="pMo"><option value="credito">Crédito (a pessoa paga o que consome)</option><option value="piloto">Piloto (o médico paga os usuários dele)</option><option value="clinica">Clínica (paga todos os usuários dos médicos)</option><option value="master">Master (paga toda a rede)</option></select></div><div><label>Pagamento</label><select id="pPo"><option value="0">Pré-pago (carrega tokens)</option><option value="1">Pós-pago (fatura)</option></select></div></div>
+<div class="row3"><div><label>Tokens incluídos</label><input id="pTk" inputmode="numeric" placeholder="0"></div><div><label>Desconto %</label><input id="pDs" inputmode="numeric" placeholder="0"></div><div><label>Limite pós-pago</label><input id="pLi" inputmode="numeric" placeholder="2000"></div></div>
+<label>Descrição</label><input id="pDe"><button class="b" id="bPl" style="margin-top:8px">Adicionar plano</button><div class="msg" id="mP"></div></details>
+
+<details class="c"><summary>🧾 Auditoria</summary><p>Ações administrativas e tentativas de acesso à manutenção.</p><div id="lA" style="display:grid;gap:6px"></div></details>
+
+<div class="c"><h3>Atalhos</h3><div class="row2"><a class="b g" href="tokens-gestao.html">💳 Contas, faturas e consumo</a><a class="b g" href="master.html">📊 Dashboard e metadados</a></div>
+<div class="row2" style="margin-top:8px"><a class="b g" href="master.html#ajustes" id="aAj">🧩 Melhoria dos códigos</a><a class="b g" href="planos.html">🛒 Página de planos</a></div></div>
+</div>
+
+<p style="text-align:center"><a href="perfil.html" style="color:var(--a);font-weight:700;font-size:11px">⬅ Voltar ao perfil</a></p>
+</div></div>
+<script src="elayon-legal.js"></script><script src="health-core.js"></script>
+<script>
+const t=id=>document.getElementById(id);
+const say=(id,x,e)=>{const m=t(id);m.textContent=x||'';m.style.color=e?'#b91c1c':''};
+const brl=c=>(c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const TNOM={laudo_medico:'Laudo emitido pelo médico',atualizacao_prontuario:'Atualização do prontuário de exercícios',pacote_meta:'Relatório de metadados ao Master',dashboard_master:'Atualização geral do Master'};
+let SOL=[],PRECO=0,COLETA=false;
+const reaisParaCent=v=>Math.round(parseFloat(String(v).replace(',','.'))*1e5)/1e3;
+async function preco(){try{const {data}=await sb.rpc('preco_publico');PRECO=+data||0}catch(e){PRECO=0}t('vTk').value=PRECO?(PRECO/100).toString().replace('.',','):'';
+  const x=n=>PRECO?brl(Math.round(n*PRECO)):'—';t('vInfo').textContent=PRECO?`Laudo (10 tokens): ${x(10)} · Atualização (20): ${x(20)} · Bloco de 100: ${x(100)} · Bloco de 1.000: ${x(1000)}`:'Preço ainda não definido: a página de planos mostra "a definir".'}
+t('bTk').onclick=async()=>{const c=reaisParaCent(t('vTk').value);if(!(c>=0))return say('mTk','Valor inválido.',1);const {error}=await sb.rpc('definir_preco_token',{p_centavos:c});if(error)return say('mTk','❌ '+error.message,1);say('mTk','Preço salvo. A página de planos já usa o novo valor.');await preco();planos()};
+async function prontidao(){const {data,error}=await sb.rpc('prontidao');if(error)return t('lPr').innerHTML='<p>'+esc(error.message)+'</p>';COLETA=!!data.coleta_real;
+  const it=(ok,tx)=>`<div class="it" style="padding:8px"><div class="r"><span>${tx}</span><span class="pill ${ok?'ok':''}">${ok?'ok':'pendente'}</span></div></div>`;
+  t('lPr').innerHTML=it(data.senha_manutencao,'Senha de manutenção definida no banco')+it(data.preco_definido,'Preço do token definido')+it(data.planos_ativos>0,'Pelo menos um plano ativo ('+data.planos_ativos+')')+it(data.medicos_ativos>0,'Médicos reais cadastrados ('+data.medicos_ativos+')')+it(data.clinicas>0,'Clínicas ('+data.clinicas+')')+it(data.masters>0,'Masters ativos ('+data.masters+')')+it(data.coleta_real,'Coleta com pacientes reais liberada (só após CEP e TCLE)')+(data.pedidos_pendentes?it(false,data.pedidos_pendentes+' pedido(s) aguardando confirmação'):'')+(data.faturas_abertas?it(false,data.faturas_abertas+' fatura(s) aberta(s)'):'');
+  t('cRs').textContent=COLETA?'LIBERADA':'BLOQUEADA';t('cRs').className='pill '+(COLETA?'ok':'er');t('bCo').textContent=COLETA?'Bloquear de novo':'Liberar coleta com pacientes reais';t('bCo').dataset.arm='0'}
+t('bCo').onclick=async()=>{const b=t('bCo');if(!COLETA&&b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Confirme: o CEP aprovou e o TCLE está em uso? Toque de novo';return}
+  const {error}=await sb.rpc('definir_coleta_real',{p_on:!COLETA});if(error)return say('mCo','❌ '+error.message,1);say('mCo',COLETA?'Coleta bloqueada.':'Coleta liberada. Fica registrado na auditoria.');prontidao()};
+async function atualiza(){t('bAt').disabled=true;t('stamp').textContent='Atualizando…';
+  const {data,error}=await sb.rpc('arvore_plataforma');
+  if(error){t('stamp').textContent='';t('bAt').disabled=false;return t('lM').innerHTML='<p>'+esc(error.message)+' (rode o clinica.sql, seção 12)</p>'}
+  const T=data.totais,k=(n,l)=>`<div><b>${n}</b>${l}</div>`;
+  t('kp').innerHTML=k(T.masters,'masters')+k(T.clinicas,'clínicas')+k(T.medicos,'médicos')+k(T.usuarios,'usuários')+k(T.saldo_tokens,'tokens em saldo')+k(T.consumo_30d,'consumo 30 dias');
+  const card=(a,b,c3)=>`<div class="it"><div class="r"><b>${esc(a)}</b><small>${esc(b||'')}</small></div><div class="row3">${c3.map(x=>`<div class="pill ok" style="text-align:center">${x[0]} ${x[1]}</div>`).join('')}</div></div>`;
+  t('lM').innerHTML=data.masters.length?data.masters.map(m=>card(m.nome,'',[[m.clinicas,'clínicas'],[m.medicos,'médicos'],[m.usuarios,'usuários']])).join(''):'<p>Nenhum master ativo.</p>';
+  t('lC').innerHTML=data.clinicas.length?data.clinicas.map(c=>card(c.nome,'Master: '+c.master,[[c.medicos,'médicos'],[c.usuarios,'usuários'],['','']].slice(0,2))).join(''):'<p>Nenhuma clínica.</p>';
+  t('lD').innerHTML=data.medicos.length?data.medicos.map(m=>card(m.nome,m.clinica,[[m.usuarios,'usuários']])).join(''):'<p>Nenhum médico vinculado.</p>';
+  await preco();await Promise.all([sols(),tarifas(),planos(),prontidao(),reqs(),pilotos(),creds(),metricas()]);
+  t('stamp').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR');t('bAt').disabled=false;try{localStorage.setItem('adv_visto',new Date().toISOString())}catch(e){}}
+t('bAt').onclick=atualiza;
+async function sols(){const {data,error}=await sb.from('solicitacoes').select('*').order('criado',{ascending:false}).limit(100);if(error)return t('lS').innerHTML='<p>'+esc(error.message)+'</p>';
+  SOL=data||[];const ab=SOL.filter(s=>s.status==='pendente'||s.status==='validada');
+  t('lS').innerHTML=ab.length?ab.map(s=>`<div class="it"><div class="r"><b>${esc(s.titulo)}</b><span class="pill ${s.status==='validada'?'ok':''}">${s.status}</span></div><small>${esc(s.autor_nome||'Master')} • ${s.tipo} • ${String(s.criado).slice(0,10)}</small>${s.texto?'<p>'+esc(s.texto)+'</p>':''}
+  <input data-rs="${s.id}" placeholder="Resposta ao master" value="${esc(s.resposta||'')}"><div class="row3"><button class="b sm" data-st="validada" data-id="${s.id}">Validar</button><button class="b g sm" data-st="feita" data-id="${s.id}">Feita</button><button class="b g sm" data-st="recusada" data-id="${s.id}">Recusar</button></div></div>`).join(''):'<p>Caixa vazia.</p>'}
+t('lS').onclick=async e=>{const d=e.target.dataset||{};if(!d.st)return;const r=document.querySelector(`[data-rs="${d.id}"]`).value.trim();
+  const {error}=await sb.from('solicitacoes').update({status:d.st,resposta:r||null,decidido_em:new Date().toISOString()}).eq('id',d.id);if(error)return say('mS','❌ '+error.message,1);say('mS','Atualizado.');sols()};
+async function tarifas(){const {data,error}=await sb.from('tarifas').select('*').order('motivo');if(error)return t('lT').innerHTML='<p>'+esc(error.message)+'</p>';
+  t('lT').innerHTML=(data||[]).map(x=>`<div class="it"><div class="r"><b>${esc(TNOM[x.motivo]||x.descricao||x.motivo)}</b><small>${esc(x.motivo)}</small></div><div class="row2"><input data-tq="${x.motivo}" inputmode="numeric" value="${x.qtd}"><button class="b g sm" data-ts="${x.motivo}">Salvar</button></div></div>`).join('')}
+t('lT').onclick=async e=>{const m=(e.target.dataset||{}).ts;if(!m)return;const v=parseInt(document.querySelector(`[data-tq="${m}"]`).value,10);if(!(v>=0))return say('mT','Valor inválido.',1);
+  const {error}=await sb.rpc('definir_tarifa',{p_motivo:m,p_qtd:v});say('mT',error?'❌ '+error.message:'Tarifa salva.',!!error)};
+async function planos(){const {data,error}=await sb.from('planos').select('*').order('publico').order('ordem');if(error)return t('lP').innerHTML='<p>'+esc(error.message)+'</p>';
+  t('lP').innerHTML=(data||[]).length?data.map(p=>`<div class="it"><div class="r"><b>${esc(p.nome)}</b><span class="pill ${p.ativo?'ok':'er'}">${p.ativo?'ativo':'oculto'}</span></div><small>${p.publico} • ${p.modelo}${p.pos_pago?' pós-pago (limite '+p.limite_pos+')':' pré-pago'} • ${p.tokens} tokens${p.desconto_pct?' • '+p.desconto_pct+'% off':''} • ${PRECO?brl(Math.round(p.tokens*PRECO*(1-p.desconto_pct/100))):'preço a definir'}${p.descricao?' • '+esc(p.descricao):''}</small><button class="b g sm" data-pa="${p.id}" data-v="${p.ativo?0:1}">${p.ativo?'Ocultar':'Mostrar'}</button></div>`).join(''):'<p>Nenhum plano ainda. Crie o primeiro abaixo.</p>'}
+t('lP').onclick=async e=>{const d=e.target.dataset||{};if(!d.pa)return;await sb.from('planos').update({ativo:d.v==='1'}).eq('id',d.pa);planos()};
+t('bPl').onclick=async()=>{const n=t('pN').value.trim(),pos=t('pPo').value==='1',tk=parseInt(t('pTk').value||'0',10),ds=parseInt(t('pDs').value||'0',10),li=parseInt(t('pLi').value||'2000',10);
+  if(!n||!(tk>=0)||(tk===0&&!pos)||!(ds>=0&&ds<=100))return say('mP','Preencha nome e tokens (zero só no pós-pago), desconto de 0 a 100.',1);
+  const {error}=await sb.from('planos').insert({nome:n,publico:t('pPu').value,modelo:t('pMo').value,pos_pago:pos,tokens:tk,desconto_pct:ds,limite_pos:li,preco_centavos:0,descricao:t('pDe').value.trim()||null});if(error)return say('mP','❌ '+error.message,1);
+  t('pN').value=t('pTk').value=t('pDs').value=t('pLi').value=t('pDe').value='';say('mP','Plano criado.');planos()};
+async function audit(){const {data}=await sb.rpc('listar_auditoria');t('lA').innerHTML=(data||[]).length?data.map(a=>`<div class="it" style="padding:8px"><b>${esc(a.acao)}</b><small>${esc(a.quem||'')} • ${String(a.criado).replace('T',' ').slice(0,16)}${a.detalhe?' • '+esc(JSON.stringify(a.detalhe)).slice(0,120):''}</small></div>`).join(''):'<p>Sem registros.</p>'}
+document.addEventListener('toggle',e=>{if(e.target.tagName==='DETAILS'&&e.target.open&&e.target.textContent.includes('Auditoria'))audit()},true);
+
+/* ---------- abas ---------- */
+t('abas').onclick=e=>{const b=e.target.closest('.tab');if(!b)return;document.querySelectorAll('#abas .tab').forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('.ab').forEach(x=>x.classList.toggle('on',x.id==='ab-'+b.dataset.ab));try{history.replaceState(null,'','#'+b.dataset.ab)}catch(_){}};
+const TIPO={medico:'Piloto (médico)',orientador:'Piloto orientador',clinica:'Clínica',master:'Master',advanced:'Advanced'};
+const copia=async x=>{try{await navigator.clipboard.writeText(x);return true}catch(e){return false}};
+/* ---------- requisições ---------- */
+async function reqs(){const {data,error}=await sb.rpc('listar_requisicoes');
+  if(error)return t('lRq').innerHTML='<p>'+esc(error.message)+' (rode o clinica.sql, seção 15)</p>';
+  const L=data||[],pend=L.filter(x=>x.status==='pendente').length;t('bdgReq').hidden=!pend;t('bdgReq').textContent=pend;
+  t('lRq').innerHTML=L.length?L.map(q=>`<div class="it"><div class="r"><b>${esc(q.nome||'Sem nome')}</b><span class="pill ${q.status==='habilitada'?'ok':q.status==='recusada'?'er':''}">${q.status}</span></div>
+  <small>${TIPO[q.tipo]||q.tipo} • conta ${esc(q.email||q.conta||'')} • ${String(q.criado).slice(0,10)}${q.registro?' • '+esc(q.registro):''}${q.contato?' • '+esc(q.contato):''}${q.clinica_nome?' • clínica: '+esc(q.clinica_nome):''}</small>
+  ${q.status==='pendente'?`<div class="row2"><button class="b sm" data-hab="${q.id}">✅ Habilitar</button><button class="b g sm" data-rec="${q.id}">Recusar</button></div>`:''}
+  ${q.status==='habilitada'&&q.credencial?`<div class="cod">${esc(q.credencial)}</div><div class="row2"><button class="b g sm" data-cp="${esc(q.credencial)}">Copiar código</button><span class="pill ${q.ativada?'ok':''}" style="text-align:center">${q.ativada?'ativada pela pessoa':'aguardando ativação'}</span></div>`:''}
+  ${q.nota?'<small>Motivo: '+esc(q.nota)+'</small>':''}</div>`).join(''):'<p>Nenhuma requisição ainda.</p>'}
+t('lRq').onclick=async e=>{const d=e.target.dataset||{};
+  if(d.hab){const {data,error}=await sb.rpc('habilitar_acesso',{p_id:d.hab});if(error)return say('mRq','❌ '+error.message,1);say('mRq','Habilitado. Credencial '+data+' reservada para a conta. A pessoa a vê na trilha dela.');reqs();creds();metricas()}
+  if(d.rec){const n=prompt('Motivo da recusa (opcional):')||'';const {error}=await sb.rpc('recusar_acesso',{p_id:d.rec,p_nota:n});if(error)return say('mRq','❌ '+error.message,1);say('mRq','Recusado.');reqs();metricas()}
+  if(d.cp){say('mRq',(await copia(d.cp))?'Código copiado.':'Copie manualmente: '+d.cp)}};
+/* ---------- pilotos ---------- */
+async function pilotos(){const {data,error}=await sb.rpc('lista_pilotos');
+  if(error){t('lPa').innerHTML=t('lPc').innerHTML='<p>'+esc(error.message)+'</p>';return}
+  const A=data.autonomos||[],C=data.clinicas||[];
+  t('lPa').innerHTML=A.length?A.map(a=>`<div class="it"><div class="r"><b>${esc(a.nome)}</b><span class="pill ok">${a.laudos} laudo(s)</span></div><small>${esc(a.email||'')}${a.contrato?' • contrato: '+esc(a.contrato):''}${a.desde?' • ativo desde '+String(a.desde).slice(0,10):''}</small></div>`).join(''):'<p>Nenhum piloto autônomo.</p>';
+  const vistoStr=(()=>{try{return localStorage.getItem('adv_visto')||''}catch(e){return ''}})(),visto=vistoStr?new Date(vistoStr):null;
+  const novo=d=>visto&&d&&new Date(d)>visto?'<span class="nv">novo</span>':'';
+  const fmt=d=>d?String(d).slice(0,10).split('-').reverse().join('/'):'';
+  const porMaster={};C.forEach(c=>{(porMaster[c.master]=porMaster[c.master]||[]).push(c)});
+  let nCl=0,nPi=0;C.forEach(c=>{if(visto&&new Date(c.criada)>visto)nCl++;(c.pilotos||[]).forEach(p=>{if(visto&&new Date(p.desde)>visto)nPi++})});
+  t('dNovos').textContent=visto?'Desde o último refresh ('+visto.toLocaleString('pt-BR').slice(0,17)+'): '+nCl+' clínica(s) nova(s) e '+nPi+' piloto(s) novo(s).':'Primeiro refresh neste aparelho: a partir de agora o que chegar aparece marcado como novo.';
+  window.__novosRede={nCl,nPi};
+  t('lPc').innerHTML=C.length?Object.keys(porMaster).sort().map(m=>`<div class="it"><div class="r"><b>👤 ${esc(m)}</b><small>${porMaster[m].length} clínica(s)</small></div>${porMaster[m].map(c=>`<div class="it" style="background:#f7fcfd"><div class="r"><b>${esc(c.nome)}${novo(c.criada)}</b><small>criada em ${fmt(c.criada)}</small></div>
+  <div class="row3"><div class="pill ok" style="text-align:center">${c.qtd_pilotos} pilotos</div><div class="pill ${c.pendentes?'':'ok'}" style="text-align:center">${c.pendentes} pendentes</div><div class="pill ok" style="text-align:center">${c.laudos} laudos</div></div>
+  <small>Responsável: ${esc(c.dono||'—')}</small>${(c.pilotos||[]).length?'<small>'+c.pilotos.map(p=>esc(p.nome)+(p.registro?' ('+esc(p.registro)+')':'')+novo(p.desde)).join(' · ')+'</small>':''}</div>`).join('')}</div>`).join(''):'<p>Nenhuma clínica cadastrada ainda.</p>'}
+/* ---------- credenciais ---------- */
+async function creds(){const {data,error}=await sb.rpc('credenciais_adv');
+  if(error)return t('lCr').innerHTML='<p>'+esc(error.message)+'</p>';
+  const L=(data||[]).filter(c=>c.papel!=='advanced');
+  t('lCr').innerHTML=L.length?L.map(c=>`<div class="it"><div class="r"><b>${TIPO[c.papel]||c.papel}${c.emitida_para?' · '+esc(c.emitida_para):''}</b><span class="pill ${!c.ativo?'er':c.usada?'ok':''}">${!c.ativo?(c.substituida_por?'substituída':'desativada'):c.usada?'ativada':'aguardando'}</span></div>
+  <div class="cod">${esc(c.codigo)}</div><small>${c.reservada_para?'reservada para '+esc(c.reservada_para):'sem conta reservada'}${c.usada_por?' • usada por '+esc(c.usada_por):''}${c.substituida_por?' • nova: '+esc(c.substituida_por):''}</small>
+  ${c.ativo?`<div class="row2"><input data-em="${esc(c.codigo)}" placeholder="e-mail da conta nova (opcional)"><button class="b g sm" data-re="${esc(c.codigo)}">♻️ Reemitir</button></div><button class="b g sm" data-cp="${esc(c.codigo)}">Copiar código</button>`:''}</div>`).join(''):'<p>Nenhuma credencial emitida.</p>'}
+t('lCr').onclick=async e=>{const d=e.target.dataset||{};
+  if(d.cp)return say('mCr',(await copia(d.cp))?'Código copiado.':'Copie manualmente: '+d.cp);
+  if(d.re){const em=document.querySelector(`[data-em="${d.re}"]`).value.trim();
+    if(!confirm('Reemitir desativa a credencial antiga'+(em?' e reserva a nova para '+em:'')+'. Continuar?'))return;
+    const {data,error}=await sb.rpc('reemitir_credencial',{p_codigo:d.re,p_email:em});if(error)return say('mCr','❌ '+(/conta_nao_encontrada/.test(error.message)?'Não achei uma conta com esse e-mail.':error.message),1);
+    say('mCr','Nova credencial: '+data);creds();reqs()}};
+t('bEm').onclick=async()=>{const n=t('eN').value.trim();if(!n)return say('mEm','Escreva o nome.',1);
+  const {data,error}=await sb.rpc('emitir_credencial',{p_papel:t('eP').value,p_para:n});if(error)return say('mEm','❌ '+error.message,1);
+  t('eCod').textContent=data;say('mEm','Gerada. Entregue à pessoa; ela ativa na trilha, depois do treinamento.');t('eN').value='';creds()};
+/* ---------- métricas ---------- */
+async function metricas(){const {data,error}=await sb.rpc('metricas_plataforma');
+  if(error)return t('lMe').innerHTML='<p>'+esc(error.message)+'</p>';
+  const r=data.requisicoes,c=data.credenciais,tr=data.treinamentos,l=data.laudos;
+  const pct=(a,b)=>b?Math.round(100*a/b)+'%':'—';
+  const it=(a,b)=>`<div class="it" style="padding:8px"><div class="r"><span>${a}</span><b>${b}</b></div></div>`;
+  t('lMe').innerHTML=it('Requisições (pendentes / habilitadas / recusadas)',`${r.total} (${r.pendentes} / ${r.habilitadas} / ${r.recusadas})`)
+   +it('Credenciais ativadas sobre emitidas',`${c.ativadas} de ${c.emitidas} · ${pct(c.ativadas,c.emitidas)}`)
+   +it('Tempo médio da emissão até a ativação',c.horas_ate_ativar==null?'—':c.horas_ate_ativar+' h')
+   +it('Treinamentos concluídos (piloto / clínica / master)',`${tr.piloto} / ${tr.clinica} / ${tr.master}`)
+   +it('Laudos enviados → certificados',`${l.enviados} → ${l.certificados} · ${pct(l.certificados,l.enviados)}`)
+   +it('Tempo médio de certificação',l.horas_ate_certificar==null?'—':l.horas_ate_certificar+' h')
+   +it('Tokens consumidos em 30 dias',data.tokens.consumo_30d)}
+(async()=>{try{await eu()}catch(e){return}
+  let r;try{r=await sb.rpc('meu_nivel')}catch(e){r={}}
+  if((+(r&&r.data)||0)<4){t('bloq').hidden=false;return}
+  t('app').hidden=false;t('bAt').hidden=false;{const h=(location.hash||'').slice(1),bb=document.querySelector('#abas .tab[data-ab="'+h+'"]');if(bb)bb.click()}await atualiza()})();
+</script></body></html>
