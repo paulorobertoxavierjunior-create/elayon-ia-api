@@ -98,15 +98,29 @@
       color:var(--muted);
     }
 
+    .pagina{
+      width:100%;
+      max-width:460px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
+
+    .rodape{
+      width:100%;
+      margin-top:150px;
+      padding-bottom:40px;
+      text-align:center;
+    }
+
     .log{
-      margin-top:18px;
+      margin-top:0;
       background:none;
       border:0;
       font:inherit;
       font-size:11px;
-      color:var(--muted);
-      opacity:.4;
-      padding:8px 14px;
+      color:#cce2d9;
+      padding:10px 18px;
       cursor:default;
       -webkit-tap-highlight-color:transparent;
       user-select:none;
@@ -153,6 +167,7 @@
   </style>
 </head>
 <body>
+  <div class="pagina">
   <main class="card">
     <img
       class="logo"
@@ -175,20 +190,22 @@
       Entrada simples. Autenticação segura. Sessão individual.
     </div>
 
-    <button type="button" class="log" id="log" aria-label="log">log</button>
-    <form class="logbox" id="logbox" autocomplete="off">
-      <input type="password" id="logpw" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="campo" />
+  </main>
+
+  <div class="rodape">
+      <button type="button" class="log" id="log" aria-label="log">log</button>
+      <form class="logbox" id="logbox" autocomplete="off">
+        <input type="password" id="logpw" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="campo" />
       <button type="submit">OK</button>
     </form>
     <div class="logmsg" id="logmsg"></div>
-  </main>
+  </div>
+  </div>
 
   <script>
-    /* Atalho do Advanced: 10 toques em "log" (em até 20 s) abrem um campo.
-       A frase abaixo NÃO é uma senha: ela só abre o caminho. Quem decide é o servidor:
-       a Central só abre para a conta que tem a credencial Advanced (meu_nivel >= 4). */
+    /* Canal reservado: 10 toques em "log" (em até 20 s) abrem um campo.
+       O que for digitado vai direto ao servidor, que confere. Nada fica guardado nesta página. */
     (function () {
-      var FRASE = 'Paulo Xavier';
       var sb = null;
       try {
         sb = window.supabase ? supabase.createClient('https://xlktkelumtpugidnecbj.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM') : null;
@@ -215,18 +232,18 @@
         var v = pw.value;
         pw.value = '';
         msg.innerHTML = '';
-        if (v !== FRASE) return;
-        if (!sb) return;
+        if (!v || !sb) return;
         var sessao = null;
         try { sessao = (await sb.auth.getSession()).data.session; } catch (err) { sessao = null; }
         if (!sessao) {
           msg.innerHTML = 'Entre na sua conta e repita. <a href="login.html">Entrar</a>';
           return;
         }
-        var nivel = 0;
-        try { var r = await sb.rpc('meu_nivel'); nivel = Number(r.data) || 0; } catch (err) { nivel = 0; }
-        if (nivel >= 4) { location.href = 'central.html'; return; }
-        msg.textContent = 'Não foi possível agora.';
+        var r = null;
+        try { r = (await sb.rpc('acesso_manutencao', { p_senha: v })).data; } catch (err) { r = null; }
+        if (r && r.ok) { location.href = 'advanced.html'; return; }
+        if (r && r.erro === 'bloqueado') { msg.textContent = 'Tente mais tarde.'; return; }
+        if (r && r.erro === 'nao_configurado') { msg.textContent = 'Canal não configurado.'; return; }
       });
     })();
   </script>
