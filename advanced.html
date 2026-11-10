@@ -1,6 +1,6 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Advanced • Elayon Space Health</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="health.css">
-<style>
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Elayon Space Systems</title><link rel="manifest" href="/app-systems.webmanifest"><link rel="apple-touch-icon" href="/icons/apple-systems.png"><link rel="icon" href="/icons/icon-systems-192.png"><meta name="theme-color" content="#061a4a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Elayon Systems">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script><link rel="stylesheet" href="health.css">
+<style>.chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.ch{border:1px solid var(--l);background:#fff;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:700;color:var(--m);cursor:pointer}.ch.on{background:#0b3a82;color:#fff;border-color:#0b3a82}.bar{display:flex;align-items:center;gap:8px}.btn-pago{white-space:nowrap}
 .hero{background:linear-gradient(135deg,#061a4a,#0b3a82 60%,#0e7490);border:0}.hero h1{color:#fff}.hero p{color:#cfe3ff}
 .it{border:1px solid var(--l);border-radius:12px;padding:10px;display:grid;gap:6px;background:#fff}.it .r{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .pill{display:inline-block;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:#fff7e0;color:#92400e;border:1px solid #f3dca0}.pill.ok{background:#e8fbf3;color:#047857;border-color:#9fe2c4}.pill.er{background:#fff0f0;color:#b91c1c;border-color:#f3b4b4}
@@ -11,13 +11,13 @@
 details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 .tabs{display:flex;gap:4px;overflow-x:auto;max-width:100%;min-width:0;background:#eef5f5;border:1px solid var(--l);border-radius:14px;padding:4px;margin-bottom:12px}.tab{flex:1;white-space:nowrap;border:0;background:transparent;padding:9px 10px;border-radius:10px;font-size:12px;font-weight:800;color:var(--m);cursor:pointer}.tab.on{background:#fff;color:#0b3a82;box-shadow:0 1px 6px rgba(0,0,0,.08)}.ab{display:none;min-width:0;max-width:100%}.w>*{min-width:0}#app{min-width:0}.ab.on{display:block}.bdg{display:inline-block;min-width:16px;padding:0 5px;border-radius:10px;background:#dc2626;color:#fff;font-size:10px;line-height:16px;text-align:center}.nv{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:#0e7490;border-radius:20px;padding:1px 7px;margin-left:6px;vertical-align:middle}.cod{font-family:monospace;font-weight:800;font-size:12px;word-break:break-all}
 </style></head><body><div class="w">
-<div class="c hero"><h1>🛰️ Advanced · Elayon Space Health</h1><p>Protótipo de observação: o fluxo da rede inteira, as credenciais e as sugestões de melhoria, num lugar só. Esta área não consome tokens.</p>
+<div class="c hero"><h1>🛰️ Elayon Space Systems</h1><p>Protótipo de observação: o fluxo da rede inteira, as credenciais e as sugestões de melhoria, num lugar só. Esta área não consome tokens.</p>
 <button class="b" id="bAt" style="margin-top:10px" hidden>🔄 Atualizar plataforma</button><div id="stamp" class="hint" style="color:#cfe3ff"></div></div>
 
 <section id="bloq" hidden><div class="c"><h3>Área do Advanced</h3><p>Esta área tem um canal de acesso próprio.</p><a class="b" href="index.html">Voltar ao início</a></div></section>
 
 <div id="app" hidden>
-<nav class="tabs" id="abas"><button class="tab on" data-ab="resumo">Resumo</button><button class="tab" data-ab="req">Requisições <span class="bdg" id="bdgReq" hidden></span></button><button class="tab" data-ab="pil">Pilotos</button><button class="tab" data-ab="cred">Credenciais</button><button class="tab" data-ab="plat">Plataforma</button></nav>
+<nav class="tabs" id="abas"><button class="tab on" data-ab="resumo">Resumo</button><button class="tab" data-ab="req">Requisições <span class="bdg" id="bdgReq" hidden></span></button><button class="tab" data-ab="pil">Pilotos</button><button class="tab" data-ab="cred">Credenciais</button><button class="tab" data-ab="mst">Masters</button><button class="tab" data-ab="uso">Uso</button><button class="tab" data-ab="cob">Cobrança</button><button class="tab" data-ab="rel">Relatório</button><button class="tab" data-ab="plat">Plataforma</button></nav>
 
 <div class="ab on" id="ab-resumo">
 <div class="c"><div class="kp" id="kp"></div></div>
@@ -61,6 +61,37 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 <div id="lCr" style="display:grid;gap:8px"></div><div class="msg" id="mCr"></div></details>
 </div>
 
+<div class="ab" id="ab-mst">
+<div class="c"><h3>🔑 Convidar um master</h3><p>O convite abre o app Elayon Master. Ele treina como usuário, passa pelas etapas e pede cada credencial a você.</p><input id="mvN" placeholder="Nome do investidor / master"><button class="b" id="mvB" style="margin-top:8px">Gerar convite de master</button><div id="mvR"></div><div class="msg" id="mvM"></div></div>
+<div class="c"><h3>🏛️ Masters ativos</h3><p>Quem assumiu a operação. O master paga o consumo todo; o usuário nunca é cobrado.</p><div id="lMs" style="display:grid;gap:8px"></div><div class="msg" id="mMs"></div></div>
+<div class="c"><h3>✉️ Convites de master</h3><div id="lCv" style="display:grid;gap:6px"></div></div>
+</div>
+<div class="ab" id="ab-uso">
+<div class="c"><h3>📊 Utilização da plataforma</h3>
+<div class="chips" id="cGr"><button class="ch on" data-g="dia">Dia</button><button class="ch" data-g="semana">Semana</button><button class="ch" data-g="mes">Mês</button><button class="ch" data-g="ano">Ano</button></div>
+<div class="chips" id="cMt"><button class="ch on" data-m="tokens">Tokens</button><button class="ch" data-m="laudos">Laudos</button><button class="ch" data-m="consultas">Consultas</button><button class="ch" data-m="usuarios">Usuários ativos</button></div>
+<div id="gUso" style="margin-top:8px"></div><p class="hint" id="gTot"></p></div>
+<div class="c"><h3>👩‍⚕️ Usuários de cada médico</h3><p>O vínculo nasce sozinho quando o médico cria o treino ou envia o laudo com o e-mail do usuário.</p><div id="lMu" style="display:grid;gap:6px"></div></div>
+</div>
+<div class="ab" id="ab-cob">
+<div class="c"><h3>💳 Valores</h3><div id="lVal" style="display:grid;gap:6px"></div></div>
+<div class="c"><h3>🧾 Consumo e cobrança</h3>
+<div class="row2"><div><label>De</label><input type="date" id="cI"></div><div><label>Até</label><input type="date" id="cF"></div></div>
+<button class="b g" id="bCo" style="margin-top:8px">Atualizar</button>
+<p class="hint">Regra fixa: o master paga todo o consumo da sua operação. O usuário nunca é debitado.</p>
+<div id="lCo" style="display:grid;gap:8px;margin-top:8px"></div><div class="msg" id="mCo2"></div></div>
+<div class="c"><h3>Faturas</h3><div id="lFa" style="display:grid;gap:8px"></div></div>
+</div>
+<div class="ab" id="ab-rel">
+<div class="c"><h3>🧠 Relatório contextual e PDF de auditoria</h3>
+<label>Seu nome (aparece no relatório)</label><input id="rNm" autocomplete="off">
+<label>IA</label><select id="rPv"><option value="gemini">Gemini</option><option value="openai">OpenAI</option><option value="groq">Groq</option><option value="mistral">Mistral</option></select>
+<label>Chave da IA (fica só nesta sessão do navegador)</label><input id="rKy" type="password" autocomplete="off">
+<button class="b" id="bIA" style="margin-top:8px">Gerar relatório contextual</button><div class="msg" id="mIA"></div>
+<div id="rTx" style="white-space:pre-wrap;font-size:13px;line-height:1.6;margin-top:8px"></div>
+<button class="b g" id="bPdf" style="margin-top:8px">Baixar relatório final (PDF)</button><div class="msg" id="mPdf"></div>
+<p class="hint">O período é o da aba Cobrança. O PDF reúne gráficos de uso, usuários por médico, consumo, valores e faturas. Sem dado clínico de paciente.</p></div>
+</div>
 <div class="ab" id="ab-plat">
 <details class="c" open><summary>💲 Preço do token</summary>
 <p>O valor base de tudo. Os preços dos planos são calculados a partir dele, com o desconto de cada plano. Zero significa "a definir".</p>
@@ -91,6 +122,7 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 </div></div>
 <script>
 const raw=supabase.createClient('https://xlktkelumtpugidnecbj.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM',{auth:{persistSession:false,autoRefreshToken:false}});
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 let TK='';try{TK=sessionStorage.getItem('adv_tok')||''}catch(e){}
 const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function A(fn,a){const r=await raw.rpc('adv_chamar',{p_token:TK,p_fn:fn,p_args:a||{}});
@@ -205,11 +237,81 @@ async function metricas(){const {data,error}=await sb.rpc('metricas_plataforma')
    +it('Laudos enviados → certificados',`${l.enviados} → ${l.certificados} · ${pct(l.certificados,l.enviados)}`)
    +it('Tempo médio de certificação',l.horas_ate_certificar==null?'—':l.horas_ate_certificar+' h')
    +it('Tokens consumidos em 30 dias',data.tokens.consumo_30d)}
+
+/* ---------- Uso, cobrança, relatório ---------- */
+let GR='dia',MT='tokens',SER=[];
+const NMT={tokens:'Tokens',laudos:'Laudos',consultas:'Consultas',usuarios:'Usuários ativos'};
+function barras(ser,m,w,h){const v=ser.map(x=>+x[m]||0),mx=Math.max(1,...v),bw=w/ser.length;
+  return `<svg viewBox="0 0 ${w} ${h+22}" style="width:100%;height:auto"><line x1="0" y1="${h}" x2="${w}" y2="${h}" stroke="#cbd5e1"/>`+v.map((y,i)=>{const bh=Math.round(y/mx*(h-14));return `<rect x="${(i*bw+bw*.15).toFixed(1)}" y="${h-bh}" width="${(bw*.7).toFixed(1)}" height="${bh}" rx="2" fill="#0e7490"/>${y?`<text x="${(i*bw+bw/2).toFixed(1)}" y="${h-bh-3}" font-size="9" text-anchor="middle" fill="#334155">${y}</text>`:''}`}).join('')
+   +[0,ser.length-1].map(i=>`<text x="${i?w:0}" y="${h+14}" font-size="9" text-anchor="${i?'end':'start'}" fill="#64748b">${ser[i].p.slice(GR==='ano'?0:GR==='mes'?0:5,GR==='ano'?4:GR==='mes'?7:10)}</text>`).join('')+'</svg>'}
+function desenha(){if(!SER.length){t('gUso').innerHTML='<p>Sem dados.</p>';return}t('gUso').innerHTML=barras(SER,MT,320,150);
+  const tot=SER.reduce((a,x)=>a+(+x[MT]||0),0);t('gTot').textContent=NMT[MT]+' no período mostrado: '+tot+(MT==='usuarios'?' (soma dos ativos por intervalo)':'')}
+async function uso(){const {data,error}=await sb.rpc('uso_serie',{p_gran:GR});if(error){t('gUso').innerHTML='<p>'+esc(error.message)+'</p>';return}SER=data||[];desenha()}
+t('cGr').onclick=e=>{const b=e.target.closest('.ch');if(!b)return;GR=b.dataset.g;document.querySelectorAll('#cGr .ch').forEach(x=>x.classList.toggle('on',x===b));uso()};
+t('cMt').onclick=e=>{const b=e.target.closest('.ch');if(!b)return;MT=b.dataset.m;document.querySelectorAll('#cMt .ch').forEach(x=>x.classList.toggle('on',x===b));desenha()};
+async function mu(){const {data,error}=await sb.rpc('medicos_usuarios');if(error)return t('lMu').innerHTML='<p>'+esc(error.message)+'</p>';
+  t('lMu').innerHTML=(data||[]).length?data.map(m=>`<div class="it" style="padding:8px"><div class="r"><b>${esc(m.nome)}</b><span class="pill ok">${m.usuarios} usuário${m.usuarios===1?'':'s'}</span></div><small>${esc(m.clinica||'Autônomo')} • ${m.laudos} laudo(s), ${m.certificados} certificado(s)</small></div>`).join(''):'<p>Nenhum médico ativo ainda.</p>'}
+const hoje=new Date(),iso=d=>d.toISOString().slice(0,10);
+t('cI').value=iso(new Date(hoje.getFullYear(),hoje.getMonth(),1));t('cF').value=iso(hoje);
+async function valores(){const {data}=await sb.rpc('tarifas_listar');const pc=PRECO||0;
+  t('lVal').innerHTML=`<div class="it" style="padding:8px"><div class="r"><span>Preço do token</span><b>${pc?brl(pc):'a definir (aba Plataforma)'}</b></div></div>`+(data||[]).map(x=>`<div class="it" style="padding:8px"><div class="r"><span>${esc(TNOM[x.motivo]||x.descricao||x.motivo)}</span><b>${x.qtd} tokens${pc?' = '+brl(Math.round(x.qtd*pc)):''}</b></div></div>`).join('')}
+let CON=[],FAT=[];
+async function cobranca(){await valores();const ini=t('cI').value,fim=t('cF').value;
+  const a=await sb.rpc('consumo_por_pagador',{p_ini:ini,p_fim:fim}),f=await sb.rpc('listar_faturas');CON=a.data||[];FAT=f.data||[];
+  t('lCo').innerHTML=CON.length?CON.map(x=>`<div class="it"><div class="r"><b>${esc(x.nome)}</b><span class="pill ${x.pos_pago?'':'ok'}">${esc(x.modelo)}${x.pos_pago?' · pós-pago':' · pré-pago'}</span></div><div class="r"><small>${x.tokens} tokens • ${x.usuarios} usuário(s)</small><b>${brl(x.valor_centavos)}</b></div>${x.pos_pago&&x.a_faturar>0?`<button class="b g sm" data-gf="${x.pagador}">Gerar fatura (${x.a_faturar} tokens)</button>`:''}</div>`).join(''):'<p>Sem consumo no período.</p>';
+  t('lFa').innerHTML=FAT.length?FAT.map(x=>`<div class="it"><div class="r"><b>${esc(x.nome||x.email||'Conta')}</b><b>${brl(x.valor_centavos)}</b></div><div class="r"><small>${String(x.periodo_ini).slice(0,10)} a ${String(x.periodo_fim).slice(0,10)} • ${x.tokens} tokens</small><span class="pill ${x.status==='paga'?'ok':x.status==='cancelada'?'er':''}">${x.status}</span></div>${x.status==='aberta'?`<div class="row2"><button class="b btn-pago" data-pg="${x.id}">✔ Pago (teste)</button><button class="b g sm" data-cn="${x.id}">Cancelar</button></div>`:''}</div>`).join(''):'<p>Nenhuma fatura ainda.</p>'}
+t('bCo').onclick=cobranca;
+t('lCo').onclick=async e=>{const id=(e.target.dataset||{}).gf;if(!id)return;const {error}=await sb.rpc('gerar_fatura',{p_pagador:id,p_ini:t('cI').value,p_fim:t('cF').value});say('mCo2',error?'❌ '+(/nada_a_faturar/.test(error.message)?'Nada a faturar neste período.':error.message):'Fatura gerada.',!!error);cobranca()};
+t('lFa').onclick=async e=>{const d=e.target.dataset||{},id=d.pg||d.cn;if(!id)return;const {error}=await sb.rpc('marcar_fatura',{p_id:id,p_status:d.pg?'paga':'cancelada'});say('mCo2',error?'❌ '+error.message:d.pg?'Marcada como paga (teste). Sem dinheiro real.':'Cancelada.',!!error);cobranca()};
+/* relatório */
+try{t('rNm').value=localStorage.getItem('adv_nome')||'';t('rKy').value=sessionStorage.getItem('adv_ia')||'';t('rPv').value=sessionStorage.getItem('adv_pv')||'gemini'}catch(e){}
+t('rNm').onchange=()=>{try{localStorage.setItem('adv_nome',t('rNm').value.trim())}catch(e){}};
+t('rKy').onchange=()=>{try{sessionStorage.setItem('adv_ia',t('rKy').value.trim());sessionStorage.setItem('adv_pv',t('rPv').value)}catch(e){}};
+async function coleta(){const g=async(fn,a)=>(await sb.rpc(fn,a)).data;const ser={};
+  for(const k of ['dia','semana','mes','ano'])ser[k]=await g('uso_serie',{p_gran:k});
+  const [me,mdu,con,fat,pr]=await Promise.all([g('metricas_plataforma'),g('medicos_usuarios'),g('consumo_por_pagador',{p_ini:t('cI').value,p_fim:t('cF').value}),g('listar_faturas'),g('prontidao')]);
+  return {ser,me:me||{},mdu:mdu||[],con:con||[],fat:fat||[],pr:pr||{}}}
+async function chamaIA(prov,key,prompt){
+  if(prov==='gemini'){const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+encodeURIComponent(key),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});const j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||'Falha da IA');return ((j.candidates||[])[0]||{}).content.parts.map(p=>p.text).join('')}
+  const U={openai:['https://api.openai.com/v1/chat/completions','gpt-4o'],groq:['https://api.groq.com/openai/v1/chat/completions','llama-3.3-70b-versatile'],mistral:['https://api.mistral.ai/v1/chat/completions','mistral-large-latest']}[prov];
+  const r=await fetch(U[0],{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+key},body:JSON.stringify({model:U[1],messages:[{role:'user',content:prompt}]})});const j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||'Falha da IA');return j.choices[0].message.content}
+t('bIA').onclick=async()=>{const key=t('rKy').value.trim();if(!key)return say('mIA','Cole a chave da IA.',1);t('rKy').onchange();t('bIA').disabled=true;say('mIA','Reunindo os números…');
+  try{const d=await coleta();const resumo={periodo:[t('cI').value,t('cF').value],preco_token_centavos:PRECO,uso:{dia:d.ser.dia,mes:d.ser.mes,ano:d.ser.ano},plataforma:d.me,medicos:d.mdu.map((m,i)=>({medico:'Médico '+(i+1),clinica:m.clinica?'com clínica':'autônomo',usuarios:m.usuarios,laudos:m.laudos,certificados:m.certificados})),cobranca:d.con.map((c,i)=>({pagador:'Pagador '+(i+1),modelo:c.modelo,pos_pago:c.pos_pago,tokens:c.tokens,usuarios:c.usuarios,valor_centavos:c.valor_centavos})),faturas:d.fat.map(f=>({status:f.status,tokens:f.tokens,valor_centavos:f.valor_centavos})),prontidao:d.pr};
+    say('mIA','Pensando…');const txt=await chamaIA(t('rPv').value,key,'Você é analista da plataforma Elayon Space Health, em fase de TESTE com pagamentos fictícios. Escreva em português, em prosa direta, um relatório contextual para o responsável '+(t('rNm').value.trim()||'da plataforma')+': (1) o que os números mostram sobre uso por dia, mês e ano; (2) como o vínculo usuário–médico e a cobrança no nível mais alto estão funcionando; (3) pontos de atenção e riscos; (4) três próximos passos. Não faça diagnóstico clínico, não invente números, cite só o que está nos dados. Dados agregados (sem identificação de pessoas):\n'+JSON.stringify(resumo));
+    t('rTx').textContent=txt;say('mIA','Pronto.')}catch(e){say('mIA','❌ '+e.message,1)}t('bIA').disabled=false};
+t('bPdf').onclick=async()=>{t('bPdf').disabled=true;say('mPdf','Montando o PDF…');
+ try{const d=await coleta();const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'pt',format:'a4'}),L=40,W=515;let y=50;
+  const nova=n=>{if(y+n>800){doc.addPage();y=50}};
+  const sa=z=>String(z==null?'':z).normalize('NFD').replace(/[\u0300-\u036f]/g,'');const H=(x,sz)=>{nova(24);doc.setFont('helvetica','bold');doc.setFontSize(sz||13);doc.text(sa(x),L,y);y+=(sz||13)+8};
+  const P=(x,sz)=>{doc.setFont('helvetica','normal');doc.setFontSize(sz||10);for(const l of doc.splitTextToSize(sa(x),W)){nova(14);doc.text(l,L,y);y+=13}};
+  const asc=x=>String(x==null?'':x);
+  H('Elayon Space Health - Relatorio final de auditoria e cobranca',15);
+  P('Responsavel: '+(t('rNm').value.trim()||'-')+'   |   Periodo: '+t('cI').value+' a '+t('cF').value+'   |   Emitido: '+new Date().toLocaleString('pt-BR'));
+  P('Ambiente de TESTE: valores e pagamentos ficticios, sem valor fiscal. Nenhum dado clinico de paciente neste documento.');y+=6;
+  const me=d.me,rq=me.requisicoes||{},cr=me.credenciais||{},lz=me.laudos||{};
+  H('Resumo');P('Requisicoes: '+(rq.total||0)+' ('+(rq.pendentes||0)+' pendentes, '+(rq.habilitadas||0)+' habilitadas)  |  Credenciais ativadas: '+(cr.ativadas||0)+' de '+(cr.emitidas||0)+'  |  Laudos enviados/certificados: '+(lz.enviados||0)+'/'+(lz.certificados||0));y+=4;
+  const nm={dia:'Ultimos 30 dias',semana:'Ultimas 12 semanas',mes:'Ultimos 12 meses',ano:'Ultimos 5 anos'};
+  for(const k of ['dia','semana','mes','ano']){const ser=d.ser[k]||[];if(!ser.length)continue;H('Utilizacao - '+nm[k],11);
+   for(const [m,rot] of [['tokens','Tokens'],['laudos','Laudos'],['consultas','Consultas']]){nova(62);const v=ser.map(x=>+x[m]||0),mx=Math.max(1,...v),bw=W/ser.length;doc.setFontSize(8);doc.setTextColor(90);doc.text(rot+' (maximo '+mx+', total '+v.reduce((a,b)=>a+b,0)+')',L,y);doc.setTextColor(0);
+    v.forEach((q,i)=>{const bh=q/mx*40;doc.setFillColor(14,116,144);doc.rect(L+i*bw+bw*.12,y+48-bh,bw*.76,bh,'F')});doc.setDrawColor(180);doc.line(L,y+48,L+W,y+48);y+=60}}
+  H('Usuarios por medico');if(!d.mdu.length)P('Nenhum medico ativo.');d.mdu.forEach(m=>P(asc(m.nome)+' ('+asc(m.clinica||'autonomo')+'): '+m.usuarios+' usuario(s), '+m.laudos+' laudo(s), '+m.certificados+' certificado(s)'));y+=4;
+  H('Consumo e cobranca no periodo');if(!d.con.length)P('Sem consumo.');let tt=0,tv=0;d.con.forEach(c=>{tt+=c.tokens;tv+=c.valor_centavos;P(asc(c.nome)+' - '+c.modelo+(c.pos_pago?' pos-pago':' pre-pago')+': '+c.tokens+' tokens, '+c.usuarios+' usuario(s), '+brl(c.valor_centavos).replace(/ /g,' '))});P('TOTAL: '+tt+' tokens = '+brl(tv).replace(/ /g,' '),11);y+=4;
+  H('Faturas');if(!d.fat.length)P('Nenhuma fatura.');d.fat.forEach(f=>P(asc(f.nome||f.email||'Conta')+' - '+String(f.periodo_ini).slice(0,10)+' a '+String(f.periodo_fim).slice(0,10)+': '+f.tokens+' tokens, '+brl(f.valor_centavos).replace(/ /g,' ')+' ['+f.status+(f.status==='paga'?' (teste)':'')+']'));
+  if(t('rTx').textContent.trim()){y+=6;H('Relatorio contextual (IA)');P(t('rTx').textContent.normalize('NFD').replace(/[̀-ͯ]/g,''))}
+  doc.save('elayon-relatorio-'+t('cF').value+'.pdf');say('mPdf','PDF gerado.')}catch(e){say('mPdf','❌ '+e.message,1)}t('bPdf').disabled=false};
+
+/* ---------- Masters e convites ---------- */
+async function masters(){const a=await sb.rpc('masters_resumo'),c=await sb.rpc('convites_listar');
+  t('lMs').innerHTML=(a.data||[]).length?a.data.map(m=>`<div class="it"><div class="r"><b>${esc(m.nome)}</b><span class="pill ok">${m.saldo} tokens</span></div><small>${m.medicos} médico(s) • ${m.usuarios} usuário(s) • ${m.consumo_30d} tokens em 30 dias${m.consumo_30d&&PRECO?' = '+brl(Math.round(m.consumo_30d*PRECO)):''}</small><div class="row2"><input data-cq="${esc(m.email)}" inputmode="numeric" placeholder="tokens"><button class="b g sm" data-cr="${esc(m.email)}">Creditar</button></div></div>`).join(''):'<p>Nenhum master ativo ainda.</p>';
+  t('lCv').innerHTML=(c.data||[]).filter(x=>x.tipo==='candidato').map(x=>`<div class="it"><div class="r"><b>${esc(x.para_nome||'—')}</b><span class="pill ${x.usado_em?'ok':''}">${x.usado_em?'usado':'aberto'}</span></div><small>${esc(x.codigo)}${x.usado_por_nome?' • '+esc(x.usado_por_nome):''} • vence ${String(x.expira).slice(0,10)}</small></div>`).join('')||'<p>Nenhum convite.</p>'}
+t('mvB').onclick=async()=>{const n=t('mvN').value.trim();if(!n)return say('mvM','Digite o nome.',1);const {data,error}=await sb.rpc('convite_candidato',{p_nome:n});if(error)return say('mvM','❌ '+error.message,1);
+  const txt='Convite Elayon Master para '+n+': '+data+' · abra '+location.origin+'/app-master.html';t('mvR').innerHTML='<div style="font-family:monospace;font-weight:800;font-size:20px;text-align:center;padding:10px;border:1px dashed #0b3a82;border-radius:12px;margin-top:8px;user-select:all">'+esc(data)+'</div><a class="b g" style="margin-top:8px" href="https://wa.me/?text='+encodeURIComponent(txt)+'">Enviar por WhatsApp</a>';say('mvM','Válido por 7 dias, uso único.');t('mvN').value='';masters()};
+t('lMs').onclick=async e=>{const em=(e.target.dataset||{}).cr;if(!em)return;const q=parseInt(document.querySelector('[data-cq="'+em.replace(/"/g,'')+'"]').value,10);if(!(q>0))return say('mMs','Digite a quantidade de tokens.',1);const {error}=await sb.rpc('creditar_master',{p_email:em,p_qtd:q});say('mMs',error?'❌ '+error.message:'Creditado.',!!error);masters()};
 async function aparelhos(){const {data}=await sb.rpc('aparelhos_listar');t('lAp').innerHTML=(data||[]).map(x=>`<div class="it" style="padding:8px"><div class="r"><b>${esc(x.nome)}${x.este?' (este)':''}</b><span class="pill ${x.ativo?'ok':'er'}">${x.ativo?'ativo':'revogado'}</span></div><small>desde ${String(x.criado).slice(0,10)}${x.ultimo_uso?' • último uso '+String(x.ultimo_uso).replace('T',' ').slice(0,16):''}</small>${x.ativo&&!x.este?`<button class="b g sm" data-rv="${x.id}">Revogar</button>`:''}</div>`).join('')}
 t('lAp').onclick=async e=>{const id=(e.target.dataset||{}).rv;if(!id)return;await sb.rpc('aparelho_revogar',{id});aparelhos()};
 t('bCod').onclick=async()=>{const {data,error}=await sb.rpc('aparelho_codigo');{say('mCod',error?'❌ '+error.message:'Código: '+data+' — vale 10 minutos. No celular, abra o link abaixo e digite só a frase.',!!error);if(!error){const u=location.origin+location.pathname.replace(/[^\/]*$/,'')+'index.html#p='+data;t('mCod').insertAdjacentHTML('beforeend','<br><input readonly id="lkP" value="'+u+'" style="margin-top:6px" onclick="this.select()"><button class="b g sm" id="cpP" style="margin-top:6px">Copiar link</button>');t('cpP').onclick=async()=>{try{await navigator.clipboard.writeText(u);t('cpP').textContent='Copiado'}catch(e){t('lkP').select()}}}}};
 t('bSai').onclick=()=>{try{sessionStorage.removeItem('adv_tok')}catch(e){}location.replace('index.html')};
 (async()=>{if(!TK){location.replace('index.html');return}
   const r=await A('ping');if(r.error||!r.data)return;
-  t('app').hidden=false;t('bAt').hidden=false;{const h=(location.hash||'').slice(1),bb=document.querySelector('#abas .tab[data-ab="'+h+'"]');if(bb)bb.click()}await atualiza();aparelhos()})();
+  t('app').hidden=false;t('bAt').hidden=false;{const h=(location.hash||'').slice(1),bb=document.querySelector('#abas .tab[data-ab="'+h+'"]');if(bb)bb.click()}await atualiza();aparelhos();uso();mu();cobranca();masters()})();
 </script></body></html>
