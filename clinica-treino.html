@@ -67,20 +67,29 @@ function passo(){
   s.liga($('sim'),(m)=>{$('fb').className='msg ok';$('fb').textContent=m;ok()},(m)=>{$('fb').className='msg er';$('fb').textContent=m});
 }
 function quiz(){
-  $('cena').innerHTML='<div class="cnt">Conferência final</div><h2>Três perguntas</h2><p>Acerte as três para concluir o treinamento. Pode tentar de novo.</p>'
-   +QUIZ.map((q,k)=>'<div class="q"><b>'+(k+1)+'. '+q.p+'</b>'+q.o.map((o,j)=>'<label><input type="radio" name="q'+k+'" value="'+j+'"> '+o+'</label>').join('')+'</div>').join('')
-   +'<button class="b" id="bq">Conferir respostas</button><div class="msg" id="fb"></div><button class="b g" id="volta">⬅ Voltar ao último passo</button>';
-  $('volta').onclick=()=>{i=PASSOS.length-1;passo()};
-  $('bq').onclick=async()=>{
-    let certo=0,todas=true;QUIZ.forEach((q,k)=>{const r=document.querySelector('input[name=q'+k+']:checked');if(!r)todas=false;else if(+r.value===q.c)certo++});
-    if(!todas){$('fb').className='msg er';$('fb').textContent='Responda as três perguntas.';return}
-    if(certo<QUIZ.length){$('fb').className='msg er';$('fb').textContent='Acertou '+certo+' de '+QUIZ.length+'. Releia o passo correspondente e tente de novo.';return}
-    $('bq').disabled=true;$('fb').className='msg';$('fb').textContent='⏳ registrando…';
+  let k=0,erros=0;
+  const fim=async()=>{
+    $('cena').innerHTML='<div class="cnt">Conferência final</div><h2>⏳ Registrando…</h2>';
     let erro=null;try{const {data,error}=await sb.rpc('concluir_treinamento',{p:PAPEL});if(error)erro=error.message;else if(data&&!data.ok)erro=data.erro}catch(e){erro=e.message}
-    if(erro){$('bq').disabled=false;$('fb').className='msg er';$('fb').textContent='Não consegui registrar: '+erro+'. Entre na sua conta e tente de novo.';return}
+    if(erro){$('cena').innerHTML='<h2>Não consegui registrar</h2><p>'+erro+'. Entre na sua conta e tente de novo.</p><button class="b" id="again">Tentar de novo</button>';$('again').onclick=fim;return}
     $('bar').style.width='100%';
     $('cena').innerHTML='<h2>✅ Treinamento concluído</h2><p>Você conhece o fluxo completo da clínica. Agora ative a credencial da clínica e use a ferramenta real.</p><a class="b" href="trilha.html?p=clinica">Continuar na minha trilha</a>';
   };
+  const pergunta=()=>{
+    if(k>=QUIZ.length)return fim();
+    const q=QUIZ[k],ordem=q.o.map((_,j)=>j).sort(()=>Math.random()-.5);
+    $('bar').style.width=Math.round(100*(PASSOS.length+k/QUIZ.length)/(PASSOS.length+1))+'%';
+    $('cena').innerHTML='<div class="cnt">Conferência · pergunta '+(k+1)+' de '+QUIZ.length+'</div><h2>'+q.p+'</h2><div class="q">'+ordem.map(j=>'<label><input type="radio" name="q" value="'+j+'"> '+q.o[j]+'</label>').join('')+'</div>'
+     +'<button class="b" id="bq">Responder</button><div class="msg" id="fb"></div>'+(k===0?'<button class="b g" id="volta">⬅ Rever o treinamento</button>':'');
+    if($('volta'))$('volta').onclick=()=>{i=PASSOS.length-1;passo()};
+    $('bq').onclick=()=>{
+      const r=document.querySelector('input[name=q]:checked');
+      if(!r){$('fb').className='msg er';$('fb').textContent='Escolha uma resposta.';return}
+      if(+r.value===q.c){$('fb').className='msg ok';$('fb').textContent='✔ Certo.'+(q.e?' '+q.e:'');$('bq').disabled=true;setTimeout(()=>{k++;erros=0;pergunta()},900)}
+      else{erros++;$('fb').className='msg er';$('fb').textContent='Ainda não. '+(erros>=2&&q.e?'Dica: '+q.e:'Pense de novo e responda outra vez.');document.querySelectorAll('input[name=q]').forEach(x=>{x.checked=false})}
+    };
+  };
+  pergunta();
 }
 passo();
 </script>
