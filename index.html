@@ -227,23 +227,41 @@
         }
       });
 
+      var cod = null;
+      function aparelho() {
+        var d = '';
+        try { d = localStorage.getItem('elx_ap') || ''; } catch (err) {}
+        if (d.length < 32) {
+          var a = new Uint8Array(32);
+          crypto.getRandomValues(a);
+          d = Array.prototype.map.call(a, function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
+          try { localStorage.setItem('elx_ap', d); } catch (err) {}
+        }
+        return d;
+      }
       box.addEventListener('submit', async function (e) {
         e.preventDefault();
         var v = pw.value;
-        pw.value = '';
         msg.innerHTML = '';
         if (!v || !sb) return;
-        var sessao = null;
-        try { sessao = (await sb.auth.getSession()).data.session; } catch (err) { sessao = null; }
-        if (!sessao) {
-          msg.innerHTML = 'Entre na sua conta e repita. <a href="login.html">Entrar</a>';
+        var c = cod ? cod.value : null;
+        var r = null;
+        try { r = (await sb.rpc('adv_entrar', { p_senha: v, p_disp: aparelho(), p_codigo: c })).data; } catch (err) { r = null; }
+        if (!(r && r.erro === 'aparelho_novo') && !cod) pw.value = '';
+        if (r && r.ok) {
+          try { sessionStorage.setItem('adv_tok', r.token); } catch (err) {}
+          location.href = 'advanced.html';
           return;
         }
-        var r = null;
-        try { r = (await sb.rpc('acesso_manutencao', { p_senha: v })).data; } catch (err) { r = null; }
-        if (r && r.ok) { location.href = 'advanced.html'; return; }
         if (r && r.erro === 'bloqueado') { msg.textContent = 'Tente mais tarde.'; return; }
-        if (r && r.erro === 'nao_configurado') { msg.textContent = 'Canal não configurado.'; return; }
+        if (r && r.erro === 'aparelho_novo' && !cod) {
+          cod = document.createElement('input');
+          cod.type = 'text'; cod.autocomplete = 'off'; cod.setAttribute('style', pw.getAttribute('style') || '');
+          cod.className = pw.className;
+          box.insertBefore(cod, box.firstChild);
+          msg.textContent = '';
+          cod.focus();
+        }
       });
     })();
   </script>
