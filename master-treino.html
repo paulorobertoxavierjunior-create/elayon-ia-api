@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Elayon Health • Treinamento do master</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg1:#f4f9f4;--bg2:#eaf4f6;--ink:#0a2a2f;--muted:#4a6b70;--line:#d8e8eb;--a:#2a9d8f;--a2:#3ecfcf;--ok:#047857;--err:#b91c1c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;padding:20px 14px;font-family:system-ui,-apple-system,sans-serif;background:radial-gradient(circle at top left,var(--bg1),var(--bg2));color:var(--ink)}
+.w{max-width:520px;margin:0 auto}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--muted);margin-bottom:12px}
+.top a{color:var(--a);text-decoration:none}
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px 18px;box-shadow:0 10px 30px rgba(0,0,0,.05)}
+.fake{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#856404;background:#fff3cd;border:1px solid #ffeeba;border-radius:20px;padding:3px 10px;margin-bottom:10px}
+h1{font-size:20px;letter-spacing:-.4px;margin-bottom:4px;line-height:1.25}
+.bar{height:6px;background:#eef5f5;border-radius:6px;margin:10px 0 16px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--a),var(--a2));width:0;transition:width .3s}
+.cnt{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+h2{font-size:17px;margin:4px 0 8px}
+p,li{font-size:13px;line-height:1.6;color:var(--muted)} p{margin-bottom:10px} ul{margin:0 0 10px 18px}
+.sim{border:1px dashed var(--a);background:#f7fcfd;border-radius:14px;padding:12px;margin:12px 0;font-size:12.5px;color:var(--ink);line-height:1.55}
+.sim .row{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}.sim .row:first-child{border-top:0}
+.sim label{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;margin:6px 0;cursor:pointer}.sim input[type=checkbox]{margin-top:2px}
+.sim input[type=text],.sim textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:13px}
+.pill{font-size:10px;font-weight:800;border-radius:20px;padding:3px 9px;background:#fff3cd;color:#856404}.pill.ok{background:#e8fbf3;color:var(--ok)}
+.b{display:block;width:100%;margin-top:10px;padding:12px;border:0;border-radius:12px;font-weight:800;font-size:13px;text-align:center;text-decoration:none;color:#fff;background:linear-gradient(135deg,var(--a),var(--a2));cursor:pointer}
+.b[disabled]{opacity:.45;cursor:not-allowed}.b.g{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.msg{font-size:12px;margin-top:8px;line-height:1.5;font-weight:700}.msg.ok{color:var(--ok)}.msg.er{color:var(--err)}
+.q{margin:14px 0}.q b{font-size:13px;display:block;margin-bottom:6px;color:var(--ink)}.q label{display:flex;gap:8px;font-size:12.5px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;cursor:pointer;color:var(--ink);line-height:1.45}
+.nota{font-size:11px;color:var(--muted);line-height:1.5;text-align:center;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="w">
+  <div class="top"><span>ELAYON HEALTH · TREINAMENTO DO MASTER</span><a href="trilha.html?p=master">⬅ minha trilha</a></div>
+  <div class="card">
+    <span class="fake">Treinamento · dados fictícios · nada é gravado nem cobrado</span>
+    <h1>Treinamento do master</h1>
+    <div class="bar"><i id="bar"></i></div>
+    <div id="cena"></div>
+  </div>
+  <p class="nota">O Elayon Health é uma ferramenta de apoio à escuta e ao acompanhamento. Não faz diagnóstico nem substitui avaliação profissional.</p>
+</div>
+<script>
+const PAPEL='master';
+const sb=supabase.createClient('https://xlktkelumtpugidnecbj.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM');
+const $=id=>document.getElementById(id);
+const PASSOS=[{t:"O papel do master",txt:"<p>O master é o <b>responsável total pela sua operação</b> e se reporta ao Advanced. A clínica não é outro perfil: é uma <b>aba sua</b>. Você é médico e administrador ao mesmo tempo, treina os médicos, cadastra quem vai realmente usar a ferramenta e <b>paga todo o consumo</b>. É uma pessoa ou empresa <b>contratada, com nome</b>. Os dados chegam à plataforma como metadados, sem identificar pacientes.</p>",sim:"<div class=\"row\"><span>Advanced</span><span class=\"pill\">observa</span></div><div class=\"row\"><span>Master (com a aba Clínica)</span><span class=\"pill\">responde e paga</span></div><div class=\"row\"><span>Médicos → usuários</span><span class=\"pill\">usam o app</span></div><button class=\"b\" data-a>Entendi a hierarquia</button>",liga:(el,ok)=>{el.querySelector('[data-a]').onclick=function(){this.disabled=true;ok("Hierarquia entendida: Advanced → master (com a clínica) → médicos → usuários.")}}},
+{t:"Convidar um médico",txt:"<p>Na aba <b>Médicos</b> do app do Master você gera um <b>convite nominal</b>, de uso único e com validade. O médico abre o <b>app do Médico</b> com o convite, faz o cadastro oficial (CRM) e já entra vinculado à sua clínica. Não existe cadastro aberto: <b>só entra quem você convidou</b>.</p>",sim:"<input type=\"text\" id=\"nc\" placeholder=\"Nome do médico (ex.: Dra. Exemplo)\"><button class=\"b\" data-a>✉️ Gerar convite (simulado)</button><div id=\"cod\" style=\"margin-top:8px;font-family:monospace;font-weight:800\"></div>",liga:(el,ok,er)=>{el.querySelector('[data-a]').onclick=function(){const n=document.getElementById('nc').value.trim();if(!n){er('Digite o nome do médico.');return}this.disabled=true;document.getElementById('cod').textContent='CONV-'+n.replace(/[^A-Za-z0-9]/g,'').slice(0,4).toUpperCase().padEnd(4,'X')+'-EXEMPLO';ok('Convite de exemplo gerado. Este é fictício e não dá acesso a nada.')}}},
+{t:"Acompanhar a rede",txt:"<p>A aba <b>Clínica</b> mostra quantos laudos chegaram dos seus médicos, a qualidade e as tarefas, e quantos usuários cada médico tem. Você vê <b>números da sua operação</b>, e o conteúdo clínico fica com o médico.</p>",sim:"<div class=\"row\"><span>Clínica Exemplo A</span><span>2 médicos · 14 usuários</span></div><div class=\"row\"><span>Clínica Exemplo B</span><span>3 médicos · 24 usuários</span></div><div class=\"row\"><span><b>Total da rede</b></span><span><b>2 clínicas · 5 médicos · 38 usuários</b></span></div><button class=\"b\" data-a>📊 Ver o total da rede</button>",liga:(el,ok)=>{el.querySelector('[data-a]').onclick=function(){this.disabled=true;ok("Total conferido. Estes números alimentam o seu dashboard.")}}},
+{t:"Dashboard e consumo de tokens",txt:"<p>A aba <b>Consumo</b> mostra quanto cada médico e cada usuário gastou. <b>O master paga tudo.</b> O usuário nunca é cobrado e nunca vê preço, por ética: ninguém paga mais do que foi combinado com o médico. Você acompanha saldo, limite e aviso de saldo baixo.</p>",sim:"<div class=\"row\"><span>Quem paga o consumo</span><span class=\"pill ok\">o master</span></div><div class=\"row\"><span>O usuário paga?</span><span class=\"pill\">nunca</span></div><button class=\"b\" data-a>📊 Ver o consumo (simulado)</button>",liga:(el,ok)=>{el.querySelector('[data-a]').onclick=function(){this.disabled=true;ok("Consumo conferido. No treino nada é cobrado.")}}},
+{t:"Caixa de melhorias",txt:"<p>Pela aba <b>💬 Melhorias</b> você envia sugestões para os relatórios e funções da plataforma. A equipe Advanced valida, responde e marca como feita ou recusada. Você acompanha o status.</p>",sim:"<textarea id=\"mel\" rows=\"3\" placeholder=\"Ex.: incluir a taxa de laudos devolvidos no relatório mensal\"></textarea><button class=\"b\" data-a>📨 Enviar sugestão (simulada)</button>",liga:(el,ok,er)=>{el.querySelector('[data-a]').onclick=function(){if(!document.getElementById('mel').value.trim()){er('Escreva a sugestão.');return}this.disabled=true;ok('Sugestão registrada como pendente. Quem valida é o Advanced.')}}},
+{t:"Contrato, nome e metadados",txt:"<p>O master entra em <b>contrato jurídico real</b> e aparece <b>pelo nome</b> para a plataforma. O que se agrega a partir da rede (volumes, qualidade, tarefas) são <b>metadados anonimizados</b>. A coleta com pacientes reais só abre depois da aprovação do comitê de ética e do consentimento dos participantes.</p>",sim:"<div class=\"row\"><span>Master identificado</span><span class=\"pill ok\">sim, por contrato</span></div><div class=\"row\"><span>Dado de paciente identificado</span><span class=\"pill\">não circula</span></div><button class=\"b\" data-a>Li e entendi</button>",liga:(el,ok)=>{el.querySelector('[data-a]').onclick=function(){this.disabled=true;ok("Entendido. O treinamento da ferramenta termina aqui.")}}}];
+const QUIZ=[{"p": "Quem responde pela operação do master e se reporta ao Advanced?", "o": ["O próprio master", "O paciente", "O médico mais novo"], "c": 0, "e": "O master assume a responsabilidade total da sua operação."}, {"p": "A clínica, para o master, é:", "o": ["Um perfil separado, com outra senha", "Uma aba do próprio app do master", "Um app que o usuário instala"], "c": 1, "e": "A clínica é uma aba de controle do master."}, {"p": "Quem paga o consumo de tokens dos médicos e dos usuários?", "o": ["O usuário, sempre", "Cada médico, do bolso", "O master"], "c": 2, "e": "O master paga o consumo todo."}, {"p": "O usuário vê preço ou é cobrado dentro do app dele?", "o": ["Sim, quando passa do limite", "Nunca", "Só nos fins de semana"], "c": 1, "e": "Nenhum usuário paga mais do que foi acordado com o médico."}, {"p": "Como um médico entra na sua clínica?", "o": ["Cadastro aberto, qualquer um", "Por convite nominal do master, de uso único", "Pedindo no WhatsApp ao Advanced"], "c": 1, "e": "Só entra quem o master convidou."}, {"p": "O que a plataforma recebe da operação do master?", "o": ["O conteúdo clínico de cada paciente", "Metadados anonimizados, com o master identificado por contrato", "Nada"], "c": 1, "e": "Só metadados, nunca dado clínico identificado."}, {"p": "A ferramenta deve ser usada em quem:", "o": ["Qualquer curioso que baixar o app", "Quem realmente vai usar, convidado por você ou pelo médico", "Quem pagar mais"], "c": 1, "e": "A ferramenta é para quem realmente vai usar."}];
+let i=0,feito={};
+function bar(){const t=PASSOS.length+1;$('bar').style.width=Math.round(100*Math.min(i,t)/t)+'%'}
+function passo(){
+  bar();
+  if(i>=PASSOS.length)return quiz();
+  const s=PASSOS[i];
+  $('cena').innerHTML='<div class="cnt">Passo '+(i+1)+' de '+PASSOS.length+'</div><h2>'+s.t+'</h2>'+s.txt+'<div class="sim" id="sim">'+s.sim+'</div><div class="msg" id="fb"></div>'
+   +'<button class="b" id="prox" disabled>'+(i<PASSOS.length-1?'Próximo passo':'Ir para a conferência')+'</button>'+(i>0?'<button class="b g" id="volta">⬅ Voltar</button>':'');
+  $('prox').onclick=()=>{i++;passo()};if($('volta'))$('volta').onclick=()=>{i--;passo()};
+  const ok=()=>{feito[i]=1;$('prox').disabled=false};
+  if(feito[i])ok();
+  s.liga($('sim'),(m)=>{$('fb').className='msg ok';$('fb').textContent=m;ok()},(m)=>{$('fb').className='msg er';$('fb').textContent=m});
+}
+function quiz(){
+  let k=0,erros=0;
+  const fim=async()=>{
+    $('cena').innerHTML='<div class="cnt">Conferência final</div><h2>⏳ Registrando…</h2>';
+    let erro=null;try{const {data,error}=await sb.rpc('concluir_treinamento',{p:PAPEL});if(error)erro=error.message;else if(data&&!data.ok)erro=data.erro}catch(e){erro=e.message}
+    if(erro){$('cena').innerHTML='<h2>Não consegui registrar</h2><p>'+erro+'. Entre na sua conta e tente de novo.</p><button class="b" id="again">Tentar de novo</button>';$('again').onclick=fim;return}
+    $('bar').style.width='100%';
+    $('cena').innerHTML='<h2>✅ Treinamento concluído</h2><p>Você conhece a ferramenta do master. Agora ative a credencial do master e use a ferramenta real.</p><a class="b" href="trilha.html?p=master">Continuar na minha trilha</a>';
+  };
+  const pergunta=()=>{
+    if(k>=QUIZ.length)return fim();
+    const q=QUIZ[k],ordem=q.o.map((_,j)=>j).sort(()=>Math.random()-.5);
+    $('bar').style.width=Math.round(100*(PASSOS.length+k/QUIZ.length)/(PASSOS.length+1))+'%';
+    $('cena').innerHTML='<div class="cnt">Conferência · pergunta '+(k+1)+' de '+QUIZ.length+'</div><h2>'+q.p+'</h2><div class="q">'+ordem.map(j=>'<label><input type="radio" name="q" value="'+j+'"> '+q.o[j]+'</label>').join('')+'</div>'
+     +'<button class="b" id="bq">Responder</button><div class="msg" id="fb"></div>'+(k===0?'<button class="b g" id="volta">⬅ Rever o treinamento</button>':'');
+    if($('volta'))$('volta').onclick=()=>{i=PASSOS.length-1;passo()};
+    $('bq').onclick=()=>{
+      const r=document.querySelector('input[name=q]:checked');
+      if(!r){$('fb').className='msg er';$('fb').textContent='Escolha uma resposta.';return}
+      if(+r.value===q.c){$('fb').className='msg ok';$('fb').textContent='✔ Certo.'+(q.e?' '+q.e:'');$('bq').disabled=true;setTimeout(()=>{k++;erros=0;pergunta()},900)}
+      else{erros++;$('fb').className='msg er';$('fb').textContent='Ainda não. '+(erros>=2&&q.e?'Dica: '+q.e:'Pense de novo e responda outra vez.');document.querySelectorAll('input[name=q]').forEach(x=>{x.checked=false})}
+    };
+  };
+  pergunta();
+}
+passo();
+</script>
+</body>
+</html>
