@@ -84,14 +84,19 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 
 <details class="c"><summary>🧾 Auditoria</summary><p>Ações administrativas e tentativas de acesso à manutenção.</p><div id="lA" style="display:grid;gap:6px"></div></details>
 
-<div class="c"><h3>Atalhos</h3><div class="row2"><a class="b g" href="tokens-gestao.html">💳 Contas, faturas e consumo</a><a class="b g" href="master.html">📊 Dashboard e metadados</a></div>
-<div class="row2" style="margin-top:8px"><a class="b g" href="master.html#ajustes" id="aAj">🧩 Melhoria dos códigos</a><a class="b g" href="planos.html">🛒 Página de planos</a></div></div>
+<details class="c" open><summary>📱 Aparelhos</summary><p>Só aparelhos pareados entram. Para liberar outro, gere um código aqui (vale 10 minutos) e digite no novo aparelho junto com a frase.</p><button class="b" id="bCod">Gerar código de pareamento</button><div class="msg" id="mCod"></div><div id="lAp" style="display:grid;gap:6px;margin-top:8px"></div></details>
+<div class="c"><button class="b g" id="bSai">Sair do Advanced</button></div>
 </div>
 
-<p style="text-align:center"><a href="perfil.html" style="color:var(--a);font-weight:700;font-size:11px">⬅ Voltar ao perfil</a></p>
 </div></div>
-<script src="elayon-legal.js"></script><script src="health-core.js"></script>
 <script>
+const raw=supabase.createClient('https://xlktkelumtpugidnecbj.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM',{auth:{persistSession:false,autoRefreshToken:false}});
+let TK='';try{TK=sessionStorage.getItem('adv_tok')||''}catch(e){}
+const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function A(fn,a){const r=await raw.rpc('adv_chamar',{p_token:TK,p_fn:fn,p_args:a||{}});
+  if(r.error&&/sessao_invalida/.test(r.error.message)){try{sessionStorage.removeItem('adv_tok')}catch(e){}location.replace('index.html')}
+  return r}
+const sb={rpc:(fn,a)=>fn==='preco_publico'?raw.rpc(fn,a):A(fn,a)};
 const t=id=>document.getElementById(id);
 const say=(id,x,e)=>{const m=t(id);m.textContent=x||'';m.style.color=e?'#b91c1c':''};
 const brl=c=>(c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
@@ -119,22 +124,22 @@ async function atualiza(){t('bAt').disabled=true;t('stamp').textContent='Atualiz
   await preco();await Promise.all([sols(),tarifas(),planos(),prontidao(),reqs(),pilotos(),creds(),metricas()]);
   t('stamp').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR');t('bAt').disabled=false;try{localStorage.setItem('adv_visto',new Date().toISOString())}catch(e){}}
 t('bAt').onclick=atualiza;
-async function sols(){const {data,error}=await sb.from('solicitacoes').select('*').order('criado',{ascending:false}).limit(100);if(error)return t('lS').innerHTML='<p>'+esc(error.message)+'</p>';
+async function sols(){const {data,error}=await sb.rpc('sols_listar');if(error)return t('lS').innerHTML='<p>'+esc(error.message)+'</p>';
   SOL=data||[];const ab=SOL.filter(s=>s.status==='pendente'||s.status==='validada');
   t('lS').innerHTML=ab.length?ab.map(s=>`<div class="it"><div class="r"><b>${esc(s.titulo)}</b><span class="pill ${s.status==='validada'?'ok':''}">${s.status}</span></div><small>${esc(s.autor_nome||'Master')} • ${s.tipo} • ${String(s.criado).slice(0,10)}</small>${s.texto?'<p>'+esc(s.texto)+'</p>':''}
   <input data-rs="${s.id}" placeholder="Resposta ao master" value="${esc(s.resposta||'')}"><div class="row3"><button class="b sm" data-st="validada" data-id="${s.id}">Validar</button><button class="b g sm" data-st="feita" data-id="${s.id}">Feita</button><button class="b g sm" data-st="recusada" data-id="${s.id}">Recusar</button></div></div>`).join(''):'<p>Caixa vazia.</p>'}
 t('lS').onclick=async e=>{const d=e.target.dataset||{};if(!d.st)return;const r=document.querySelector(`[data-rs="${d.id}"]`).value.trim();
-  const {error}=await sb.from('solicitacoes').update({status:d.st,resposta:r||null,decidido_em:new Date().toISOString()}).eq('id',d.id);if(error)return say('mS','❌ '+error.message,1);say('mS','Atualizado.');sols()};
-async function tarifas(){const {data,error}=await sb.from('tarifas').select('*').order('motivo');if(error)return t('lT').innerHTML='<p>'+esc(error.message)+'</p>';
+  const {error}=await sb.rpc('sol_decidir',{id:d.id,status:d.st,resposta:r||''});if(error)return say('mS','❌ '+error.message,1);say('mS','Atualizado.');sols()};
+async function tarifas(){const {data,error}=await sb.rpc('tarifas_listar');if(error)return t('lT').innerHTML='<p>'+esc(error.message)+'</p>';
   t('lT').innerHTML=(data||[]).map(x=>`<div class="it"><div class="r"><b>${esc(TNOM[x.motivo]||x.descricao||x.motivo)}</b><small>${esc(x.motivo)}</small></div><div class="row2"><input data-tq="${x.motivo}" inputmode="numeric" value="${x.qtd}"><button class="b g sm" data-ts="${x.motivo}">Salvar</button></div></div>`).join('')}
 t('lT').onclick=async e=>{const m=(e.target.dataset||{}).ts;if(!m)return;const v=parseInt(document.querySelector(`[data-tq="${m}"]`).value,10);if(!(v>=0))return say('mT','Valor inválido.',1);
   const {error}=await sb.rpc('definir_tarifa',{p_motivo:m,p_qtd:v});say('mT',error?'❌ '+error.message:'Tarifa salva.',!!error)};
-async function planos(){const {data,error}=await sb.from('planos').select('*').order('publico').order('ordem');if(error)return t('lP').innerHTML='<p>'+esc(error.message)+'</p>';
+async function planos(){const {data,error}=await sb.rpc('planos_listar');if(error)return t('lP').innerHTML='<p>'+esc(error.message)+'</p>';
   t('lP').innerHTML=(data||[]).length?data.map(p=>`<div class="it"><div class="r"><b>${esc(p.nome)}</b><span class="pill ${p.ativo?'ok':'er'}">${p.ativo?'ativo':'oculto'}</span></div><small>${p.publico} • ${p.modelo}${p.pos_pago?' pós-pago (limite '+p.limite_pos+')':' pré-pago'} • ${p.tokens} tokens${p.desconto_pct?' • '+p.desconto_pct+'% off':''} • ${PRECO?brl(Math.round(p.tokens*PRECO*(1-p.desconto_pct/100))):'preço a definir'}${p.descricao?' • '+esc(p.descricao):''}</small><button class="b g sm" data-pa="${p.id}" data-v="${p.ativo?0:1}">${p.ativo?'Ocultar':'Mostrar'}</button></div>`).join(''):'<p>Nenhum plano ainda. Crie o primeiro abaixo.</p>'}
-t('lP').onclick=async e=>{const d=e.target.dataset||{};if(!d.pa)return;await sb.from('planos').update({ativo:d.v==='1'}).eq('id',d.pa);planos()};
+t('lP').onclick=async e=>{const d=e.target.dataset||{};if(!d.pa)return;await sb.rpc('plano_ativo',{id:d.pa,ativo:d.v==='1'});planos()};
 t('bPl').onclick=async()=>{const n=t('pN').value.trim(),pos=t('pPo').value==='1',tk=parseInt(t('pTk').value||'0',10),ds=parseInt(t('pDs').value||'0',10),li=parseInt(t('pLi').value||'2000',10);
   if(!n||!(tk>=0)||(tk===0&&!pos)||!(ds>=0&&ds<=100))return say('mP','Preencha nome e tokens (zero só no pós-pago), desconto de 0 a 100.',1);
-  const {error}=await sb.from('planos').insert({nome:n,publico:t('pPu').value,modelo:t('pMo').value,pos_pago:pos,tokens:tk,desconto_pct:ds,limite_pos:li,preco_centavos:0,descricao:t('pDe').value.trim()||null});if(error)return say('mP','❌ '+error.message,1);
+  const {error}=await sb.rpc('plano_criar',{nome:n,publico:t('pPu').value,modelo:t('pMo').value,pos_pago:pos,tokens:tk,desconto_pct:ds,limite_pos:li,descricao:t('pDe').value.trim()});if(error)return say('mP','❌ '+error.message,1);
   t('pN').value=t('pTk').value=t('pDs').value=t('pLi').value=t('pDe').value='';say('mP','Plano criado.');planos()};
 async function audit(){const {data}=await sb.rpc('listar_auditoria');t('lA').innerHTML=(data||[]).length?data.map(a=>`<div class="it" style="padding:8px"><b>${esc(a.acao)}</b><small>${esc(a.quem||'')} • ${String(a.criado).replace('T',' ').slice(0,16)}${a.detalhe?' • '+esc(JSON.stringify(a.detalhe)).slice(0,120):''}</small></div>`).join(''):'<p>Sem registros.</p>'}
 document.addEventListener('toggle',e=>{if(e.target.tagName==='DETAILS'&&e.target.open&&e.target.textContent.includes('Auditoria'))audit()},true);
@@ -200,8 +205,11 @@ async function metricas(){const {data,error}=await sb.rpc('metricas_plataforma')
    +it('Laudos enviados → certificados',`${l.enviados} → ${l.certificados} · ${pct(l.certificados,l.enviados)}`)
    +it('Tempo médio de certificação',l.horas_ate_certificar==null?'—':l.horas_ate_certificar+' h')
    +it('Tokens consumidos em 30 dias',data.tokens.consumo_30d)}
-(async()=>{try{await eu()}catch(e){return}
-  let r;try{r=await sb.rpc('meu_nivel')}catch(e){r={}}
-  if((+(r&&r.data)||0)<4){t('bloq').hidden=false;return}
-  t('app').hidden=false;t('bAt').hidden=false;{const h=(location.hash||'').slice(1),bb=document.querySelector('#abas .tab[data-ab="'+h+'"]');if(bb)bb.click()}await atualiza()})();
+async function aparelhos(){const {data}=await sb.rpc('aparelhos_listar');t('lAp').innerHTML=(data||[]).map(x=>`<div class="it" style="padding:8px"><div class="r"><b>${esc(x.nome)}${x.este?' (este)':''}</b><span class="pill ${x.ativo?'ok':'er'}">${x.ativo?'ativo':'revogado'}</span></div><small>desde ${String(x.criado).slice(0,10)}${x.ultimo_uso?' • último uso '+String(x.ultimo_uso).replace('T',' ').slice(0,16):''}</small>${x.ativo&&!x.este?`<button class="b g sm" data-rv="${x.id}">Revogar</button>`:''}</div>`).join('')}
+t('lAp').onclick=async e=>{const id=(e.target.dataset||{}).rv;if(!id)return;await sb.rpc('aparelho_revogar',{id});aparelhos()};
+t('bCod').onclick=async()=>{const {data,error}=await sb.rpc('aparelho_codigo');say('mCod',error?'❌ '+error.message:'Código: '+data+' — vale 10 minutos.',!!error)};
+t('bSai').onclick=()=>{try{sessionStorage.removeItem('adv_tok')}catch(e){}location.replace('index.html')};
+(async()=>{if(!TK){location.replace('index.html');return}
+  const r=await A('ping');if(r.error||!r.data)return;
+  t('app').hidden=false;t('bAt').hidden=false;{const h=(location.hash||'').slice(1),bb=document.querySelector('#abas .tab[data-ab="'+h+'"]');if(bb)bb.click()}await atualiza();aparelhos()})();
 </script></body></html>
