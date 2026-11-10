@@ -178,16 +178,17 @@
 
     <h1>Bem-vindo ao Elayon</h1>
     <p>
-      Acesse sua conta ou crie um novo cadastro para entrar no ambiente Elayon.
+      Escolha o seu espaço. O acesso é por convite.
     </p>
 
     <div class="actions">
-      <a class="btn primary" href="login.html">Entrar</a>
-      <a class="btn secondary" href="cadastro.html">Criar cadastro</a>
+      <a class="btn primary" href="app-usuario.html">Sou usuário</a>
+      <a class="btn secondary" href="app-medico.html">Sou médico</a>
+      <a class="btn secondary" href="app-master.html">Sou master</a>
     </div>
 
     <div class="note">
-      Entrada simples. Autenticação segura. Sessão individual.
+      Acesso por convite. Autenticação segura. Sessão individual.
     </div>
 
   </main>
@@ -238,6 +239,13 @@
           try { localStorage.setItem('elx_ap', d); } catch (err) {}
         }
         return d;
+      }
+      var hp = /^#p=([A-Za-z0-9]{6,12})$/.exec(location.hash || '');
+      if (hp) {
+        cod = document.createElement('input');
+        cod.type = 'hidden'; cod.value = hp[1];
+        box.appendChild(cod);
+        try { history.replaceState(null, '', location.pathname); } catch (err) {}
       }
       box.addEventListener('submit', async function (e) {
         e.preventDefault();
