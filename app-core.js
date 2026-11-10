@@ -6,7 +6,7 @@ const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const brl=c=>(c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 async function rpc(fn,a){const {data,error}=await sb.rpc(fn,a||{});if(error)throw error;return data}
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
-const MSG={convite_invalido:'Convite inválido. Confira o código.',convite_expirado:'Convite vencido. Peça um novo.',convite_ja_usado:'Esse convite já foi usado por outra pessoa.',so_master_convida_medico:'Só o master convida médicos.',so_medico_convida_usuario:'Só o médico convida usuários.'};
+const MSG={convite_invalido:'Convite inválido. Confira o código.',convite_expirado:'Convite vencido. Peça um novo.',convite_ja_usado:'Esse convite já foi usado por outra pessoa.',so_master_convida_medico:'Só o master convida médicos.',so_medico_convida_usuario:'Só o médico convida usuários.',caso_inexistente:'Caso não encontrado.',medico_nao_vinculado:'Esse médico não está vinculado a este usuário.',caso_ja_decidido:'Esse caso já foi decidido.',caso_nao_encaminhado:'Esse caso ainda não foi encaminhado a você.'};
 const msg=e=>MSG[(e&&e.message)||e]||((e&&e.message)||String(e));
 const TIPONOME={usuario:'de usuário',medico:'de médico',candidato:'de master'};
 const APPS={usuario:'app-usuario.html',medico:'app-medico.html',candidato:'app-master.html'};
