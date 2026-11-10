@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Elayon Space • Entrada</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root{
       --bg1:#eaf7e3;
@@ -96,6 +97,59 @@
       font-size:12px;
       color:var(--muted);
     }
+
+    .log{
+      margin-top:18px;
+      background:none;
+      border:0;
+      font:inherit;
+      font-size:11px;
+      color:var(--muted);
+      opacity:.4;
+      padding:8px 14px;
+      cursor:default;
+      -webkit-tap-highlight-color:transparent;
+      user-select:none;
+    }
+
+    .logbox{
+      display:none;
+      gap:8px;
+      margin-top:6px;
+      justify-content:center;
+    }
+
+    .logbox input{
+      flex:1;
+      min-width:0;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      font:inherit;
+      font-size:14px;
+      outline:none;
+    }
+
+    .logbox button{
+      padding:10px 14px;
+      border:0;
+      border-radius:10px;
+      font:inherit;
+      font-size:13px;
+      font-weight:800;
+      color:var(--ink);
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      cursor:pointer;
+    }
+
+    .logmsg{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:8px;
+      min-height:16px;
+    }
+
+    .logmsg a{ color:var(--ink); font-weight:800; }
   </style>
 </head>
 <body>
@@ -120,6 +174,61 @@
     <div class="note">
       Entrada simples. Autenticação segura. Sessão individual.
     </div>
+
+    <button type="button" class="log" id="log" aria-label="log">log</button>
+    <form class="logbox" id="logbox" autocomplete="off">
+      <input type="password" id="logpw" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="campo" />
+      <button type="submit">OK</button>
+    </form>
+    <div class="logmsg" id="logmsg"></div>
   </main>
+
+  <script>
+    /* Atalho do Advanced: 10 toques em "log" (em até 20 s) abrem um campo.
+       A frase abaixo NÃO é uma senha: ela só abre o caminho. Quem decide é o servidor:
+       a Central só abre para a conta que tem a credencial Advanced (meu_nivel >= 4). */
+    (function () {
+      var FRASE = 'Paulo Xavier';
+      var sb = null;
+      try {
+        sb = window.supabase ? supabase.createClient('https://xlktkelumtpugidnecbj.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM') : null;
+      } catch (e) { sb = null; }
+
+      var toques = [];
+      var box = document.getElementById('logbox');
+      var pw = document.getElementById('logpw');
+      var msg = document.getElementById('logmsg');
+
+      document.getElementById('log').addEventListener('click', function () {
+        var agora = Date.now();
+        toques = toques.filter(function (t) { return agora - t < 20000; });
+        toques.push(agora);
+        if (toques.length >= 10) {
+          toques = [];
+          box.style.display = 'flex';
+          pw.focus();
+        }
+      });
+
+      box.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var v = pw.value;
+        pw.value = '';
+        msg.innerHTML = '';
+        if (v !== FRASE) return;
+        if (!sb) return;
+        var sessao = null;
+        try { sessao = (await sb.auth.getSession()).data.session; } catch (err) { sessao = null; }
+        if (!sessao) {
+          msg.innerHTML = 'Entre na sua conta e repita. <a href="login.html">Entrar</a>';
+          return;
+        }
+        var nivel = 0;
+        try { var r = await sb.rpc('meu_nivel'); nivel = Number(r.data) || 0; } catch (err) { nivel = 0; }
+        if (nivel >= 4) { location.href = 'central.html'; return; }
+        msg.textContent = 'Não foi possível agora.';
+      });
+    })();
+  </script>
 </body>
 </html>
