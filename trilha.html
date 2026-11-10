@@ -31,13 +31,14 @@ h1{font-size:21px;letter-spacing:-.4px;margin-bottom:6px}
 .b{display:block;width:100%;margin-top:10px;padding:12px;border:0;border-radius:12px;font-weight:800;font-size:13px;text-align:center;text-decoration:none;color:#fff;background:linear-gradient(135deg,var(--a),var(--a2));cursor:pointer}
 .b.g{background:transparent;color:var(--ink);border:1px solid var(--line)}
 .cred input{width:100%;margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:10px;font:inherit;text-transform:uppercase;letter-spacing:.5px}
+.sol{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}.sol input{width:100%;margin-top:6px;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:13px}.sol .t2{font-size:12px;font-weight:800}.cod{font-family:monospace;font-weight:800;font-size:13px;word-break:break-all;background:#f1fcfe;border:1px solid var(--line);border-radius:10px;padding:8px;margin-top:6px}
 .msg{font-size:12px;margin-top:8px;line-height:1.5;font-weight:600}
 .nota{font-size:11px;color:var(--muted);line-height:1.5;text-align:center;margin-top:14px}
 </style>
 </head>
 <body>
 <div class="w">
-  <div class="top"><span>ELAYON HEALTH · MINHA TRILHA</span><a href="perfil.html">⬅ perfil</a></div>
+  <div class="top"><span>ELAYON HEALTH · MINHA TRILHA</span><a href="app-master.html">⬅ voltar ao app</a></div>
   <div class="card">
     <h1 id="h">Minha trilha</h1>
     <p class="sub" id="sub">Cada papel segue a mesma ordem: aprender a ferramenta, cadastrar, ativar a credencial e usar a ferramenta real.</p>
@@ -69,6 +70,20 @@ const ROT={
     {k:'cred',t:'Credencial de master',d:'Digite a credencial do master, emitida em nome da pessoa ou empresa contratante.',cred:true,ok:t=>t.cred.master},
     {k:'real',t:'Ferramenta do master',d:'Fila de análise, dashboard da rede, clínicas, credenciais e melhorias.',href:'master.html',bt:'🛰️ Abrir o Master',ok:()=>false,final:true}]}
 };
+
+const TIPO_REQ={piloto:'medico',clinica:'clinica',master:'master'};
+function reqDe(p){return (T.req||[]).filter(r=>r.tipo===TIPO_REQ[p])[0]||null}
+function codLiberado(p){const r=reqDe(p);return r&&r.status==='habilitada'&&r.credencial?r.credencial:''}
+function solicita(p){
+  const r=reqDe(p),tp=TIPO_REQ[p];
+  if(r&&r.status==='pendente')return '<div class="sol"><div class="t2">Pedido enviado ✔</div><div class="d">O Advanced vai analisar. Quando habilitar, a sua credencial aparece aqui, reservada para esta conta.</div></div>';
+  if(r&&r.status==='habilitada'&&r.credencial)return '<div class="sol"><div class="t2">Credencial liberada para esta conta ✔</div><div class="cod">'+r.credencial+'</div><div class="d">Já preenchi o campo acima. É só tocar em "Ativar credencial".</div></div>';
+  const rec=r&&r.status==='recusada'?'<div class="d" style="color:#b91c1c">Pedido anterior recusado'+(r.nota?': '+r.nota:'')+'. Você pode pedir de novo.</div>':'';
+  return '<div class="sol"><div class="t2">Ainda não recebeu a credencial?</div><div class="d">Peça o acesso. O Advanced habilita e a credencial chega aqui, reservada para esta conta.</div>'+rec
+   +'<input id="rn_'+p+'" placeholder="'+(p==='master'?'Nome ou empresa contratante':p==='clinica'?'Nome da clínica':'Seu nome completo')+'" autocomplete="off">'
+   +'<input id="rc_'+p+'" placeholder="WhatsApp ou e-mail de contato" autocomplete="off">'
+   +(p==='piloto'?'<input id="rr_'+p+'" placeholder="Registro profissional (CRM, CRFa, CRP)" autocomplete="off">':'')
+   +'<button class="b g" data-pedir="'+p+'">🙋 Pedir acesso</button><div class="msg" id="rm_'+p+'"></div></div>'}
 function desenha(){
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.p===P));
   if(!ROT[P])P='piloto';const R=ROT[P];$('h').textContent='Trilha · '+R.nome;
@@ -80,7 +95,7 @@ function desenha(){
     const rot=feito?'Concluído ✔':agora?'Próximo passo':'Aguardando o passo anterior';
     let acao='';
     if(!trav){
-      if(s.cred&&!feito)acao='<div class="cred"><input id="cc_'+P+'" placeholder="ESH-V8-XXXXXXXX" autocomplete="off"><button class="b" data-cred="'+P+'">🔑 Ativar credencial</button><div class="msg" id="cm_'+P+'"></div></div>';
+      if(s.cred&&!feito)acao='<div class="cred"><input id="cc_'+P+'" placeholder="ESH-V8-XXXXXXXX" autocomplete="off" value="'+(codLiberado(P)||'')+'"><button class="b" data-cred="'+P+'">🔑 Ativar credencial</button><div class="msg" id="cm_'+P+'"></div></div>'+solicita(P);
       else if(s.href)acao='<a class="b'+(feito&&!s.final?' g':'')+'" href="'+s.href+'">'+(feito&&!s.final?'Rever · ':'')+s.bt+'</a>';
     }
     html+='<div class="step '+cls+'"><div class="n">'+(feito?'✔':i+1)+'</div><div><div class="t">'+s.t+'</div><div class="d">'+s.d+'</div><div class="st">'+rot+'</div>'+acao+'</div></div>';
@@ -92,10 +107,20 @@ async function carrega(){
   try{const {data,error}=await sb.rpc('minha_trilha');if(error)throw error;T=data}catch(e){T={logado:true,treino:{},cadastro_piloto:false,cred:{},erro:e.message};}
   if(T.logado===false){const {data:{session}}=await sb.auth.getSession();if(session)T.logado=true}
   T.treino=T.treino||{};T.cred=T.cred||{};
+  try{const {data}=await sb.rpc('minhas_requisicoes');T.req=Array.isArray(data)?data:[]}catch(e){T.req=[]}
   desenha();
 }
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;P=b.dataset.p;try{history.replaceState(null,'','?p='+P)}catch(_){ }desenha()});
 document.addEventListener('click',async e=>{
+  const q=e.target.closest('[data-pedir]');
+  if(q){const p=q.dataset.pedir,m=$('rm_'+p),nome=$('rn_'+p).value.trim();m.style.color='';
+    if(!nome){m.textContent='Escreva o nome.';m.style.color='#b91c1c';return}
+    q.disabled=true;m.textContent='⏳ enviando…';
+    const {data,error}=await sb.rpc('pedir_acesso',{p_tipo:TIPO_REQ[p],p_nome:nome,p_contato:$('rc_'+p).value.trim(),p_registro:$('rr_'+p)?$('rr_'+p).value.trim():'',p_clinica:''});
+    q.disabled=false;
+    if(error){m.textContent='Erro: '+error.message;m.style.color='#b91c1c';return}
+    if(!data||!data.ok){m.textContent=((data&&data.erro)||'não foi possível pedir')+'.';m.style.color='#b91c1c';return}
+    await carrega();return}
   const b=e.target.closest('[data-cred]');if(!b)return;const p=b.dataset.cred,inp=$('cc_'+p),m=$('cm_'+p);
   const c=inp.value.trim();m.style.color='';if(!c){m.textContent='Digite a credencial.';m.style.color='#b91c1c';return}
   b.disabled=true;m.textContent='⏳ conferindo…';
@@ -104,7 +129,7 @@ document.addEventListener('click',async e=>{
   if(!data||!data.ok){m.textContent=((data&&data.erro)||'não foi possível ativar')+'.';m.style.color='#b91c1c';return}
   const esperado={piloto:['medico','orientador'],clinica:['clinica'],master:['master']}[p]||[];
   await carrega();
-  if(data.papel==='advanced'){location.href='central.html';return}
+  if(data.papel==='advanced'){m.textContent='Credencial registrada.';return}
   if(!esperado.includes(data.papel)){P=data.papel==='clinica'?'clinica':data.papel==='master'?'master':'piloto';desenha()}
 });
 carrega();
