@@ -105,10 +105,10 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 <div class="sub" style="margin-top:8px;font-weight:800">Minha IA (do Advanced)</div><p>A IA do relatório é a sua. Fica guardada no seu perfil e só abre dentro do Advanced.</p><div class="row2"><div><label>Provedor</label><select id="pfIaP"><option value="gemini">Gemini</option><option value="openai">OpenAI</option><option value="groq">Groq</option><option value="mistral">Mistral</option></select></div><div><label>Chave</label><input id="pfIaK" type="password" autocomplete="off"></div></div><button class="b" id="pfSv">Salvar meu perfil</button><div class="msg" id="pfMs"></div></div></div>
 <div class="ab" id="ab-plat">
 <details class="c" open><summary>🧹 Zerar a plataforma para testar limpo</summary>
-<p>Apaga <b>tudo</b>: contas, credenciais, clínicas, médicos, convites, pacientes, laudos, envios, casos, tarefas, vínculos, consumo, faturas e histórico. Fica só a sua conta de dono (sem nenhum papel), o seu perfil e as configurações (preços, planos, tarifas, aparelhos). Não tem volta: se houver dados reais, faça um backup no Supabase antes.</p>
+<p>Apaga <b>tudo</b>: contas, credenciais, clínicas, médicos, convites, pacientes, laudos, envios, casos, tarefas, vínculos, consumo, faturas e histórico. Fica só a sua conta de dono (sem nenhum papel), o seu perfil e as configurações (preços, planos, tarifas, aparelhos). Também limpa a auditoria, o consumo e os registros de acesso. Não tem volta: se houver dados reais, faça um backup no Supabase antes.</p>
 <label>Deixe vazio para apagar todas as outras contas. Se alguma deve ficar, escreva o e-mail (separe por vírgula)</label><input id="zMt" placeholder="ex.: medico.real@email.com" autocapitalize="off">
 <button class="b g" id="zPv">Ver o que será apagado</button><div id="zRs" class="hint" style="margin-top:8px"></div>
-<div id="zCf" hidden><label>Para confirmar, digite ZERAR TUDO</label><input id="zTx" autocapitalize="characters" autocomplete="off"><button class="b" id="zGo" style="background:#b91c1c">Zerar agora</button></div><div class="msg" id="zMs"></div>
+<div id="zCf" hidden><label>Para confirmar, digite a senha</label><input id="zTx" type="password" autocomplete="off"><button class="b" id="zGo" style="background:#b91c1c">Zerar agora</button></div><div class="msg" id="zMs"></div>
 <h3 style="margin-top:14px">Remover uma conta só</h3><div class="row2"><div><label>E-mail da conta</label><input id="rmEm" placeholder="conta@email.com" autocapitalize="off"></div><div><label>&nbsp;</label><button class="b g" id="rmGo">Remover</button></div></div><div class="msg" id="rmMs"></div></details>
 <details class="c" open><summary>💲 Preço do token</summary>
 <p>O valor base de tudo. Os preços dos planos são calculados a partir dele, com o desconto de cada plano. Zero significa "a definir".</p>
@@ -130,7 +130,9 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 <div class="row3"><div><label>Tokens incluídos</label><input id="pTk" inputmode="numeric" placeholder="0"></div><div><label>Desconto %</label><input id="pDs" inputmode="numeric" placeholder="0"></div><div><label>Limite pós-pago</label><input id="pLi" inputmode="numeric" placeholder="2000"></div></div>
 <label>Descrição</label><input id="pDe"><button class="b" id="bPl" style="margin-top:8px">Adicionar plano</button><div class="msg" id="mP"></div></details>
 
-<details class="c"><summary>🧾 Auditoria</summary><p>Ações administrativas e tentativas de acesso à manutenção.</p><div id="lA" style="display:grid;gap:6px"></div></details>
+<details class="c"><summary>🧾 Auditoria</summary><p>A auditoria continua sendo gravada. Aqui você visualiza por período, baixa o arquivo no aparelho e limpa o banco para não pesar.</p>
+<label>Período</label><select id="aPer"><option value="1">Últimas 24 horas</option><option value="7" selected>Últimos 7 dias</option><option value="30">Últimos 30 dias</option><option value="0">Tudo</option></select>
+<div class="row2"><button class="b g" id="aVer">Visualizar</button><button class="b" id="aBx">Baixar e limpar</button></div><div class="msg" id="aMs"></div><div id="lA" style="display:grid;gap:6px;margin-top:8px"></div></details>
 
 <details class="c" open><summary>📱 Aparelhos</summary><p>Só aparelhos pareados entram. Para liberar outro, gere um código aqui (vale 10 minutos) e digite no novo aparelho junto com a frase.</p><button class="b" id="bCod">Gerar código de pareamento</button><div class="msg" id="mCod"></div><div id="lAp" style="display:grid;gap:6px;margin-top:8px"></div></details>
 <div class="c"><button class="b g" id="bSai">Sair do Advanced</button></div>
@@ -186,8 +188,8 @@ t('pfSv').onclick=async()=>{t('pfSv').disabled=true;try{await pfSalva();say('pfM
 t('zPv').onclick=async()=>{say('zMs','');t('zCf').hidden=true;t('zRs').textContent='Calculando…';const {data,error}=await sb.rpc('zerar_previa',{manter:t('zMt').value});
   if(error){t('zRs').textContent='';return say('zMs','❌ '+error.message,1)}
   t('zRs').innerHTML='<b>Ficam:</b> '+esc((data.mantidos||[]).join(', '))+'<br><b>Contas a apagar: '+data.contas_a_apagar+'</b>'+((data.emails_a_apagar||[]).length?' ('+esc(data.emails_a_apagar.join(', '))+(data.contas_a_apagar>data.emails_a_apagar.length?', …':'')+')':'')+'<br>Laudos: '+data.laudos+' · Envios: '+data.envios+' · Casos: '+data.casos+' · Convites: '+data.convites+' · Pacientes: '+data.pacientes;t('zCf').hidden=false;t('zTx').value=''};
-t('zGo').onclick=async()=>{if(t('zTx').value.trim()!=='ZERAR TUDO')return say('zMs','Digite exatamente ZERAR TUDO.',1);t('zGo').disabled=true;say('zMs','Zerando…');
-  const {data,error}=await sb.rpc('zerar_plataforma',{manter:t('zMt').value,confirma:t('zTx').value.trim()});t('zGo').disabled=false;
+t('zGo').onclick=async()=>{if(!t('zTx').value.trim())return say('zMs','Digite a senha.',1);t('zGo').disabled=true;say('zMs','Zerando…');
+  const {data,error}=await sb.rpc('zerar_tudo',{manter:t('zMt').value,senha:t('zTx').value.trim()});t('zGo').disabled=false;
   if(error)return say('zMs','❌ '+error.message,1);t('zCf').hidden=true;t('zRs').textContent='';say('zMs','✅ Plataforma zerada: '+data.contas_removidas+' conta(s) removida(s).'+(data.arquivos!=='ok'?' Os PDFs antigos ficaram no armazenamento (sem acesso); apague em Storage se quiser.':''));atualiza()};
 t('rmGo').onclick=async()=>{const em=t('rmEm').value.trim();if(!em)return say('rmMs','Digite o e-mail.',1);if(t('rmGo').dataset.arm!==em){t('rmGo').dataset.arm=em;t('rmGo').textContent='Confirmar remoção';return say('rmMs','Toque de novo para remover '+em+' e tudo que é dele.',1)}
   t('rmGo').dataset.arm='';t('rmGo').textContent='Remover';const {error}=await sb.rpc('remover_conta',{email:em,confirma:'REMOVER'});if(error)return say('rmMs','❌ '+error.message,1);say('rmMs','✅ Conta removida.');t('rmEm').value='';atualiza()};
@@ -214,8 +216,13 @@ t('bPl').onclick=async()=>{const n=t('pN').value.trim(),pos=t('pPo').value==='1'
   if(!n||!(tk>=0)||(tk===0&&!pos)||!(ds>=0&&ds<=100))return say('mP','Preencha nome e tokens (zero só no pós-pago), desconto de 0 a 100.',1);
   const {error}=await sb.rpc('plano_criar',{nome:n,publico:t('pPu').value,modelo:t('pMo').value,pos_pago:pos,tokens:tk,desconto_pct:ds,limite_pos:li,descricao:t('pDe').value.trim()});if(error)return say('mP','❌ '+error.message,1);
   t('pN').value=t('pTk').value=t('pDs').value=t('pLi').value=t('pDe').value='';say('mP','Plano criado.');planos()};
-async function audit(){const {data}=await sb.rpc('listar_auditoria');t('lA').innerHTML=(data||[]).length?data.map(a=>`<div class="it" style="padding:8px"><b>${esc(a.acao)}</b><small>${esc(a.quem||'')} • ${String(a.criado).replace('T',' ').slice(0,16)}${a.detalhe?' • '+esc(JSON.stringify(a.detalhe)).slice(0,120):''}</small></div>`).join(''):'<p>Sem registros.</p>'}
-document.addEventListener('toggle',e=>{if(e.target.tagName==='DETAILS'&&e.target.open&&e.target.textContent.includes('Auditoria'))audit()},true);
+async function audit(){const d=+t('aPer').value;const {data,error}=await sb.rpc('auditoria_periodo',{dias:d,limite:100});if(error)return say('aMs','❌ '+error.message,1);t('lA').innerHTML=(data||[]).length?data.map(a=>`<div class="it" style="padding:8px"><b>${esc(a.acao)}</b><small>${esc(a.quem||'')} • ${String(a.criado).replace('T',' ').slice(0,16)}${a.detalhe?' • '+esc(JSON.stringify(a.detalhe)).slice(0,120):''}</small></div>`).join('')+'<p class="hint">Mostrando até 100 registros. O arquivo baixado traz todos.</p>':'<p>Sem registros no período.</p>'}
+t('aVer').onclick=audit;
+t('aBx').onclick=async()=>{const b=t('aBx');if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Toque de novo: baixa e apaga do banco';return}
+  b.dataset.arm='';b.textContent='Baixar e limpar';const {data,error}=await sb.rpc('auditoria_periodo',{dias:0,limite:100000});if(error)return say('aMs','❌ '+error.message,1);if(!(data||[]).length)return say('aMs','Nada a baixar.');
+  const q=v=>'"'+String(v==null?'':typeof v==='object'?JSON.stringify(v):v).replace(/"/g,'""')+'"';const csv='\ufeffid;quando;quem;acao;detalhe\n'+data.map(a=>[a.id,a.criado,a.quem,a.acao,a.detalhe].map(q).join(';')).join('\n');
+  const u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),l=document.createElement('a');l.href=u;l.download='auditoria-elayon-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);
+  const mx=Math.max(...data.map(a=>+a.id));const r=await sb.rpc('auditoria_limpar_ate',{ate:mx});if(r.error)return say('aMs','❌ Baixou, mas não limpou: '+r.error.message,1);say('aMs','✅ '+data.length+' registros salvos no aparelho (pasta Downloads) e apagados do banco.');t('lA').innerHTML=''}
 
 /* ---------- abas ---------- */
 t('abas').onclick=e=>{const b=e.target.closest('.tab');if(!b)return;document.querySelectorAll('#abas .tab').forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('.ab').forEach(x=>x.classList.toggle('on',x.id==='ab-'+b.dataset.ab));try{history.replaceState(null,'','#'+b.dataset.ab)}catch(_){}};
