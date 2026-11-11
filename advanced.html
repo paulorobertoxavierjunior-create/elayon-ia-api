@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Elayon Space Systems</title><link rel="manifest" href="/app-systems.webmanifest"><link rel="apple-touch-icon" href="/icons/apple-systems.png"><link rel="icon" href="/icons/icon-systems-192.png"><meta name="theme-color" content="#061a4a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Elayon Systems">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script><link rel="stylesheet" href="health.css">
-<style>.chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.ch{border:1px solid var(--l);background:#fff;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:700;color:var(--m);cursor:pointer}.ch.on{background:#0b3a82;color:#fff;border-color:#0b3a82}.bar{display:flex;align-items:center;gap:8px}.btn-pago{white-space:nowrap}
+<style>[hidden]{display:none!important}.chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.ch{border:1px solid var(--l);background:#fff;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:700;color:var(--m);cursor:pointer}.ch.on{background:#0b3a82;color:#fff;border-color:#0b3a82}.bar{display:flex;align-items:center;gap:8px}.btn-pago{white-space:nowrap}
 .hero{background:linear-gradient(135deg,#061a4a,#0b3a82 60%,#0e7490);border:0}.hero h1{color:#fff}.hero p{color:#cfe3ff}
 .it{border:1px solid var(--l);border-radius:12px;padding:10px;display:grid;gap:6px;background:#fff}.it .r{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .pill{display:inline-block;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;background:#fff7e0;color:#92400e;border:1px solid #f3dca0}.pill.ok{background:#e8fbf3;color:#047857;border-color:#9fe2c4}.pill.er{background:#fff0f0;color:#b91c1c;border-color:#f3b4b4}
@@ -17,9 +17,16 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 <section id="bloq" hidden><div class="c"><h3>Área do Advanced</h3><p>Esta área tem um canal de acesso próprio.</p><a class="b" href="index.html">Voltar ao início</a></div></section>
 
 <div id="app" hidden>
-<nav class="tabs" id="abas"><button class="tab on" data-ab="resumo">Resumo</button><button class="tab" data-ab="req">Requisições <span class="bdg" id="bdgReq" hidden></span></button><button class="tab" data-ab="pil">Pilotos</button><button class="tab" data-ab="cred">Credenciais</button><button class="tab" data-ab="mst">Masters</button><button class="tab" data-ab="uso">Uso</button><button class="tab" data-ab="cob">Cobrança</button><button class="tab" data-ab="rel">Relatório</button><button class="tab" data-ab="plat">Plataforma</button><button class="tab" data-ab="perfil">Meu perfil</button></nav>
+<nav class="tabs" id="abas"><button class="tab on" data-ab="resumo">Resumo</button><button class="tab" data-ab="req" hidden>Requisições <span class="bdg" id="bdgReq" hidden></span></button><button class="tab" data-ab="pil" hidden>Pilotos</button><button class="tab" data-ab="cred">Credenciais</button><button class="tab" data-ab="mst">Masters</button><button class="tab" data-ab="uso">Uso</button><button class="tab" data-ab="cob">Cobrança</button><button class="tab" data-ab="rel">Relatório</button><button class="tab" data-ab="plat">Plataforma</button><button class="tab" data-ab="perfil">Meu perfil</button></nav>
 
 <div class="ab on" id="ab-resumo">
+<div class="c" id="inicio"><h3>▶ Começar do zero</h3>
+<p>Ordem do teste: 1) zere e desconecte todo mundo; 2) convide o master; 3) ele abre a clínica; 4) a clínica chama os médicos; 5) o médico convida o paciente.</p>
+<div class="kp" id="kpI"></div>
+<button class="b g" id="iDc" style="margin-top:8px">Desconectar todos agora</button>
+<label>Senha para zerar tudo</label><input id="iSn" type="password" autocomplete="off" placeholder="Senha">
+<button class="b" id="iZr">Zerar tudo e desconectar</button>
+<button class="b g" id="iCv">Convidar o master nº 1</button><div class="msg" id="iMs"></div></div>
 <div class="c"><div class="kp" id="kp"></div></div>
 <details class="c" open><summary>🌐 Rede: masters, clínicas e pilotos</summary>
 <p id="dNovos" class="hint"></p>
@@ -130,9 +137,8 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 <div class="row3"><div><label>Tokens incluídos</label><input id="pTk" inputmode="numeric" placeholder="0"></div><div><label>Desconto %</label><input id="pDs" inputmode="numeric" placeholder="0"></div><div><label>Limite pós-pago</label><input id="pLi" inputmode="numeric" placeholder="2000"></div></div>
 <label>Descrição</label><input id="pDe"><button class="b" id="bPl" style="margin-top:8px">Adicionar plano</button><div class="msg" id="mP"></div></details>
 
-<details class="c"><summary>🧾 Auditoria</summary><p>A auditoria continua sendo gravada. Aqui você visualiza por período, baixa o arquivo no aparelho e limpa o banco para não pesar.</p>
-<label>Período</label><select id="aPer"><option value="1">Últimas 24 horas</option><option value="7" selected>Últimos 7 dias</option><option value="30">Últimos 30 dias</option><option value="0">Tudo</option></select>
-<div class="row2"><button class="b g" id="aVer">Visualizar</button><button class="b" id="aBx">Baixar e limpar</button></div><div class="msg" id="aMs"></div><div id="lA" style="display:grid;gap:6px;margin-top:8px"></div></details>
+<details class="c"><summary>🧾 Auditoria</summary><p>A auditoria é gravada o tempo todo, mas não aparece na tela. Baixe o arquivo no aparelho quando quiser, e limpe o banco se precisar.</p>
+<div class="row2"><button class="b g" id="aBa">Só baixar</button><button class="b" id="aBx">Baixar e limpar</button></div><div class="msg" id="aMs"></div></details>
 
 <details class="c" open><summary>📱 Aparelhos</summary><p>Só aparelhos pareados entram. Para liberar outro, gere um código aqui (vale 10 minutos) e digite no novo aparelho junto com a frase.</p><button class="b" id="bCod">Gerar código de pareamento</button><div class="msg" id="mCod"></div><div id="lAp" style="display:grid;gap:6px;margin-top:8px"></div></details>
 <div class="c"><button class="b g" id="bSai">Sair do Advanced</button></div>
@@ -167,7 +173,7 @@ async function atualiza(){t('bAt').disabled=true;t('stamp').textContent='Atualiz
   const {data,error}=await sb.rpc('arvore_plataforma');
   if(error){t('stamp').textContent='';t('bAt').disabled=false;return t('lM').innerHTML='<p>'+esc(error.message)+' (rode o clinica.sql, seção 12)</p>'}
   const T=data.totais,k=(n,l)=>`<div><b>${n}</b>${l}</div>`;
-  t('kp').innerHTML=k(T.masters,'masters')+k(T.clinicas,'clínicas')+k(T.medicos,'médicos')+k(T.usuarios,'usuários')+k(T.saldo_tokens,'tokens em saldo')+k(T.consumo_30d,'consumo 30 dias');
+  t('kpI').innerHTML=k(T.masters,'masters')+k(T.clinicas,'clínicas')+k(T.medicos,'médicos')+k(T.usuarios,'usuários');t('kp').innerHTML=k(T.masters,'masters')+k(T.clinicas,'clínicas')+k(T.medicos,'médicos')+k(T.usuarios,'usuários')+k(T.saldo_tokens,'tokens em saldo')+k(T.consumo_30d,'consumo 30 dias');
   const card=(a,b,c3)=>`<div class="it"><div class="r"><b>${esc(a)}</b><small>${esc(b||'')}</small></div><div class="row3">${c3.map(x=>`<div class="pill ok" style="text-align:center">${x[0]} ${x[1]}</div>`).join('')}</div></div>`;
   t('lM').innerHTML=data.masters.length?data.masters.map(m=>card(m.nome,'',[[m.clinicas,'clínicas'],[m.medicos,'médicos'],[m.usuarios,'usuários']])).join(''):'<p>Nenhum master ativo.</p>';
   t('lC').innerHTML=data.clinicas.length?data.clinicas.map(c=>card(c.nome,'Master: '+c.master,[[c.medicos,'médicos'],[c.usuarios,'usuários'],['','']].slice(0,2))).join(''):'<p>Nenhuma clínica.</p>';
@@ -199,6 +205,11 @@ async function zeDesenha(){let c={};try{const {data}=await sb.rpc('zerar_etapa_p
   t('zeInfo').innerHTML=ZE.map(z=>'<div class="it"><div class="r"><b>'+z[1]+'</b><span class="pill">'+(c[z[0]]==null?'—':c[z[0]]+' itens')+'</span></div><small>'+z[2]+'</small><button class="b g" data-ze="'+z[0]+'">Zerar</button></div>').join('')}
 t('zeInfo').onclick=async e=>{const k=(e.target.dataset||{}).ze;if(!k)return;const b=e.target;if(b.dataset.arm!==k){document.querySelectorAll('[data-ze]').forEach(x=>{x.dataset.arm='';x.textContent='Zerar'});b.dataset.arm=k;b.textContent='Toque de novo para confirmar';return}
   b.disabled=true;const {error}=await sb.rpc('zerar_etapa',{etapa:k,manter:'',confirma:'ZERAR'});say('zeM',error?'❌ '+error.message:'✅ Etapa "'+k+'" zerada.',!!error);b.disabled=false;zeDesenha();atualiza()};
+
+t('iDc').onclick=async()=>{const b=t('iDc');if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Toque de novo para desconectar todos';return}b.dataset.arm='';b.textContent='Desconectar todos agora';const {data,error}=await sb.rpc('desconectar_todos',{manter:''});say('iMs',error?'❌ '+error.message:'✅ Todos desconectados ('+((data||{}).sessoes||0)+' sessões). Só a sua continua.',!!error)};
+t('iZr').onclick=async()=>{const b=t('iZr');if(!t('iSn').value.trim())return say('iMs','Digite a senha.',1);if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Toque de novo: apaga TUDO';return}b.dataset.arm='';b.textContent='Zerar tudo e desconectar';b.disabled=true;
+  const r=await sb.rpc('zerar_tudo',{manter:'',senha:t('iSn').value.trim()});b.disabled=false;if(r.error)return say('iMs','❌ '+(/senha_incorreta/.test(r.error.message)?'Senha incorreta.':r.error.message),1);t('iSn').value='';say('iMs','✅ Plataforma zerada e todos desconectados. Agora convide o master nº 1.');atualiza()};
+t('iCv').onclick=()=>{const bb=document.querySelector('#abas .tab[data-ab="mst"]');if(bb)bb.click();setTimeout(()=>{const n=t('mvN');if(n)n.focus()},200)};
 async function sols(){const {data,error}=await sb.rpc('sols_listar');if(error)return t('lS').innerHTML='<p>'+esc(error.message)+'</p>';
   SOL=data||[];const ab=SOL.filter(s=>s.status==='pendente'||s.status==='validada');
   t('lS').innerHTML=ab.length?ab.map(s=>`<div class="it"><div class="r"><b>${esc(s.titulo)}</b><span class="pill ${s.status==='validada'?'ok':''}">${s.status}</span></div><small>${esc(s.autor_nome||'Master')} • ${s.tipo} • ${String(s.criado).slice(0,10)}</small>${s.texto?'<p>'+esc(s.texto)+'</p>':''}
@@ -216,13 +227,13 @@ t('bPl').onclick=async()=>{const n=t('pN').value.trim(),pos=t('pPo').value==='1'
   if(!n||!(tk>=0)||(tk===0&&!pos)||!(ds>=0&&ds<=100))return say('mP','Preencha nome e tokens (zero só no pós-pago), desconto de 0 a 100.',1);
   const {error}=await sb.rpc('plano_criar',{nome:n,publico:t('pPu').value,modelo:t('pMo').value,pos_pago:pos,tokens:tk,desconto_pct:ds,limite_pos:li,descricao:t('pDe').value.trim()});if(error)return say('mP','❌ '+error.message,1);
   t('pN').value=t('pTk').value=t('pDs').value=t('pLi').value=t('pDe').value='';say('mP','Plano criado.');planos()};
-async function audit(){const d=+t('aPer').value;const {data,error}=await sb.rpc('auditoria_periodo',{dias:d,limite:100});if(error)return say('aMs','❌ '+error.message,1);t('lA').innerHTML=(data||[]).length?data.map(a=>`<div class="it" style="padding:8px"><b>${esc(a.acao)}</b><small>${esc(a.quem||'')} • ${String(a.criado).replace('T',' ').slice(0,16)}${a.detalhe?' • '+esc(JSON.stringify(a.detalhe)).slice(0,120):''}</small></div>`).join('')+'<p class="hint">Mostrando até 100 registros. O arquivo baixado traz todos.</p>':'<p>Sem registros no período.</p>'}
-t('aVer').onclick=audit;
-t('aBx').onclick=async()=>{const b=t('aBx');if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Toque de novo: baixa e apaga do banco';return}
-  b.dataset.arm='';b.textContent='Baixar e limpar';const {data,error}=await sb.rpc('auditoria_periodo',{dias:0,limite:100000});if(error)return say('aMs','❌ '+error.message,1);if(!(data||[]).length)return say('aMs','Nada a baixar.');
+async function audBaixa(){const {data,error}=await sb.rpc('auditoria_periodo',{dias:0,limite:100000});if(error){say('aMs','❌ '+error.message,1);return null}if(!(data||[]).length){say('aMs','Nada a baixar.');return null}
   const q=v=>'"'+String(v==null?'':typeof v==='object'?JSON.stringify(v):v).replace(/"/g,'""')+'"';const csv='\ufeffid;quando;quem;acao;detalhe\n'+data.map(a=>[a.id,a.criado,a.quem,a.acao,a.detalhe].map(q).join(';')).join('\n');
-  const u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),l=document.createElement('a');l.href=u;l.download='auditoria-elayon-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);
-  const mx=Math.max(...data.map(a=>+a.id));const r=await sb.rpc('auditoria_limpar_ate',{ate:mx});if(r.error)return say('aMs','❌ Baixou, mas não limpou: '+r.error.message,1);say('aMs','✅ '+data.length+' registros salvos no aparelho (pasta Downloads) e apagados do banco.');t('lA').innerHTML=''}
+  const u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),l=document.createElement('a');l.href=u;l.download='auditoria-elayon-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);return data}
+t('aBa').onclick=async()=>{const d=await audBaixa();if(d)say('aMs','✅ '+d.length+' registros salvos no aparelho (Downloads).')};
+t('aBx').onclick=async()=>{const b=t('aBx');if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Toque de novo: baixa e apaga do banco';return}
+  b.dataset.arm='';b.textContent='Baixar e limpar';const data=await audBaixa();if(!data)return;
+  const mx=Math.max(...data.map(a=>+a.id));const r=await sb.rpc('auditoria_limpar_ate',{ate:mx});if(r.error)return say('aMs','❌ Baixou, mas não limpou: '+r.error.message,1);say('aMs','✅ '+data.length+' registros salvos no aparelho (Downloads) e apagados do banco.')}
 
 /* ---------- abas ---------- */
 t('abas').onclick=e=>{const b=e.target.closest('.tab');if(!b)return;document.querySelectorAll('#abas .tab').forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('.ab').forEach(x=>x.classList.toggle('on',x.id==='ab-'+b.dataset.ab));try{history.replaceState(null,'','#'+b.dataset.ab)}catch(_){}};
@@ -363,5 +374,5 @@ t('bCod').onclick=async()=>{const {data,error}=await sb.rpc('aparelho_codigo');{
 t('bSai').onclick=()=>{try{sessionStorage.removeItem('adv_tok')}catch(e){}location.replace('index.html')};
 (async()=>{if(!TK){location.replace('index.html');return}
   const r=await A('ping');if(r.error||!r.data)return;
-  t('app').hidden=false;t('bAt').hidden=false;{const h=(location.hash||'').slice(1),bb=document.querySelector('#abas .tab[data-ab="'+h+'"]');if(bb)bb.click()}await atualiza();aparelhos();uso();mu();cobranca();masters();perfilAdv()})();
+  t('app').hidden=false;t('bAt').hidden=false;{const h=(location.hash||'').slice(1),bb=document.querySelector('#abas .tab[data-ab="'+h+'"]');if(bb&&!bb.hidden)bb.click()}await atualiza();aparelhos();uso();mu();cobranca();masters();perfilAdv()})();
 </script></body></html>
