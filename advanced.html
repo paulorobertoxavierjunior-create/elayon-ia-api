@@ -59,6 +59,10 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 <details class="c" open><summary>🧾 Credenciais emitidas</summary>
 <p>Reemitir desativa a credencial antiga e gera outra. Deixe o e-mail em branco para manter a mesma conta, ou informe o e-mail da conta nova quando a pessoa trocou de conta.</p>
 <div id="lCr" style="display:grid;gap:8px"></div><div class="msg" id="mCr"></div></details>
+<details class="c" open><summary>🧹 Zerar por etapas (teste do fluxo)</summary>
+<p>Vá limpando a máquina de baixo para cima até validar o fluxo inteiro. Cada botão pede um segundo toque. Sua conta e o Advanced nunca são apagados.</p>
+<div id="zeInfo" style="display:grid;gap:8px"></div><div class="msg" id="zeM"></div></details>
+
 </div>
 
 <div class="ab" id="ab-mst">
@@ -166,7 +170,7 @@ async function atualiza(){t('bAt').disabled=true;t('stamp').textContent='Atualiz
   t('lM').innerHTML=data.masters.length?data.masters.map(m=>card(m.nome,'',[[m.clinicas,'clínicas'],[m.medicos,'médicos'],[m.usuarios,'usuários']])).join(''):'<p>Nenhum master ativo.</p>';
   t('lC').innerHTML=data.clinicas.length?data.clinicas.map(c=>card(c.nome,'Master: '+c.master,[[c.medicos,'médicos'],[c.usuarios,'usuários'],['','']].slice(0,2))).join(''):'<p>Nenhuma clínica.</p>';
   t('lD').innerHTML=data.medicos.length?data.medicos.map(m=>card(m.nome,m.clinica,[[m.usuarios,'usuários']])).join(''):'<p>Nenhum médico vinculado.</p>';
-  await preco();await Promise.all([sols(),tarifas(),planos(),prontidao(),reqs(),pilotos(),creds(),metricas()]);
+  await preco();await Promise.all([sols(),tarifas(),planos(),prontidao(),reqs(),pilotos(),creds(),metricas(),zeDesenha()]);
   t('stamp').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR');t('bAt').disabled=false;try{localStorage.setItem('adv_visto',new Date().toISOString())}catch(e){}}
 t('bAt').onclick=atualiza;
 /* ---------- meu perfil ---------- */
@@ -187,6 +191,12 @@ t('zGo').onclick=async()=>{if(t('zTx').value.trim()!=='ZERAR TUDO')return say('z
   if(error)return say('zMs','❌ '+error.message,1);t('zCf').hidden=true;t('zRs').textContent='';say('zMs','✅ Plataforma zerada: '+data.contas_removidas+' conta(s) removida(s).'+(data.arquivos!=='ok'?' Os PDFs antigos ficaram no armazenamento (sem acesso); apague em Storage se quiser.':''));atualiza()};
 t('rmGo').onclick=async()=>{const em=t('rmEm').value.trim();if(!em)return say('rmMs','Digite o e-mail.',1);if(t('rmGo').dataset.arm!==em){t('rmGo').dataset.arm=em;t('rmGo').textContent='Confirmar remoção';return say('rmMs','Toque de novo para remover '+em+' e tudo que é dele.',1)}
   t('rmGo').dataset.arm='';t('rmGo').textContent='Remover';const {error}=await sb.rpc('remover_conta',{email:em,confirma:'REMOVER'});if(error)return say('rmMs','❌ '+error.message,1);say('rmMs','✅ Conta removida.');t('rmEm').value='';atualiza()};
+
+const ZE=[['fluxo','1. Zerar o fluxo','Casos, envios, laudos, tarefas e consumo de tokens. Mantém contas, convites e vínculos.'],['vinculos','2. Zerar vínculos também','Fluxo + vínculos médico–paciente. Mantém contas, convites e credenciais.'],['credenciais','3. Zerar credenciais, convites e clínicas','Tudo acima + credenciais de master/médico, convites, clínicas e documentos. As contas ficam, voltam a usuário comum.'],['contas','4. Apagar todas as contas','Tudo acima + todas as contas, menos a sua.']];
+async function zeDesenha(){let c={};try{const {data}=await sb.rpc('zerar_etapa_previa',{manter:''});c=data||{}}catch(e){}
+  t('zeInfo').innerHTML=ZE.map(z=>'<div class="it"><div class="r"><b>'+z[1]+'</b><span class="pill">'+(c[z[0]]==null?'—':c[z[0]]+' itens')+'</span></div><small>'+z[2]+'</small><button class="b g" data-ze="'+z[0]+'">Zerar</button></div>').join('')}
+t('zeInfo').onclick=async e=>{const k=(e.target.dataset||{}).ze;if(!k)return;const b=e.target;if(b.dataset.arm!==k){document.querySelectorAll('[data-ze]').forEach(x=>{x.dataset.arm='';x.textContent='Zerar'});b.dataset.arm=k;b.textContent='Toque de novo para confirmar';return}
+  b.disabled=true;const {error}=await sb.rpc('zerar_etapa',{etapa:k,manter:'',confirma:'ZERAR'});say('zeM',error?'❌ '+error.message:'✅ Etapa "'+k+'" zerada.',!!error);b.disabled=false;zeDesenha();atualiza()};
 async function sols(){const {data,error}=await sb.rpc('sols_listar');if(error)return t('lS').innerHTML='<p>'+esc(error.message)+'</p>';
   SOL=data||[];const ab=SOL.filter(s=>s.status==='pendente'||s.status==='validada');
   t('lS').innerHTML=ab.length?ab.map(s=>`<div class="it"><div class="r"><b>${esc(s.titulo)}</b><span class="pill ${s.status==='validada'?'ok':''}">${s.status}</span></div><small>${esc(s.autor_nome||'Master')} • ${s.tipo} • ${String(s.criado).slice(0,10)}</small>${s.texto?'<p>'+esc(s.texto)+'</p>':''}
