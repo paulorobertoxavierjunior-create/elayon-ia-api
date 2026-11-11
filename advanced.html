@@ -42,7 +42,7 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 
 <div class="ab" id="ab-pil">
 <details class="c" open><summary>🧑‍⚕️ Pilotos autônomos</summary>
-<p>Pilotos com credencial que não estão vinculados a nenhuma clínica.</p><div id="lPa" style="display:grid;gap:8px"></div></details>
+<p>Não existe mais médico autônomo: para atuar sozinho a pessoa se cadastra como master e contrata o Elayon. Médico só entra pela clínica de um master. Esta lista deve ficar vazia; se aparecer alguém, é resto de cadastro antigo.</p><div id="lPa" style="display:grid;gap:8px"></div></details>
 
 <details class="c" open><summary>🌳 Quem está em quê</summary>
 <p>Masters → clínicas → médicos → usuários. Só números, sem dado de paciente.</p>
@@ -54,7 +54,7 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 <div class="ab" id="ab-cred">
 <details class="c" open><summary>🔑 Emitir credencial avulsa</summary>
 <p>Para quem você quer habilitar sem esperar o pedido. Escreva o nome (para o contrato, no caso do master). Se souber o e-mail da conta, a credencial fica reservada a ela.</p>
-<div class="row2"><div><label>Papel</label><select id="eP"><option value="medico">Piloto (médico)</option><option value="orientador">Piloto orientador</option><option value="clinica">Clínica</option><option value="master">Master</option></select></div><div><label>Nome</label><input id="eN" placeholder="Nome ou empresa"></div></div>
+<div class="row2"><div><label>Papel</label><select id="eP"><option value="master">Master</option></select></div><div><label>Nome</label><input id="eN" placeholder="Nome ou empresa"></div></div>
 <button class="b" id="bEm" style="margin-top:8px">Gerar credencial</button><div id="eCod" style="margin-top:8px;font-family:monospace;font-weight:800;word-break:break-all"></div><div class="msg" id="mEm"></div></details>
 <details class="c" open><summary>🧾 Credenciais emitidas</summary>
 <p>Reemitir desativa a credencial antiga e gera outra. Deixe o e-mail em branco para manter a mesma conta, ou informe o e-mail da conta nova quando a pessoa trocou de conta.</p>
