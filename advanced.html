@@ -17,16 +17,10 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 <section id="bloq" hidden><div class="c"><h3>Área do Advanced</h3><p>Esta área tem um canal de acesso próprio.</p><a class="b" href="index.html">Voltar ao início</a></div></section>
 
 <div id="app" hidden>
-<nav class="tabs" id="abas"><button class="tab on" data-ab="resumo">Resumo</button><button class="tab" data-ab="req" hidden>Requisições <span class="bdg" id="bdgReq" hidden></span></button><button class="tab" data-ab="pil" hidden>Pilotos</button><button class="tab" data-ab="cred">Credenciais</button><button class="tab" data-ab="mst">Masters</button><button class="tab" data-ab="uso">Uso</button><button class="tab" data-ab="cob">Cobrança</button><button class="tab" data-ab="rel">Relatório</button><button class="tab" data-ab="plat">Plataforma</button><button class="tab" data-ab="perfil">Meu perfil</button></nav>
+<nav class="tabs" id="abas"><button class="tab on" data-ab="resumo">Resumo</button><button class="tab" data-ab="req">Pedidos <span class="bdg" id="bdgReq" hidden></span></button><button class="tab" data-ab="pil" hidden>Pilotos</button><button class="tab" data-ab="cred">Credenciais</button><button class="tab" data-ab="mst">Masters</button><button class="tab" data-ab="uso">Uso</button><button class="tab" data-ab="cob">Cobrança</button><button class="tab" data-ab="rel">Relatório</button><button class="tab" data-ab="plat">Plataforma</button><button class="tab" data-ab="perfil">Meu perfil</button></nav>
 
 <div class="ab on" id="ab-resumo">
-<div class="c" id="inicio"><h3>▶ Começar do zero</h3>
-<p>Ordem do teste: 1) zere e desconecte todo mundo; 2) convide o master; 3) ele abre a clínica; 4) a clínica chama os médicos; 5) o médico convida o paciente.</p>
-<div class="kp" id="kpI"></div>
-<button class="b g" id="iDc" style="margin-top:8px">Desconectar todos agora</button>
-<label>Senha para zerar tudo</label><input id="iSn" type="password" autocomplete="off" placeholder="Senha">
-<button class="b" id="iZr">Zerar tudo e desconectar</button>
-<button class="b g" id="iCv">Convidar o master nº 1</button><div class="msg" id="iMs"></div></div>
+
 <div class="c"><div class="kp" id="kp"></div></div>
 <details class="c" open><summary>🌐 Rede: masters, clínicas e pilotos</summary>
 <p id="dNovos" class="hint"></p>
@@ -40,8 +34,8 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 </div>
 
 <div class="ab" id="ab-req">
-<details class="c" open><summary>🙋 Requisições de acesso</summary>
-<p>Médico, clínica ou master pedem acesso pela trilha deles. Ao habilitar, a credencial é gerada e fica <b>reservada para o ID da conta</b> que pediu: só ela consegue ativar. O usuário comum é automático e não precisa de requisição.</p>
+<details class="c" open><summary>🙋 Masters pedindo credencial</summary>
+<p>O master aceita o convite, treina e envia contrato e documentos. Você confere e libera a credencial dele aqui. Só depois ele cria a clínica.</p>
 <div id="lRq" style="display:grid;gap:8px"></div><div class="msg" id="mRq"></div></details>
 <details class="c" open><summary>🛟 Suporte: sugestões dos masters</summary>
 <p>Sugestões de melhoria contínua, por texto, sobre qualquer assunto. Valide, responda ou marque como feita.</p><div id="lS" style="display:grid;gap:8px"></div><div class="msg" id="mS"></div></details>
@@ -66,9 +60,7 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 <details class="c" open><summary>🧾 Credenciais emitidas</summary>
 <p>Reemitir desativa a credencial antiga e gera outra. Deixe o e-mail em branco para manter a mesma conta, ou informe o e-mail da conta nova quando a pessoa trocou de conta.</p>
 <div id="lCr" style="display:grid;gap:8px"></div><div class="msg" id="mCr"></div></details>
-<details class="c" open><summary>🧹 Zerar por etapas (teste do fluxo)</summary>
-<p>Vá limpando a máquina de baixo para cima até validar o fluxo inteiro. Cada botão pede um segundo toque. Sua conta e o Advanced nunca são apagados.</p>
-<div id="zeInfo" style="display:grid;gap:8px"></div><div class="msg" id="zeM"></div></details>
+
 
 </div>
 
@@ -115,6 +107,7 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 <p>Apaga <b>tudo</b>: contas, credenciais, clínicas, médicos, convites, pacientes, laudos, envios, casos, tarefas, vínculos, consumo, faturas e histórico. Fica só a sua conta de dono (sem nenhum papel), o seu perfil e as configurações (preços, planos, tarifas, aparelhos). Também limpa a auditoria, o consumo e os registros de acesso. Não tem volta: se houver dados reais, faça um backup no Supabase antes.</p>
 <label>Deixe vazio para apagar todas as outras contas. Se alguma deve ficar, escreva o e-mail (separe por vírgula)</label><input id="zMt" placeholder="ex.: medico.real@email.com" autocapitalize="off">
 <button class="b g" id="zPv">Ver o que será apagado</button><div id="zRs" class="hint" style="margin-top:8px"></div>
+<button class="b g" id="zDc" style="margin-bottom:8px">Desconectar todos (sem apagar)</button>
 <div id="zCf" hidden><label>Para confirmar, digite a senha</label><input id="zTx" type="password" autocomplete="off"><button class="b" id="zGo" style="background:#b91c1c">Zerar agora</button></div><div class="msg" id="zMs"></div>
 <h3 style="margin-top:14px">Remover uma conta só</h3><div class="row2"><div><label>E-mail da conta</label><input id="rmEm" placeholder="conta@email.com" autocapitalize="off"></div><div><label>&nbsp;</label><button class="b g" id="rmGo">Remover</button></div></div><div class="msg" id="rmMs"></div></details>
 <details class="c" open><summary>💲 Preço do token</summary>
@@ -173,12 +166,12 @@ async function atualiza(){t('bAt').disabled=true;t('stamp').textContent='Atualiz
   const {data,error}=await sb.rpc('arvore_plataforma');
   if(error){t('stamp').textContent='';t('bAt').disabled=false;return t('lM').innerHTML='<p>'+esc(error.message)+' (rode o clinica.sql, seção 12)</p>'}
   const T=data.totais,k=(n,l)=>`<div><b>${n}</b>${l}</div>`;
-  t('kpI').innerHTML=k(T.masters,'masters')+k(T.clinicas,'clínicas')+k(T.medicos,'médicos')+k(T.usuarios,'usuários');t('kp').innerHTML=k(T.masters,'masters')+k(T.clinicas,'clínicas')+k(T.medicos,'médicos')+k(T.usuarios,'usuários')+k(T.saldo_tokens,'tokens em saldo')+k(T.consumo_30d,'consumo 30 dias');
+  t('kp').innerHTML=k(T.masters,'masters')+k(T.clinicas,'clínicas')+k(T.medicos,'médicos')+k(T.usuarios,'usuários')+k(T.saldo_tokens,'tokens em saldo')+k(T.consumo_30d,'consumo 30 dias');
   const card=(a,b,c3)=>`<div class="it"><div class="r"><b>${esc(a)}</b><small>${esc(b||'')}</small></div><div class="row3">${c3.map(x=>`<div class="pill ok" style="text-align:center">${x[0]} ${x[1]}</div>`).join('')}</div></div>`;
   t('lM').innerHTML=data.masters.length?data.masters.map(m=>card(m.nome,'',[[m.clinicas,'clínicas'],[m.medicos,'médicos'],[m.usuarios,'usuários']])).join(''):'<p>Nenhum master ativo.</p>';
   t('lC').innerHTML=data.clinicas.length?data.clinicas.map(c=>card(c.nome,'Master: '+c.master,[[c.medicos,'médicos'],[c.usuarios,'usuários'],['','']].slice(0,2))).join(''):'<p>Nenhuma clínica.</p>';
   t('lD').innerHTML=data.medicos.length?data.medicos.map(m=>card(m.nome,m.clinica,[[m.usuarios,'usuários']])).join(''):'<p>Nenhum médico vinculado.</p>';
-  await preco();await Promise.all([sols(),tarifas(),planos(),prontidao(),reqs(),pilotos(),creds(),metricas(),zeDesenha()]);
+  await preco();await Promise.all([sols(),tarifas(),planos(),prontidao(),reqs(),pilotos(),creds(),metricas(),]);
   t('stamp').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR');t('bAt').disabled=false;try{localStorage.setItem('adv_visto',new Date().toISOString())}catch(e){}}
 t('bAt').onclick=atualiza;
 /* ---------- meu perfil ---------- */
@@ -200,16 +193,7 @@ t('zGo').onclick=async()=>{if(!t('zTx').value.trim())return say('zMs','Digite a 
 t('rmGo').onclick=async()=>{const em=t('rmEm').value.trim();if(!em)return say('rmMs','Digite o e-mail.',1);if(t('rmGo').dataset.arm!==em){t('rmGo').dataset.arm=em;t('rmGo').textContent='Confirmar remoção';return say('rmMs','Toque de novo para remover '+em+' e tudo que é dele.',1)}
   t('rmGo').dataset.arm='';t('rmGo').textContent='Remover';const {error}=await sb.rpc('remover_conta',{email:em,confirma:'REMOVER'});if(error)return say('rmMs','❌ '+error.message,1);say('rmMs','✅ Conta removida.');t('rmEm').value='';atualiza()};
 
-const ZE=[['fluxo','1. Zerar o fluxo','Casos, envios, laudos, tarefas e consumo de tokens. Mantém contas, convites e vínculos.'],['vinculos','2. Zerar vínculos também','Fluxo + vínculos médico–paciente. Mantém contas, convites e credenciais.'],['credenciais','3. Zerar credenciais, convites e clínicas','Tudo acima + credenciais de master/médico, convites, clínicas e documentos. As contas ficam, voltam a usuário comum.'],['contas','4. Apagar todas as contas','Tudo acima + todas as contas, menos a sua.']];
-async function zeDesenha(){let c={};try{const {data}=await sb.rpc('zerar_etapa_previa',{manter:''});c=data||{}}catch(e){}
-  t('zeInfo').innerHTML=ZE.map(z=>'<div class="it"><div class="r"><b>'+z[1]+'</b><span class="pill">'+(c[z[0]]==null?'—':c[z[0]]+' itens')+'</span></div><small>'+z[2]+'</small><button class="b g" data-ze="'+z[0]+'">Zerar</button></div>').join('')}
-t('zeInfo').onclick=async e=>{const k=(e.target.dataset||{}).ze;if(!k)return;const b=e.target;if(b.dataset.arm!==k){document.querySelectorAll('[data-ze]').forEach(x=>{x.dataset.arm='';x.textContent='Zerar'});b.dataset.arm=k;b.textContent='Toque de novo para confirmar';return}
-  b.disabled=true;const {error}=await sb.rpc('zerar_etapa',{etapa:k,manter:'',confirma:'ZERAR'});say('zeM',error?'❌ '+error.message:'✅ Etapa "'+k+'" zerada.',!!error);b.disabled=false;zeDesenha();atualiza()};
-
-t('iDc').onclick=async()=>{const b=t('iDc');if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Toque de novo para desconectar todos';return}b.dataset.arm='';b.textContent='Desconectar todos agora';const {data,error}=await sb.rpc('desconectar_todos',{manter:''});say('iMs',error?'❌ '+error.message:'✅ Todos desconectados ('+((data||{}).sessoes||0)+' sessões). Só a sua continua.',!!error)};
-t('iZr').onclick=async()=>{const b=t('iZr');if(!t('iSn').value.trim())return say('iMs','Digite a senha.',1);if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Toque de novo: apaga TUDO';return}b.dataset.arm='';b.textContent='Zerar tudo e desconectar';b.disabled=true;
-  const r=await sb.rpc('zerar_tudo',{manter:'',senha:t('iSn').value.trim()});b.disabled=false;if(r.error)return say('iMs','❌ '+(/senha_incorreta/.test(r.error.message)?'Senha incorreta.':r.error.message),1);t('iSn').value='';say('iMs','✅ Plataforma zerada e todos desconectados. Agora convide o master nº 1.');atualiza()};
-t('iCv').onclick=()=>{const bb=document.querySelector('#abas .tab[data-ab="mst"]');if(bb)bb.click();setTimeout(()=>{const n=t('mvN');if(n)n.focus()},200)};
+t('zDc').onclick=async()=>{const b=t('zDc');if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Toque de novo para desconectar todos';return}b.dataset.arm='';b.textContent='Desconectar todos (sem apagar)';const {data,error}=await sb.rpc('desconectar_todos',{manter:''});say('zMs',error?'❌ '+error.message:'✅ Todos desconectados ('+((data||{}).sessoes||0)+' sessões). Só a sua continua.',!!error)};
 async function sols(){const {data,error}=await sb.rpc('sols_listar');if(error)return t('lS').innerHTML='<p>'+esc(error.message)+'</p>';
   SOL=data||[];const ab=SOL.filter(s=>s.status==='pendente'||s.status==='validada');
   t('lS').innerHTML=ab.length?ab.map(s=>`<div class="it"><div class="r"><b>${esc(s.titulo)}</b><span class="pill ${s.status==='validada'?'ok':''}">${s.status}</span></div><small>${esc(s.autor_nome||'Master')} • ${s.tipo} • ${String(s.criado).slice(0,10)}</small>${s.texto?'<p>'+esc(s.texto)+'</p>':''}
@@ -240,18 +224,14 @@ t('abas').onclick=e=>{const b=e.target.closest('.tab');if(!b)return;document.que
 const TIPO={medico:'Piloto (médico)',orientador:'Piloto orientador',clinica:'Clínica',master:'Master',advanced:'Advanced'};
 const copia=async x=>{try{await navigator.clipboard.writeText(x);return true}catch(e){return false}};
 /* ---------- requisições ---------- */
-async function reqs(){const {data,error}=await sb.rpc('listar_requisicoes');
-  if(error)return t('lRq').innerHTML='<p>'+esc(error.message)+' (rode o clinica.sql, seção 15)</p>';
-  const L=data||[],pend=L.filter(x=>x.status==='pendente').length;t('bdgReq').hidden=!pend;t('bdgReq').textContent=pend;
-  t('lRq').innerHTML=L.length?L.map(q=>`<div class="it"><div class="r"><b>${esc(q.nome||'Sem nome')}</b><span class="pill ${q.status==='habilitada'?'ok':q.status==='recusada'?'er':''}">${q.status}</span></div>
-  <small>${TIPO[q.tipo]||q.tipo} • conta ${esc(q.email||q.conta||'')} • ${String(q.criado).slice(0,10)}${q.registro?' • '+esc(q.registro):''}${q.contato?' • '+esc(q.contato):''}${q.clinica_nome?' • clínica: '+esc(q.clinica_nome):''}</small>
-  ${q.status==='pendente'?`<div class="row2"><button class="b sm" data-hab="${q.id}">✅ Habilitar</button><button class="b g sm" data-rec="${q.id}">Recusar</button></div>`:''}
-  ${q.status==='habilitada'&&q.credencial?`<div class="cod">${esc(q.credencial)}</div><div class="row2"><button class="b g sm" data-cp="${esc(q.credencial)}">Copiar código</button><span class="pill ${q.ativada?'ok':''}" style="text-align:center">${q.ativada?'ativada pela pessoa':'aguardando ativação'}</span></div>`:''}
-  ${q.nota?'<small>Motivo: '+esc(q.nota)+'</small>':''}</div>`).join(''):'<p>Nenhuma requisição ainda.</p>'}
-t('lRq').onclick=async e=>{const d=e.target.dataset||{};
-  if(d.hab){const {data,error}=await sb.rpc('habilitar_acesso',{p_id:d.hab});if(error)return say('mRq','❌ '+error.message,1);say('mRq','Habilitado. Credencial '+data+' reservada para a conta. A pessoa a vê na trilha dela.');reqs();creds();metricas()}
-  if(d.rec){const n=prompt('Motivo da recusa (opcional):')||'';const {error}=await sb.rpc('recusar_acesso',{p_id:d.rec,p_nota:n});if(error)return say('mRq','❌ '+error.message,1);say('mRq','Recusado.');reqs();metricas()}
-  if(d.cp){say('mRq',(await copia(d.cp))?'Código copiado.':'Copie manualmente: '+d.cp)}};
+async function reqs(){const {data,error}=await sb.rpc('master_pedidos_lista');
+  if(error){t('lRq').innerHTML='<p>'+esc(error.message)+' (rode o clinica_limpo.sql)</p>';return}
+  const L=data||[],pend=L.filter(x=>!x.liberado_em).length;t('bdgReq').hidden=!pend;t('bdgReq').textContent=pend;
+  t('lRq').innerHTML=L.length?L.map(q=>{const k=q.dados||{};return `<div class="it"><div class="r"><b>${esc(k.razao||q.nome)}</b><span class="pill ${q.liberado_em?'ok':''}">${q.liberado_em?'liberado':'aguardando você'}</span></div>
+  <small>${esc(q.email||'')} • ${esc(k.documento||'')} • ${esc(k.responsavel||'')} • ${esc(k.whatsapp||'')}${k.endereco?' • '+esc(k.endereco):''}</small>
+  <small>Contrato ${esc(q.versao||'')} assinado por ${esc(q.aceito_nome||'')} em ${String(q.aceito_em||'').slice(0,10).split('-').reverse().join('/')}</small>
+  ${q.liberado_em?'':`<button class="b sm" data-lib="${q.user}">✅ Liberar credencial de master</button>`}</div>`}).join(''):'<p>Nenhum master pediu credencial ainda.</p>'}
+t('lRq').onclick=async e=>{const u=(e.target.dataset||{}).lib;if(!u)return;e.target.disabled=true;const {error}=await sb.rpc('master_liberar',{user:u});if(error){e.target.disabled=false;return say('mRq','❌ '+error.message,1)}say('mRq','✅ Credencial liberada. O app do master abre a criação da clínica.');reqs();masters();atualiza()};
 /* ---------- pilotos ---------- */
 async function pilotos(){const {data,error}=await sb.rpc('lista_pilotos');
   if(error){t('lPa').innerHTML=t('lPc').innerHTML='<p>'+esc(error.message)+'</p>';return}
