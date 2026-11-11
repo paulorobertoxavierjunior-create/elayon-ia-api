@@ -64,6 +64,7 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 <div class="ab" id="ab-mst">
 <div class="c"><h3>🔑 Convidar um master</h3><p>O convite abre o app Elayon Master. Ele treina como usuário, passa pelas etapas e pede cada credencial a você.</p><input id="mvN" placeholder="Nome do investidor / master"><button class="b" id="mvB" style="margin-top:8px">Gerar convite de master</button><div id="mvR"></div><div class="msg" id="mvM"></div></div>
 <div class="c"><h3>🏛️ Masters ativos</h3><p>Quem assumiu a operação. O master paga o consumo todo; o usuário nunca é cobrado.</p><div id="lMs" style="display:grid;gap:8px"></div><div class="msg" id="mMs"></div></div>
+<div class="c"><h3>📄 Documentos dos masters</h3><p>Contrato aceito e dados informados por cada master.</p><div id="lDoc" style="display:grid;gap:8px"></div></div>
 <div class="c"><h3>✉️ Convites de master</h3><div id="lCv" style="display:grid;gap:6px"></div></div>
 </div>
 <div class="ab" id="ab-uso">
@@ -332,7 +333,8 @@ t('bPdf').onclick=async()=>{t('bPdf').disabled=true;say('mPdf','Montando o PDF�
   doc.save('elayon-relatorio-'+t('cF').value+'.pdf');say('mPdf','PDF gerado.')}catch(e){say('mPdf','❌ '+e.message,1)}t('bPdf').disabled=false};
 
 /* ---------- Masters e convites ---------- */
-async function masters(){const a=await sb.rpc('masters_resumo'),c=await sb.rpc('convites_listar');
+async function docsM(){try{const d=await A('master_documentos_lista');t('lDoc').innerHTML=(d||[]).map(x=>{const k=x.dados||{};return `<div class="it"><div class="r"><b>${esc(k.razao||x.nome)}</b><span class="pill ok">${esc(x.versao||'')}</span></div><small>${esc(x.email)} • ${esc(k.documento||'')} • ${esc(k.responsavel||'')} • ${esc(k.whatsapp||'')}</small><small>Assinado por ${esc(x.aceito_nome||'')} em ${String(x.aceito_em||'').slice(0,10)}</small></div>`}).join('')||'<p>Nenhum documento enviado ainda.</p>'}catch(e){}}
+async function masters(){docsM();const a=await sb.rpc('masters_resumo'),c=await sb.rpc('convites_listar');
   t('lMs').innerHTML=(a.data||[]).length?a.data.map(m=>`<div class="it"><div class="r"><b>${esc(m.nome)}</b><span class="pill ok">${m.saldo} tokens</span></div><small>${m.medicos} médico(s) • ${m.usuarios} usuário(s) • ${m.consumo_30d} tokens em 30 dias${m.consumo_30d&&PRECO?' = '+brl(Math.round(m.consumo_30d*PRECO)):''}</small><div class="row2"><input data-cq="${esc(m.email)}" inputmode="numeric" placeholder="tokens"><button class="b g sm" data-cr="${esc(m.email)}">Creditar</button></div></div>`).join(''):'<p>Nenhum master ativo ainda.</p>';
   t('lCv').innerHTML=(c.data||[]).filter(x=>x.tipo==='candidato').map(x=>`<div class="it"><div class="r"><b>${esc(x.para_nome||'—')}</b><span class="pill ${x.usado_em?'ok':''}">${x.usado_em?'usado':'aberto'}</span></div><small>${esc(x.codigo)}${x.usado_por_nome?' • '+esc(x.usado_por_nome):''} • vence ${String(x.expira).slice(0,10)}</small></div>`).join('')||'<p>Nenhum convite.</p>'}
 t('mvB').onclick=async()=>{const n=t('mvN').value.trim();if(!n)return say('mvM','Digite o nome.',1);const {data,error}=await sb.rpc('convite_candidato',{p_nome:n});if(error)return say('mvM','❌ '+error.message,1);
