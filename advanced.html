@@ -11,13 +11,13 @@
 details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 .tabs{display:flex;gap:4px;overflow-x:auto;max-width:100%;min-width:0;background:#eef5f5;border:1px solid var(--l);border-radius:14px;padding:4px;margin-bottom:12px}.tab{flex:1;white-space:nowrap;border:0;background:transparent;padding:9px 10px;border-radius:10px;font-size:12px;font-weight:800;color:var(--m);cursor:pointer}.tab.on{background:#fff;color:#0b3a82;box-shadow:0 1px 6px rgba(0,0,0,.08)}.ab{display:none;min-width:0;max-width:100%}.w>*{min-width:0}#app{min-width:0}.ab.on{display:block}.bdg{display:inline-block;min-width:16px;padding:0 5px;border-radius:10px;background:#dc2626;color:#fff;font-size:10px;line-height:16px;text-align:center}.nv{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:#0e7490;border-radius:20px;padding:1px 7px;margin-left:6px;vertical-align:middle}.cod{font-family:monospace;font-weight:800;font-size:12px;word-break:break-all}
 </style></head><body><div class="w">
-<div class="c hero"><h1>🛰️ Elayon Space Systems</h1><p>Protótipo de observação: o fluxo da rede inteira, as credenciais e as sugestões de melhoria, num lugar só. Esta área não consome tokens.</p>
+<div class="c hero"><div id="heroPf" style="display:flex;align-items:center;gap:10px;margin-bottom:6px"></div><h1>🛰️ Elayon Space Systems</h1><p>Protótipo de observação: o fluxo da rede inteira, as credenciais e as sugestões de melhoria, num lugar só. Esta área não consome tokens.</p>
 <button class="b" id="bAt" style="margin-top:10px" hidden>🔄 Atualizar plataforma</button><div id="stamp" class="hint" style="color:#cfe3ff"></div></div>
 
 <section id="bloq" hidden><div class="c"><h3>Área do Advanced</h3><p>Esta área tem um canal de acesso próprio.</p><a class="b" href="index.html">Voltar ao início</a></div></section>
 
 <div id="app" hidden>
-<nav class="tabs" id="abas"><button class="tab on" data-ab="resumo">Resumo</button><button class="tab" data-ab="req">Requisições <span class="bdg" id="bdgReq" hidden></span></button><button class="tab" data-ab="pil">Pilotos</button><button class="tab" data-ab="cred">Credenciais</button><button class="tab" data-ab="mst">Masters</button><button class="tab" data-ab="uso">Uso</button><button class="tab" data-ab="cob">Cobrança</button><button class="tab" data-ab="rel">Relatório</button><button class="tab" data-ab="plat">Plataforma</button></nav>
+<nav class="tabs" id="abas"><button class="tab on" data-ab="resumo">Resumo</button><button class="tab" data-ab="req">Requisições <span class="bdg" id="bdgReq" hidden></span></button><button class="tab" data-ab="pil">Pilotos</button><button class="tab" data-ab="cred">Credenciais</button><button class="tab" data-ab="mst">Masters</button><button class="tab" data-ab="uso">Uso</button><button class="tab" data-ab="cob">Cobrança</button><button class="tab" data-ab="rel">Relatório</button><button class="tab" data-ab="plat">Plataforma</button><button class="tab" data-ab="perfil">Meu perfil</button></nav>
 
 <div class="ab on" id="ab-resumo">
 <div class="c"><div class="kp" id="kp"></div></div>
@@ -92,10 +92,16 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 <button class="b g" id="bPdf" style="margin-top:8px">Baixar relatório final (PDF)</button><div class="msg" id="mPdf"></div>
 <p class="hint">O período é o da aba Cobrança. O PDF reúne gráficos de uso, usuários por médico, consumo, valores e faturas. Sem dado clínico de paciente.</p></div>
 </div>
+<div class="ab" id="ab-perfil">
+<div class="c cen" style="text-align:center"><img id="pfFoto" alt="" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid #0b3a82;background:#e2ecf8;margin:0 auto;display:block"><label class="b g" style="width:auto;display:inline-block;margin:8px auto 0;padding:8px 14px;font-size:12px">Trocar foto<input type="file" id="pfArq" accept="image/*" hidden></label></div>
+<div class="c"><h3>Responsável pela plataforma</h3><p>Fica registrado como a pessoa que responde pelo Elayon Space Systems. Preencha uma vez.</p>
+<label>Nome completo</label><input id="pfNome" autocomplete="name"><label>Função</label><input id="pfCargo" placeholder="Ex.: Fundador e responsável técnico"><div class="row2"><div><label>E-mail de contato</label><input id="pfMail" type="email"></div><div><label>WhatsApp</label><input id="pfZap" type="tel"></div></div>
+<label>Empresa / CNPJ (quando houver)</label><input id="pfEmp" placeholder="ELAYON SPACE"><label>Declaração de responsabilidade</label><textarea id="pfDecl" rows="4" placeholder="Ex.: Declaro que respondo pela operação, pelos dados e pelo uso da plataforma, nos termos da LGPD."></textarea>
+<button class="b" id="pfSv">Salvar meu perfil</button><div class="msg" id="pfMs"></div></div></div>
 <div class="ab" id="ab-plat">
 <details class="c" open><summary>🧹 Zerar a plataforma para testar limpo</summary>
-<p>Apaga contas, convites, pacientes, laudos, envios, casos, vínculos, consumo e faturas. Mantém a sua conta, os preços, os planos e as tarifas. Não tem volta: se houver dados reais, faça um backup no Supabase antes.</p>
-<label>E-mails que devem ficar (além do seu), separados por vírgula</label><input id="zMt" placeholder="ex.: medico.real@email.com" autocapitalize="off">
+<p>Apaga <b>tudo</b>: contas, credenciais, clínicas, médicos, convites, pacientes, laudos, envios, casos, tarefas, vínculos, consumo, faturas e histórico. Fica só a sua conta de dono (sem nenhum papel), o seu perfil e as configurações (preços, planos, tarifas, aparelhos). Não tem volta: se houver dados reais, faça um backup no Supabase antes.</p>
+<label>Deixe vazio para apagar todas as outras contas. Se alguma deve ficar, escreva o e-mail (separe por vírgula)</label><input id="zMt" placeholder="ex.: medico.real@email.com" autocapitalize="off">
 <button class="b g" id="zPv">Ver o que será apagado</button><div id="zRs" class="hint" style="margin-top:8px"></div>
 <div id="zCf" hidden><label>Para confirmar, digite ZERAR TUDO</label><input id="zTx" autocapitalize="characters" autocomplete="off"><button class="b" id="zGo" style="background:#b91c1c">Zerar agora</button></div><div class="msg" id="zMs"></div>
 <h3 style="margin-top:14px">Remover uma conta só</h3><div class="row2"><div><label>E-mail da conta</label><input id="rmEm" placeholder="conta@email.com" autocapitalize="off"></div><div><label>&nbsp;</label><button class="b g" id="rmGo">Remover</button></div></div><div class="msg" id="rmMs"></div></details>
@@ -162,6 +168,16 @@ async function atualiza(){t('bAt').disabled=true;t('stamp').textContent='Atualiz
   await preco();await Promise.all([sols(),tarifas(),planos(),prontidao(),reqs(),pilotos(),creds(),metricas()]);
   t('stamp').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR');t('bAt').disabled=false;try{localStorage.setItem('adv_visto',new Date().toISOString())}catch(e){}}
 t('bAt').onclick=atualiza;
+/* ---------- meu perfil ---------- */
+let PFADV={};
+function pfHero(){const h=t('heroPf');if(!h)return;h.innerHTML=PFADV.foto||PFADV.nome?(PFADV.foto?'<img src="'+PFADV.foto+'" alt="" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff">':'')+'<div style="color:#fff;font-size:13px;line-height:1.3"><b>'+esc(PFADV.nome||'')+'</b><br><span style="color:#cfe3ff">'+esc(PFADV.cargo||'')+'</span></div>':''}
+function pfFill(){t('pfNome').value=PFADV.nome||'';t('pfCargo').value=PFADV.cargo||'';t('pfMail').value=PFADV.mail||'';t('pfZap').value=PFADV.zap||'';t('pfEmp').value=PFADV.emp||'';t('pfDecl').value=PFADV.decl||'';t('pfFoto').src=PFADV.foto||'icons/logo-emblema.png';pfHero()}
+async function perfilAdv(){try{const {data}=await sb.rpc('adv_perfil_get');PFADV=data||{}}catch(e){PFADV={}}pfFill()}
+function redimAdv(file,max){return new Promise((ok,er)=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.82))};im.onerror=()=>er(new Error('Não consegui ler essa imagem.'));im.src=URL.createObjectURL(file)})}
+async function pfSalva(extra){const o=Object.assign({},PFADV,{nome:t('pfNome').value.trim(),cargo:t('pfCargo').value.trim(),mail:t('pfMail').value.trim(),zap:t('pfZap').value.trim(),emp:t('pfEmp').value.trim(),decl:t('pfDecl').value.trim(),atualizado:new Date().toISOString()},extra||{});
+  const {error}=await sb.rpc('adv_perfil_set',{perfil:o});if(error)throw error;PFADV=o;pfHero()}
+t('pfArq').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;say('pfMs','Processando a foto…');try{const u=await redimAdv(f,256);await pfSalva({foto:u});t('pfFoto').src=u;say('pfMs','✅ Foto atualizada.')}catch(er){say('pfMs','❌ '+er.message,1)}};
+t('pfSv').onclick=async()=>{t('pfSv').disabled=true;try{await pfSalva();say('pfMs','✅ Perfil salvo.')}catch(er){say('pfMs','❌ '+er.message,1)}t('pfSv').disabled=false};
 t('zPv').onclick=async()=>{say('zMs','');t('zCf').hidden=true;t('zRs').textContent='Calculando…';const {data,error}=await sb.rpc('zerar_previa',{manter:t('zMt').value});
   if(error){t('zRs').textContent='';return say('zMs','❌ '+error.message,1)}
   t('zRs').innerHTML='<b>Ficam:</b> '+esc((data.mantidos||[]).join(', '))+'<br><b>Contas a apagar: '+data.contas_a_apagar+'</b>'+((data.emails_a_apagar||[]).length?' ('+esc(data.emails_a_apagar.join(', '))+(data.contas_a_apagar>data.emails_a_apagar.length?', …':'')+')':'')+'<br>Laudos: '+data.laudos+' · Envios: '+data.envios+' · Casos: '+data.casos+' · Convites: '+data.convites+' · Pacientes: '+data.pacientes;t('zCf').hidden=false;t('zTx').value=''};
@@ -309,7 +325,7 @@ t('bPdf').onclick=async()=>{t('bPdf').disabled=true;say('mPdf','Montando o PDF�
    for(const [m,rot] of [['tokens','Tokens'],['laudos','Laudos'],['consultas','Consultas']]){nova(62);const v=ser.map(x=>+x[m]||0),mx=Math.max(1,...v),bw=W/ser.length;doc.setFontSize(8);doc.setTextColor(90);doc.text(rot+' (maximo '+mx+', total '+v.reduce((a,b)=>a+b,0)+')',L,y);doc.setTextColor(0);
     v.forEach((q,i)=>{const bh=q/mx*40;doc.setFillColor(14,116,144);doc.rect(L+i*bw+bw*.12,y+48-bh,bw*.76,bh,'F')});doc.setDrawColor(180);doc.line(L,y+48,L+W,y+48);y+=60}}
   H('Usuarios por medico');if(!d.mdu.length)P('Nenhum medico ativo.');d.mdu.forEach(m=>P(asc(m.nome)+' ('+asc(m.clinica||'autonomo')+'): '+m.usuarios+' usuario(s), '+m.laudos+' laudo(s), '+m.certificados+' certificado(s)'));y+=4;
-  H('Fluxo de casos (clinica > master > medico)');{const c=d.cas||{};P('Total: '+(c.total||0)+' | a encaminhar: '+(c.na_clinica||0)+' | com o medico: '+(c.encaminhado||0)+' | novos exercicios: '+(c.reavaliar||0)+' | altas: '+(c.alta||0));P('Etapas por caso (media): '+(c.ciclo_medio||0)+' | horas ate encaminhar: '+(c.horas_ate_encaminhar||0)+' | horas ate a decisao do medico: '+(c.horas_ate_decisao||0))}y+=4;
+  H('Fluxo de casos (clinica > master > medico)');{const c=d.cas||{};P('Total: '+(c.total||0)+' | a validar: '+(c.na_clinica||0)+' | com o medico: '+(c.encaminhado||0)+' | devolvidos a clinica: '+(c.reavaliar||0)+' | em tarefas: '+(c.em_tarefas||0)+' | concluidos: '+(c.concluido||0)+' | altas: '+(c.alta||0));{const e=c.etapas||{};P('Pacientes por etapa - convidados: '+(e.convidado||0)+' | na ferramenta: '+(e.ativo||0)+' | atrasados (mais de 24h): '+(e.atrasados_24h||0)+' | medicos aguardando aceite: '+(c.medicos_pendentes||0))}P('Etapas por caso (media): '+(c.ciclo_medio||0)+' | horas ate encaminhar: '+(c.horas_ate_encaminhar||0)+' | horas ate a decisao do medico: '+(c.horas_ate_decisao||0))}y+=4;
   H('Consumo e cobranca no periodo');if(!d.con.length)P('Sem consumo.');let tt=0,tv=0;d.con.forEach(c=>{tt+=c.tokens;tv+=c.valor_centavos;P(asc(c.nome)+' - '+c.modelo+(c.pos_pago?' pos-pago':' pre-pago')+': '+c.tokens+' tokens, '+c.usuarios+' usuario(s), '+brl(c.valor_centavos).replace(/ /g,' '))});P('TOTAL: '+tt+' tokens = '+brl(tv).replace(/ /g,' '),11);y+=4;
   H('Faturas');if(!d.fat.length)P('Nenhuma fatura.');d.fat.forEach(f=>P(asc(f.nome||f.email||'Conta')+' - '+String(f.periodo_ini).slice(0,10)+' a '+String(f.periodo_fim).slice(0,10)+': '+f.tokens+' tokens, '+brl(f.valor_centavos).replace(/ /g,' ')+' ['+f.status+(f.status==='paga'?' (teste)':'')+']'));
   if(t('rTx').textContent.trim()){y+=6;H('Relatorio contextual (IA)');P(t('rTx').textContent.normalize('NFD').replace(/[̀-ͯ]/g,''))}
@@ -328,5 +344,5 @@ t('bCod').onclick=async()=>{const {data,error}=await sb.rpc('aparelho_codigo');{
 t('bSai').onclick=()=>{try{sessionStorage.removeItem('adv_tok')}catch(e){}location.replace('index.html')};
 (async()=>{if(!TK){location.replace('index.html');return}
   const r=await A('ping');if(r.error||!r.data)return;
-  t('app').hidden=false;t('bAt').hidden=false;{const h=(location.hash||'').slice(1),bb=document.querySelector('#abas .tab[data-ab="'+h+'"]');if(bb)bb.click()}await atualiza();aparelhos();uso();mu();cobranca();masters()})();
+  t('app').hidden=false;t('bAt').hidden=false;{const h=(location.hash||'').slice(1),bb=document.querySelector('#abas .tab[data-ab="'+h+'"]');if(bb)bb.click()}await atualiza();aparelhos();uso();mu();cobranca();masters();perfilAdv()})();
 </script></body></html>

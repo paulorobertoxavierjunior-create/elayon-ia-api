@@ -125,5 +125,6 @@ $('bEx').onclick=()=>dl(new Blob([`Notas do piloto — laudo ${LZ.id} (${new Dat
   try{const {data}=await sb.from('profiles').select('nome').eq('id',U.id).maybeSingle();$('quem').textContent=((data&&data.nome)||U.email)+' · '+U.email}catch(e){$('quem').textContent=U.email}
   try{const {data}=await sb.from('pilotos_perfil').select('*').eq('id',U.id).maybeSingle();PIL=data||null}catch(e){PIL=null}
   $('cad').innerHTML=PIL?`<p>🩺 Piloto cadastrado${PIL.registro||PIL.crm?' · '+esc(PIL.registro||PIL.crm):''}</p>`:'<p>⚠️ Você ainda não tem cadastro de piloto. <a href="cadastro-piloto.html" style="color:var(--a);font-weight:800">Cadastrar agora</a>. Sem ele, só o estudo de laudos fica disponível.</p>';
+  try{const q=new URLSearchParams(location.search);if(q.get('pn'))$('pn').value=q.get('pn');if(q.get('pe'))$('pe').value=q.get('pe')}catch(e){}
   listar();envios()})();
 </script></body></html>
