@@ -104,7 +104,7 @@ details.c>summary{cursor:pointer;font-size:13px;font-weight:800;color:var(--a);l
 <button class="b g big" id="bFim">Encerrar sessão e atender outro usuário</button></section>
 
 <div id="gwrap" hidden><div id="grid"></div><audio id="aud" controls style="width:100%;margin-top:6px"></audio></div>
-<p style="text-align:center"><a href="perfil.html" style="color:var(--a);font-weight:700;font-size:11px">⬅ Sair da demonstração</a> · <a href="termos.html" style="color:var(--a);font-weight:700;font-size:11px">Termos</a> · <a href="privacidade.html" style="color:var(--a);font-weight:700;font-size:11px">Privacidade</a></p>
+<p style="text-align:center"><a href="/app-medico.html" data-home style="color:var(--a);font-weight:700;font-size:11px">⬅ Voltar à ferramenta do médico</a> · <a href="termos.html" style="color:var(--a);font-weight:700;font-size:11px">Termos</a> · <a href="privacidade.html" style="color:var(--a);font-weight:700;font-size:11px">Privacidade</a></p>
 </div>
 <script src="elayon-legal.js"></script><script src="health-core.js"></script><script src="health-dsp.js"></script><script src="vibes8.js"></script><script src="espaco-comum.js"></script>
 <script>
@@ -461,4 +461,4 @@ $('bVinc').onclick=async()=>{const cod=$('m_cod').value.trim();if(!cod)return ms
     $('clBox').hidden=false;$('calTxt0').textContent='Carregue os 3 áudios de calibração do usuário, na ordem. Todo atendimento começa por eles.';$('bIni').textContent='Iniciar calibração do usuário ▶';await vinculos();
     if(!PIL){msg('m1','Você ainda não tem o cadastro profissional. Faça no perfil, aba médico.',1)}}
   show(1)})();
-</script></body></html>
+</script><script>(function(){var h='/app-medico.html';try{var x=localStorage.getItem('elx_home');if(/^\/app-(medico|master)\.html$/.test(x))h=x}catch(e){}document.querySelectorAll('[data-home]').forEach(function(a){a.href=h})})()</script></body></html>

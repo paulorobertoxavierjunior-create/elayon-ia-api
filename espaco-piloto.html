@@ -13,7 +13,7 @@ details.c>summary::-webkit-details-marker{display:none}details.c>summary::after{
 pre{font:10px/1.4 monospace;white-space:pre-wrap;color:var(--m);max-height:200px;overflow:auto;background:#f8fbfa;border-radius:10px;padding:8px}
 </style></head><body><div class="w">
 <div class="c"><div class="top"><img class="lg" src="elayon-logo.png" alt="Elayon" onerror="if(!this.dataset.t){this.dataset.t=1;this.src='elayon_logo.png'}else this.style.display='none'"><div><h1>Espaço do Piloto</h1><p>Elayon Health · treinos, fontes e estudo de laudos</p></div></div>
-<div class="hd"><span id="quem">…</span><a href="perfil.html">⬅ Perfil</a></div><div id="cad"></div></div>
+<div class="hd"><span id="quem">…</span><a href="/app-medico.html" data-home>⬅ Ferramenta do médico</a></div><div id="cad"></div></div>
 
 <details class="c" id="dN" open><summary>🧭 Novo treino para um usuário</summary>
 <p>O usuário digita o código no Meu Espaço e o treino entra na lista dele. O que você escrever em "Fontes" é o que a IA dele pode citar ao acompanhar os exercícios.</p>
@@ -127,4 +127,4 @@ $('bEx').onclick=()=>dl(new Blob([`Notas do piloto — laudo ${LZ.id} (${new Dat
   $('cad').innerHTML=PIL?`<p>🩺 Piloto cadastrado${PIL.registro||PIL.crm?' · '+esc(PIL.registro||PIL.crm):''}</p>`:'<p>⚠️ Você ainda não tem cadastro de piloto. <a href="cadastro-piloto.html" style="color:var(--a);font-weight:800">Cadastrar agora</a>. Sem ele, só o estudo de laudos fica disponível.</p>';
   try{const q=new URLSearchParams(location.search);if(q.get('pn'))$('pn').value=q.get('pn');if(q.get('pe'))$('pe').value=q.get('pe')}catch(e){}
   listar();envios()})();
-</script></body></html>
+</script><script>(function(){var h='/app-medico.html';try{var x=localStorage.getItem('elx_home');if(/^\/app-(medico|master)\.html$/.test(x))h=x}catch(e){}document.querySelectorAll('[data-home]').forEach(function(a){a.href=h})})()</script></body></html>
