@@ -53,7 +53,7 @@ details.c[open]>summary{margin-bottom:6px}
 
 <div class="c"><div class="row"><h3 id="hL">📁 Meus laudos</h3><label class="b g sm" style="cursor:pointer;margin:0">Abrir .elayon<input type="file" id="fImp" accept=".elayon,.json,application/json" style="display:none"></label></div>
 <p>Ficam só neste aparelho (até 10). Cada laudo guarda as medidas e o áudio; ao tocar o áudio, os gráficos se movem como na gravação.</p>
-<div id="lz" style="display:grid;gap:8px"></div></div>
+<div id="lz" style="display:grid;gap:8px"></div><button class="b g" id="bVol">Enviar à clínica o que gravei (voluntário)</button><p class="hint" id="mVol"></p></div>
 <p style="text-align:center"><a href="termos.html" style="color:var(--a);font-weight:700;font-size:11px">Termos</a> · <a href="privacidade.html" style="color:var(--a);font-weight:700;font-size:11px">Privacidade</a></p>
 </div>
 <script src="elayon-legal.js"></script><script src="health-core.js"></script><script src="health-dsp.js"></script><script src="vibes8.js"></script><script src="espaco-comum.js"></script>
@@ -206,6 +206,17 @@ $('bEnvia').onclick=async()=>{
     chatAdd('ia','Enviado ao seu médico. Obrigado por esta missão. Agora o espaço é seu: pode falar livremente comigo, sobre os gráficos ou não.')}
   catch(e){msg('mMi','❌ '+(e.message||e)+' (confira se o clinica.sql foi rodado no servidor)',1)}finally{$('bEnvia').disabled=false}};
 
+$('bVol').onclick=async()=>{
+  try{const L=(await laudosLista(U.id)).filter(l=>!l.vol&&!(l.m&&l.m.env)).sort((a,b)=>a.ts-b.ts);
+    if(!L.length)return msg('mVol','Nada novo para enviar. Grave um exercício primeiro.',1);
+    if(!confirm('Enviar '+L.length+' exercício(s) à clínica? Ela confere e encaminha ao seu médico.'))return;
+    $('bVol').disabled=true;msg('mVol','⏳ enviando…');const ts=Date.now(),itens=[];let ord=0;
+    for(const l of L){const path=`${U.id}/${ts}_v${ord}_${l.ex.id}.elayon`;const up=await sb.storage.from('envios').upload(path,await laudoExporta(l),{contentType:'application/json'});if(up.error)throw up.error;
+      itens.push({path,exercicio:l.ex.nome,exId:l.ex.id,ts:l.ts,tipo:'voluntario',ordem:ord++,res:{f0:l.res.f0&&l.res.f0.m,jit:l.res.jit&&l.res.jit.m,shim:l.res.shim&&l.res.shim.m,hnr:l.res.hnr&&l.res.hnr.m,dur:l.res.dur}})}
+    const {error}=await sb.from('envios').insert({user_id:U.id,codigo:null,pacote_path:itens[0].path,resumo:{itens,exercicios:itens.length,calibracao:0,sequencia:'voluntário'}});if(error)throw error;
+    for(const l of L){l.vol=ts;await laudoSalva(l)}
+    msg('mVol','✅ Enviado à clínica. Ela confere e encaminha ao seu médico.')}
+  catch(e){msg('mVol','❌ '+(e.message||e),1)}finally{$('bVol').disabled=false}};
 /* ---------- início ---------- */
 (async()=>{
   try{U=await eu()}catch(e){return}
@@ -219,4 +230,3 @@ $('bEnvia').onclick=async()=>{
   else chatAdd('ia',`Olá, ${nome()}. Este é o seu espaço. Você pode carregar o treino do seu médico, escolher um exercício ou simplesmente falar comigo. Sem pressa.`)
 })();
 </script></body></html>
-

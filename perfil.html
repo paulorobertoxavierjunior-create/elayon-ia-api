@@ -183,11 +183,6 @@
       <a class="btn logout" id="btnConta" href="minha-conta.html" style="border-color:var(--accent);color:var(--ink)">🪙 Minha conta · tokens e quem paga</a>
       <a class="btn logout" id="btnPlanos" href="planos.html" style="border-color:var(--accent);color:var(--ink)">🛒 Planos</a>
       <a class="btn logout" id="btnGuia" href="guia.html" style="border-color:var(--accent);color:var(--ink)">💡 Instrução: o que cada medida significa<br><span style="font-size:10px;font-weight:700;color:var(--muted)">Jitter, shimmer, HNR e anamnese em linguagem simples</span></a>
-      <div id="btnManutWrap" style="text-align:center;margin-top:6px">
-        <button type="button" id="btnManut" tabindex="-1" aria-hidden="true" style="background:none;border:0;color:var(--muted);opacity:.45;font-size:10px;letter-spacing:.06em;padding:6px 10px;cursor:default">Manutenção</button>
-        <div id="manutBox" style="margin-top:8px;display:none;gap:6px"><input id="manutPw" type="password" autocomplete="off" placeholder="senha" style="flex:1;padding:10px;border:1px solid var(--accent);border-radius:10px"><button type="button" id="manutGo" class="btn primary" style="padding:10px 14px;font-size:12px">Abrir</button></div>
-        <div id="manutMsg" style="font-size:11px;color:#b91c1c;margin-top:4px"></div>
-      </div>
       <button class="btn logout" id="btnLogout" type="button">Sair da Sessão</button>
     </div>
     </div>
@@ -284,6 +279,8 @@
         let { data: profile } = await supabaseClient
           .from('profiles').select('*').eq('id', user.id).single();
 
+        const AP = { usuario: 'app-usuario.html', medico: 'app-medico.html', candidato: 'app-master.html' };
+        if (profile && AP[profile.convite_tipo]) { location.replace(AP[profile.convite_tipo]); return; }
         if (profile) {
           currentTokens = profile.tokens ?? 100;
           document.getElementById('userTokens').textContent = currentTokens;
@@ -533,27 +530,7 @@ function aiErroAmigavel(m){m=String(m||'');
 
     initAuth();
   
-    // Manutenção (inanimada): 5 toques em menos de 5 segundos abrem o campo. A senha é conferida NO SERVIDOR (rpc acesso_manutencao),
-    // que libera 30 minutos de acesso Advanced a esta conta. Erros repetidos bloqueiam a tentativa.
-    (function () {
-      let toques = [];
-      const box = document.getElementById('manutBox'), msg = document.getElementById('manutMsg');
-      document.getElementById('btnManut').addEventListener('click', () => {
-        const agora = Date.now(); toques = toques.filter(t => agora - t < 5000); toques.push(agora);
-        if (toques.length >= 5) { toques = []; box.style.display = 'flex'; document.getElementById('manutPw').focus(); }
-      });
-      async function abre() {
-        msg.textContent = '';
-        const v = document.getElementById('manutPw').value; if (!v) return;
-        const { data, error } = await supabaseClient.rpc('acesso_manutencao', { p_senha: v });
-        document.getElementById('manutPw').value = '';
-        if (error || !data) { msg.textContent = 'Não foi possível agora.'; return; }
-        if (data.ok) { location.href = 'central.html'; return; }
-        msg.textContent = data.erro === 'bloqueado' ? 'Muitas tentativas. Tente mais tarde.' : data.erro === 'nao_configurado' ? 'Manutenção não configurada.' : 'Senha incorreta.';
-      }
-      document.getElementById('manutGo').addEventListener('click', abre);
-      document.getElementById('manutPw').addEventListener('keydown', e => { if (e.key === 'Enter') abre(); });
-    })();
+
 </script>
 </body>
 </html>

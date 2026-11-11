@@ -23,7 +23,7 @@ h2{text-align:center;font-size:16px;color:#0e7490;text-transform:uppercase;lette
 canvas{width:100%;height:92px;display:block;margin-top:6px;background:linear-gradient(180deg,#fff,#f3fcfd);border:1px solid #dff1f5;border-radius:10px}.w canvas{height:110px}
 .box{margin-top:10px;border:1px solid var(--l);border-radius:16px;padding:12px;background:#fff;box-shadow:0 6px 18px #06b6d41a}
 .box audio{width:100%;height:34px}
-.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.slots{display:grid;grid-auto-flow:column;grid-auto-columns:42%;gap:6px;margin-top:8px;overflow-x:auto;padding-bottom:4px}
 .slot{border:1px solid var(--l);border-radius:10px;padding:6px;font-size:10px;background:#f8fdfe}
 .slot.ok{border-color:#10b981aa}.slot.sel{box-shadow:0 0 0 2px #06b6d4}
 .slot img{width:100%;display:block;border-radius:6px;margin:4px 0}.slot small{display:block;color:var(--m);font-size:10px}
@@ -108,7 +108,8 @@ addEventListener('resize',fit);
 const fade=(x,W,h,a)=>{x.globalCompositeOperation='source-over';x.fillStyle=`rgba(255,255,255,${a})`;x.fillRect(0,0,W,h)};   // fundo branco; o rastro some em branco
 const dot=(x,px,py,r,c)=>{x.fillStyle=c;x.beginPath();x.arc(px,py,r,0,6.2832);x.fill()};
 
-/* ===== FIFO persistente ===== */
+/* ===== FIFO persistente: guarda as 10 últimas sessões neste aparelho; a 11ª apaga a mais antiga; cada uma pode ser apagada à mão ===== */
+const FIFO_N=10;
 const DB=new Promise((ok,no)=>{const r=indexedDB.open('crs_fifo',1);r.onupgradeneeded=()=>r.result.createObjectStore('s',{keyPath:'k'});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
 const tx=async(m,f)=>{const d=await tout(DB,3000,null);if(!d)throw new Error('armazenamento local indisponível');return new Promise((ok,no)=>{const t=d.transaction('s',m),q=f(t.objectStore('s'));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>no(t.error)})};
 
@@ -131,7 +132,8 @@ async function carregar(){
   aplicarHealth(p);if(p&&p.avatar_url)$('hudAvatar').src=p.avatar_url;hud();
   const todas=(await tout(tx('readonly',s=>s.getAll()).catch(()=>[]),3000,[]))||[];
   for(const s of todas)if(s.uid===U.id&&!s.tk)await tx('readwrite',st=>st.delete(s.k)).catch(()=>{});
-  U.sessoes=todas.filter(s=>s.uid===U.id&&s.tk&&s.res&&s.img).sort((a,b)=>b.ts-a.ts).slice(0,3);
+  U.sessoes=todas.filter(s=>s.uid===U.id&&s.tk&&s.res&&s.img).sort((a,b)=>b.ts-a.ts).slice(0,FIFO_N);
+  for(const o of todas.filter(s=>s.uid===U.id&&s.tk&&s.res&&s.img).sort((a,b)=>b.ts-a.ts).slice(FIFO_N))await tx('readwrite',st=>st.delete(o.k)).catch(()=>{});
   const ini=+localStorage.getItem('crs_ini_'+U.id)||0;U.ciclo=Math.min(CFG.MAX,U.sessoes.filter(s=>s.ts>ini).length);
   U.calibrado=!!(session.user.user_metadata&&session.user.user_metadata.crs_calibrado)||localStorage.getItem('crs_ok_'+U.id)==='1';
   renderFifo();if(U.calibrado)U.ciclo=CFG.MAX;layers();
@@ -293,9 +295,10 @@ function espectroide(tk,sec,ret,dur){
 
 /* ===== FIFO visual ===== */
 function renderFifo(){
-  $('fifoT').textContent=`Buffer FIFO • ${U.sessoes.length}/3 • ciclo ${U.ciclo}/${CFG.MAX}`;
-  $('slots').innerHTML=[0,1,2].map(i=>{const s=U.sessoes[i];return `<div class="slot ${s?'ok':''} ${U.sel===i?'sel':''}"><b>Sessão ${i+1}${i?'':' • atual'}</b>${s?`<img src="${s.img}" onclick="ver(${i})"><small>${(+s.dur||0).toFixed(1)}s · ${s.res&&s.res.f0?Math.round(s.res.f0.m)+' Hz':'sem F0'}</small><button onclick="rep(${i})">▶</button><button onclick="ver(${i})">👁</button>`:'<small>vazio</small>'}</div>`}).join('')
+  $('fifoT').textContent=`Sessões neste aparelho • ${U.sessoes.length}/${FIFO_N} (a mais antiga sai sozinha) • ciclo ${U.ciclo}/${CFG.MAX}`;
+  $('slots').innerHTML=U.sessoes.length?U.sessoes.map((s,i)=>`<div class="slot ok ${U.sel===i?'sel':''}"><b>Sessão ${i+1}${i?'':' • atual'}</b><img src="${s.img}" onclick="ver(${i})"><small>${new Date(s.ts).toLocaleDateString('pt-BR')} · ${(+s.dur||0).toFixed(1)}s · ${s.res&&s.res.f0?Math.round(s.res.f0.m)+' Hz':'sem F0'}</small><button onclick="rep(${i})">▶</button><button onclick="ver(${i})">👁</button><button onclick="delS(${i})" title="Apagar">🗑</button></div>`).join(''):'<div class="slot"><small>Nenhuma sessão ainda. Grave a primeira.</small></div>'
 }
+async function delS(i){const s=U.sessoes[i];if(!s||!confirm('Apagar esta sessão deste aparelho? Não tem volta.'))return;try{await tx('readwrite',st=>st.delete(s.k))}catch(e){}U.sessoes.splice(i,1);if(U.sel===i){U.sel=null;$('esp').style.display='none'}else if(U.sel>i)U.sel--;renderFifo()}
 function ver(i){const s=U.sessoes[i];if(!s)return;U.sel=i;const e=$('esp');e.src=s.img;e.style.display='block';renderFifo()}
 let urlA=null;
 function rep(i){const s=U.sessoes[i];if(!s)return;ver(i);R.repS=s;if(urlA)URL.revokeObjectURL(urlA);urlA=URL.createObjectURL(s.blob||new Blob([s.ab],{type:s.tipo||'audio/webm'}));const a=$('crsAudio');a.src=urlA;a.play()}
@@ -368,7 +371,7 @@ async function processar(blob){
     try{const ab=await blob.arrayBuffer();await tx('readwrite',st=>st.put(Object.assign({},s,{blob:null,ab,tipo:blob.type})))}   // ArrayBuffer: Safari/WebViews falham com Blob no IndexedDB
     catch(e){aviso('⚠️ Este navegador não guardou o áudio; a sessão segue só na memória.')}
     U.sessoes.unshift(s);                                                                    // entra na 1ª caixa, as outras migram
-    while(U.sessoes.length>3){const o=U.sessoes.pop();try{await tx('readwrite',st=>st.delete(o.k))}catch(e){}}   // FIFO: sai a mais antiga
+    while(U.sessoes.length>FIFO_N){const o=U.sessoes.pop();try{await tx('readwrite',st=>st.delete(o.k))}catch(e){}}   // FIFO: sai a mais antiga
     const antes=U.calibrado;if(U.ciclo<CFG.MAX)U.ciclo++;U.sel=0;renderFifo();$('esp').src=img;$('esp').style.display='block';
     sb.from('calibracoes_crs').insert([{user_id:U.id,operador_nome:U.nome,etapa:U.ciclo,transcricao_usuario:txt,audio_url:'idb:'+s.k,tokens_consumidos:custo()}]).then(()=>{},()=>{});
     document.dispatchEvent(new CustomEvent('crs:sessao',{detail:{res,txt}}));
@@ -407,7 +410,7 @@ async function ia(prompt,img){
 }
 async function iaFalar(txt,res,img,fim){
   try{const ae=avisoEmergencia(txt);if(ae)aviso(ae)}catch(e){}
-  const n=U.ciclo,prev=U.sessoes.slice(1).map(s=>({f0:s.res.f0&&s.res.f0.m,db:s.res.db&&s.res.db.m,jit:s.res.jit&&s.res.jit.m,shim:s.res.shim&&s.res.shim.m,hnr:s.res.hnr&&s.res.hnr.m,cpp:s.res.cpp&&s.res.cpp.m,pausas:s.res.pausas}));
+  const n=U.ciclo,prev=U.sessoes.slice(1,4).map(s=>({f0:s.res.f0&&s.res.f0.m,db:s.res.db&&s.res.db.m,jit:s.res.jit&&s.res.jit.m,shim:s.res.shim&&s.res.shim.m,hnr:s.res.hnr&&s.res.hnr.m,cpp:s.res.cpp&&s.res.cpp.m,pausas:s.res.pausas}));
   const p=`[SISTEMA] ${U.calibrado&&!fim?'Interação de cuidado':`Calibração ${n}/${CFG.MAX} concluída`}. Fala transcrita: "${txt||'(nada detectado)'}". Modo: ${U.health==='ok'?'COM camada Health (compare com as faixas e o laudo do médico)':'SEM camada Health (compare só com as sessões anteriores)'}. Dados CRS internos: ${JSON.stringify({atual:res,anteriores:prev})}.${U.params?confere(res):''} `+(fim?'Esta foi a última calibração: comente os achados em linguagem simples, sem diagnóstico, diga que a calibração foi concluída e que agora o usuário pode conversar normalmente e fazer exercícios vocais guiados.':U.calibrado?'Conversa livre de cuidado: responda ao que o usuário disse, comente brevemente os achados vocais e, se fizer sentido, sugira um exercício vocal leve.':`Comente brevemente e passe a próxima instrução: "${CFG.ETAPAS[n]}"`);
   const w=chatAdd('ia','…'),r=await ia(p,img);w.remove();
   if(!r&&U.key)aviso('A IA não respondeu. Confira provedor e chave no perfil.');
