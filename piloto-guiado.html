@@ -452,6 +452,7 @@ $('bVinc').onclick=async()=>{const cod=$('m_cod').value.trim();if(!cod)return ms
   if(pedido==='real'&&APR&&!CRED)window.__semCred=true;
   try{if(!CRED){const b=$('bReal');if(b)b.hidden=true}}catch(e){}
   prefill();
+  try{const q=new URLSearchParams(location.search);if(q.get('pn'))$('c_nome').value=q.get('pn');if(q.get('pe'))$('c_email').value=q.get('pe')}catch(e){}
   if(MODO==='treino'){$('hTit').textContent='Calibração do médico';$('hSub').textContent='Treinamento · você faz o papel do usuário';$('mdTag').textContent='TREINAMENTO';$('mdTag').className='pill t';
     $('mdTxt').textContent=window.__semCred?'O cockpit real é para Pilotos Oficiais: falta ativar a credencial exclusiva. Siga a sua trilha: cadastro profissional e credencial. Enquanto isso, o treinamento está liberado.':pedido==='real'?'O cockpit real abre depois do treinamento. Faça a calibração com a sua própria voz, leia os 8 gráficos com a IA e assine o PDF de treino. Nada é enviado.':'Antes de atender, você treina o fluxo inteiro com a sua própria voz: calibra, lê os 8 gráficos com a IA, anota e assina um PDF de treino. Nada é enviado.';
     $('clBox').hidden=true;$('calTxt0').textContent='Você faz o papel do usuário: grave os 3 áudios aqui ou carregue arquivos seus.';$('bIni').textContent='Iniciar o treinamento ▶'}

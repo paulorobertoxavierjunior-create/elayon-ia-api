@@ -93,6 +93,12 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 <p class="hint">O período é o da aba Cobrança. O PDF reúne gráficos de uso, usuários por médico, consumo, valores e faturas. Sem dado clínico de paciente.</p></div>
 </div>
 <div class="ab" id="ab-plat">
+<details class="c" open><summary>🧹 Zerar a plataforma para testar limpo</summary>
+<p>Apaga contas, convites, pacientes, laudos, envios, casos, vínculos, consumo e faturas. Mantém a sua conta, os preços, os planos e as tarifas. Não tem volta: se houver dados reais, faça um backup no Supabase antes.</p>
+<label>E-mails que devem ficar (além do seu), separados por vírgula</label><input id="zMt" placeholder="ex.: medico.real@email.com" autocapitalize="off">
+<button class="b g" id="zPv">Ver o que será apagado</button><div id="zRs" class="hint" style="margin-top:8px"></div>
+<div id="zCf" hidden><label>Para confirmar, digite ZERAR TUDO</label><input id="zTx" autocapitalize="characters" autocomplete="off"><button class="b" id="zGo" style="background:#b91c1c">Zerar agora</button></div><div class="msg" id="zMs"></div>
+<h3 style="margin-top:14px">Remover uma conta só</h3><div class="row2"><div><label>E-mail da conta</label><input id="rmEm" placeholder="conta@email.com" autocapitalize="off"></div><div><label>&nbsp;</label><button class="b g" id="rmGo">Remover</button></div></div><div class="msg" id="rmMs"></div></details>
 <details class="c" open><summary>💲 Preço do token</summary>
 <p>O valor base de tudo. Os preços dos planos são calculados a partir dele, com o desconto de cada plano. Zero significa "a definir".</p>
 <div class="row2"><div><label>Reais por token</label><input id="vTk" inputmode="decimal" placeholder="0,00"></div><div><label>&nbsp;</label><button class="b" id="bTk">Salvar preço</button></div></div>
@@ -156,6 +162,14 @@ async function atualiza(){t('bAt').disabled=true;t('stamp').textContent='Atualiz
   await preco();await Promise.all([sols(),tarifas(),planos(),prontidao(),reqs(),pilotos(),creds(),metricas()]);
   t('stamp').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR');t('bAt').disabled=false;try{localStorage.setItem('adv_visto',new Date().toISOString())}catch(e){}}
 t('bAt').onclick=atualiza;
+t('zPv').onclick=async()=>{say('zMs','');t('zCf').hidden=true;t('zRs').textContent='Calculando…';const {data,error}=await sb.rpc('zerar_previa',{manter:t('zMt').value});
+  if(error){t('zRs').textContent='';return say('zMs','❌ '+error.message,1)}
+  t('zRs').innerHTML='<b>Ficam:</b> '+esc((data.mantidos||[]).join(', '))+'<br><b>Contas a apagar: '+data.contas_a_apagar+'</b>'+((data.emails_a_apagar||[]).length?' ('+esc(data.emails_a_apagar.join(', '))+(data.contas_a_apagar>data.emails_a_apagar.length?', …':'')+')':'')+'<br>Laudos: '+data.laudos+' · Envios: '+data.envios+' · Casos: '+data.casos+' · Convites: '+data.convites+' · Pacientes: '+data.pacientes;t('zCf').hidden=false;t('zTx').value=''};
+t('zGo').onclick=async()=>{if(t('zTx').value.trim()!=='ZERAR TUDO')return say('zMs','Digite exatamente ZERAR TUDO.',1);t('zGo').disabled=true;say('zMs','Zerando…');
+  const {data,error}=await sb.rpc('zerar_plataforma',{manter:t('zMt').value,confirma:t('zTx').value.trim()});t('zGo').disabled=false;
+  if(error)return say('zMs','❌ '+error.message,1);t('zCf').hidden=true;t('zRs').textContent='';say('zMs','✅ Plataforma zerada: '+data.contas_removidas+' conta(s) removida(s).'+(data.arquivos!=='ok'?' Os PDFs antigos ficaram no armazenamento (sem acesso); apague em Storage se quiser.':''));atualiza()};
+t('rmGo').onclick=async()=>{const em=t('rmEm').value.trim();if(!em)return say('rmMs','Digite o e-mail.',1);if(t('rmGo').dataset.arm!==em){t('rmGo').dataset.arm=em;t('rmGo').textContent='Confirmar remoção';return say('rmMs','Toque de novo para remover '+em+' e tudo que é dele.',1)}
+  t('rmGo').dataset.arm='';t('rmGo').textContent='Remover';const {error}=await sb.rpc('remover_conta',{email:em,confirma:'REMOVER'});if(error)return say('rmMs','❌ '+error.message,1);say('rmMs','✅ Conta removida.');t('rmEm').value='';atualiza()};
 async function sols(){const {data,error}=await sb.rpc('sols_listar');if(error)return t('lS').innerHTML='<p>'+esc(error.message)+'</p>';
   SOL=data||[];const ab=SOL.filter(s=>s.status==='pendente'||s.status==='validada');
   t('lS').innerHTML=ab.length?ab.map(s=>`<div class="it"><div class="r"><b>${esc(s.titulo)}</b><span class="pill ${s.status==='validada'?'ok':''}">${s.status}</span></div><small>${esc(s.autor_nome||'Master')} • ${s.tipo} • ${String(s.criado).slice(0,10)}</small>${s.texto?'<p>'+esc(s.texto)+'</p>':''}
