@@ -306,7 +306,7 @@ function faixas(S){const f0=envelope(S,'f0');if(!f0){REF=null;return}
   const hn=envelope(S,'hnr'),jt=envelope(S,'jit'),sh=envelope(S,'shim');
   REF={n:S.length,f0,hnr:hn,jit:jt,shim:sh,pm:envCrs(S,c=>c.pausas_min),ptr:envCrs(S,c=>c.ptr),mu:envCrs(S,c=>c.mu)};
   $('f1').value=Math.max(50,Math.floor(f0.lo));$('f2').value=Math.min(600,Math.ceil(f0.hi));
-  $('jt').value=jt?(Math.ceil(jt.hi*10)/10).toFixed(1):'1.0';$('sh').value=sh?(Math.ceil(sh.hi*10)/10).toFixed(1):'0.4';$('hn').value=hn?(Math.floor(hn.lo*10)/10).toFixed(1):'10';
+  $('jt').value=jt&&isFinite(jt.hi)?Math.max(0.1,Math.ceil(jt.hi*10)/10).toFixed(1):'1.0';$('sh').value=sh&&isFinite(sh.hi)?Math.max(0.1,Math.ceil(sh.hi*10)/10).toFixed(1):'0.4';$('hn').value=hn?(Math.floor(hn.lo*10)/10).toFixed(1):'10';
   $('ps').value=Math.max(...S.map(a=>a.res.pausas))}
 function refPayload(){const R0=REF||{n:0},o={n:R0.n||0},f1=+$('f1').value,f2=+$('f2').value,hn=+$('hn').value;
   o.f0={lo:f1,hi:f2,med:R0.f0?+R0.f0.med.toFixed(1):null};
@@ -372,7 +372,7 @@ $('bAss').onclick=async()=>{
   if(!S.length)return msg('m5','Nenhum áudio analisado.',1);if(!ob)return msg('m5','Escreva as observações clínicas: o laudo sai com o seu texto.',1);
   if(['f1','f2','jt','sh','hn','ps'].some(i=>$(i).value===''))return msg('m5','Preencha as faixas de autoexame.',1);
   if(!(+$('f1').value>=50&&+$('f2').value<=600&&+$('f1').value<+$('f2').value))return msg('m5','F0 inconsistente: o mínimo deve ser menor que o máximo, entre 50 e 600 Hz.',1);
-  if(+$('jt').value<=0||+$('sh').value<=0||+$('hn').value<0||+$('ps').value<0)return msg('m5','Confira jitter, shimmer, HNR e pausas.',1);
+  if(+$('jt').value<=0||+$('sh').value<=0||+$('hn').value<0||+$('ps').value<0)return msg('m5','Confira as faixas de autoexame: '+[+$('jt').value<=0?'jitter':'',+$('sh').value<=0?'shimmer':'',+$('hn').value<0?'HNR':'',+$('ps').value<0?'pausas':''].filter(Boolean).join(', ')+' precisa ser maior que zero. Abra "Faixas de autoexame" e ajuste.',1);
   if(!ink)return msg('m5','Habilite o pincel e assine no quadro.',1);if(!$('ok').checked)return msg('m5','Confirme a responsabilidade clínica.',1);
   const ass=assPNG();if(!ass)return msg('m5','Assinatura vazia.',1);try{localStorage.setItem('pil_ass_'+U.id,sg.toDataURL('image/png'))}catch(e){}
   msg('m5','⏳ gerando PDF…');$('bAss').disabled=true;
