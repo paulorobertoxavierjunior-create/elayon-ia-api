@@ -100,7 +100,7 @@ details.c>summary{cursor:pointer;font-size:13px;font-weight:800;color:var(--a);l
 <iframe id="pv" style="width:100%;height:420px;border:1px solid var(--l);border-radius:12px;margin-top:8px;background:#fff"></iframe>
 <div class="row2" style="margin-top:8px"><button class="b g" id="bDl">⬇ Baixar PDF</button><a class="b g" id="bAb" target="_blank" rel="noopener">👁 Abrir em tela cheia</a></div>
 <button class="b big" id="bEnv" style="margin-top:8px">🏛️ Enviar à clínica</button><button class="b g" id="bShare">📤 Compartilhar o PDF</button><div class="msg" id="m6"></div>
-<p class="stx" id="s6p">A clínica valida o médico, certifica o laudo e o libera ao usuário. Ele aparece no cockpit do usuário, aba Conteúdo, e ativa com um toque.</p></div>
+<p class="stx" id="s6p">A clínica recebe o laudo assinado por você, confere o cadastro e o libera ao usuário. Ele aparece no cockpit do usuário, aba Conteúdo, e ativa com um toque.</p></div>
 <button class="b g big" id="bFim">Encerrar sessão e atender outro usuário</button></section>
 
 <div id="gwrap" hidden><div id="grid"></div><audio id="aud" controls style="width:100%;margin-top:6px"></audio></div>
@@ -392,10 +392,10 @@ $('bAss').onclick=async()=>{
 /* ---------- 6 entrega ---------- */
 function entrega(){show(6);$('pv').src=ULT.urlp;$('bAb').href=ULT.urlp;
   const tr=MODO==='treino';$('s6tr').hidden=!tr;$('bEnv').hidden=tr;$('s6t').textContent=tr?'📄 PDF do treinamento':'📄 Laudo pronto';
-  $('s6p').textContent=tr?'Este PDF é só do treino: sem validade clínica e sem envio.':'A clínica valida o médico, certifica o laudo e o libera ao usuário. Ele aparece no cockpit do usuário, aba Conteúdo, e ativa com um toque.';
+  $('s6p').textContent=tr?'Este PDF é só do treino: sem validade clínica e sem envio.':'A clínica recebe o laudo assinado por você, confere o cadastro e o libera ao usuário. Ele aparece no cockpit do usuário, aba Conteúdo, e ativa com um toque.';
   const psi=!tr&&DOC.especialidade==='Psicologia';if(psi){$('bEnv').hidden=true;$('s6p').innerHTML='Psicologia segue pelo <b>PsyQ</b>, ferramenta própria que exige contexto semântico de texto e está em breve. Este PDF fica com você. <a href="psyq.html" style="color:var(--a);font-weight:800">Ver o PsyQ</a>'}
   if(tr)aprova();tl()}
-function tl(){const tr=MODO==='treino',i=tr?[['Você leu os gráficos com a IA',TOURS>0],['Assinou e gerou o PDF',1],['Treinamento aprovado',APR]]:[['Médico assinou o laudo',1],['PDF gerado, com certificado e integridade (SHA-256)',1],['Enviado à clínica',ULT.ok.env],['Clínica valida o médico e certifica ao usuário',ULT.ok.cert||0],['Usuário ativa o laudo no cockpit (aba Conteúdo)',0]];
+function tl(){const tr=MODO==='treino',i=tr?[['Você leu os gráficos com a IA',TOURS>0],['Assinou e gerou o PDF',1],['Treinamento aprovado',APR]]:[['Médico assinou o laudo',1],['PDF gerado, com certificado e integridade (SHA-256)',1],['Enviado à clínica',ULT.ok.env],['Clínica recebe o laudo assinado e libera ao usuário',ULT.ok.cert||0],['Usuário ativa o laudo no cockpit (aba Conteúdo)',0]];
   $('tl').innerHTML=i.map(([t,o])=>`<div class="${o?'ok':''}">${o?'✔':'○'} ${t}</div>`).join('')}
 let APR=false;
 async function aprova(){if(TOURS<1){msg('m6a','Para aprovar, leia os 8 gráficos de um áudio até o fim.',1);return}
