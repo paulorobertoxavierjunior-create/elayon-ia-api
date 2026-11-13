@@ -25,7 +25,7 @@ input,select{width:100%;padding:11px;border:1px solid var(--ln);border-radius:10
 .st input{width:22px;height:22px;margin-top:2px;flex:none;accent-color:var(--ok)}
 .st.d .tx{opacity:.5;text-decoration:line-through}
 .tag{display:inline-block;font-size:10px;font-weight:800;padding:2px 7px;border-radius:99px;color:#fff;margin-right:6px;vertical-align:1px;letter-spacing:.3px}
-.ad{background:var(--ad)}.ma{background:#0e7490}.me{background:#0d9488}.pa{background:#d97706}
+.ad{background:var(--ad)}.all{background:#475569}.ma{background:#0e7490}.me{background:#0d9488}.pa{background:#d97706}
 .tx b{font-size:14px}.tx small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
 .tx a{color:var(--t);font-weight:700;font-size:12px}
 .row{display:flex;gap:8px}.row>*{flex:1}
@@ -53,36 +53,36 @@ var F=[
 {t:'Fase 1 — Advanced convida o master',s:[
 ['ad','Zerar tudo e desconectar todos','Plataforma → Desconectar todos → Zerar tudo (senha). Só o seu acesso fica.','/advanced.html'],
 ['ad','Gerar o convite do master','Aba Masters → nome → Gerar convite. Mande o link para o celular do master.','/advanced.html']]},
-{t:'Fase 2 — Master: contrato até a clínica',s:[
+{t:'Fase 2 — Master: cadastro, treino e credencial',s:[
 ['ma','Criar a conta com o convite','Abra o link do convite no celular do master. E-mail próprio, só de master.','/app-master.html'],
-['ma','Fazer o treinamento do master','Passos da aba Aprender.',''],
-['ma','Aceitar o contrato e enviar os documentos','Razão social, documento, responsável, WhatsApp e assinatura.',''],
-['ad','Liberar a credencial do master','Advanced → aba Pedidos → conferir os dados → Liberar credencial.','/advanced.html'],
-['ma','Criar a clínica','Depois da liberação o app pede o nome da clínica (real ou fictícia). Uma clínica por master.',''],
-['ma','Colocar a IA no Perfil','Chave própria da IA do master. O consumo dele é somado no Advanced.',''],
+['ma','Aceitar o contrato e enviar os documentos','Razão social, documento, responsável, WhatsApp e assinatura. Depois toque em Verificar status.',''],
+['ad','Liberar o cadastro do master','Advanced → Pedidos → Liberar cadastro. O master entra no treinamento da clínica.','/advanced.html'],
+['ma','Fazer o treinamento da clínica e pedir a credencial','Marque os passos com Entendi. O botão Pedir a credencial de master libera no fim.',''],
+['ad','Liberar a credencial do master','Advanced → Pedidos → Liberar credencial. Só existe para master.','/advanced.html'],
+['ma','Criar a clínica e colocar a IA no Perfil','Uma clínica por master. A chave da IA é do master.',''],
 ['ma','Gerar o convite de médico','Aba Médicos → Convidar. Envie o link para o médico.','']]},
 {t:'Fase 3 — Médico entra na clínica',s:[
 ['me','Criar a conta com o convite','Celular do médico, e-mail próprio, só de médico.','/app-medico.html'],
-['me','Treinar e preencher a qualificação','Registro profissional e dados. O pedido segue para o master.',''],
-['ma','Aprovar o médico','Aba Médicos → Aceitar. Daí o médico acessa a ferramenta de consulta.',''],
-['me','Colocar a IA no Perfil','Chave própria da IA do médico.',''],
+['me','Fazer o cadastro profissional e pedir a validação','Perfil → Cadastro profissional (CRM). Depois Pedir validação à clínica.',''],
+['ma','Liberar a credencial da clínica ao médico','Aba Médicos → Liberar credencial da clínica.',''],
+['me','Fazer o treinamento (piloto e usuário)','Aba Aprender. Só depois o convite de pacientes libera.',''],
 ['me','Convidar o paciente','Aba Pacientes → nome, e-mail e WhatsApp. Envie o link ao paciente.','']]},
-{t:'Fase 4 — Consulta real e primeiro laudo',s:[
-['pa','Criar a conta com o convite e preencher a ficha','Celular do paciente, conta de usuário (e-mail próprio). Ele não vê tokens.','/app-usuario.html'],
-['me','Atender (presencial ou remoto)','Ferramenta do médico: captar o áudio, analisar, gerar o laudo e os exercícios para o paciente.','/piloto.html'],
-['me','Enviar o laudo à clínica','O laudo segue para a clínica avaliar.',''],
-['ma','Certificar o laudo na clínica','Aba Clínica → Abrir laudos e supervisão → certificar.',''],
-['pa','Pedir atualização','Início → Pedir atualização.',''],
-['ma','Liberar ao paciente','Aba Fluxo → Pedidos de atualização → prazo (opcional) → Liberar ao paciente.',''],
-['pa','Receber o laudo e fazer os exercícios','Aba Tarefas. O prazo e os avisos aparecem aqui.','']]},
-{t:'Fase 5 — Volta, revisão e alta',s:[
-['pa','Concluir e enviar de volta','Ao terminar as tarefas o resultado vai sozinho para a clínica.',''],
-['ma','Validar e encaminhar ao médico','Aba Fluxo → Validar e encaminhar.',''],
-['me','Refazer a análise','Revisar, devolver à clínica com novos exercícios ou dar alta.',''],
-['ma','Disparar novo exercício com prazo ou dar OK','Aba Fluxo → escolher o prazo → Disparar. Se o prazo estiver perto, o botão de WhatsApp avisa o paciente.',''],
-['ad','Conferir o consumo de tokens','Advanced → Cobrança: o consumo do paciente e do médico sai do saldo do master.','/advanced.html']]}];
+{t:'Fase 4 — Paciente e primeiro laudo',s:[
+['pa','Criar a conta com o convite e preencher o perfil','Celular do paciente, e-mail próprio. Ficha básica e IA no Perfil.','/app-usuario.html'],
+['pa','Treinar, calibrar e pedir a liberação','Aba Aprender, depois Minha ferramenta (Concluí a calibração), depois Pedir liberação ao meu médico.',''],
+['me','Liberar o acesso do paciente','Aba Pacientes → Pacientes pedindo liberação → Liberar acesso.',''],
+['pa','Enviar uma observação à clínica','Aba Clínica → escrever e enviar.',''],
+['ma','Conferir o cadastro e liberar ao consultório','Aba Fluxo. O conteúdo fica fechado. Para ver, use Auditar (fica registrado).',''],
+['me','Atender, assinar e devolver','Atender e gerar laudo, criar tarefas, assinar com nome e registro e devolver à clínica.','/piloto.html']]},
+{t:'Fase 5 — Atualizações, revisão e consumo',s:[
+['ma','Liberar as tarefas com prazo','Aba Fluxo → prazo → Disparar. Se o prazo estiver perto, o botão de WhatsApp avisa o paciente.',''],
+['pa','Fazer as tarefas e pedir atualização','Aba Tarefas. Ao concluir, o resultado vai para a clínica. Início → Pedir atualização.',''],
+['ma','Liberar um pedido de atualização, ou pedir revisão','Aba Fluxo → Pedidos de atualização. Para revisão, escreva a justificativa. O médico responde e assina.',''],
+['pa','Carregar a atualização e fazer os exercícios','O pedido liberado vai para o arquivo. O paciente carrega as tarefas novas.',''],
+['all','Mandar uma sugestão de melhoria','Perfil → Suporte e melhorias, em qualquer app.',''],
+['ad','Conferir consumo e melhorias','Advanced → Resumo (consumo por master) e Melhorias (por ferramenta).','/advanced.html']]}];
 var K='elx_roteiro_v1',E={};try{E=JSON.parse(localStorage.getItem(K)||'{}')}catch(e){}
-var N={ad:'ADVANCED',ma:'MASTER',me:'MÉDICO',pa:'PACIENTE'};
+var N={ad:'ADVANCED',ma:'MASTER',me:'MÉDICO',pa:'PACIENTE',all:'TODOS'};
 function save(){try{localStorage.setItem(K,JSON.stringify(E))}catch(e){}}
 function draw(){var h='',tot=0,ok=0;F.forEach(function(f,i){h+='<div class="c"><h2>'+f.t+'</h2>';f.s.forEach(function(s,j){var id=i+'-'+j;tot++;if(E[id])ok++;h+='<label class="st'+(E[id]?' d':'')+'"><input type="checkbox" data-i="'+id+'"'+(E[id]?' checked':'')+'><span class="tx"><span class="tag '+s[0]+'">'+N[s[0]]+'</span><b>'+s[1]+'</b><small>'+s[2]+(s[3]?' <a href="'+s[3]+'">abrir</a>':'')+'</small></span></label>'});h+='</div>'});
 document.getElementById('fases').innerHTML=h;var p=Math.round(100*ok/tot);document.getElementById('bar').style.width=p+'%';document.getElementById('pc').textContent=ok+' de '+tot+' passos • '+p+'%'}

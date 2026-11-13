@@ -17,7 +17,7 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 <section id="bloq" hidden><div class="c"><h3>Área do Advanced</h3><p>Esta área tem um canal de acesso próprio.</p><a class="b" href="index.html">Voltar ao início</a></div></section>
 
 <div id="app" hidden>
-<nav class="tabs" id="abas"><button class="tab on" data-ab="resumo">Resumo</button><button class="tab" data-ab="req">Pedidos <span class="bdg" id="bdgReq" hidden></span></button><button class="tab" data-ab="pil" hidden>Pilotos</button><button class="tab" data-ab="cred">Credenciais</button><button class="tab" data-ab="mst">Masters</button><button class="tab" data-ab="uso">Uso</button><button class="tab" data-ab="cob">Cobrança</button><button class="tab" data-ab="rel">Relatório</button><button class="tab" data-ab="plat">Plataforma</button><button class="tab" data-ab="perfil">Meu perfil</button></nav>
+<nav class="tabs" id="abas"><button class="tab on" data-ab="resumo">Resumo</button><button class="tab" data-ab="req">Pedidos <span class="bdg" id="bdgReq" hidden></span></button><button class="tab" data-ab="mel">Melhorias <span class="bdg" id="bdgMel" hidden></span></button><button class="tab" data-ab="pil" hidden>Pilotos</button><button class="tab" data-ab="cred">Credenciais</button><button class="tab" data-ab="mst">Masters</button><button class="tab" data-ab="uso">Uso</button><button class="tab" data-ab="cob">Cobrança</button><button class="tab" data-ab="rel">Relatório</button><button class="tab" data-ab="plat">Plataforma</button><button class="tab" data-ab="perfil">Meu perfil</button></nav>
 
 <div class="ab on" id="ab-resumo">
 <div class="c"><h3>🧰 Área de trabalho</h3><p>Tudo fica registrado. Arquivar só tira da tela, não apaga, e dá para ver de novo.</p>
@@ -25,10 +25,10 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 <div class="row2"><button class="b g" id="aqC">Arquivar concluídos</button><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="vArq" style="width:auto"> Mostrar arquivados</label></div><div class="msg" id="aqM"></div></div>
 
 <div class="c"><div class="kp" id="kp"></div></div>
-<details class="c" open><summary>🌐 Rede: masters, clínicas e pilotos</summary>
-<p id="dNovos" class="hint"></p>
-<p>Cada master com as clínicas que cadastrou e os pilotos de cada clínica. O selo <b>novo</b> marca o que chegou desde o último refresh.</p><div id="lPc" style="display:grid;gap:10px"></div></details>
-<details class="c" open><summary>📈 Eficiência da ferramenta</summary>
+<details class="c" open><summary>🏛️ Masters, clínicas e consumo</summary>
+<p>Você só conhece o master: cadastro, clínica e consumo de tokens. Médicos, pacientes e o que acontece dentro de cada clínica não aparecem aqui.</p><div id="lM" style="display:grid;gap:8px"></div></details>
+<div hidden><p id="dNovos"></p><div id="lPc"></div></div>
+<details class="c" hidden><summary>📈 Eficiência da ferramenta</summary>
 <p>Do pedido de acesso ao laudo certificado. Só contagens e tempos médios da plataforma inteira, sem dado de paciente.</p><div id="lMe" style="display:grid;gap:8px"></div></details>
 <details class="c" open><summary>✅ Prontidão para ligar</summary><div id="lPr" style="display:grid;gap:6px;margin-top:6px"></div></details>
 <div class="c"><h3>Em construção</h3>
@@ -37,9 +37,17 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 </div>
 
 <div class="ab" id="ab-req">
-<details class="c" open><summary>🙋 Masters pedindo credencial</summary>
-<p>O master aceita o convite, treina e envia contrato e documentos. Você confere e libera a credencial dele aqui. Só depois ele cria a clínica.</p>
+<details class="c" open><summary>🙋 Masters: cadastro e credencial</summary>
+<p>Dois passos, sempre por você. 1) O master envia contrato e documentos: você libera o <b>cadastro</b> e ele entra no treinamento da clínica. 2) Ao terminar o treino ele pede a <b>credencial</b>: você libera e só então ele cria a clínica. A credencial do Advanced é só para master.</p>
 <div id="lRq" style="display:grid;gap:8px"></div><div class="msg" id="mRq"></div></details>
+
+</div>
+
+<div class="ab" id="ab-mel">
+<div class="c"><h3>📞 Número do suporte</h3><p>Aparece no Perfil de masters, médicos e pacientes, no botão de WhatsApp do suporte.</p><div class="row2"><input id="suZ" inputmode="tel" placeholder="WhatsApp com DDD"><button class="b" id="suS">Salvar</button></div><div class="msg" id="suM"></div></div>
+<details class="c" open><summary>🧩 Pedidos de melhoria por ferramenta</summary>
+<p>Chegam de masters, médicos e pacientes, sem dado de paciente. Servem de fila para a próxima rodada de programação. Marque como analisando, feita ou arquive.</p>
+<div id="lMl" style="display:grid;gap:10px"></div><div class="msg" id="mMl"></div></details>
 <details class="c" open><summary>🛟 Suporte: sugestões dos masters</summary>
 <p>Sugestões de melhoria contínua, por texto, sobre qualquer assunto. Valide, responda ou marque como feita.</p><div id="lS" style="display:grid;gap:8px"></div><div class="msg" id="mS"></div></details>
 </div>
@@ -48,11 +56,7 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 <details class="c" open><summary>🧑‍⚕️ Pilotos autônomos</summary>
 <p>Não existe mais médico autônomo: para atuar sozinho a pessoa se cadastra como master e contrata o Elayon. Médico só entra pela clínica de um master. Esta lista deve ficar vazia; se aparecer alguém, é resto de cadastro antigo.</p><div id="lPa" style="display:grid;gap:8px"></div></details>
 
-<details class="c" open><summary>🌳 Quem está em quê</summary>
-<p>Masters → clínicas → médicos → usuários. Só números, sem dado de paciente.</p>
-<h3>Masters</h3><div id="lM" style="display:grid;gap:8px"></div>
-<h3 style="margin-top:12px">Clínicas</h3><div id="lC" style="display:grid;gap:8px"></div>
-<h3 style="margin-top:12px">Médicos</h3><div id="lD" style="display:grid;gap:8px"></div></details>
+<div hidden><div id="lC"></div><div id="lD"></div></div>
 </div>
 
 <div class="ab" id="ab-cred">
@@ -68,7 +72,7 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 </div>
 
 <div class="ab" id="ab-mst">
-<div class="c"><h3>🔑 Convidar um master</h3><p>O convite abre o app do Master. Ele aceita, treina, envia contrato e documentos; você libera a credencial na aba Pedidos. Médicos e pacientes não recebem convite daqui: o master convida o médico, e o médico convida o paciente.</p><input id="mvN" placeholder="Nome do investidor / master"><button class="b" id="mvB" style="margin-top:8px">Gerar convite de master</button><div id="mvR"></div><div class="msg" id="mvM"></div></div>
+<div class="c"><h3>🔑 Convidar um master</h3><p>O convite abre o app do Master. Ele aceita, envia contrato e documentos; você libera o cadastro e depois a credencial, na aba Pedidos. Médicos e pacientes não recebem convite daqui: o master convida o médico, e o médico convida o paciente.</p><input id="mvN" placeholder="Nome do investidor / master"><button class="b" id="mvB" style="margin-top:8px">Gerar convite de master</button><div id="mvR"></div><div class="msg" id="mvM"></div></div>
 <div class="c"><h3>🏛️ Masters ativos</h3><p>Quem assumiu a operação. O master paga o consumo todo; o usuário nunca é cobrado.</p><div id="lMs" style="display:grid;gap:8px"></div><div class="msg" id="mMs"></div></div>
 <div class="c"><h3>📄 Documentos dos masters</h3><p>Contrato aceito e dados informados por cada master.</p><div id="lDoc" style="display:grid;gap:8px"></div></div>
 <div class="c"><h3>✉️ Convites de master</h3><div id="lCv" style="display:grid;gap:6px"></div></div>
@@ -78,7 +82,7 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 <div class="chips" id="cGr"><button class="ch on" data-g="dia">Dia</button><button class="ch" data-g="semana">Semana</button><button class="ch" data-g="mes">Mês</button><button class="ch" data-g="ano">Ano</button></div>
 <div class="chips" id="cMt"><button class="ch on" data-m="tokens">Tokens</button><button class="ch" data-m="laudos">Laudos</button><button class="ch" data-m="consultas">Consultas</button><button class="ch" data-m="usuarios">Usuários ativos</button></div>
 <div id="gUso" style="margin-top:8px"></div><p class="hint" id="gTot"></p></div>
-<div class="c"><h3>👩‍⚕️ Usuários de cada médico</h3><p>O vínculo nasce sozinho quando o médico cria o treino ou envia o laudo com o e-mail do usuário.</p><div id="lMu" style="display:grid;gap:6px"></div></div>
+<div class="c" hidden><h3>👩‍⚕️ Usuários de cada médico</h3><p>O vínculo nasce sozinho quando o médico cria o treino ou envia o laudo com o e-mail do usuário.</p><div id="lMu" style="display:grid;gap:6px"></div></div>
 </div>
 <div class="ab" id="ab-cob">
 <div class="c"><h3>💳 Valores</h3><div id="lVal" style="display:grid;gap:6px"></div></div>
@@ -169,12 +173,10 @@ async function atualiza(){t('bAt').disabled=true;t('stamp').textContent='Atualiz
   const {data,error}=await sb.rpc('arvore_plataforma');
   if(error){t('stamp').textContent='';t('bAt').disabled=false;return t('lM').innerHTML='<p>'+esc(error.message)+' (rode o clinica.sql, seção 12)</p>'}
   const T=data.totais,k=(n,l)=>`<div><b>${n}</b>${l}</div>`;
-  t('kp').innerHTML=k(T.masters,'masters')+k(T.clinicas,'clínicas')+k(T.medicos,'médicos')+k(T.usuarios,'usuários')+k(T.saldo_tokens,'tokens em saldo')+k(T.consumo_30d,'consumo 30 dias');
+  t('kp').innerHTML=k(T.masters,'masters')+k(T.clinicas,'clínicas')+k(T.saldo_tokens,'tokens em saldo dos masters')+k(T.consumo_30d,'consumo 30 dias');
   const card=(a,b,c3)=>`<div class="it"><div class="r"><b>${esc(a)}</b><small>${esc(b||'')}</small></div><div class="row3">${c3.map(x=>`<div class="pill ok" style="text-align:center">${x[0]} ${x[1]}</div>`).join('')}</div></div>`;
-  t('lM').innerHTML=data.masters.length?data.masters.map(m=>card(m.nome,'',[[m.clinicas,'clínicas'],[m.medicos,'médicos'],[m.usuarios,'usuários']])).join(''):'<p>Nenhum master ativo.</p>';
-  t('lC').innerHTML=data.clinicas.length?data.clinicas.map(c=>card(c.nome,'Master: '+c.master,[[c.medicos,'médicos'],[c.usuarios,'usuários'],['','']].slice(0,2))).join(''):'<p>Nenhuma clínica.</p>';
-  t('lD').innerHTML=data.medicos.length?data.medicos.map(m=>card(m.nome,m.clinica,[[m.usuarios,'usuários']])).join(''):'<p>Nenhum médico vinculado.</p>';
-  await preco();await Promise.all([sols(),tarifas(),planos(),prontidao(),reqs(),pilotos(),creds(),metricas(),]);
+  t('lM').innerHTML=data.masters.length?data.masters.map(m=>card(m.nome,m.clinica||'sem clínica ainda',[[m.saldo,'tokens'],[m.consumo_30d,'em 30 dias']])).join(''):'<p>Nenhum master ativo.</p>';
+  await preco();await Promise.all([sols(),tarifas(),planos(),prontidao(),reqs(),pilotos(),creds(),metricas(),melh(),sup()]);
   t('stamp').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR');t('bAt').disabled=false;try{localStorage.setItem('adv_visto',new Date().toISOString())}catch(e){}}
 t('bAt').onclick=atualiza;
 /* ---------- meu perfil ---------- */
@@ -239,12 +241,22 @@ t('vArq').onchange=e=>{VA=e.target.checked;masters();reqs()};
 t('aqC').onclick=async()=>{const {data,error}=await sb.rpc('adv_arquivar_concluidos');say('aqM',error?'❌ '+error.message:'✅ Arquivados: '+((data||{}).convites||0)+' convite(s) e '+((data||{}).pedidos||0)+' pedido(s).',!!error);await loadArq();masters();reqs()};
 async function reqs(){await loadArq();const {data,error}=await sb.rpc('master_pedidos_lista');
   if(error){t('lRq').innerHTML='<p>'+esc(error.message)+' (rode o clinica_limpo.sql)</p>';return}
-  const L=(data||[]).filter(x=>VA||!isArq('pedido',x.user)),pend=L.filter(x=>!x.liberado_em).length;t('bdgReq').hidden=!pend;t('bdgReq').textContent=pend;
-  t('lRq').innerHTML=L.length?L.map(q=>{const k=q.dados||{};return `<div class="it"><div class="r"><b>${esc(k.razao||q.nome)}</b><span class="pill ${q.liberado_em?'ok':''}">${q.liberado_em?'liberado':'aguardando você'}</span></div>
+  const L=(data||[]).filter(x=>VA||!isArq('pedido',x.user)),pend=L.filter(x=>!x.liberado_em&&(!x.cadastro_liberado_em||x.credencial_pedida_em)).length;t('bdgReq').hidden=!pend;t('bdgReq').textContent=pend;
+  const et=q=>q.liberado_em?['credencial liberada','ok']:q.credencial_pedida_em?['pediu a credencial','']:q.cadastro_liberado_em?['em treinamento '+(q.treino_ok?'(concluído)':''),'ok']:['cadastro aguardando você',''];
+  t('lRq').innerHTML=L.length?L.map(q=>{const k=q.dados||{},e=et(q);return `<div class="it"><div class="r"><b>${esc(k.razao||q.nome)}</b><span class="pill ${e[1]}">${e[0]}</span></div>
   <small>${esc(q.email||'')} • ${esc(k.documento||'')} • ${esc(k.responsavel||'')} • ${esc(k.whatsapp||'')}${k.endereco?' • '+esc(k.endereco):''}</small>
   <small>Contrato ${esc(q.versao||'')} assinado por ${esc(q.aceito_nome||'')} em ${String(q.aceito_em||'').slice(0,10).split('-').reverse().join('/')}</small>
-  ${q.liberado_em?'':`<button class="b sm" data-lib="${q.user}">✅ Liberar credencial de master</button>`}${q.liberado_em?arqB('pedido',q.user):''}</div>`}).join(''):'<p>Nenhum master pediu credencial ainda.</p>'}
-t('lRq').onclick=async e=>{const u=(e.target.dataset||{}).lib;if(!u)return;e.target.disabled=true;const {error}=await sb.rpc('master_liberar',{user:u});if(error){e.target.disabled=false;return say('mRq','❌ '+error.message,1)}say('mRq','✅ Credencial liberada. O app do master abre a criação da clínica.');reqs();masters();atualiza()};
+  ${q.liberado_em?'':!q.cadastro_liberado_em?`<button class="b sm" data-libc="${q.user}">✅ Liberar cadastro (entra no treinamento)</button>`:q.credencial_pedida_em?`<button class="b sm" data-lib="${q.user}">🔑 Liberar credencial de master</button>`:'<small>Aguardando o master concluir o treinamento e pedir a credencial.</small>'}${q.liberado_em?arqB('pedido',q.user):''}</div>`}).join(''):'<p>Nenhum master enviou documentos ainda.</p>'}
+t('lRq').onclick=async e=>{const dd=e.target.dataset||{};if(dd.libc){e.target.disabled=true;const r0=await sb.rpc('master_liberar_cadastro',{user:dd.libc});if(r0.error){e.target.disabled=false;return say('mRq','❌ '+r0.error.message,1)}say('mRq','✅ Cadastro liberado. O master entra no treinamento da clínica.');reqs();return}const u=dd.lib;if(!u)return;e.target.disabled=true;const {error}=await sb.rpc('master_liberar',{user:u});if(error){e.target.disabled=false;return say('mRq','❌ '+error.message,1)}say('mRq','✅ Credencial liberada. O app do master abre a criação da clínica.');reqs();masters();atualiza()};
+/* ---------- melhorias e suporte ---------- */
+const FNOME={master:'Clínica e master',consultorio:'Consultório (médico)',piloto:'Laudo e calibração (piloto)',paciente:'App do paciente',cockpit:'Cockpit',geral:'Geral'};
+async function melh(){const {data,error}=await sb.rpc('melhorias_listar');if(error)return t('lMl').innerHTML='<p>'+esc(error.message)+' (rode o clinica_limpo.sql)</p>';
+  const L=data||[],ab=L.filter(x=>x.status==='nova'||x.status==='analisando'),n=L.filter(x=>x.status==='nova').length;t('bdgMel').hidden=!n;t('bdgMel').textContent=n;
+  const por={};L.filter(x=>x.status!=='arquivada'&&(VA||x.status!=='feita')).forEach(x=>{(por[x.ferramenta]=por[x.ferramenta]||[]).push(x)});
+  t('lMl').innerHTML=Object.keys(por).length?Object.keys(por).map(f=>`<div><h3>${esc(FNOME[f]||f)} (${por[f].length})</h3>`+por[f].map(x=>`<div class="it"><div class="r"><span class="pill ${x.status==='feita'?'ok':''}">${x.status}</span><small>${esc(x.master||'—')} • ${esc(x.papel||'')} • ${String(x.criado).slice(0,10)}</small></div><p>${esc(x.texto)}</p><input data-mr="${x.id}" placeholder="Resposta (opcional)" value="${esc(x.resposta||'')}"><div class="row3"><button class="b g sm" data-ms="analisando" data-id="${x.id}">Analisando</button><button class="b sm" data-ms="feita" data-id="${x.id}">Feita</button><button class="b g sm" data-ms="arquivada" data-id="${x.id}">Arquivar</button></div></div>`).join('')+'</div>').join(''):'<p>Nenhum pedido de melhoria.</p>'}
+t('lMl').onclick=async e=>{const d=e.target.dataset||{};if(!d.ms)return;e.target.disabled=true;const r=document.querySelector(`[data-mr="${d.id}"]`).value.trim();const {error}=await sb.rpc('melhoria_decidir',{id:d.id,status:d.ms,resposta:r});if(error){e.target.disabled=false;return say('mMl','❌ '+error.message,1)}melh()};
+async function sup(){const {data}=await sb.rpc('suporte_get');t('suZ').value=(data&&data.whatsapp)||''}
+t('suS').onclick=async()=>{const {error}=await sb.rpc('suporte_definir',{whatsapp:t('suZ').value});say('suM',error?'❌ '+error.message:'✅ Número salvo.',!!error)};
 /* ---------- pilotos ---------- */
 async function pilotos(){const {data,error}=await sb.rpc('lista_pilotos');
   if(error){t('lPa').innerHTML=t('lPc').innerHTML='<p>'+esc(error.message)+'</p>';return}
@@ -354,9 +366,9 @@ t('bPdf').onclick=async()=>{t('bPdf').disabled=true;say('mPdf','Montando o PDF�
   doc.save('elayon-relatorio-'+t('cF').value+'.pdf');say('mPdf','PDF gerado.')}catch(e){say('mPdf','❌ '+e.message,1)}t('bPdf').disabled=false};
 
 /* ---------- Masters e convites ---------- */
-async function docsM(){try{const d=await A('master_documentos_lista');t('lDoc').innerHTML=(d||[]).map(x=>{const k=x.dados||{};return `<div class="it"><div class="r"><b>${esc(k.razao||x.nome)}</b><span class="pill ok">${esc(x.versao||'')}</span></div><small>${esc(x.email)} • ${esc(k.documento||'')} • ${esc(k.responsavel||'')} • ${esc(k.whatsapp||'')}</small><small>Assinado por ${esc(x.aceito_nome||'')} em ${String(x.aceito_em||'').slice(0,10)}</small></div>`}).join('')||'<p>Nenhum documento enviado ainda.</p>'}catch(e){}}
+async function docsM(){try{const d=(await A('master_documentos_lista')).data;t('lDoc').innerHTML=(d||[]).map(x=>{const k=x.dados||{};return `<div class="it"><div class="r"><b>${esc(k.razao||x.nome)}</b><span class="pill ok">${esc(x.versao||'')}</span></div><small>${esc(x.email)} • ${esc(k.documento||'')} • ${esc(k.responsavel||'')} • ${esc(k.whatsapp||'')}</small><small>Assinado por ${esc(x.aceito_nome||'')} em ${String(x.aceito_em||'').slice(0,10)}</small></div>`}).join('')||'<p>Nenhum documento enviado ainda.</p>'}catch(e){}}
 async function masters(){docsM();await loadArq();const a=await sb.rpc('masters_resumo'),c=await sb.rpc('convites_listar');
-  t('lMs').innerHTML=(a.data||[]).filter(m=>VA||!isArq('master',m.email)).length?(a.data||[]).filter(m=>VA||!isArq('master',m.email)).map(m=>`<div class="it"><div class="r"><b>${esc(m.nome)}</b><span class="pill ok">${m.saldo} tokens</span></div><small>${m.medicos} médico(s) • ${m.usuarios} usuário(s) • ${m.consumo_30d} tokens em 30 dias${m.consumo_30d&&PRECO?' = '+brl(Math.round(m.consumo_30d*PRECO)):''}</small><div class="row2"><input data-cq="${esc(m.email)}" inputmode="numeric" placeholder="tokens"><button class="b g sm" data-cr="${esc(m.email)}">Creditar</button></div><div class="row2"><button class="b g sm" data-rv="master|${esc(m.email)}">Revogar credencial</button>${arqB('master',m.email)}</div></div>`).join(''):'<p>Nenhum master ativo ainda.</p>';
+  t('lMs').innerHTML=(a.data||[]).filter(m=>VA||!isArq('master',m.email)).length?(a.data||[]).filter(m=>VA||!isArq('master',m.email)).map(m=>`<div class="it"><div class="r"><b>${esc(m.nome)}</b><span class="pill ok">${m.saldo} tokens</span></div><small>${esc(m.clinica||'sem clínica ainda')} • ${m.consumo_30d} tokens em 30 dias${m.consumo_30d&&PRECO?' = '+brl(Math.round(m.consumo_30d*PRECO)):''}</small><div class="row2"><input data-cq="${esc(m.email)}" inputmode="numeric" placeholder="tokens"><button class="b g sm" data-cr="${esc(m.email)}">Creditar</button></div><div class="row2"><button class="b g sm" data-rv="master|${esc(m.email)}">Revogar credencial</button>${arqB('master',m.email)}</div></div>`).join(''):'<p>Nenhum master ativo ainda.</p>';
   t('lCv').innerHTML=(c.data||[]).filter(x=>x.tipo==='candidato'&&(VA||!isArq('convite',x.codigo))).map(x=>`<div class="it"><div class="r"><b>${esc(x.para_nome||'—')}</b><span class="pill ${x.usado_em?'ok':''}">${x.usado_em?'usado':'aberto'}</span></div><small>${esc(x.codigo)}${x.usado_por_nome?' • '+esc(x.usado_por_nome):''} • vence ${String(x.expira).slice(0,10)}</small><div class="row2">${x.usado_em?'':`<button class="b g sm" data-rv="convite|${esc(x.codigo)}">Revogar convite</button>`}${arqB('convite',x.codigo)}</div></div>`).join('')||'<p>Nenhum convite.</p>'}
 t('mvB').onclick=async()=>{const n=t('mvN').value.trim();if(!n)return say('mvM','Digite o nome.',1);const {data,error}=await sb.rpc('convite_candidato',{p_nome:n});if(error)return say('mvM','❌ '+error.message,1);
   const txt='Convite Elayon Master para '+n+': '+data+' · abra '+location.origin+'/app-master.html';t('mvR').innerHTML='<div style="font-family:monospace;font-weight:800;font-size:20px;text-align:center;padding:10px;border:1px dashed #0b3a82;border-radius:12px;margin-top:8px;user-select:all">'+esc(data)+'</div><a class="b g" style="margin-top:8px" href="https://wa.me/?text='+encodeURIComponent(txt)+'">Enviar por WhatsApp</a>';say('mvM','Válido por 7 dias, uso único.');t('mvN').value='';masters()};
