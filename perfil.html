@@ -214,7 +214,6 @@
       <a class="btn logout" id="btnEspacoPiloto" data-p="medico" href="espaco-piloto.html" style="border-color:var(--accent);color:var(--ink)">📋 Espaço do piloto: treinos dos usuários</a>
       <a class="btn logout" id="btnCadMedico" data-p="medico" href="cadastro-piloto.html" style="border-color:var(--accent);color:var(--ink)">🪪 Cadastro profissional</a>
       <a class="btn primary" id="btnSupervisao" data-nivel="2" href="supervisao.html" style="font-size:13px;padding:13px">🔎 Supervisão · Piloto Orientador<br><span style="font-size:10px;font-weight:700;opacity:.92">Validar resultados, ajustar exercícios e enviar metadados · 5 tokens por envio</span></a>
-      <a class="btn logout" id="btnStartAvaliacao" href="piloto-guiado.html?modo=treino" style="border-color:var(--accent);color:var(--ink)">🎛️ Demo para investidores<br><span style="font-size:10px;font-weight:700;color:var(--muted)">Calibração do médico, análise guiada e laudo assinado</span></a>
         <div class="vazio" style="display:none"><b>Acesso de piloto por credencial.</b><br>A credencial é entregue após a qualificação do profissional.<br><a class="btn logout" href="https://wa.me/5592984805386" target="_blank" rel="noopener" style="margin-top:8px;padding:9px;font-size:11px;border-color:var(--accent);color:var(--ink)">Falar com o Porta-Voz</a></div>
       </div>
     </div>
@@ -441,7 +440,7 @@
 
     /* ---- IA: vários provedores (mesma tabela do cockpit e do piloto) ---- */
     const PROV = {
-      gemini:{nome:'Google Gemini',modelo:'gemini-2.5-flash',vis:true,link:'https://aistudio.google.com/apikey',dica:'Crie a chave no Google AI Studio. O plano gratuito tem limite diário.'},
+      gemini:{nome:'Google Gemini',modelo:'gemini-3.8-flash',vis:true,link:'https://aistudio.google.com/apikey',dica:'Crie a chave no Google AI Studio. O plano gratuito tem limite diário.'},
       groq:{nome:'Groq',url:'https://api.groq.com/openai/v1/chat/completions',modelo:'meta-llama/llama-4-scout-17b-16e-instruct',vis:true,link:'https://console.groq.com/keys',dica:'Chave grátis no console da Groq. Também transcreve voz (Whisper) no cockpit.'},
       mistral:{nome:'Mistral',url:'https://api.mistral.ai/v1/chat/completions',modelo:'mistral-small-latest',vis:true,link:'https://console.mistral.ai/api-keys',dica:'Plano gratuito exige criar conta e chave no console da Mistral.'},
       openrouter:{nome:'OpenRouter',url:'https://openrouter.ai/api/v1/chat/completions',modelo:'meta-llama/llama-3.3-70b-instruct:free',vis:false,link:'https://openrouter.ai/keys',dica:'Modelos com final ":free" não cobram, mas têm limite por minuto e por dia. O padrão aqui não lê imagens.'},

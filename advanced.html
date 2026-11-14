@@ -21,7 +21,7 @@ details.c>summary{cursor:pointer;font-weight:800;font-size:14px}
 
 <div class="ab on" id="ab-resumo">
 <div class="c"><h3>🧰 Área de trabalho</h3><p>Tudo fica registrado. Arquivar só tira da tela, não apaga, e dá para ver de novo.</p>
-<a class="b" href="/cockpit.html">Abrir o cockpit (demonstração)</a>
+<a class="b" href="/cockpit.html">Abrir o cockpit (demonstração)</a><a class="b" href="/piloto-guiado.html?modo=treino">Demo para investidores: calibração do médico, análise guiada e laudo</a>
 <div class="row2"><button class="b g" id="aqC">Arquivar concluídos</button><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="vArq" style="width:auto"> Mostrar arquivados</label></div><div class="msg" id="aqM"></div></div>
 
 <div class="c"><div class="kp" id="kp"></div></div>
@@ -336,7 +336,7 @@ async function coleta(){const g=async(fn,a)=>(await sb.rpc(fn,a)).data;const ser
   const [me,mdu,con,fat,pr,cas]=await Promise.all([g('metricas_plataforma'),g('medicos_usuarios'),g('consumo_por_pagador',{p_ini:t('cI').value,p_fim:t('cF').value}),g('listar_faturas'),g('prontidao'),g('casos_resumo')]);
   return {ser,me:me||{},mdu:mdu||[],con:con||[],fat:fat||[],pr:pr||{},cas:cas||{}}}
 async function chamaIA(prov,key,prompt){
-  if(prov==='gemini'){const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+encodeURIComponent(key),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});const j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||'Falha da IA');return ((j.candidates||[])[0]||{}).content.parts.map(p=>p.text).join('')}
+  if(prov==='gemini'){const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key='+encodeURIComponent(key),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});const j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||'Falha da IA');return ((j.candidates||[])[0]||{}).content.parts.map(p=>p.text).join('')}
   const U={openai:['https://api.openai.com/v1/chat/completions','gpt-4o'],groq:['https://api.groq.com/openai/v1/chat/completions','llama-3.3-70b-versatile'],mistral:['https://api.mistral.ai/v1/chat/completions','mistral-large-latest']}[prov];
   const r=await fetch(U[0],{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+key},body:JSON.stringify({model:U[1],messages:[{role:'user',content:prompt}]})});const j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||'Falha da IA');return j.choices[0].message.content}
 t('bIA').onclick=async()=>{const key=t('rKy').value.trim();if(!key)return say('mIA','Cole a chave da IA.',1);t('rKy').onchange();t('bIA').disabled=true;say('mIA','Reunindo os números…');
