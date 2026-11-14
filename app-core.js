@@ -51,7 +51,7 @@ const Elx={cfg:null,
    }catch(e){m.className='msg er';m.textContent=/Invalid login/i.test(e.message||'')?'E-mail ou senha incorretos.':/Database error|cadastro_so_por_convite/i.test(e.message||'')?'Convite inválido, vencido, já usado ou de outro e-mail. Peça um novo.':msg(e);$('xGo').disabled=false}}},
  async sessao(u){$('xSair').hidden=false;let cv='';try{cv=localStorage.getItem('elx_conv')||''}catch(e){}
   try{let r=await rpc('usar_convite',{p_codigo:cv});
-   if(!r.ok&&!cv){try{r=await rpc('definir_papel',{p_papel:PAPEL[this.cfg.tipo]})}catch(e){}}
+   if(!r.ok&&!cv){try{r=await rpc('definir_papel',{p_papel:PAPEL[this.cfg.tipo]})}catch(e){$('app').innerHTML='<div class="c"><h2>Banco desatualizado</h2><p>O cadastro aberto precisa do SQL novo (seção 31) rodado no Supabase. Avise o administrador.</p><button class="b" onclick="location.reload()">Tentar de novo</button></div>';return}}
    if(!r.ok){
     try{const T=await rpc('minha_trilha');if(this.cfg.tipo==='candidato'&&T.cred&&T.cred.master)r={ok:true,tipo:'candidato'}}catch(e){}}
    if(!r.ok)return this.pedeConvite(u,r.erro);

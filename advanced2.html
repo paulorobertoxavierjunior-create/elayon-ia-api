@@ -1,0 +1,25 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Elayon Advanced 2</title><link rel="icon" href="/icons/logo-emblema.png"></head><body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/app-core.js"></script><script src="/v2-core.js"></script>
+<style>.kk{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.kk div{background:#fff;border:1px solid var(--l);border-radius:14px;padding:12px;text-align:center}.kk b{display:block;font-size:22px}.kk small{color:var(--m)}.mc{display:grid;gap:6px}.mc .l{display:flex;justify-content:space-between;gap:8px;font-size:13px}.mc .l span:last-child{font-weight:700;text-align:right}td:nth-child(n+3),th:nth-child(n+3){text-align:right}.nota{font-size:12px;color:var(--m);text-align:center;padding:4px 8px}.v{font-size:11px;color:var(--m)}</style>
+<script>
+V2.porta({nome:'Elayon Advanced',cor:'#0e5e66',papel:'master',titulo:'Elayon Advanced',frase:'Gestão da plataforma: masters, médicos, pacientes e consumo. Só metadados.'},async(u)=>{
+ const R=await rpc('c2_consumo_resumo'),L=R.linhas||[];let PL=null;if(R.todos){try{PL=(await rpc('c2_plataforma')).masters}catch(e){PL=[]}}
+ let pr=0;try{pr=parseFloat(localStorage.getItem('v2_preco'))||0}catch(e){}
+ const nf=n=>Number(n).toLocaleString('pt-BR'),rs=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}),dt=d=>d?new Date(d).toLocaleDateString('pt-BR'):'—',dh=d=>new Date(d).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+ const meses=[...new Set(L.map(x=>x.mes))];let mes=meses[0]||'';
+ let plat='';
+ if(PL){const T=k=>PL.reduce((a,x)=>a+x[k],0);
+  plat='<div class="kk"><div><b>'+PL.length+'</b><small>masters</small></div><div><b>'+T('ativos')+'<span class="v"> / '+T('pacientes')+'</span></b><small>pacientes ativos</small></div><div><b>'+T('laudos')+'</b><small>laudos validados</small></div><div><b>'+nf(T('tokens'))+'</b><small>tokens usados</small></div></div>'
+   +(PL.length?PL.map(x=>'<div class="c mc"><div class="l"><b>'+esc(x.clinica)+'</b><span>'+nf(x.tokens)+' tokens</span></div><div class="l"><span class="v">'+esc(x.medico||'')+' · '+esc(x.registro||'')+'</span><span class="v">desde '+dt(x.criado)+'</span></div><div class="l"><span>Pacientes</span><span>'+x.ativos+' ativos de '+x.pacientes+'</span></div><div class="l"><span>Laudos validados</span><span>'+x.laudos+'</span></div><div class="l"><span>Tarefas enviadas</span><span>'+x.tarefas_enviadas+'</span></div><div class="l"><span>Último uso</span><span>'+dt(x.ultimo_uso)+'</span></div></div>').join(''):'<div class="c"><small>Nenhum master cadastrado ainda.</small></div>')
+   +'<div class="nota">Aqui só há metadados: contagens, datas e consumo. Nenhum conteúdo clínico é exibido.</div>'}
+ function cons(){const D=L.filter(x=>x.mes===mes),por={};D.forEach(x=>{const o=por[x.clinica]=por[x.clinica]||{t:0,e:0};o.t+=x.tokens;o.e+=x.eventos});const tt=D.reduce((a,x)=>a+x.tokens,0);
+  return '<div class="c"><label>Mês</label><select id="mS">'+(meses.length?meses.map(m=>'<option'+(m===mes?' selected':'')+'>'+m+'</option>').join(''):'<option>sem registros</option>')+'</select><label>Preço por 1.000 tokens (R$)</label><input id="pP" inputmode="decimal" value="'+(pr||'')+'" placeholder="Ex.: 0,50"></div>'
+   +'<div class="kk"><div><b>'+nf(tt)+'</b><small>tokens no mês</small></div><div><b>'+(pr?rs(tt/1000*pr):'—')+'</b><small>a cobrar</small></div></div>'
+   +'<div class="c"><h3>Cobrança por clínica</h3><table><tr><th>Clínica</th><th></th><th>Tokens</th><th>Valor</th></tr>'+Object.keys(por).map(k=>'<tr><td>'+esc(k)+'</td><td></td><td>'+nf(por[k].t)+'</td><td>'+(pr?rs(por[k].t/1000*pr):'—')+'</td></tr>').join('')+'</table></div>'
+   +'<div class="c"><h3>Auditoria do uso</h3><table><tr><th>Quem</th><th>Ação</th><th>Tokens</th><th>Quando</th></tr>'+D.map(x=>'<tr><td>'+esc(x.quem||'')+'<br><span class="v">'+esc(x.papel)+(R.todos?' · '+esc(x.clinica):'')+'</span></td><td>'+esc(x.acao)+(x.eventos>1?' ×'+x.eventos:'')+'</td><td>'+nf(x.tokens)+'</td><td class="v">'+dh(x.ultimo)+'</td></tr>').join('')+'</table></div><div class="nota">Cada linha vem do registro de uso. O mesmo critério vale para todas as clínicas.</div>'}
+ const pane=()=>{$('pn_cs').innerHTML=cons();$('mS').onchange=()=>{mes=$('mS').value;pane()};$('pP').oninput=()=>{pr=parseFloat(String($('pP').value).replace(',','.'))||0;try{localStorage.setItem('v2_preco',pr)}catch(e){}const f=$('pP').value;pane();$('pP').value=f;$('pP').focus()}};
+ const tabs=[];if(PL)tabs.push({id:'pl',t:'Plataforma',html:plat});tabs.push({id:'cs',t:'Consumo',html:''});tabs.push({id:'pf',t:'Perfil',html:'<div id="pfBox" style="display:grid;gap:12px"></div>'});
+ Elx.abas($('app'),tabs,PL?'pl':'cs');pane();Elx.perfil($('pfBox'),{oficial:false});
+ $('app').insertAdjacentHTML('beforeend','<a class="b g" href="/master2.html" style="margin-top:12px">Abrir a clínica (Master)</a>');
+});
+</script></body></html>
