@@ -2,13 +2,13 @@
 const V2={
  porta(cfg,cb){
   const st=document.createElement('style');st.textContent=CSS+'.mg{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mi{background:#1f4690;color:#fff;border:0;border-radius:18px;padding:14px;text-align:left;min-height:96px;display:flex;flex-direction:column;justify-content:space-between;font:inherit;cursor:pointer}.mi span{font-size:24px}.mi b{font-size:15px}.mi i{font-size:11px;background:#2aa851;border-radius:8px;padding:2px 6px;align-self:flex-start;font-style:normal}.mi[disabled]{opacity:.65;cursor:default}table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:6px 4px;border-bottom:1px solid var(--l);text-align:left}:root{--c:'+(cfg.cor||'#0b7285')+'}';document.head.appendChild(st);
-  document.title=cfg.nome;
+  document.title=cfg.nome;this.tipo=cfg.papel==='usuario'?'usuario':'candidato';
   document.body.innerHTML='<div class="top"><img src="/icons/logo-emblema.png" alt=""><b>'+esc(cfg.nome)+'</b><button id="xSair" hidden>Sair</button></div><div class="w" id="app"></div>';
   $('xSair').onclick=async()=>{await sb.auth.signOut();location.reload()};
   try{const q=new URLSearchParams(location.search).get('c');if(q)localStorage.setItem('v2_cod',q.trim().toUpperCase())}catch(e){}
   sb.auth.getSession().then(({data:{session}})=>session?this.entrou(session.user,cb):this.tela(cfg,cb,'entrar'));
  },
- entrou(u,cb){$('xSair').hidden=false;Promise.resolve(cb(u)).catch(e=>{$('app').innerHTML='<div class="c"><h2>Algo falhou</h2><p>'+esc(msg(e))+'</p><button class="b" onclick="location.reload()">Tentar de novo</button></div>'})},
+ entrou(u,cb){$('xSair').hidden=false;Promise.resolve(Elx.aceite(this.tipo,()=>cb(u))).catch(e=>{$('app').innerHTML='<div class="c"><h2>Algo falhou</h2><p>'+esc(msg(e))+'</p><button class="b" onclick="location.reload()">Tentar de novo</button></div>'})},
  tela(cfg,cb,modo){const novo=modo==='novo';$('xSair').hidden=true;
   $('app').innerHTML='<div class="c cen"><img class="logo" src="/icons/logo-emblema.png" alt=""><h1>'+esc(cfg.titulo)+'</h1><p>'+esc(cfg.frase)+'</p></div><div class="c">'
    +(novo?'<label>Seu nome</label><input id="xNome" autocomplete="name">':'')+'<label>E-mail</label><input id="xEm" type="email" autocomplete="email"><label>Senha</label><input id="xPw" type="password" autocomplete="'+(novo?'new-password':'current-password')+'">'
