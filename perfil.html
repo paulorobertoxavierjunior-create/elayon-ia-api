@@ -449,6 +449,8 @@
       custom:{nome:'Personalizado',modelo:'',vis:false,link:'',dica:'Qualquer serviço com API compatível com OpenAI (Cerebras, GitHub Models etc.): informe endereço e modelo.'}
     };
 function aiErroAmigavel(m){m=String(m||'');
+  if(/high demand|overloaded|unavailable|503/i.test(m))return 'O modelo está com muita procura agora. Tente de novo em instantes; o app também tenta sozinho os outros provedores que tiverem chave salva.';
+  if(/unexpected model name/i.test(m))return 'O nome do modelo está num formato inválido. Use só letras minúsculas, como gemini-3.8-flash.';
   if(!/quota|429|exhausted|rate.?limit/i.test(m))return m;
   const lim=(m.match(/limit:\s*(\d+)/)||[])[1],mod=(m.match(/model:\s*([\w.\-]+)/)||[])[1],re=(m.match(/retry in\s*(?:(\d+)h)?(?:(\d+)m)?/i)||[]),volta=re[1]||re[2]?` Volta em cerca de ${re[1]?re[1]+' h ':''}${re[2]?re[2]+' min':''}.`:'';
   return `Cota diária do plano gratuito esgotada${mod?' no modelo '+mod:''}${lim?' (limite de '+lim+' pedidos por dia)':''}.${volta} O limite vale por projeto do Google, então uma chave nova só ajuda se for criada em OUTRO projeto no AI Studio. Alternativas: trocar o modelo no perfil (cada modelo tem a sua contagem) ou adicionar outro provedor gratuito, como a Groq.`}
@@ -457,7 +459,7 @@ function aiErroAmigavel(m){m=String(m||'');
     function aiGuardaForm() {
       const ex = aiCfg[aiAtual] && aiCfg[aiAtual].key, k = $id('inputApiKey').value.trim() || ex;
       if (!k) { delete aiCfg[aiAtual]; return; }
-      aiCfg[aiAtual] = { key: k, model: $id('inputModel').value.trim(), url: $id('inputUrl').value.trim(), vis: $id('chkVis').checked };
+      aiCfg[aiAtual] = { key: k, model: ($id('inputModel').value.trim().toLowerCase().replace(/^models\//, '')), url: $id('inputUrl').value.trim(), vis: $id('chkVis').checked };
     }
     function aiMostra(id) {
       aiAtual = id; const c = aiCfg[id] || {}, P = PROV[id];
@@ -496,7 +498,7 @@ function aiErroAmigavel(m){m=String(m||'');
       aiLista(); return true;
     }
     async function testarAi() {
-      const id = aiAtual, key = $id('inputApiKey').value.trim() || (aiCfg[id] && aiCfg[id].key) || '', P = PROV[id], model = $id('inputModel').value.trim() || P.modelo, url = $id('inputUrl').value.trim() || P.url, m = $id('aiMsg');
+      const id = aiAtual, key = $id('inputApiKey').value.trim() || (aiCfg[id] && aiCfg[id].key) || '', P = PROV[id], model = ($id('inputModel').value.trim().toLowerCase().replace(/^models\//, '')) || P.modelo, url = $id('inputUrl').value.trim() || P.url, m = $id('aiMsg');
       if (!key) { m.textContent = 'Cole a chave primeiro.'; m.className = 'msg msg-error'; return; }
       m.textContent = '⏳ testando…'; m.className = 'msg';
       const c = new AbortController(), t = setTimeout(() => c.abort(), 30000);

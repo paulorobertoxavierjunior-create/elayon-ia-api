@@ -398,14 +398,14 @@ const PROV={gemini:{modelo:'gemini-3.8-flash',vis:true},groq:{url:'https://api.g
 function provLista(){const p=U.pr||{},cfg=p.ai_cfg||{},act=U.prov||'gemini',L=[];const add=id=>{const c=cfg[id]||{},key=id===act?(U.key||c.key):c.key;if(key)L.push({p:id,key,model:c.model||'',url:c.url||'',vis:!!c.vis})};add(act);if(cfg._fb!==false)Object.keys(PROV).filter(x=>x!==act).forEach(add);return L}
 async function iaUm(c,sys,hist,ims){const P=PROV[c.p]||PROV.custom,model=c.model||(c.p==='gemini'?CFG.GEMINI:P.modelo),vis=P.vis||c.vis,last=hist.length-1;
   if(c.p==='gemini'){const m=hist.map((h,i)=>({role:h.r==='user'?'user':'model',parts:(i===last&&ims.length)?[{text:h.t},...ims.map(b=>({inline_data:{mime_type:'image/jpeg',data:b}}))]:[{text:h.t}]}));
-    const j=await (await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${c.key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:m})})).json();return j.candidates[0].content.parts[0].text}
+    const j=await (await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${String(model).trim().toLowerCase().replace(/^models\//,'')}:generateContent?key=${c.key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:m})})).json();if(j.error)throw new Error(j.error.message||'erro');return j.candidates[0].content.parts[0].text}
   const url=c.url||P.url;if(!url||!model)throw new Error('config');
   const m=hist.map((h,i)=>({role:h.r==='user'?'user':'assistant',content:(i===last&&ims.length&&vis)?[{type:'text',text:h.t},...ims.map(b=>({type:'image_url',image_url:{url:'data:image/jpeg;base64,'+b}}))]:h.t}));
   const j=await (await fetch(url,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+c.key},body:JSON.stringify({model,messages:[{role:'system',content:sys},...m]})})).json();return j.choices[0].message.content}
 async function ia(prompt,img){
   U.hist.push({r:'user',t:prompt});U.hist=U.hist.slice(-10);let out='';
   const sys=SYS+(U.nome&&U.nome!=='Operador'?' A pessoa se chama '+U.nome+' (nome do perfil); chame-a por esse nome.':'')+(U.proto?' Protocolo definido pelo médico responsável: '+U.proto:'')+(U.relatorio?' Camada Elayon Health: relatório médico validado deste usuário. Leve-o em conta antes de responder, use como contexto de cuidado e não diagnostique: '+U.relatorio:'')+fontesSys(),im=img?img.split(',')[1]:null,rcI=(U.health==='ok'&&(lerLocal()||{obj:{}}).obj.recortes||[]).slice(0,6).map(r=>r.img.split(',')[1]),ims=[...(im?[im]:[]),...rcI],last=U.hist.length-1;
-  try{for(const c of provLista()){try{out=await iaUm(c,sys,U.hist,ims);if(out)break}catch(e){}}}catch(e){out=''}
+  try{for(const c of provLista()){try{out=await iaUm(c,sys,U.hist,ims);if(out)break}catch(e){if(/demand|overload|unavailable|503|429/i.test(String(e&&e.message))){await new Promise(r=>setTimeout(r,2500));try{out=await iaUm(c,sys,U.hist,ims);if(out)break}catch(e2){}}}}}catch(e){out=''}
   out=(out||'').trim();if(out)U.hist.push({r:'ia',t:out});else U.hist.pop();return out
 }
 async function iaFalar(txt,res,img,fim){
