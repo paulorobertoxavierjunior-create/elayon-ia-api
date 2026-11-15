@@ -22,7 +22,7 @@ details.c[open]>summary{margin-bottom:6px}
 </style></head><body><div class="w">
 <div class="c"><div class="top"><img class="lg" src="elayon-logo.png" alt="Elayon" onerror="if(!this.dataset.t){this.dataset.t=1;this.src='elayon_logo.png'}else this.style.display='none'">
 <div><h1>Bem-vindo ao Elayon Space</h1><p>Meu Espaço · Auto Escuta Simbólica</p></div><img class="av" id="avt" alt="" src=""></div>
-<div class="hd"><span id="quem">…</span><a href="perfil.html">⬅ Perfil</a></div><div id="av2"></div></div>
+<div class="hd"><span id="quem">…</span><a href="app-usuario.html">⬅ Voltar</a></div><div id="av2"></div></div>
 
 <div class="c" id="miss" hidden style="border:1px solid #06b6d4;box-shadow:0 0 0 3px #06b6d422"><h3>🎯 Sua missão de hoje</h3><p id="missTxt"></p>
 <div style="height:6px;background:#e2f1f1;border-radius:6px;overflow:hidden"><i id="missPb" style="display:block;height:100%;width:0;background:linear-gradient(90deg,#06b6d4,#059669);transition:width .3s"></i></div>
@@ -229,4 +229,4 @@ $('bVol').onclick=async()=>{
     chatAdd('ia',`Olá, ${nome()}. Eu sou a IA do Elayon Space e vou acompanhar você. Seu médico deixou ${n===1?'1 exercício':n+' exercícios'} para você${P.length===1?' no treino "'+P[0].titulo+'"':''}. Depois deles, faremos uma calibração rápida de voz e eu envio tudo para o seu médico. Quando quiser, toque em "Começar a missão".`)}
   else chatAdd('ia',`Olá, ${nome()}. Este é o seu espaço. Você pode carregar o treino do seu médico, escolher um exercício ou simplesmente falar comigo. Sem pressa.`)
 })();
-</script></body></html>
+</script><script src="/voltar.js"></script></body></html>

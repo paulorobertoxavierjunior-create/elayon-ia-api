@@ -54,7 +54,7 @@ button,.btn{font-family:inherit}
 <div id="start"><img src="elayon-logo.png" alt="Elayon" onerror="if(!this.dataset.t){this.dataset.t=1;this.src='IMG-20260218-WA0016.jpg'}else this.style.display='none'"><h1>Elayon Vibes 8</h1><p>Cockpit de calibração e acompanhamento vocal. A IA vai falar com você e os gráficos acompanham a voz dela. O microfone só liga quando você abrir.</p><button class="mic" id="bStart" style="max-width:320px" onclick="iniciar()" disabled>Carregando…</button></div>
 <header class="hud"><img id="hudAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=ElayonUser" alt="">
 <div><b id="hudNome">Carregando…</b><small id="hudId">ID —</small></div>
-<div class="tk">TOKENS<b id="hudTokens">--</b></div><a href="perfil.html">⚙️</a></header>
+<div class="tk">TOKENS<b id="hudTokens">--</b></div><a href="app-usuario.html">⚙️</a></header>
 <div class="tabs2"><button id="bV" class="on" onclick="aba('V')">🎙️ Calibração</button><button id="bC" onclick="aba('C')">📥 Conteúdo</button><button id="bT" onclick="aba('T')">🗣️ Testes vocálicos</button><button id="bR" onclick="aba('R')">🏋️ Treino</button></div>
 <div id="av"></div>
 <input type="file" id="pdfIn" accept="application/pdf" hidden onchange="carregarPDF(this)">
@@ -76,7 +76,7 @@ button,.btn{font-family:inherit}
 <p>Cada PDF carregado soma <b>1 token</b> por áudio (além do 1 base da calibração). A IA consulta <b>todas</b> as fontes ao responder e cita o documento usado. Dá para trocar ou remover qualquer PDF. O psicológico fica no PsyQ, ferramenta própria.</p>
 <div id="fontes"></div><div id="hStat">Nenhum laudo carregado.</div><div id="cst"></div>
 <div class="fs" style="display:block"><b>🏛️ Laudos certificados pela clínica</b><small style="max-width:none;white-space:normal">Quando a clínica valida o laudo do seu médico, ele aparece aqui e você ativa com um toque.</small><div id="lc" style="margin-top:6px"></div><button onclick="listarClinica()" style="margin:6px 0 0">↻ Atualizar</button></div>
-<a href="meu-espaco.html">🌱 Meu Espaço: exercícios e auto escuta</a><a href="perfil.html">🩺 Sou médico ou profissional de saúde (no perfil)</a></div>
+<a href="meu-espaco.html">🌱 Meu Espaço: exercícios e auto escuta</a></div>
 <div id="pT" class="box pn" style="display:none"><b style="color:#0e7490">🗣️ Testes vocálicos de comandos</b><p>Em breve: a IA dá um comando (vogal sustentada, contagem, frase), você responde e o Vibes 8 compara cada medida com as faixas definidas no laudo do seu médico, mostrando nos 12 gráficos o que ficou dentro e fora.</p><p>Pré-requisito: laudo carregado na aba Conteúdo.</p></div>
 <div id="pR" class="box pn" style="display:none"><b style="color:#0e7490">🏋️ Treino, orientação e autoconsulta simbólica</b><p>Carregue aqui o PDF de treino (tutorial da ferramenta, exercícios e orientações). Ele soma 1 token por áudio e a IA o consulta ao responder.</p><div id="fTreino"></div><p>Em breve: exercícios guiados pela IA, periódicos ou contínuos, conforme o modo e os exercícios definidos no laudo do médico, com cada autoexame entrando no gráfico XII.</p></div><script>
 const CFG={URL:'https://xlktkelumtpugidnecbj.supabase.co',
@@ -419,7 +419,7 @@ async function iaFalar(txt,res,img,fim){
 async function iaIntro(){
   const k=U.ciclo,w=chatAdd('ia','…');
   const r=await ia(`[SISTEMA] Operador: ${U.nome}. `+(U.calibrado?`Calibração já concluída${U.health==='ok'?' e camada Elayon Health ativa':''}. Dê boas-vindas curtas e convide o usuário a falar normalmente ou fazer um exercício vocal.`:`${k?`Retomando a calibração, ${k} de ${CFG.MAX} feitas.`:`Dê boas-vindas e explique em uma frase que são ${CFG.MAX} calibrações curtas de voz e que a primeira é só um teste de conexão.`} Passe a instrução da calibração ${k+1}: "${CFG.ETAPAS[k]}"`));
-  w.remove();if(!r&&!U.key)aviso('IA do perfil não configurada: conversa em modo roteiro. <a href="perfil.html">Configurar</a>');
+  w.remove();if(!r&&!U.key)aviso('IA do perfil não configurada: conversa em modo roteiro. <a href="app-usuario.html">Configurar</a>');
   const t=r||(U.calibrado?`Olá, ${U.nome}. Pode falar comigo quando quiser.`:`Bem-vindo, ${U.nome}. Calibração ${k+1}: ${CFG.ETAPAS[k]}`);chatAdd('ia',t);falar(t)
 }
 
@@ -545,4 +545,4 @@ async function resolverTexto(blob,bub){
 }
 
 addEventListener('DOMContentLoaded',()=>{fit();requestAnimationFrame(loop);aplicaCol();layers();carregar().catch(e=>{falha('Falha ao carregar: '+(e.message||e));try{if(U.id)micPronto();prontoStart()}catch(x){}})});
-</script></body></html>
+</script><script src="/voltar.js"></script></body></html>

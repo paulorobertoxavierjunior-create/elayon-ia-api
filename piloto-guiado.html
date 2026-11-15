@@ -81,6 +81,9 @@ details.c>summary{cursor:pointer;font-size:13px;font-weight:800;color:var(--a);l
 <div><label>Apoio de IA (editável; entra no laudo como apoio, sob sua responsabilidade)</label><textarea id="l_ia" style="min-height:130px"></textarea></div>
 <div class="g2"><div><label>Severidade (0–10)</label><input id="l_sev" type="number" min="0" max="10" value="5"></div><div><label>Conduta</label><input id="l_cd" value="Fonoaudiologia 2x/semana"></div></div>
 <div><label>Exercícios para o Vibes 8</label><textarea id="l_ex" style="min-height:60px"></textarea></div>
+<div class="c" style="box-shadow:none"><h3>✅ Tarefas deste laudo</h3><p style="font-size:12px">O que você marcar entra no PDF do laudo e vai para a fila do paciente quando a clínica liberar. Laudo e tarefas seguem juntos, com a mesma assinatura.</p>
+<input id="t_tit" placeholder="Título das tarefas" value="Tarefas da consulta"><div id="t_ex" style="display:grid;gap:6px;margin:6px 0"></div>
+<div><label>Prazo (dias)</label><input id="t_dias" type="number" min="1" max="60" value="3"></div></div>
 <details class="c" style="box-shadow:none"><summary>Faixas de autoexame (montadas pela análise; ajuste se quiser)</summary>
 <div class="g2"><div><label>F0 mín (Hz)</label><input id="f1" type="number"></div><div><label>F0 máx (Hz)</label><input id="f2" type="number"></div></div>
 <div class="g2"><div><label>Jitter máx (%)</label><input id="jt" type="number" step="0.1"></div><div><label>Shimmer máx (dB)</label><input id="sh" type="number" step="0.1"></div></div>
@@ -339,6 +342,10 @@ $('bUs').onclick=()=>{const s=localStorage.getItem('pil_ass_'+U.id);if(!s)return
 function assPNG(){const w=sg.width,h=sg.height,d=sc.getImageData(0,0,w,h).data;let x0=w,y0=h,x1=0,y1=0;
   for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>20){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
   if(x1<x0)return null;const W=x1-x0+1,H=y1-y0+1,c=document.createElement('canvas');c.width=W;c.height=H;c.getContext('2d').drawImage(sg,x0,y0,W,H,0,0,W,H);return {url:c.toDataURL('image/png'),w:W,h:H}}
+const TAR=[['vogal','Vogal sustentada "aaa"'],['deslize','Deslize grave-agudo'],['vogais','Vogais a, e, i, o, u'],['pataka','Pa-ta-ka'],['leitura','Leitura em voz alta'],['contagem','Contagem, dias e meses'],['espontanea','Fala espontânea (30 s)'],['livre','Falar livremente']];
+(function(){const b=document.getElementById('t_ex');if(b)b.innerHTML=TAR.map(t=>'<label style="display:flex;gap:8px;text-transform:none;font-weight:600;align-items:center"><input type="checkbox" class="tx" value="'+t[0]+'" style="width:auto"> '+t[1]+'</label>').join('')})();
+const tarefasLaudo=()=>{const ids=[...document.querySelectorAll('#t_ex .tx:checked')].map(i=>i.value);return ids.length?{titulo:($('t_tit').value||'Tarefas da consulta').trim().slice(0,120),ids,nomes:ids.map(i=>(TAR.find(t=>t[0]===i)||[0,i])[1]),dias:Math.max(1,Math.min(60,+$('t_dias').value||3)),orientacao:cv('l_ex')}:null};
+const codTar=()=>{const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let c='';const r=crypto.getRandomValues(new Uint8Array(8));for(let i=0;i<8;i++)c+=A[r[i]%A.length];return 'ESH-'+c};
 function pdf(o,S,ass,payload,rcs){
   const {jsPDF}=window.jspdf,d=new jsPDF({unit:'pt',format:'a4'}),L=40,Wd=515;let y=95;
   d.setProperties({title:'Laudo Elayon Health',author:o.piloto.nome,subject:'ELAYONHEALTH['+payload+']'});
@@ -355,6 +362,7 @@ function pdf(o,S,ass,payload,rcs){
   H('Observações clínicas / pré-diagnóstico de avaliação');T(o.laudo.obs);T(`Severidade (0-10): ${o.laudo.sev}   Conduta: ${o.laudo.conduta}`);
   const p=o.params;H('Faixas de autoexame (definidas pelo médico)');T(`F0 ${p.f0min}-${p.f0max} Hz; jitter até ${p.jitmax}%; shimmer até ${p.shimmax} dB; HNR a partir de ${p.hnrmin} dB; pausas até ${p.pausasmax}; modo ${o.modo}.`);
   H('Exercícios para o Vibes 8');T(o.exercicios);
+  if(o.tarefas){H('Tarefas do paciente (seguem com este laudo)');T(o.tarefas.titulo+'\n'+o.tarefas.nomes.map((n,i)=>(i+1)+'. '+n).join('\n')+'\nPrazo: '+o.tarefas.dias+' dia(s) após a liberação pela clínica.')}
   if(rcs.length){H('Ocorrências marcadas (recortes de gráfico, imagens a seguir)');rcs.forEach((r,i)=>T(`${i+1}) Áudio ${r.a} de ${r.t0}s a ${r.t1}s${r.txt?' - '+r.txt:''} (F0 ${r.met.f0} Hz, jitter ${r.met.jit}%, shimmer ${r.met.shim} dB, HNR ${r.met.hnr} dB)`))}
   for(let i=0;i<rcs.length;i+=2){d.addPage();d.setFont('helvetica','bold');d.setFontSize(10);d.setTextColor(20,40,45);rcs.slice(i,i+2).forEach((r,j)=>{const yy=40+j*400;d.text(`Recorte ${i+j+1} - Áudio ${r.a} - ${r.t0}s a ${r.t1}s${r.txt?' - '+r.txt.slice(0,70):''}`,L,yy);d.addImage(r.img,'JPEG',L,yy+8,Wd,343)})}
   const SI=S.filter(s=>s.img);for(let i=0;i<SI.length;i+=2){d.addPage();d.setFont('helvetica','bold');d.setFontSize(11);d.setTextColor(20,40,45);SI.slice(i,i+2).forEach((s,j)=>{const yy=40+j*390;d.text(`Espectroide - Áudio ${s.n} - ${new Date(s.ts).toLocaleString('pt-BR')}`,L,yy);d.addImage(s.img,'JPEG',L,yy+8,Wd,309)})}
@@ -380,7 +388,7 @@ $('bAss').onclick=async()=>{
     const iaT=cv('l_ia'),ia=(iaT&&ob.includes(iaT.slice(0,60)))?'':iaT.slice(0,2000);
     const sess=S.map(a=>({n:AU.indexOf(a)+1,tarefa:a.tarefa||'',qual:(a.res.qual||{}).nivel||'',crs:a.res.crs?{tempo:a.res.crs.tempo,ptr:a.res.crs.ptr,pausas:a.res.crs.pausas,pm:a.res.crs.pausas_min,mu:a.res.crs.mu,sd:a.res.crs.sd,H:a.res.crs.H,tmax:a.res.crs.tmax,fx:a.res.crs.faixas}:null,ts:a.ts,perg:a.nome||'',dur:a.res.dur,f0:mv(a.res.f0),db:mv(a.res.db),jit:mv(a.res.jit),shim:mv(a.res.shim),hnr:mv(a.res.hnr),cpp:mv(a.res.cpp),fon:a.res.fon,pausas:a.res.pausas}));
     const corpo={v:2,treino:MODO==='treino',emitido:new Date().toISOString(),piloto:{nome:DOC.nome_completo,crm:DOC.crm_crfa_crp,esp:DOC.especialidade,inst:DOC.instituicao||'',tel:DOC.telefone||'',email:U.email},paciente:{nome:cv('c_nome'),email:cv('c_email').toLowerCase(),contexto:ctxCad()},
-      laudo:{obs:ob,sev:+$('l_sev').value,conduta:cv('l_cd')},params:{f0min:+$('f1').value,f0max:+$('f2').value,jitmax:+$('jt').value,shimmax:+$('sh').value,hnrmin:+$('hn').value,pausasmax:+$('ps').value},modo:'periódico',exercicios:cv('l_ex'),sintese:'',ia,
+      laudo:{obs:ob,sev:+$('l_sev').value,conduta:cv('l_cd')},params:{f0min:+$('f1').value,f0max:+$('f2').value,jitmax:+$('jt').value,shimmax:+$('sh').value,hnrmin:+$('hn').value,pausasmax:+$('ps').value},modo:'periódico',exercicios:cv('l_ex'),tarefas:tarefasLaudo(),sintese:'',ia,
       recortes:RC.map(r=>({a:r.a,nome:r.nome,t0:r.t0,t1:r.t1,txt:r.txt,met:r.met,img:r.th})),ref:refPayload(),instrumentos:[],fontes:['Elayon CRS temporal (método próprio)','Calibração inicial Elayon (3 áudios)'],
       calibracao:CAL.map((a,i)=>({etapa:ETN[i],dur:a.res.dur,curto:!!a.res.curto,f0:mv(a.res.f0),jit:mv(a.res.jit),shim:mv(a.res.shim),hnr:mv(a.res.hnr),fon:a.res.fon})),sessoes:sess,
       notas:RC.map(r=>({a:r.a,t:r.t0,txt:r.txt||'trecho marcado',f0:r.met.f0,db:r.met.db})).slice(0,20)};
@@ -419,7 +427,9 @@ $('bEnv').onclick=async()=>{
       sessoes:S.map(a=>({n:AU.indexOf(a)+1,tarefa:a.tarefa,qual:(a.res.qual||{}).nivel||'',dur:a.res.dur,f0:mv(a.res.f0),jit:mv(a.res.jit),shim:mv(a.res.shim),hnr:mv(a.res.hnr),db:mv(a.res.db),pausas:a.res.pausas,fon:a.res.fon,obs:a.obs||''})),
       conduta:cv('l_cd'),obs:cv('l_obs').slice(0,1500)};
     const ins=await sb.from('laudos_enviados').insert({resultados,clinica_id:CLIN.clinica_id,medico_id:U.id,medico_nome:DOC.nome_completo,medico_registro:DOC.crm_crfa_crp,paciente_nome:cv('c_nome'),paciente_email:cv('c_email').toLowerCase(),pdf_path:path,hash:ULT.hash,meta});
-    if(ins.error)throw ins.error;ULT.ok.env=true;tl();msg('m6','✅ Enviado à clínica '+(CLIN.clinica_nome||'')+'. Agora ela valida e certifica ao usuário.')}
+    if(ins.error)throw ins.error;
+    const TL=tarefasLaudo();if(TL){let er=null;for(let t=0;t<4;t++){({error:er}=await sb.from('treinos').insert({codigo:codTar(),piloto_id:U.id,titulo:TL.titulo,paciente_nome:cv('c_nome'),paciente_email:cv('c_email').toLowerCase(),orientacao:TL.orientacao,fontes:'',exercicios:TL.ids.map(id=>({id})),prazo:new Date(Date.now()+TL.dias*864e5).toISOString()}));if(!er||er.code!=='23505')break}if(er)throw new Error('O laudo foi enviado, mas as tarefas não foram criadas: '+er.message)}
+    ULT.ok.env=true;tl();msg('m6','✅ Enviado à clínica '+(CLIN.clinica_nome||'')+'. Agora ela valida e certifica ao usuário.')}
   catch(e){msg('m6','❌ Não consegui enviar: '+(e.message||e)+' Você pode compartilhar o PDF.',1)}finally{$('bEnv').disabled=false}};
 $('bFim').onclick=()=>{
   if(MODO==='real'&&ULT&&!ULT.ok.env&&!confirm('O PDF ainda não foi enviado à clínica. Encerrar mesmo assim? Os áudios e dados serão apagados deste aparelho.'))return;
@@ -461,4 +471,4 @@ $('bVinc').onclick=async()=>{const cod=$('m_cod').value.trim();if(!cod)return ms
     $('clBox').hidden=false;$('calTxt0').textContent='Carregue os 3 áudios de calibração do usuário, na ordem. Todo atendimento começa por eles.';$('bIni').textContent='Iniciar calibração do usuário ▶';await vinculos();
     if(!PIL){msg('m1','Você ainda não tem o cadastro profissional. Faça no perfil, aba médico.',1)}}
   show(1)})();
-</script><script>(function(){var h='/app-medico.html';try{var x=localStorage.getItem('elx_home');if(/^\/app-(medico|master)\.html$/.test(x))h=x}catch(e){}document.querySelectorAll('[data-home]').forEach(function(a){a.href=h})})()</script></body></html>
+</script><script>(function(){var h='/app-medico.html';try{var x=localStorage.getItem('elx_home');if(/^\/app-(medico|master)\.html$/.test(x))h=x}catch(e){}document.querySelectorAll('[data-home]').forEach(function(a){a.href=h})})()</script><script src="/voltar.js"></script></body></html>
