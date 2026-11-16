@@ -366,7 +366,7 @@ async function processar(blob){
     U.falhas=0;bub.textContent=txt||'(sem transcrição — sessão aceita sem texto)';
     setMic('📊 Calculando CRS...',true);
     const img=espectroide(rt.tk,an.sec,an.ret,Math.max(1,res.dur));
-    try{await debitar()}catch(e){bub.remove();if(e.message==='sem_saldo'){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}aviso('Falha ao debitar o token. Tente de novo.');return micPronto()}
+    try{await debitar()}catch(e){bub.remove();if(/sem_clinica/.test(e.message)){aviso('Para usar a ferramenta, vincule-se a uma clínica. <a href="app-usuario.html" target="_top">Abrir meu perfil</a>');return setMic('Vincule-se a uma clínica',true)}if(e.message==='sem_saldo'){aviso('Saldo insuficiente de tokens.');return setMic('Saldo insuficiente',true)}aviso('Falha ao debitar o token. Tente de novo.');return micPronto()}
     const s={k:U.id+':'+Date.now(),uid:U.id,ts:Date.now(),blob,txt,dur:res.dur,tk:rt.tk,res,img};
     try{const ab=await blob.arrayBuffer();await tx('readwrite',st=>st.put(Object.assign({},s,{blob:null,ab,tipo:blob.type})))}   // ArrayBuffer: Safari/WebViews falham com Blob no IndexedDB
     catch(e){aviso('⚠️ Este navegador não guardou o áudio; a sessão segue só na memória.')}
