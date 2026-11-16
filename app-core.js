@@ -43,7 +43,7 @@ const Elx={cfg:null,
   $('xGo').onclick=async()=>{const em=$('xEm').value.trim(),pw=$('xPw').value,m=$('xMsg');m.className='msg';m.textContent='';if(!em||pw.length<6){m.className='msg er';m.textContent='Informe e-mail e senha (mínimo 6 caracteres).';return}
    $('xGo').disabled=true;try{
     if(novo){const cv=$('xCv').value.trim();try{if(cv)localStorage.setItem('elx_conv',cv)}catch(e){}
-     const {data,error}=await sb.auth.signUp({email:em,password:pw,options:{data:{nome:$('xNome').value.trim(),convite:cv.toUpperCase(),papel:PAPEL[cf.tipo]}}});if(error)throw error;
+     const {data,error}=await sb.auth.signUp({email:em,password:pw,options:{data:{nome:$('xNome').value.trim(),convite:cv.toUpperCase(),papel:'usuario'}}});if(error)throw error;
      if(!data.session){m.className='msg ok';m.textContent='Confirme o e-mail que enviamos e depois toque em Entrar. O convite fica guardado neste aparelho.';$('xGo').disabled=false;return}
      const nm=$('xNome').value.trim();if(nm){try{await sb.from('profiles').update({nome:nm}).eq('id',data.session.user.id)}catch(e){}}
      return this.sessao(data.session.user)}
@@ -51,12 +51,16 @@ const Elx={cfg:null,
    }catch(e){m.className='msg er';m.textContent=/Invalid login/i.test(e.message||'')?'E-mail ou senha incorretos.':/Database error|cadastro_so_por_convite/i.test(e.message||'')?'Convite inválido, vencido, já usado ou de outro e-mail. Peça um novo.':msg(e);$('xGo').disabled=false}}},
  async sessao(u){$('xSair').hidden=false;let cv='';try{cv=localStorage.getItem('elx_conv')||''}catch(e){}
   try{let r=await rpc('usar_convite',{p_codigo:cv});
-   if(!r.ok&&!cv){try{r=await rpc('definir_papel',{p_papel:PAPEL[this.cfg.tipo]})}catch(e){$('app').innerHTML='<div class="c"><h2>Banco desatualizado</h2><p>O cadastro aberto precisa do SQL novo (seção 31) rodado no Supabase. Avise o administrador.</p><button class="b" onclick="location.reload()">Tentar de novo</button></div>';return}}
+   if(!r.ok&&!cv){try{r=await rpc('definir_papel',{p_papel:'usuario'})}catch(e){$('app').innerHTML='<div class="c"><h2>Banco desatualizado</h2><p>O cadastro aberto precisa do SQL novo (seção 31) rodado no Supabase. Avise o administrador.</p><button class="b" onclick="location.reload()">Tentar de novo</button></div>';return}}
    if(!r.ok){
     try{const T=await rpc('minha_trilha');if(this.cfg.tipo==='candidato'&&T.cred&&T.cred.master)r={ok:true,tipo:'candidato'}}catch(e){}}
    if(!r.ok)return this.pedeConvite(u,r.erro);
    try{localStorage.removeItem('elx_conv')}catch(e){}
    if(this.cfg.tipo==='candidato'&&r.tipo==='medico'&&/pedir=1/.test(location.search))r={ok:true,tipo:'candidato'};
+   const RK={usuario:1,medico:2,candidato:3},meu=RK[this.cfg.tipo]||0,seu=RK[r.tipo]||0;
+   if(seu>meu&&this.cfg.tipo==='usuario')r={ok:true,tipo:'usuario'};
+   else if(seu&&meu>seu){const atual=APPS[r.tipo];$('app').innerHTML='<div class="c"><h2>Usar ou evoluir?</h2><p>Sua conta é '+(TIPONOME[r.tipo]||'')+'. Você pode continuar usando, ou evoluir para '+(TIPONOME[this.cfg.tipo]||'')+' com o mesmo login. Depois de evoluir, a conta não volta atrás.</p><a class="b" href="'+atual+'">Continuar usando</a><button class="b g" id="xEv">Evoluir '+(TIPONOME[this.cfg.tipo]||'')+'</button><div class="msg" id="xEm"></div></div>';
+    $('xEv').onclick=async()=>{$('xEv').disabled=true;try{const q=await rpc('evoluir_papel',{p_papel:PAPEL[this.cfg.tipo]});if(!q||!q.ok)throw new Error((q&&q.erro)||'falhou');this.sessao(u)}catch(e){$('xEv').disabled=false;$('xEm').className='msg er';$('xEm').textContent=MSG[e.message]||msg(e)}};return}
    if(r.tipo!==this.cfg.tipo){const outro=APPS[r.tipo];$('app').innerHTML='<div class="c"><h2>App errado</h2><p>Seu convite é '+(TIPONOME[r.tipo]||'de outro tipo')+'. Abra o app certo.</p>'+(outro?'<a class="b" href="'+outro+'">Abrir o app certo</a>':'')+'</div>';return}
    return Elx.aceite(this.cfg.tipo,()=>this.cb(u,r))}catch(e){$('app').innerHTML='<div class="c"><h2>Algo falhou</h2><p>'+esc(msg(e))+'</p><button class="b" onclick="location.reload()">Tentar de novo</button></div>'}},
  pedeConvite(u,erro){$('app').innerHTML='<div class="c"><h2>Falta o convite</h2><p>Este acesso é só por convite. Digite o código que você recebeu.</p><input id="xCv2" autocapitalize="characters" autocomplete="off" placeholder="CONV-XXXX-XXXX"><button class="b" id="xOk">Validar convite</button><div class="msg '+(erro&&erro!=='convite_invalido'?'er':'')+'" id="xM2">'+esc(erro&&erro!=='convite_invalido'?(MSG[erro]||erro):'')+'</div></div>';
