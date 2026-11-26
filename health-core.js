@@ -37,7 +37,7 @@ async function aiUm(c,prompt,imgs,sys){
   const P=PROV[c.p]||PROV.custom,model=c.model||P.modelo,vis=P.vis||c.vis,im=vis?imgs:[];
   if(c.p==='gemini'){
     const parts=[{text:prompt},...im.map(u=>({inline_data:{mime_type:'image/jpeg',data:u.split(',')[1]}}))];
-    const j=await jfetch(`https://generativelanguage.googleapis.com/v1beta/models/${String(model).trim().toLowerCase().replace(/^models\//,'')}:generateContent?key=${c.key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({generationConfig:{temperature:.2},systemInstruction:{parts:[{text:sys}]},contents:[{role:'user',parts}]})});
+    const j=await jfetch(`https://generativelanguage.googleapis.com/v1beta/models/${String(model).trim().toLowerCase().replace(/^models\//,'')}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':c.key},body:JSON.stringify({generationConfig:{temperature:.2},systemInstruction:{parts:[{text:sys}]},contents:[{role:'user',parts}]})});
     const t=j.candidates&&j.candidates[0]&&j.candidates[0].content&&j.candidates[0].content.parts&&j.candidates[0].content.parts[0].text;if(!t)throw new Error('A IA não devolveu texto (conteúdo bloqueado ou vazio).');return t}
   const url=c.url||P.url;if(!url)throw new Error('Informe o endereço (URL) do provedor personalizado no perfil.');if(!model)throw new Error('Informe o modelo no perfil.');
   const txt=(imgs.length&&!im.length?'[As imagens não foram enviadas: o modelo escolhido não lê imagens.]\n':'')+prompt,cont=im.length?[{type:'text',text:txt},...im.map(u=>({type:'image_url',image_url:{url:u}}))]:txt;
