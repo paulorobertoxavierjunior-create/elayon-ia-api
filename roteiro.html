@@ -91,5 +91,6 @@ document.getElementById('rst').onclick=function(){if(confirm('Desmarcar todos os
 document.getElementById('go').onclick=function(){var v=document.getElementById('cv').value.trim();var m=v.match(/[?&]c=([A-Za-z0-9-]+)/);var c=(m?m[1]:v).toUpperCase().replace(/[^A-Z0-9-]/g,'');if(!c){document.getElementById('cv').focus();return}location.href='/'+document.getElementById('pp').value+'?c='+encodeURIComponent(c)};
 draw();
 </script>
+<script src="/teste-selo.js"></script>
 </body>
 </html>

@@ -44,7 +44,7 @@ p,li{font-size:13px;line-height:1.6;color:var(--muted)} p{margin-bottom:10px} ul
 </div>
 <script>
 const PAPEL='master';
-const sb=supabase.createClient('https://xlktkelumtpugidnecbj.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM');
+const sb=supabase.createClient('https://hjgyycxwoygkcxgtcllk.supabase.co','sb_publishable_Z3CocLvFjJVaM97y2QfeQQ_CP94PfFN');
 const $=id=>document.getElementById(id);
 const PASSOS=[{t:"O papel do master",txt:"<p>O master é o <b>responsável total pela sua operação</b> e se reporta ao Advanced. A clínica não é outro perfil: é uma <b>aba sua</b>. Você é médico e administrador ao mesmo tempo, treina os médicos, cadastra quem vai realmente usar a ferramenta e <b>paga todo o consumo</b>. É uma pessoa ou empresa <b>contratada, com nome</b>. Os dados chegam à plataforma como metadados, sem identificar pacientes.</p>",sim:"<div class=\"row\"><span>Advanced</span><span class=\"pill\">observa</span></div><div class=\"row\"><span>Master (com a aba Clínica)</span><span class=\"pill\">responde e paga</span></div><div class=\"row\"><span>Médicos → usuários</span><span class=\"pill\">usam o app</span></div><button class=\"b\" data-a>Entendi a hierarquia</button>",liga:(el,ok)=>{el.querySelector('[data-a]').onclick=function(){this.disabled=true;ok("Hierarquia entendida: Advanced → master (com a clínica) → médicos → usuários.")}}},
 {t:"Convidar um médico",txt:"<p>Na aba <b>Médicos</b> do app do Master você gera um <b>convite nominal</b>, de uso único e com validade. O médico abre o <b>app do Médico</b> com o convite, faz o cadastro oficial (CRM) e já entra vinculado à sua clínica. Não existe cadastro aberto: <b>só entra quem você convidou</b>.</p>",sim:"<input type=\"text\" id=\"nc\" placeholder=\"Nome do médico (ex.: Dra. Exemplo)\"><button class=\"b\" data-a>✉️ Gerar convite (simulado)</button><div id=\"cod\" style=\"margin-top:8px;font-family:monospace;font-weight:800\"></div>",liga:(el,ok,er)=>{el.querySelector('[data-a]').onclick=function(){const n=document.getElementById('nc').value.trim();if(!n){er('Digite o nome do médico.');return}this.disabled=true;document.getElementById('cod').textContent='CONV-'+n.replace(/[^A-Za-z0-9]/g,'').slice(0,4).toUpperCase().padEnd(4,'X')+'-EXEMPLO';ok('Convite de exemplo gerado. Este é fictício e não dá acesso a nada.')}}},
@@ -93,5 +93,6 @@ function quiz(){
 }
 passo();
 </script>
+<script src="/teste-selo.js"></script>
 </body>
 </html>

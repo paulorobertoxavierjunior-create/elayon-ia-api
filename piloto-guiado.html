@@ -79,6 +79,11 @@ details.c>summary{cursor:pointer;font-size:13px;font-weight:800;color:var(--a);l
 <section class="scr" id="s5" hidden><div class="c"><h3>📝 Laudo</h3><div class="stx" id="resumo"></div>
 <div><label>Observações clínicas / pré-diagnóstico (sua responsabilidade)</label><textarea id="l_obs" style="min-height:130px"></textarea></div>
 <div><label>Apoio de IA (editável; entra no laudo como apoio, sob sua responsabilidade)</label><textarea id="l_ia" style="min-height:130px"></textarea></div>
+<div class="c" style="box-shadow:none"><h3>💬 Conversar com a IA sobre este laudo</h3><p style="font-size:12px">Pergunte, peça ideias ou uma redação. O que a IA responder só entra no laudo se você tocar em um dos botões abaixo da resposta; tudo continua editável.</p>
+<div id="lcLog" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow:auto;margin-bottom:6px"></div>
+<div class="row2"><button class="b g sm" data-lq="Resuma os achados mais importantes das medidas, sem diagnóstico.">Resumir achados</button><button class="b g sm" data-lq="Quais pontos de atenção o médico deveria observar nestas medidas?">Pontos de atenção</button></div>
+<textarea id="lcQ" placeholder="Pergunte à IA sobre as medidas, a redação ou a sua observação…" style="min-height:60px;margin-top:6px"></textarea>
+<div class="row2" style="margin-top:6px"><button class="b" id="lcSend">Perguntar</button><button class="b g" id="lcRed">🔄 Refazer o apoio de IA</button></div><div class="msg" id="mLc"></div></div>
 <div class="g2"><div><label>Severidade (0–10)</label><input id="l_sev" type="number" min="0" max="10" value="5"></div><div><label>Conduta</label><input id="l_cd" value="Fonoaudiologia 2x/semana"></div></div>
 <div><label>Exercícios para o Vibes 8</label><textarea id="l_ex" style="min-height:60px"></textarea></div>
 <div class="c" style="box-shadow:none"><h3>✅ Tarefas deste laudo</h3><p style="font-size:12px">O que você marcar entra no PDF do laudo e vai para a fila do paciente quando a clínica liberar. Laudo e tarefas seguem juntos, com a mesma assinatura.</p>
@@ -154,7 +159,7 @@ $('bIni').onclick=()=>{const n=$('m_nome').value.trim(),r=$('m_reg').value.trim(
 /* ---------- 2 calibração ---------- */
 function slotsRender(){CAL=[null,null,null];$('calRes').hidden=true;$('bCal').disabled=true;msg('mC','');
   $('slots').innerHTML=ET.map((t,i)=>`<div class="slot" id="sl${i}"><b style="font-size:13px">${i+1} · ${ETN[i]}</b><p>${t}</p><div class="row2"><label class="b g" style="cursor:pointer;margin:0">📎 Carregar<input type="file" accept="audio/*" hidden data-s="${i}"></label><button class="b g" data-r="${i}">🎙️ Gravar</button></div><div class="stx" id="ss${i}">Aguardando áudio.</div></div>`).join('')}
-function calSet(i,ab,tipo,nome){const a=CAL[i]={ab,tipo,nome,res:null};$('sl'+i).className='slot';$('ss'+i).innerHTML=`${esc(nome)}<audio controls src="${url(a)}"></audio>`;$('bCal').disabled=CAL.some(x=>!x)}
+function calSet(i,ab,tipo,nome){const a=CAL[i]={ab,tipo,nome,res:null};$('sl'+i).className='slot';$('ss'+i).innerHTML=`${esc(nome)}<audio controls src="${url(a)}"></audio>`;$('bCal').disabled=CAL.some(x=>!x);rdSalvar()}
 $('slots').addEventListener('change',async e=>{const i=e.target.dataset&&e.target.dataset.s;if(i==null)return;const f=e.target.files[0];e.target.value='';if(f)calSet(+i,await bufDe(f),f.type,f.name)});
 $('slots').addEventListener('click',e=>{const i=e.target.dataset&&e.target.dataset.r;if(i==null)return;grava(e.target,(ab,t,n)=>calSet(+i,ab,t,n)).then(r=>{if(r===null)msg('mC','Microfone indisponível ou sem permissão.',1)})});
 $('bCal').onclick=async()=>{
@@ -180,7 +185,7 @@ $('bIr').onclick=irPiloto;
 /* ---------- 3 cadastro ---------- */
 function cadPre(){if(MODO==='treino'){if(!cv('c_nome'))$('c_nome').value='Paciente de treinamento';if(!cv('c_email'))$('c_email').value=U.email||'';$('c_cons').checked=true}renAud()}
 const tarOk=a=>a.tarefa&&a.tarefa!==TAREFAS[0]&&a.tarefa!=='Outra';
-async function addAud(ab,tipo,nome,ts){if(AU.length>=4)return msg('m3','Máximo de 4 áudios na consulta.',1);AU.push({ab,tipo,nome,ts:ts||Date.now(),tarefa:TAREFAS[0]});renAud()}
+async function addAud(ab,tipo,nome,ts){if(AU.length>=4)return msg('m3','Máximo de 4 áudios na consulta.',1);AU.push({ab,tipo,nome,ts:ts||Date.now(),tarefa:TAREFAS[0]});renAud();rdSalvar()}
 $('fAud').onchange=async e=>{const fs=[...e.target.files].sort((x,y)=>(x.lastModified-y.lastModified)||x.name.localeCompare(y.name));e.target.value='';for(const f of fs)await addAud(await bufDe(f),f.type,f.name,f.lastModified)};
 $('bGrav').onclick=()=>grava($('bGrav'),(ab,t,n)=>addAud(ab,t,n)).then(r=>{if(r===null)msg('m3','Microfone indisponível ou sem permissão.',1)});
 function renAud(){$('aul').innerHTML=AU.length?AU.map((a,i)=>{const o=/^Outra/.test(a.tarefa||''),sel=o?'Outra':a.tarefa;
@@ -194,6 +199,7 @@ function ctxCad(){const L=[];if(cv('c_queixa'))L.push(cv('c_queixa'));if(cv('c_d
   const d=[cv('c_idade')&&cv('c_idade')+' anos',cv('c_sexo'),cv('c_lat'),cv('c_esc')&&'escolaridade '+cv('c_esc')+' anos',cv('c_lingua')&&'língua: '+cv('c_lingua')].filter(Boolean).join(', ');if(d)L.push(d);
   [['c_tempo','evento há '],['c_lesao','lesão: '],['c_trat','tratamentos: '],['c_med','medicação do dia: '],['c_estado','estado no dia: '],['c_prot','próteses: '],['c_inter','intercorrências: '],['c_cel','gravação: ']].forEach(([i,t])=>{if(cv(i))L.push(t+cv(i))});return L.join('; ').slice(0,900)}
 $('bGo').onclick=()=>{
+  if(cv('c_nome')&&!window.__CR&&!/teste\s*$/i.test(cv('c_nome')))$('c_nome').value=cv('c_nome').trim()+' TESTE';
   if(!cv('c_nome')||!cv('c_email'))return msg('m3','Informe nome e e-mail da conta Elayon do usuário (o PDF só abre no cockpit dele se o e-mail bater).',1);
   if(!AU.length)return msg('m3','Carregue ao menos 1 áudio da consulta.',1);
   const sem=AU.map((a,i)=>[a,i+1]).filter(([a])=>!tarOk(a)).map(x=>x[1]);if(sem.length)return msg('m3','Informe a tarefa do(s) áudio(s) '+sem.join(', ')+'.',1);
@@ -270,7 +276,7 @@ async function guiado(){
     if(t){await say(t,'u');await say('Registrado.')}else await say('Sem observação neste áudio. Seguindo.')}
   try{$('aud').loop=false;$('aud').pause()}catch(e){}$('marc').hidden=true;V.solo(-1);
   await say('Montando as faixas de referência com os áudios medidos…');prog(.9);faixas(S);
-  let ia='';try{ia=await Promise.race([iaRascunho(S),new Promise(r=>setTimeout(()=>r('__tempo'),60000))]);if(ia==='__tempo'){ia='';await say('A IA demorou demais. O laudo segue sem o texto de apoio, e você pode tentar de novo depois.')}}catch(e){ia='';await say('Não consegui o texto de apoio da IA ('+esc(e.message||e)+'). O laudo segue sem ele.')}
+  let ia='';try{ia=await comTempo(iaRascunho(S),240000)}catch(e){ia='';await say('Não consegui o texto de apoio da IA ('+esc(e.message||e)+'). O laudo segue sem ele.')}
   fillLaudo(S,ia);prog(1);
   await say('Pronto. O laudo está montado com as suas observações e anotações. Revise, ajuste e assine no próximo passo.');
   $('bLaudo').hidden=false;$('bLaudo').textContent='Ir para o laudo ▶';$('bLaudo').onclick=()=>show(5)}
@@ -316,14 +322,27 @@ function refPayload(){const R0=REF||{n:0},o={n:R0.n||0},f1=+$('f1').value,f2=+$(
   if(R0.hnr)o.hnr={lo:hn,hi:Math.max(hn+1,+R0.hnr.hi.toFixed(1)),med:+R0.hnr.med.toFixed(1)};
   [['pm','pm'],['ptr','ptr'],['mu','mu']].forEach(([a,b])=>{if(R0[a])o[b]={lo:+R0[a].lo.toFixed(2),hi:+R0[a].hi.toFixed(2),med:+R0[a].med.toFixed(2)}});return o}
 
-/* apoio de IA (opcional) */
+/* apoio de IA: laudo completo em etapas curtas (sempre sai texto, mesmo se a IA falhar) */
+const comTempo=(p,ms)=>Promise.race([p,new Promise((_,rj)=>setTimeout(()=>rj(new Error('tempo esgotado')),ms))]);
+const med=(x,u)=>x&&x.m!=null?x.m+(u?' '+u:''):'—';
+function resumoAud(a){const r=a.res||{},c=r.crs||{};return {audio:AU.indexOf(a)+1,tarefa:a.tarefa,qualidade:(r.qual||{}).nivel||'—',dur_s:r.dur,fala_pct:r.fon!=null?Math.round(r.fon*100):null,f0_hz:med(r.f0),jitter_pct:med(r.jit),shimmer_db:med(r.shim),hnr_db:med(r.hnr),pausas:c.pausas,pausas_min:c.pausas_min,ptr:c.ptr,observacao_do_medico:a.obs||''}}
+function baseLocal(S){const L=S.map(a=>{const o=resumoAud(a);return `ÁUDIO ${o.audio} (${o.tarefa}): qualidade ${o.qualidade}; duração ${o.dur_s} s; fala detectada ${o.fala_pct}%. Medidas estimadas: F0 ${o.f0_hz} Hz, jitter ${o.jitter_pct} %, shimmer ${o.shimmer_db} dB, HNR ${o.hnr_db} dB${o.pausas!=null?`; pausas ${o.pausas}${o.pausas_min!=null?' ('+o.pausas_min+'/min)':''}`:''}.`});
+  return {por:L,fim:'PONTOS PARA O MÉDICO AVALIAR\n1. Conferir a qualidade de cada áudio antes de interpretar as medidas.\n2. Comparar as medidas com a calibração do próprio usuário, não com normas.\n3. Tarefas diferentes não são comparáveis entre si.\n4. Os valores são estimativas acústicas de microfone de celular; a conclusão é do médico.'}}
+const REGRAS='Regras: separe MEDIDA, INTERPRETAÇÃO e LIMITAÇÃO; nunca diga que o paciente melhorou ou piorou, diga que a medida mudou em relação à referência; sem diagnóstico, sem conduta, sem nomes de doenças, sem números de corte; português simples, texto corrido, SEM markdown.';
 async function iaRascunho(S){
-  if(!provLista(PROF).length){await say('A IA ainda não está configurada no seu perfil, então o laudo segue sem o texto de apoio. A conclusão clínica é sempre sua.');return''}
-  await say('Pedindo à IA um texto de apoio (até 1 minuto). Ela descreve as medidas e não dá diagnóstico.');
-  const dados=S.map(a=>({audio:AU.indexOf(a)+1,tarefa:a.tarefa,qualidade:(a.res.qual||{}).nivel,crs_temporal:a.res.crs,res:{...a.res,crs:undefined,qual:undefined,jan:undefined,nucp:undefined},observacao_do_medico:a.obs||'',anotacoes_por_grafico:Object.fromEntries(Object.entries(a.notasG||{}).map(([k,v])=>[GNOME[k],v]))}));
-  const cal=CAL.map((a,i)=>({etapa:ETN[i],f0:mv(a.res.f0),fon:a.res.fon,curto:!!a.res.curto}));
-  try{return limpaTxt(await aiCall(PROF,`Paciente (nome omitido por privacidade) (contexto: ${ctxCad()||'—'}). Exercícios feitos pelo usuário antes da consulta: ${cv('c_exe')||'não informados'}. Sequência dos áudios: primeiro a calibração inicial (olá, contagem de 1 a 10, vogal A com a data) e depois os áudios da consulta, na ordem. Calibração inicial do usuário (3 áudios): ${JSON.stringify(cal)}. Você recebe ${S.length} áudio(s) da mesma consulta, em ordem, com métricas acústicas ESTIMADAS por microfone de celular: ${JSON.stringify(dados)}. As imagens são os espectroides, na mesma ordem. Recortes marcados pelo médico: ${JSON.stringify(RC.map(r=>({audio:r.a,de_s:r.t0,ate_s:r.t1,legenda:r.txt,met:r.met})))}. BASE DE CONHECIMENTO: nenhuma carregada; para afirmações da literatura escreva 'sem base na literatura carregada'. Regras: (a) separe MEDIDA, INTERPRETAÇÃO e LIMITAÇÃO; (b) crs_temporal só pode ser lido como hipótese de observação, nunca achado clínico; (c) se a qualidade for 'atenção' ou 'insuficiente', diga isso primeiro e reduza a confiança; (d) tarefas diferentes não são comparáveis; (e) compare as sessões do próprio paciente, não com normas; (f) não cite números de corte nem nomes de doenças como conclusão; (g) nunca diga que o paciente melhorou ou piorou: diga que a medida mudou em relação à referência. FORMATO: português simples, texto corrido com títulos curtos em MAIÚSCULAS, SEM markdown, no máximo 300 palavras, sem citar as regras nem nomes internos de campos. Entregue: QUALIDADE; RITMO E PAUSAS; VOZ; PONTOS PARA O MÉDICO AVALIAR (até 4 itens). Não dê diagnóstico definitivo nem conduta.`,[...S.map(a=>a.img).filter(Boolean),...RC.map(r=>r.img).filter(Boolean)].slice(0,6)))}
-  catch(e){await say('A IA não respondeu: '+aiErroAmigavel(e.message)+' O laudo segue sem esse texto.');return''}}
+  const base=baseLocal(S);
+  if(!provLista(PROF).length){await say('A IA ainda não está configurada no seu perfil, então monto o texto de apoio só com as medidas. A conclusão clínica é sempre sua.');return 'QUALIDADE E MEDIDAS (montado só com as medidas)\n'+base.por.join('\n')+'\n\n'+base.fim}
+  const cal=CAL.map((a,i)=>({etapa:ETN[i],f0:mv(a.res.f0),fon:a.res.fon}));
+  await say('Pedindo à IA o apoio de cada áudio, um por vez (rápido). Se algum falhar, uso as medidas no lugar.');
+  const partes=[];let falhou=0;
+  for(let k=0;k<S.length;k++){const a=S[k],o=resumoAud(a);prog(.9+.08*k/S.length);
+    try{const t=limpaTxt(await comTempo(aiCall(PROF,`Calibração inicial do usuário: ${JSON.stringify(cal)}. Áudio ${o.audio} da consulta (tarefa: ${o.tarefa}), métricas acústicas ESTIMADAS por microfone de celular: ${JSON.stringify(o)}. Observação do médico: "${a.obs||'sem observação'}". Escreva em até 70 palavras o apoio a este áudio. ${REGRAS}`,[]),45000));
+      partes.push(`ÁUDIO ${o.audio} (${o.tarefa})\n${t}`)}
+    catch(e){falhou++;partes.push(base.por[k]+' (texto automático: a IA não respondeu neste áudio)');if(/quota|429|exhausted|esgotada/i.test(String(e.message))){for(let j=k+1;j<S.length;j++)partes.push(base.por[j]);break}}}
+  let fim=base.fim;
+  if(falhou<S.length){try{fim='PONTOS PARA O MÉDICO AVALIAR\n'+limpaTxt(await comTempo(aiCall(PROF,`Resumos por áudio desta consulta: ${partes.join(' | ').slice(0,3500)}. Observações do médico: ${S.map(a=>a.obs).filter(Boolean).join(' / ')||'nenhuma'}. Liste até 4 pontos curtos para o médico avaliar. ${REGRAS}`,[]),45000))}catch(e){}}
+  if(falhou)await say(`A IA respondeu em ${S.length-falhou} de ${S.length} áudios; o restante entrou com as medidas. Você pode pedir de novo na tela do laudo.`);
+  return partes.join('\n\n')+'\n\n'+fim}
 function fillLaudo(S,ia){
   $('l_obs').value=S.map(a=>{const n=AU.indexOf(a)+1,g=Object.entries(a.notasG||{}).map(([k,v])=>`  - ${GNOME[k]}: ${v}`).join('\n');return (a.obs?`Áudio ${n} (${a.tarefa}): ${a.obs}`:'')+(g?`\nAnotações nos gráficos do áudio ${n}:\n${g}`:'')}).filter(x=>x.trim()).join('\n');$('l_ia').value=ia||'';
   $('l_ex').value='Vogal sustentada /a/ 5 s; contagem 1–10; frase curta';
@@ -374,6 +393,7 @@ function pdf(o,S,ass,payload,rcs){
   li(o.piloto.nome,1,13);li(`${o.piloto.crm}  |  ${o.piloto.esp}`);if(o.piloto.inst)li(o.piloto.inst);if(o.piloto.tel)li('WhatsApp profissional: '+o.piloto.tel);li('Conta Elayon: '+o.piloto.email);
   li('Assinado eletronicamente em '+new Date(o.emitido).toLocaleString('pt-BR'),0,9);li('Integridade (SHA-256): '+o.hash.slice(0,32)+'...',0,8);
   const k=Math.min(230/ass.w,90/ass.h),aw=ass.w*k,ah=ass.h*k;d.addImage(ass.url,'PNG',297-aw/2,568-ah,aw,ah);
+  {const n=d.getNumberOfPages();for(let i=1;i<=n;i++){d.setPage(i);d.setFontSize(7.5);d.setTextColor(185,28,28);d.text('TESTE · ferramenta em validação · apoio à avaliação do médico, sem valor diagnóstico',297,830,{align:'center'});d.setTextColor(0)}}
   return d.output('blob')}
 $('bAss').onclick=async()=>{
   const S=AU.filter(a=>a.res),ob=cv('l_obs');
@@ -394,7 +414,7 @@ $('bAss').onclick=async()=>{
       notas:RC.map(r=>({a:r.a,t:r.t0,txt:r.txt||'trecho marcado',f0:r.met.f0,db:r.met.db})).slice(0,20)};
     const obj={...corpo,hash:await sha(JSON.stringify(corpo))};
     const blob=pdf(obj,sess.map((s,i)=>({...s,img:S[i].img})),ass,btoa(unescape(encodeURIComponent(JSON.stringify(obj)))),RC);
-    ULT={hash:obj.hash,blob,nome:`laudo-elayon-${corpo.paciente.nome.replace(/\W+/g,'-')}-${new Date().toISOString().slice(0,10)}.pdf`,urlp:URL.createObjectURL(blob),ok:{env:false}};
+    ULT={hash:obj.hash,blob,nome:(n=>{const p=String(n||'').replace(/\bTESTE\b/gi,'').trim().split(/\s+/).filter(Boolean),i=p.map(w=>w[0]).join('').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,5)||'ID';return `laudo-${i}-${new Date().toISOString().slice(0,10)}-TESTE.pdf`})(corpo.paciente.nome),urlp:URL.createObjectURL(blob),ok:{env:false}};
     msg('m5','');entrega()}catch(e){msg('m5','❌ '+(e.message||e),1)}finally{$('bAss').disabled=false}};
 
 /* ---------- 6 entrega ---------- */
@@ -436,7 +456,7 @@ $('bFim').onclick=()=>{
   clearInterval(cdT);try{$('aud').pause()}catch(e){}[...CAL,...AU].forEach(a=>a&&a._u&&URL.revokeObjectURL(a._u));if(ULT)URL.revokeObjectURL(ULT.urlp);
   CAL=[null,null,null];AU=[];RC=[];REF=null;ULT=null;CUR=null;TOURS=0;limpaAss();$('ok').checked=false;$('c_cons').checked=false;
   document.querySelectorAll('#s3 input:not([type=file]):not([type=checkbox]),#s3 textarea,#s3 select,#s5 textarea').forEach(e=>e.value='');$('l_sev').value='5';$('l_cd').value='Fonoaudiologia 2x/semana';
-  $('pv').src='about:blank';$('ch').innerHTML='';renRC();renAud();if(V){V.live();V.solo(-1)}$('bCal').hidden=false;msg('m1','Sessão encerrada. Para o próximo usuário, comece pela calibração.');show(1)};
+  rdLimpar();$('pv').src='about:blank';$('ch').innerHTML='';renRC();renAud();if(V){V.live();V.solo(-1)}$('bCal').hidden=false;msg('m1','Sessão encerrada. Para o próximo usuário, comece pela calibração.');show(1)};
 
 /* ---------- vínculo com a clínica ---------- */
 async function vinculos(){CLIN=null;VINC=[];try{const {data}=await sb.from('medicos_clinica').select('*').eq('medico_id',U.id);VINC=data||[]}catch(e){}
@@ -448,6 +468,65 @@ $('bVinc').onclick=async()=>{const cod=$('m_cod').value.trim();if(!cod)return ms
     const ins=await sb.from('medicos_clinica').insert({medico_id:U.id,clinica_id:data.id,clinica_nome:data.nome,medico_nome:n,medico_registro:r,status:'pendente'});
     if(ins.error&&ins.error.code!=='23505')throw ins.error;$('m_cod').value='';msg('m1',ins.error?'Você já pediu vínculo com esta clínica.':'Pedido enviado. A clínica precisa aprovar.');await vinculos()}
   catch(e){msg('m1','❌ '+(e.message||e),1)}};
+
+
+/* conversa com a IA na tela do laudo */
+const LCH=[];
+function lcCtx(){const S=AU.filter(a=>a.res);return `Medidas por áudio (estimativas acústicas de celular): ${JSON.stringify(S.map(resumoAud)).slice(0,3000)}. Referência do usuário na calibração: ${JSON.stringify(CBASE).slice(0,600)}. Observações atuais do médico: "${($('l_obs').value||'').slice(0,1500)}". Apoio de IA atual: "${($('l_ia').value||'').slice(0,1500)}".`}
+function lcBub(t,cls){const d=document.createElement('div');d.className='bub '+cls;d.textContent=t;$('lcLog').appendChild(d);
+  if(cls==='ia'){const r=document.createElement('div');r.className='row2';r.style.marginTop='6px';r.innerHTML='<button class="b g sm" data-pi="l_ia">→ pôr no Apoio de IA</button><button class="b g sm" data-pi="l_obs">→ pôr nas Observações</button>';r.dataset.t=t;d.appendChild(r)}
+  $('lcLog').scrollTop=1e9;return d}
+$('lcLog').addEventListener('click',e=>{const id=e.target.dataset&&e.target.dataset.pi;if(!id)return;const t=e.target.parentNode.dataset.t||'',el=$(id);el.value=(el.value.trim()?el.value.trim()+'\n\n':'')+t;el.dispatchEvent(new Event('input',{bubbles:true}));e.target.textContent='✔ inserido';e.target.disabled=true});
+async function lcPerg(q){q=(q||'').trim();if(!q)return;
+  if(!provLista(PROF).length)return msg('mLc','A IA não está configurada no seu perfil.',1);
+  lcBub(q,'u');$('lcQ').value='';msg('mLc','⏳ a IA está respondendo…');$('lcSend').disabled=true;
+  try{const h=LCH.slice(-6).map(x=>x.r+': '+x.t).join('\n');
+    const r=limpaTxt(await comTempo(aiCall(PROF,`Você auxilia o médico na redação do laudo vocal. ${lcCtx()}\nConversa até aqui:\n${h||'(início)'}\nPergunta do médico: "${q}"\nResponda em até 120 palavras, em português simples, texto corrido, SEM markdown. Sem diagnóstico, sem conduta e sem dizer que melhorou ou piorou (diga que a medida mudou em relação à referência). Use só as medidas fornecidas; se faltar dado, diga. A decisão é do médico.`,[]),60000));
+    LCH.push({r:'Médico',t:q},{r:'IA',t:r});lcBub(r||'Sem resposta agora.','ia');msg('mLc','')}
+  catch(e){msg('mLc','A IA não respondeu: '+aiErroAmigavel(e.message),1)}finally{$('lcSend').disabled=false}}
+$('lcSend').onclick=()=>lcPerg($('lcQ').value);
+$('lcQ').onkeydown=e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();lcPerg($('lcQ').value)}};
+document.querySelectorAll('[data-lq]').forEach(b=>b.onclick=()=>lcPerg(b.dataset.lq));
+$('lcRed').onclick=async()=>{const S=AU.filter(a=>a.res);if(!S.length)return msg('mLc','Sem áudios medidos nesta sessão.',1);
+  if($('l_ia').value.trim()&&!confirm('Substituir o texto atual do Apoio de IA por uma nova versão?'))return;
+  $('lcRed').disabled=true;msg('mLc','⏳ gerando o apoio, um áudio por vez…');
+  const ant=window.say;try{const t=await comTempo(iaRascunho(S),240000);$('l_ia').value=t;$('l_ia').dispatchEvent(new Event('input',{bubbles:true}));msg('mLc','✅ Apoio atualizado. Edite à vontade.')}catch(e){msg('mLc','Não consegui: '+(e.message||e),1)}finally{$('lcRed').disabled=false}};
+/* ---------- rascunho automático (sobrevive a recarregar a página) ---------- */
+const RD={ok:false,t:0,sujo:false};
+const rdDB=()=>new Promise((res,rej)=>{const q=indexedDB.open('elx_piloto_rascunho',1);q.onupgradeneeded=()=>q.result.createObjectStore('r');q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)});
+async function rdPut(k,v){const d=await rdDB();return new Promise((res,rej)=>{const t=d.transaction('r','readwrite');v===null?t.objectStore('r').delete(k):t.objectStore('r').put(v,k);t.oncomplete=()=>{d.close();res()};t.onerror=()=>rej(t.error)})}
+async function rdGet(k){const d=await rdDB();return new Promise((res,rej)=>{const q=d.transaction('r').objectStore('r').get(k);q.onsuccess=()=>{d.close();res(q.result)};q.onerror=()=>rej(q.error)})}
+const rdTela=()=>{const l=[...document.querySelectorAll('.scr')];const i=l.findIndex(s=>!s.hidden);return i<0?1:i+1};
+function rdCampos(){const o={};document.querySelectorAll('.scr input[id],.scr select[id],.scr textarea[id]').forEach(e=>{if(e.type==='file'||e.type==='password'||e.type==='button')return;o[e.id]=e.type==='checkbox'?e.checked:e.value});return o}
+async function rdSalvar(){
+  if(!RD.ok||!U||!U.id)return;const tela=rdTela();if(tela===6)return;
+  const c=rdCampos(),tem=CAL.some(x=>x)||AU.length||RC.length||Object.entries(c).some(([k,v])=>v&&v!==true&&!/^(m_|c_cons|ok)/.test(k)&&k!=='t_tit'&&k!=='l_sev'&&k!=='l_cd');
+  if(!tem)return;
+  const d={v:1,uid:U.id,modo:MODO,ts:Date.now(),tela,doc:DOC,campos:c,tx:[...document.querySelectorAll('#t_ex .tx:checked')].map(i=>i.value),
+    cal:CAL.map(a=>a?{ab:a.ab,tipo:a.tipo,nome:a.nome}:null),au:AU.map(a=>({ab:a.ab,tipo:a.tipo,nome:a.nome,ts:a.ts,tarefa:a.tarefa,obs:a.obs||''})),
+    rc:RC.map(r=>({...r}))};
+  try{await rdPut('d_'+U.id,d);RD.t=d.ts;RD.sujo=false;rdPill()}catch(e){try{const {rc,...leve}=d;await rdPut('d_'+U.id,leve);RD.t=d.ts;rdPill()}catch(x){}}}
+function rdPill(){let p=$('rdPill');if(!p){p=document.createElement('div');p.id='rdPill';p.style.cssText='position:fixed;left:10px;bottom:10px;background:#0b1f33cc;color:#fff;font:600 11px system-ui;padding:5px 10px;border-radius:99px;z-index:50;pointer-events:none';document.body.appendChild(p)}
+  p.textContent='💾 rascunho salvo '+new Date(RD.t).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}
+async function rdLimpar(){try{await rdPut('d_'+U.id,null)}catch(e){}const p=$('rdPill');if(p)p.remove()}
+async function rdRestaurar(){
+  try{const d=await rdGet('d_'+U.id);
+    if(!d||d.modo!==MODO||Date.now()-d.ts>3*864e5)return;
+    Object.entries(d.campos||{}).forEach(([k,v])=>{const e=$(k);if(!e)return;if(e.type==='checkbox')e.checked=!!v;else e.value=v});
+    document.querySelectorAll('#t_ex .tx').forEach(i=>i.checked=(d.tx||[]).includes(i.value));
+    DOC=d.doc||DOC;
+    if(d.cal&&d.cal.some(x=>x)){slotsRender();d.cal.forEach((a,i)=>{if(a)calSet(i,a.ab,a.tipo,a.nome)})}
+    AU=(d.au||[]).map(a=>({...a}));RC=(d.rc||[]).map(r=>({...r}));
+    const h=new Date(d.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    if(d.tela>=3&&CAL.every(x=>x)){await $('bCal').onclick();clearInterval(cdT);msg('mIr','');if(!CAL.every(x=>x&&x.res)){show(2);msg('mC','Rascunho retomado, mas um áudio de calibração falhou: substitua e calibre de novo.',1);RD.ok=true;return}irPiloto();renAud();renRC();
+      msg('m3','↩️ Consulta retomada do rascunho das '+h+'.'+(d.tela>=4?' A leitura guiada recomeça ao tocar em analisar; cadastro, áudios e laudo foram mantidos.':''))}
+    else if(d.tela===2&&CAL.every(x=>x)){await $('bCal').onclick()}
+    else if(d.tela>=2&&DOC.nome_completo){slotsRender();show(2);msg('mC','↩️ Rascunho retomado das '+h+'. Carregue/regrave os áudios de calibração.')}
+    RD.t=d.ts;rdPill()}
+  catch(e){}finally{RD.ok=true}}
+setInterval(rdSalvar,8000);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)rdSalvar()});addEventListener('pagehide',()=>{rdSalvar()});
+document.addEventListener('input',()=>{RD.sujo=true;clearTimeout(RD.dt);RD.dt=setTimeout(rdSalvar,1500)});document.addEventListener('change',()=>{clearTimeout(RD.dt);RD.dt=setTimeout(rdSalvar,800)});
 
 /* ---------- início ---------- */
 (async()=>{
@@ -462,6 +541,7 @@ $('bVinc').onclick=async()=>{const cod=$('m_cod').value.trim();if(!cod)return ms
   if(pedido==='real'&&APR&&!CRED)window.__semCred=true;
   try{if(!CRED){const b=$('bReal');if(b)b.hidden=true}}catch(e){}
   prefill();
+  try{sb.rpc('coleta_real').then(r=>{window.__CR=r.data===true}).catch(()=>{})}catch(e){}
   try{const q=new URLSearchParams(location.search);if(q.get('pn'))$('c_nome').value=q.get('pn');if(q.get('pe'))$('c_email').value=q.get('pe')}catch(e){}
   if(MODO==='treino'){$('hTit').textContent='Calibração do médico';$('hSub').textContent='Treinamento · você faz o papel do usuário';$('mdTag').textContent='TREINAMENTO';$('mdTag').className='pill t';
     $('mdTxt').textContent=window.__semCred?'O cockpit real é para Pilotos Oficiais: falta ativar a credencial exclusiva. Siga a sua trilha: cadastro profissional e credencial. Enquanto isso, o treinamento está liberado.':pedido==='real'?'O cockpit real abre depois do treinamento. Faça a calibração com a sua própria voz, leia os 8 gráficos com a IA e assine o PDF de treino. Nada é enviado.':'Antes de atender, você treina o fluxo inteiro com a sua própria voz: calibra, lê os 8 gráficos com a IA, anota e assina um PDF de treino. Nada é enviado.';
@@ -470,5 +550,6 @@ $('bVinc').onclick=async()=>{const cod=$('m_cod').value.trim();if(!cod)return ms
     $('mdTxt').textContent='Preencha uma vez. Estes dados assinam o laudo. O fluxo: calibração do usuário, cadastro e áudios da consulta, leitura guiada dos gráficos, laudo assinado por você e envio à clínica.';
     $('clBox').hidden=false;$('calTxt0').textContent='Carregue os 3 áudios de calibração do usuário, na ordem. Todo atendimento começa por eles.';$('bIni').textContent='Iniciar calibração do usuário ▶';await vinculos();
     if(!PIL){msg('m1','Você ainda não tem o cadastro profissional. Faça no perfil, aba médico.',1)}}
-  show(1)})();
-</script><script>(function(){var h='/app-medico.html';try{var x=localStorage.getItem('elx_home');if(/^\/app-(medico|master)\.html$/.test(x))h=x}catch(e){}document.querySelectorAll('[data-home]').forEach(function(a){a.href=h})})()</script><script src="/voltar.js"></script></body></html>
+  show(1);await rdRestaurar()})();
+</script><script>(function(){var h='/app-medico.html';try{var x=localStorage.getItem('elx_home');if(/^\/app-(medico|master)\.html$/.test(x))h=x}catch(e){}document.querySelectorAll('[data-home]').forEach(function(a){a.href=h})})()</script><script src="/voltar.js"></script><script src="/teste-selo.js"></script>
+</body></html>

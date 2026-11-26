@@ -25,4 +25,5 @@ Elx.inicia({tipo:'medico',nome:'Elayon Médico',cor:'#0b7285',titulo:'Elayon Mé
  const fimT=async()=>{try{const r=await rpc('concluir_treinamento',{p:'medico'});if(r&&r.ok===false)throw new Error(r.erro);location.reload()}catch(e){$('trMs').className='msg er';$('trMs').textContent=msg(e)}};
  const feito=Elx.treino($('trM'),'elx_tr_medico',PASSOS,fimT);if(feito&&!trOk)fimT();
 });
-</script></body></html>
+</script><script src="/teste-selo.js"></script>
+</body></html>

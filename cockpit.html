@@ -79,8 +79,8 @@ button,.btn{font-family:inherit}
 <a href="meu-espaco.html">🌱 Meu Espaço: exercícios e auto escuta</a></div>
 <div id="pT" class="box pn" style="display:none"><b style="color:#0e7490">🗣️ Testes vocálicos de comandos</b><p>Em breve: a IA dá um comando (vogal sustentada, contagem, frase), você responde e o Vibes 8 compara cada medida com as faixas definidas no laudo do seu médico, mostrando nos 12 gráficos o que ficou dentro e fora.</p><p>Pré-requisito: laudo carregado na aba Conteúdo.</p></div>
 <div id="pR" class="box pn" style="display:none"><b style="color:#0e7490">🏋️ Treino, orientação e autoconsulta simbólica</b><p>Carregue aqui o PDF de treino (tutorial da ferramenta, exercícios e orientações). Ele soma 1 token por áudio e a IA o consulta ao responder.</p><div id="fTreino"></div><p>Em breve: exercícios guiados pela IA, periódicos ou contínuos, conforme o modo e os exercícios definidos no laudo do médico, com cada autoexame entrando no gráfico XII.</p></div><script>
-const CFG={URL:'https://xlktkelumtpugidnecbj.supabase.co',
-KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM',
+const CFG={URL:'https://hjgyycxwoygkcxgtcllk.supabase.co',
+KEY:'sb_publishable_Z3CocLvFjJVaM97y2QfeQQ_CP94PfFN',
 MAX:3,IA_CAPTA_MIC:false,INDEX:'https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/',TRIAGEM:'https://paulorobertoxavierjunior-create.github.io/elayon-crs-triagem/',LOGIN:'login.html',
 GEMINI:'gemini-3.8-flash',OPENAI:'gpt-4o',
 ETAPAS:['Teste de conexão: abra o microfone e diga apenas “olá”, de forma rápida e natural.','Conte de um até dez, devagar e com voz tranquila.','Sustente a vogal “a” por cerca de cinco segundos e, depois, diga a data de hoje.']};
@@ -380,7 +380,7 @@ async function processar(blob){
     if(!U.coberto&&U.tokens<custo()){aviso('Saldo insuficiente de tokens.');setMic('Saldo insuficiente',true)}else micPronto()
   }catch(e){aviso('❌ Erro ao processar a sessão: '+(e&&e.message||e));if(bub)bub.textContent='(erro ao processar)';micPronto()}
 }/* ===== Chat com a IA do usuário ===== */
-const SYS='Você é o Elayon Core, guia de calibração e acompanhamento vocal do Elayon Space, apoiando um profissional de saúde. Fale em português do Brasil, tom calmo e acolhedor, no máximo 4 frases curtas, sem listas nem emojis. NUNCA dê diagnóstico: descreva achados em linguagem simples, compare com as sessões anteriores, sugira exercícios leves ou autoexame e indique que os valores são estimativas acústicas de microfone de celular, cabendo a avaliação ao profissional. REGRAS DE SEGURANÇA: nunca diga que o usuário "melhorou" ou "piorou" como juízo clínico, diga que a medida "mudou em relação à referência"; não prometa cuidado, tratamento nem resultado; lembre, quando fizer sentido, que quem interpreta é o médico. Se o usuário relatar fala que piorou de repente, fraqueza num lado do corpo, boca torta, confusão, dor de cabeça forte e súbita, ou pensamentos de se machucar, a PRIMEIRA coisa a dizer é para ligar para o SAMU (192) ou procurar emergência agora (em sofrimento emocional, CVV 188), antes de qualquer análise. Os blocos [SISTEMA] e os dados CRS são internos: interprete, não recite números crus. Quando houver imagem, é o espectroide da sessão (espectrograma com F0, linhas das dimensões I a XI, faixa voz/silêncio e variação por segundo; linhas tracejadas marcam retomadas sonoras). No encerramento, agradeça e despeça-se.';
+const SYS='Você é o Elayon Core, guia de calibração e acompanhamento vocal do Elayon Space, apoiando um profissional de saúde. Fale em português do Brasil, tom calmo e acolhedor, no máximo 4 frases curtas, sem listas nem emojis. NUNCA dê diagnóstico: descreva achados em linguagem simples, compare com as sessões anteriores, sugira exercícios leves ou autoexame e indique que os valores são estimativas acústicas de microfone de celular, cabendo a avaliação ao profissional. REGRAS DE SEGURANÇA: nunca diga que o usuário "melhorou" ou "piorou" como juízo clínico, diga que a medida "mudou em relação à referência"; não prometa cuidado, tratamento nem resultado; lembre, quando fizer sentido, que quem interpreta é o médico. Se o usuário relatar fala que piorou de repente, fraqueza num lado do corpo, boca torta, confusão, dor de cabeça forte e súbita, ou pensamentos de se machucar, a PRIMEIRA coisa a dizer é para ligar para o SAMU (192) ou procurar emergência agora (em sofrimento emocional, CVV 188), antes de qualquer análise. Os blocos [SISTEMA] e os dados CRS são internos: interprete, não recite números crus. Quando houver imagem, é o espectroide da sessão (espectrograma com F0, linhas das dimensões I a XI, faixa voz/silêncio e variação por segundo; linhas tracejadas marcam retomadas sonoras). ESCOPO CLÍNICO: se a pessoa perguntar sobre sintomas, medicamentos, doses, exames, diagnóstico ou o que fazer clinicamente, responda em uma frase que isso é com o médico dela e volte ao exercício; nunca sugira, cite ou ajuste medicação. No encerramento, agradeça e despeça-se.';
 function chatAdd(cls,txt){const d=document.createElement('div');d.className='msg '+cls;d.textContent=txt;$('chat').appendChild(d);$('chat').scrollTop=1e9;return d}
 function escolheVoz(){const V=speechSynthesis.getVoices().filter(v=>/^pt[-_]BR/i.test(v.lang));if(!V.length)return null;
   const m=/felipe|ant[oô]nio|daniel|ricardo|thiago|rafael|male|masc/i,n=/natural|neural|online|enhanced|premium/i,f=/luciana|francisca|maria|helena|female|fem/i;
@@ -404,7 +404,7 @@ async function iaUm(c,sys,hist,ims){const P=PROV[c.p]||PROV.custom,model=c.model
   const j=await (await fetch(url,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+c.key},body:JSON.stringify({model,messages:[{role:'system',content:sys},...m]})})).json();return j.choices[0].message.content}
 async function ia(prompt,img){
   U.hist.push({r:'user',t:prompt});U.hist=U.hist.slice(-10);let out='';
-  const sys=SYS+(U.nome&&U.nome!=='Operador'?' A pessoa se chama '+U.nome+' (nome do perfil); chame-a por esse nome.':'')+(U.proto?' Protocolo definido pelo médico responsável: '+U.proto:'')+(U.relatorio?' Camada Elayon Health: relatório médico validado deste usuário. Leve-o em conta antes de responder, use como contexto de cuidado e não diagnostique: '+U.relatorio:'')+fontesSys(),im=img?img.split(',')[1]:null,rcI=(U.health==='ok'&&(lerLocal()||{obj:{}}).obj.recortes||[]).slice(0,6).map(r=>r.img.split(',')[1]),ims=[...(im?[im]:[]),...rcI],last=U.hist.length-1;
+  const sys=SYS+(U.nome&&U.nome!=='Operador'?' A pessoa se chama '+U.nome+' (nome do perfil); chame-a por esse nome.':'')+(U.proto?' Protocolo definido pelo médico responsável: '+U.proto:'')+(U.relatorio?' Camada Elayon Health: laudo médico certificado deste usuário. ESCOPO ÚNICO: acompanhar a execução dos exercícios de fala pedidos pelo médico e a observação da fala (medidas, limites do laudo, pausas, ritmo). NÃO acompanhe a vida da pessoa, não opine sobre saúde geral, não diagnostique e não mude a conduta; fora desse escopo, diga em uma frase que isso é com o médico e volte ao exercício. Laudo: '+U.relatorio:'')+fontesSys(),im=img?img.split(',')[1]:null,rcI=(U.health==='ok'&&(lerLocal()||{obj:{}}).obj.recortes||[]).slice(0,6).map(r=>r.img.split(',')[1]),ims=[...(im?[im]:[]),...rcI],last=U.hist.length-1;
   try{for(const c of provLista()){try{out=await iaUm(c,sys,U.hist,ims);if(out)break}catch(e){if(/demand|overload|unavailable|503|429/i.test(String(e&&e.message))){await new Promise(r=>setTimeout(r,2500));try{out=await iaUm(c,sys,U.hist,ims);if(out)break}catch(e2){}}}}}catch(e){out=''}
   out=(out||'').trim();if(out)U.hist.push({r:'ia',t:out});else U.hist.pop();return out
 }
@@ -460,7 +460,7 @@ async function processaPDF(b,nome,slot){
   if(!m)return msgC('❌ Este PDF não é um laudo Elayon Health.');
   let o;try{o=JSON.parse(decodeURIComponent(escape(atob(m[1]))))}catch(e){return msgC('❌ Não consegui ler o laudo.')}
   const {hash,...corpo}=o;if(hash!==await sha(JSON.stringify(corpo)))return msgC('❌ Laudo alterado: a assinatura de integridade não confere.');
-  if(o.treino)return msgC('❌ Este é um PDF de treinamento do médico: não tem validade clínica e não ativa a camada Health.');
+  if(o.treino&&!(o.paciente&&o.paciente.email&&U.email&&o.paciente.email.toLowerCase()===U.email.toLowerCase()))return msgC('❌ Este é um PDF de treinamento do médico: não tem validade clínica e não ativa a camada Health.');
   if(o.paciente.email&&U.email&&o.paciente.email.toLowerCase()!==U.email.toLowerCase())return msgC('❌ Este laudo foi emitido para outro paciente.');
   localStorage.setItem('crs_health_'+U.id,JSON.stringify(o));U.health='ok';U.relatorio=textoLaudo(o);U.params=o.params;U.ref=o.ref||null;escalas(o);
   try{await sb.from('profiles').update({health_status:'ok',health_relatorio:U.relatorio}).eq('id',U.id)}catch(e){}
@@ -472,6 +472,7 @@ async function listarClinica(){const e=$('lc');if(!e||!sb)return;e.textContent='
     e.innerHTML=L.length?L.map(l=>`<div class="fs"><div><b>${esc(l.medico_nome||'Médico')}</b><small>${esc(l.clinica_nome||'Clínica')} • ${String(l.criado||'').slice(0,10)}</small></div><div><button onclick="ativarClinica('${esc(l.pdf_path)}')">Ativar</button></div></div>`).join(''):'<small style="max-width:none">Nenhum laudo certificado ainda.</small>'}
   catch(x){e.innerHTML='<small style="max-width:none">Ainda não disponível (a clínica precisa estar configurada).</small>'}}
 async function ativarClinica(p){msgC('⏳ baixando o laudo certificado…');try{const {data,error}=await sb.storage.from('laudos').download(p);if(error||!data)throw error||new Error('vazio');await processaPDF(new Uint8Array(await data.arrayBuffer()),p.split('/').pop(),'health')}catch(e){msgC('❌ Não consegui baixar o laudo: '+(e&&e.message||e))}}
+async function autoHealth(){if(!sb||!U.id||window.__ah)return;window.__ah=1;try{const {data}=await sb.rpc('meus_laudos_certificados');const L=(data||[]).filter(l=>l.pdf_path);if(!L.length)return;const top=L[0],k='crs_hp_'+U.id;if(localStorage.getItem(k)===top.pdf_path&&lerLocal())return;await ativarClinica(top.pdf_path);if(lerLocal())localStorage.setItem(k,top.pdf_path)}catch(e){}finally{window.__ah=0}}
 async function removerLaudo(){localStorage.removeItem('crs_health_'+U.id);U.health='nenhum';U.relatorio='';U.params=null;try{await sb.from('profiles').update({health_status:'nenhum',health_relatorio:null}).eq('id',U.id)}catch(e){}layers();hStat()}
 function confere(r){const p=U.params,o=[];if(!p)return '';
   if(r.f0)o.push(`F0 ${r.f0.m} Hz ${r.f0.m>=p.f0min&&r.f0.m<=p.f0max?'dentro':'fora'} da faixa ${p.f0min}-${p.f0max}`);
@@ -484,7 +485,8 @@ function confere(r){const p=U.params,o=[];if(!p)return '';
 function camPsyq(){location.href='psyq.html'}
 function camPC(){$('lmsg').textContent='💻 Elayon PC — em breve.'}
 setInterval(()=>{if(U.id&&U.health!=='ok')lerHealth().then(layers)},20000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&U.id)lerHealth().then(layers)});
+setInterval(()=>{if(U.id)autoHealth()},60000);setTimeout(()=>{if(U.id)autoHealth()},4000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&U.id){lerHealth().then(layers);autoHealth()}});
 
 /* ===== Fontes em PDF: Health, PsiQ, Treino e 3 de conteúdo • cada PDF = +1 token por áudio ===== */
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -545,4 +547,5 @@ async function resolverTexto(blob,bub){
 }
 
 addEventListener('DOMContentLoaded',()=>{fit();requestAnimationFrame(loop);aplicaCol();layers();carregar().catch(e=>{falha('Falha ao carregar: '+(e.message||e));try{if(U.id)micPronto();prontoStart()}catch(x){}})});
-</script><script src="/voltar.js"></script></body></html>
+</script><script src="/voltar.js"></script><script src="/teste-selo.js"></script>
+</body></html>

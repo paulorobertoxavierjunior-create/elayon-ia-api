@@ -127,4 +127,5 @@ $('bEx').onclick=()=>dl(new Blob([`Notas do piloto — laudo ${LZ.id} (${new Dat
   $('cad').innerHTML=PIL?`<p>🩺 Piloto cadastrado${PIL.registro||PIL.crm?' · '+esc(PIL.registro||PIL.crm):''}</p>`:'<p>⚠️ Você ainda não tem cadastro de piloto. <a href="cadastro-piloto.html" style="color:var(--a);font-weight:800">Cadastrar agora</a>. Sem ele, só o estudo de laudos fica disponível.</p>';
   try{const q=new URLSearchParams(location.search);if(q.get('pn'))$('pn').value=q.get('pn');if(q.get('pe'))$('pe').value=q.get('pe')}catch(e){}
   listar();envios()})();
-</script><script>(function(){var h='/app-medico.html';try{var x=localStorage.getItem('elx_home');if(/^\/app-(medico|master)\.html$/.test(x))h=x}catch(e){}document.querySelectorAll('[data-home]').forEach(function(a){a.href=h})})()</script></body></html>
+</script><script>(function(){var h='/app-medico.html';try{var x=localStorage.getItem('elx_home');if(/^\/app-(medico|master)\.html$/.test(x))h=x}catch(e){}document.querySelectorAll('[data-home]').forEach(function(a){a.href=h})})()</script><script src="/teste-selo.js"></script>
+</body></html>
