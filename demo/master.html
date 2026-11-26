@@ -1,0 +1,22 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Elayon · Demonstração</title></head><body><script src="demo-core.js"></script><script>
+D.shell('Master · Clínica','Cadastra médicos e usuários e responde por todos.','O master é o responsável pela clínica. Ele cadastra os médicos, cadastra os usuários e escolhe o médico de cada um, valida os laudos antes de chegar ao usuário e vê quanto cada etapa consumiu. Tudo aqui é fictício.','master.html');
+var A=document.getElementById('app');
+function R(){var s=D.get(),h='';
+ if(!s.clinica){A.innerHTML='<div class="c"><h3>1 · Cadastrar a clínica</h3><p>Dê um nome fictício. O código da clínica é gerado na hora.</p><input id="cN" placeholder="Nome da clínica (fictícia)"><button class="b" id="cB">Criar clínica</button><p><small>Ou toque em Gerar dados aleatórios, abaixo, para preencher tudo de uma vez.</small></p></div>';document.getElementById('cB').onclick=function(){var n=document.getElementById('cN').value.trim()||'Clínica Demonstração (fictícia)';D.criarClinica(n);R()};return}
+ var tot=D.total(s);
+ h+='<div class="c"><h3>'+D.esc(s.clinica.nome)+'</h3><small>Código da clínica: '+D.esc(s.clinica.codigo)+'</small><div class="kp" style="margin-top:8px"><div><b>'+s.medicos.length+'</b>médicos</div><div><b>'+s.usuarios.length+'</b>usuários</div><div><b>'+tot+'</b>tokens</div></div></div>';
+ h+='<div class="c"><h3>2 · Cadastrar médico</h3><input id="mN" placeholder="Nome (fictício)"><button class="b" id="mB">Cadastrar médico</button>'+s.medicos.map(function(m){var n=s.usuarios.filter(function(u){return u.mid===m.id}).length;return'<div class="it"><div class="r"><b>'+D.esc(m.nome)+'</b><span class="pill">'+n+' usuários</span></div><small>'+D.esc(m.crm)+'</small></div>'}).join('')+'</div>';
+ h+='<div class="c"><h3>3 · Cadastrar usuário</h3><input id="uN" placeholder="Nome (fictício)"><select id="uM">'+s.medicos.map(function(m){return'<option value="'+m.id+'">'+D.esc(m.nome)+'</option>'}).join('')+'</select><button class="b" id="uB">Cadastrar usuário</button><small>O usuário fica sob a responsabilidade do master e do médico escolhido.</small></div>';
+ var pend=s.usuarios.filter(function(u){return u.etapa==='laudo_pendente'});
+ h+='<div class="c"><h3>4 · Validar laudos ('+pend.length+')</h3>'+(pend.map(function(u){return'<div class="it"><b>'+D.esc(u.nome)+'</b><p style="white-space:pre-wrap">'+D.esc(u.laudo)+'</p><small>Tarefas: '+D.esc(u.tarefas.join(' · '))+'</small><button class="b" data-v="'+u.id+'">Validar e enviar ao usuário</button></div>'}).join('')||'<p>Nenhum laudo aguardando.</p>')+'</div>';
+ var et={};s.usuarios.forEach(function(u){et[u.etapa]=(et[u.etapa]||0)+1});
+ var ce={};s.consumo.forEach(function(c){ce[c.acao]=(ce[c.acao]||0)+c.tokens});
+ h+='<div class="c"><h3>5 · Usuários e etapas</h3>'+(s.usuarios.map(function(u){var m=s.medicos.filter(function(x){return x.id===u.mid})[0];return'<div class="it"><div class="r"><b>'+D.esc(u.nome)+'</b><span class="pill">'+D.ETAPA[u.etapa]+'</span></div><small>Médico: '+D.esc(m?m.nome:'-')+'</small></div>'}).join('')||'<p>Sem usuários.</p>')+'</div>';
+ h+='<div class="c"><h3>6 · Consumo por etapa</h3>'+(Object.keys(ce).map(function(k){return'<div class="it"><div class="r"><b>'+D.esc(k)+'</b><b>'+ce[k]+' tokens · '+D.reais(ce[k])+'</b></div></div>'}).join('')||'<p>Sem consumo ainda.</p>')+'<small>Preço simbólico: R$ '+String(D.PRECO).replace('.',',')+' por token. Só a clínica paga.</small></div>';
+ A.innerHTML=h;
+ document.getElementById('mB').onclick=function(){var n=document.getElementById('mN').value.trim();if(n){D.addMedico(n);R()}};
+ document.getElementById('uB').onclick=function(){var n=document.getElementById('uN').value.trim();if(n&&s.medicos.length){D.addUsuario(n,document.getElementById('uM').value);R()}};
+ A.querySelectorAll('[data-v]').forEach(function(b){b.onclick=function(){D.act(b.dataset.v,'validar');R()}})}
+R();
+</script><script src="/teste-selo.js"></script>
+</body></html>

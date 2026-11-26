@@ -1,0 +1,10 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Elayon · Demonstração</title></head><body><script src="demo-core.js"></script><script>
+D.shell('Advanced · Plataforma','Só números de uso. Nunca o conteúdo.','O Advanced enxerga apenas contagens: quantas clínicas, médicos, usuários e tokens. Não vê laudos, prontuários nem nomes de pacientes. A cobrança é simbólica e só vai para a clínica.','advanced.html');
+var A=document.getElementById('app');
+function R(){var s=D.get(),t=D.total(s),ja=s.faturas.reduce(function(a,f){return a+f.tokens},0);
+ var h='<div class="c"><div class="kp"><div><b>'+(s.clinica?1:0)+'</b>clínicas</div><div><b>'+s.medicos.length+'</b>médicos</div><div><b>'+s.usuarios.length+'</b>usuários</div></div><div class="kp" style="margin-top:8px"><div><b>'+t+'</b>tokens usados</div><div><b>'+D.reais(t)+'</b>valor simbólico</div></div></div>';
+ h+='<div class="c"><h3>Cobrança da clínica</h3>'+(s.clinica?'<div class="it"><div class="r"><b>'+D.esc(s.clinica.nome)+'</b><span class="pill">'+(t-ja)+' tokens a faturar</span></div></div><button class="b" id="fa">Gerar fatura simbólica</button><div class="msg" id="fm"></div>':'<p>Sem clínica ainda.</p>')+(s.faturas.length?s.faturas.map(function(f){return'<div class="it"><div class="r"><b>Fatura #'+f.n+'</b><b>R$ '+f.valor.toFixed(2).replace('.',',')+'</b></div><small>'+f.tokens+' tokens · '+new Date(f.t).toLocaleString('pt-BR')+'</small></div>'}).join(''):'')+'<small>Preço simbólico: R$ '+String(D.PRECO).replace('.',',')+' por token. Não é cobrança real.</small></div>';
+ A.innerHTML=h;var fa=document.getElementById('fa');if(fa)fa.onclick=function(){var f=D.faturar();if(!f){document.getElementById('fm').textContent='Nada novo a faturar.';return}R()}}
+R();
+</script><script src="/teste-selo.js"></script>
+</body></html>

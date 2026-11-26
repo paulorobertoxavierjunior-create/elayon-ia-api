@@ -1,0 +1,20 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Elayon · Demonstração</title></head><body><script src="demo-core.js"></script><script>
+D.shell('Usuário · Meu app','Recebe o app, cumpre as tarefas e usa a ferramenta.','O usuário não cadastra nada nem paga nada. Ele recebe o app do master, faz as tarefas do laudo e, quando as tarefas terminam, a ferramenta é liberada para uso livre. Cada uso conta tokens para a clínica.','usuario.html');
+var A=document.getElementById('app'),SEL=null;
+function R(){var s=D.get();if(!s.usuarios.length){A.innerHTML='<div class="c"><p>Ainda não há usuários. Abra o Master e cadastre, ou toque em Gerar dados aleatórios.</p></div>';return}
+ if(!SEL||!s.usuarios.some(function(u){return u.id===SEL}))SEL=s.usuarios[0].id;
+ var u=s.usuarios.filter(function(x){return x.id===SEL})[0];
+ var h='<div class="c"><h3>Quem sou eu (simulação)</h3><select id="su">'+s.usuarios.map(function(x){return'<option value="'+x.id+'"'+(x.id===SEL?' selected':'')+'>'+D.esc(x.nome)+'</option>'}).join('')+'</select></div>';
+ h+='<div class="c"><div class="r"><b>'+D.esc(u.nome)+'</b><span class="pill">'+D.ETAPA[u.etapa]+'</span></div>';
+ if(u.etapa==='cadastrado')h+='<p>Aguardando a calibração com o seu médico.</p>';
+ if(u.etapa==='calibrado'||u.etapa==='consultado')h+='<p>Aguardando a consulta e o laudo.</p>';
+ if(u.etapa==='laudo_pendente')h+='<p>O laudo está com o master para validar. Em breve chega aqui.</p>';
+ if(u.etapa==='em_tarefas'){h+='<p style="white-space:pre-wrap">'+D.esc(u.laudo)+'</p><small>Tarefas ('+u.feitas+'/'+u.tarefas.length+')</small>'+u.tarefas.map(function(t,i){return'<div class="it">'+(i<u.feitas?'✅ ':'⬜ ')+D.esc(t)+'</div>'}).join('')+'<button class="b" id="cu">Marcar a próxima tarefa como feita</button>'}
+ if(u.etapa==='liberado')h+='<p>Ferramenta liberada. Usos até agora: <b>'+u.usos+'</b>.</p><button class="b" id="us">Usar a ferramenta (1 token da clínica)</button>';
+ h+='</div>';A.innerHTML=h;
+ document.getElementById('su').onchange=function(e){SEL=e.target.value;R()};
+ var cu=document.getElementById('cu');if(cu)cu.onclick=function(){D.act(SEL,'cumprir');R()};
+ var us=document.getElementById('us');if(us)us.onclick=function(){D.act(SEL,'uso');R()}}
+R();
+</script><script src="/teste-selo.js"></script>
+</body></html>

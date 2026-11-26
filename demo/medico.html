@@ -1,0 +1,15 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Elayon · Demonstração</title></head><body><script src="demo-core.js"></script><script>
+D.shell('Médico · Consultório','Os usuários do médico e o prontuário de cada um.','O médico entra com o login dele (aqui você escolhe qual médico simular). Vê só os usuários que o master atribuiu a ele, com o prontuário já pronto e fixo. A consulta gera o laudo, que vai ao master para validar.','medico.html');
+var A=document.getElementById('app'),SEL=null;
+function R(){var s=D.get();if(!s.clinica||!s.medicos.length){A.innerHTML='<div class="c"><p>Ainda não há clínica ou médico. Abra o Master e cadastre, ou toque em Gerar dados aleatórios.</p></div>';return}
+ if(!SEL||!s.medicos.some(function(m){return m.id===SEL}))SEL=s.medicos[0].id;
+ var us=s.usuarios.filter(function(u){return u.mid===SEL});
+ var h='<div class="c"><h3>Quem sou eu (simulação)</h3><select id="sm">'+s.medicos.map(function(m){return'<option value="'+m.id+'"'+(m.id===SEL?' selected':'')+'>'+D.esc(m.nome)+'</option>'}).join('')+'</select></div>';
+ h+=us.map(function(u){var pr='<small>Prontuário fixo · idade '+u.idade+' · queixa: '+D.esc(u.queixa)+'</small>';var m=u.medidas?'<small>F0 '+u.medidas.f0+' Hz · jitter '+u.medidas.jitter+'% · shimmer '+u.medidas.shimmer+'% · HNR '+u.medidas.hnr+' · pausas '+u.medidas.pausas+'</small>':'';
+  var bt={cadastrado:['calibrar','Registrar calibração (3 tokens)'],calibrado:['consulta','Fazer consulta (5 tokens)'],consultado:['laudo','Gerar laudo (2 tokens)']}[u.etapa];
+  return'<div class="c"><div class="r"><b>'+D.esc(u.nome)+'</b><span class="pill">'+D.ETAPA[u.etapa]+'</span></div>'+pr+m+(u.laudo?'<p style="white-space:pre-wrap">'+D.esc(u.laudo)+'</p>':'')+(bt?'<button class="b" data-a="'+bt[0]+'" data-u="'+u.id+'">'+bt[1]+'</button>':'')+'</div>'}).join('')||'<div class="c"><p>Este médico ainda não tem usuários.</p></div>';
+ A.innerHTML=h;document.getElementById('sm').onchange=function(e){SEL=e.target.value;R()};
+ A.querySelectorAll('[data-a]').forEach(function(b){b.onclick=function(){D.act(b.dataset.u,b.dataset.a);R()}})}
+R();
+</script><script src="/teste-selo.js"></script>
+</body></html>
