@@ -362,7 +362,7 @@ function pdf(o,S,ass,payload,rcs){
   li(o.piloto.nome,1,13);li(`${o.piloto.crm}  |  ${o.piloto.esp}`);if(o.piloto.inst)li(o.piloto.inst);if(o.piloto.tel)li('WhatsApp profissional: '+o.piloto.tel);li('Conta Elayon: '+o.piloto.email);
   li('Assinado eletronicamente em '+new Date(o.emitido).toLocaleString('pt-BR'),0,9);li('Integridade (SHA-256): '+o.hash.slice(0,32)+'...',0,8);
   const k=Math.min(230/ass.w,90/ass.h),aw=ass.w*k,ah=ass.h*k;d.addImage(ass.url,'PNG',297-aw/2,568-ah,aw,ah);   // por último = por cima, PNG transparente
-  {const n=d.getNumberOfPages();for(let i=1;i<=n;i++){d.setPage(i);d.setFontSize(7.5);d.setTextColor(185,28,28);d.text('TESTE · ferramenta em validação · apoio à avaliação do médico, sem valor diagnóstico',297,830,{align:'center'});d.setTextColor(0)}}
+  {const n=d.getNumberOfPages();for(let i=1;i<=n;i++){d.setPage(i);d.setFontSize(7.5);d.setTextColor(185,28,28);d.text('TESTE · ferramenta em validação · apoio à avaliação do médico, sem valor diagnóstico',297,830,{align:'center'});d.setFontSize(6.5);d.text('Este laudo faz parte de um estudo. Cada piloto é responsável pelo que afirma neste espaço. Elayon Space Systems fornece a ferramenta de medição.',297,821,{align:'center'});d.setTextColor(0)}}
   return d.output('blob')}
 async function assinar(){
   const S=sel4(),pn=$('pn').value.trim(),pe=$('pe').value.trim().toLowerCase(),ob=$('ob').value.trim();
